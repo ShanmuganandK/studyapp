@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, RefreshCw, Check, X } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Check, X, Star } from 'lucide-react';
+import { MasteryEngine } from '../../utils/masteryEngine';
 
 const EMOJIS = ['🍎', '🍌', '🐶', '🐱', '⚽', '🚗'];
 
@@ -16,14 +17,28 @@ const VisualAddition = ({ onBack }) => {
         setEmoji(EMOJIS[Math.floor(Math.random() * EMOJIS.length)]);
         setUserAnswer('');
         setFeedback(null);
+        setQuestionCounter(prev => prev + 1);
     };
+
+    const [questionCounter, setQuestionCounter] = useState(0);
 
     const checkAnswer = () => {
         const sum = num1 + num2;
-        if (parseInt(userAnswer) === sum) {
+        const isCorrect = parseInt(userAnswer) === sum;
+
+        if (isCorrect) {
             setFeedback('correct');
+
+            // Record Attempt for Mastery (Merciful Mode)
+            // We only record SUCCESS. We do not punish failures in Visual Mode.
+            // This allows kids to self-correct and still earn stars.
+            const slotIndex = questionCounter % 5;
+            const questionId = `g1-t4-s1-${slotIndex}`;
+            MasteryEngine.recordAttempt(questionId, true);
+
         } else {
             setFeedback('incorrect');
+            // Do NOT record failure here. Let them try again.
         }
     };
 
@@ -64,8 +79,8 @@ const VisualAddition = ({ onBack }) => {
                         value={userAnswer}
                         onChange={(e) => setUserAnswer(e.target.value)}
                         className={`w-20 h-16 text-center border-4 rounded-xl text-3xl focus:outline-none ${feedback === 'correct' ? 'border-green-400 bg-green-50 text-green-700' :
-                                feedback === 'incorrect' ? 'border-red-400 bg-red-50 text-red-700' :
-                                    'border-indigo-200 focus:border-indigo-500'
+                            feedback === 'incorrect' ? 'border-red-400 bg-red-50 text-red-700' :
+                                'border-indigo-200 focus:border-indigo-500'
                             }`}
                         placeholder="?"
                     />

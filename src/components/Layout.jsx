@@ -1,7 +1,9 @@
 import React from 'react';
-import { Home, BookOpen, Trophy } from 'lucide-react';
+import { Home, BookOpen, Lock } from 'lucide-react';
 
-const Layout = ({ children }) => {
+const Layout = ({ children, currentView, onNavigate }) => {
+    const isActive = (view) => currentView === view ? 'text-indigo-600' : 'text-gray-400 hover:text-indigo-600';
+
     return (
         <div className="min-h-screen bg-indigo-900 flex items-center justify-center p-4 font-sans">
             {/* Mobile Frame */}
@@ -17,17 +19,26 @@ const Layout = ({ children }) => {
 
                 {/* Bottom Navigation */}
                 <div className="h-20 bg-white border-t border-gray-100 flex items-center justify-around px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                    <button className="flex flex-col items-center gap-1 text-indigo-600 hover:text-indigo-800 transition-colors">
+                    <button
+                        onClick={() => onNavigate('ladder')}
+                        className={`flex flex-col items-center gap-1 transition-colors ${isActive('ladder')}`}
+                    >
                         <Home size={24} strokeWidth={2.5} />
                         <span className="text-[10px] font-bold uppercase tracking-wider">Home</span>
                     </button>
-                    <button className="flex flex-col items-center gap-1 text-gray-400 hover:text-indigo-600 transition-colors">
+                    <button
+                        onClick={() => onNavigate('syllabus')}
+                        className={`flex flex-col items-center gap-1 transition-colors ${isActive('syllabus')}`}
+                    >
                         <BookOpen size={24} strokeWidth={2.5} />
                         <span className="text-[10px] font-bold uppercase tracking-wider">Learn</span>
                     </button>
-                    <button className="flex flex-col items-center gap-1 text-gray-400 hover:text-indigo-600 transition-colors">
-                        <Trophy size={24} strokeWidth={2.5} />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Quiz</span>
+                    <button
+                        onClick={() => onNavigate('parent')}
+                        className={`flex flex-col items-center gap-1 transition-colors ${isActive('parent')}`}
+                    >
+                        <Lock size={24} strokeWidth={2.5} />
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Parent</span>
                     </button>
                 </div>
             </div>

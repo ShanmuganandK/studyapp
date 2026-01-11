@@ -4,14 +4,11 @@ import Syllabus from './components/Syllabus'
 import VisualFractions from './components/modules/VisualFractions'
 import VisualAddition from './components/modules/VisualAddition'
 import QuizEngine from './components/QuizEngine'
+import AdventureLadder from './components/AdventureLadder'
 
 function App() {
-  const [currentView, setCurrentView] = useState('home'); // home, syllabus, module
+  const [currentView, setCurrentView] = useState('ladder'); // ladder, syllabus, module, parent
   const [activeModule, setActiveModule] = useState(null);
-
-  const handleStart = () => {
-    setCurrentView('syllabus');
-  };
 
   const handleSelectModule = (module) => {
     setActiveModule(module);
@@ -20,31 +17,42 @@ function App() {
 
   const handleBackToSyllabus = () => {
     setActiveModule(null);
-    setCurrentView('syllabus');
+    setCurrentView('ladder'); // Go back to ladder by default
+  };
+
+  const handleNavigate = (view) => {
+    if (view === 'parent') {
+      const answer = prompt("Parent Gate: What is 10 + 5?");
+      if (answer !== '15') {
+        alert("Incorrect! Access denied.");
+        return;
+      }
+    }
+    setActiveModule(null);
+    setCurrentView(view);
   };
 
   return (
-    <Layout>
-      {currentView === 'home' && (
-        <div className="flex flex-col items-center justify-center h-full space-y-6">
-          <div className="w-24 h-24 bg-yellow-400 rounded-full flex items-center justify-center shadow-lg animate-bounce">
-            <span className="text-4xl">🎓</span>
-          </div>
-          <h1 className="text-3xl font-extrabold text-indigo-900 text-center leading-tight">
-            Math Kids <br />
-            <span className="text-indigo-600 text-xl">CBSE Learning</span>
-          </h1>
-          <button
-            onClick={handleStart}
-            className="bg-green-400 hover:bg-green-500 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 text-lg"
-          >
-            Start Learning
-          </button>
-        </div>
+    <Layout currentView={currentView} onNavigate={handleNavigate}>
+      {currentView === 'ladder' && (
+        <AdventureLadder onSelectModule={handleSelectModule} />
       )}
 
       {currentView === 'syllabus' && (
         <Syllabus onSelectModule={handleSelectModule} />
+      )}
+
+      {currentView === 'parent' && (
+        <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+          <h2 className="text-2xl font-bold text-indigo-900 mb-4">Parent Zone 🔒</h2>
+          <p className="text-gray-600 mb-6">Settings and detailed progress reports coming soon!</p>
+          <button
+            onClick={() => setCurrentView('ladder')}
+            className="bg-indigo-600 text-white px-6 py-2 rounded-full font-bold"
+          >
+            Back to App
+          </button>
+        </div>
       )}
 
       {currentView === 'module' && activeModule && (

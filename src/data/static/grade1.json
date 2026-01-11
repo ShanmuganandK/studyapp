@@ -1,0 +1,184 @@
+{
+    "g1-t1-s1": [
+        {
+            "question": "Which animal is MAJOR?",
+            "options": [
+                "Elephant 🐘",
+                "Mouse 🐁",
+                "Ant 🐜",
+                "Bee 🐝"
+            ],
+            "correctAnswer": "Elephant 🐘"
+        },
+        {
+            "question": "Which object is SMALLER?",
+            "options": [
+                "Key 🔑",
+                "Car 🚗",
+                "Bicycle 🚲",
+                "Bus 🚌"
+            ],
+            "correctAnswer": "Key 🔑"
+        },
+        {
+            "question": "Choose the BIGGEST fruit:",
+            "options": [
+                "Watermelon 🍉",
+                "Grape 🍇",
+                "Apple 🍎",
+                "Orange 🍊"
+            ],
+            "correctAnswer": "Watermelon 🍉"
+        }
+    ],
+    "g1-t1-s2": [
+        {
+            "question": "If you are at the park, which is NEAR you?",
+            "options": [
+                "The Grass 🌱",
+                "The Sun ☀️",
+                "The Moon 🌙",
+                "A Star ⭐"
+            ],
+            "correctAnswer": "The Grass 🌱"
+        },
+        {
+            "question": "Which is FAR away in the sky?",
+            "options": [
+                "Sun ☀️",
+                "Bird 🐦",
+                "Airplane ✈️",
+                "Cloud ☁️"
+            ],
+            "correctAnswer": "Sun ☀️"
+        }
+    ],
+    "g1-t2-s1": [
+        {
+            "question": "Which shape has 3 sides?",
+            "options": [
+                "Triangle",
+                "Square",
+                "Circle",
+                "Rectangle"
+            ],
+            "correctAnswer": "Triangle"
+        },
+        {
+            "question": "Which shape is round?",
+            "options": [
+                "Circle",
+                "Triangle",
+                "Square",
+                "Star"
+            ],
+            "correctAnswer": "Circle"
+        },
+        {
+            "question": "A square has how many sides?",
+            "options": [
+                "4",
+                "2",
+                "3",
+                "5"
+            ],
+            "correctAnswer": "4"
+        }
+    ],
+    "g1-t3-s2": [
+        {
+            "question": "What is the number name for 5?",
+            "options": [
+                "Five",
+                "Four",
+                "Six",
+                "Seven"
+            ],
+            "correctAnswer": "Five"
+        },
+        {
+            "question": "Choose the number for 'Eight':",
+            "options": [
+                "8",
+                "6",
+                "7",
+                "9"
+            ],
+            "correctAnswer": "8"
+        },
+        {
+            "question": "What is the number name for 1?",
+            "options": [
+                "One",
+                "Two",
+                "Ten",
+                "Zero"
+            ],
+            "correctAnswer": "One"
+        }
+    ],
+    "g1-t8-s1": [
+        {
+            "question": "Which is longer?",
+            "options": [
+                "Train",
+                "Bus",
+                "Car",
+                "Bike"
+            ],
+            "correctAnswer": "Train"
+        },
+        {
+            "question": "Which is shorter?",
+            "options": [
+                "Pencil",
+                "Walking Stick",
+                "Tree",
+                "Pole"
+            ],
+            "correctAnswer": "Pencil"
+        },
+        {
+            "question": "My finger is ___ than my arm.",
+            "options": [
+                "Shorter",
+                "Longer",
+                "Same",
+                "Taller"
+            ],
+            "correctAnswer": "Shorter"
+        }
+    ],
+    "g1-t9-s1": [
+        {
+            "question": "When do we wake up?",
+            "options": [
+                "Morning",
+                "Night",
+                "Evening",
+                "Afternoon"
+            ],
+            "correctAnswer": "Morning"
+        },
+        {
+            "question": "When do we eat dinner?",
+            "options": [
+                "Night",
+                "Morning",
+                "Afternoon",
+                "Sunrise"
+            ],
+            "correctAnswer": "Night"
+        },
+        {
+            "question": "We go to school in the:",
+            "options": [
+                "Morning",
+                "Night",
+                "Midnight",
+                "Sunday"
+            ],
+            "correctAnswer": "Morning"
+        }
+    ]
+}

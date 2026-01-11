@@ -1,0 +1,21 @@
+# CBSE Math Kids App Development
+
+- [x] Project Setup & Configuration <!-- id: 0 -->
+- [x] Core Layout & Design System <!-- id: 1 -->
+- [x] Syllabus Navigation Implementation <!-- id: 2 -->
+- [/] Interactive Modules Implementation <!-- id: 3 -->
+    - [x] Visual Fractions <!-- id: 4 -->
+    - [x] Visual Addition <!-- id: 5 -->
+- [x] Quiz Engine Implementation <!-- id: 6 -->
+- [x] Verification & Polish <!-- id: 7 -->
+- [ ] Expand Syllabus Content <!-- id: 8 -->
+    - [x] Grade 1 Syllabus <!-- id: 9 -->
+    - [x] Grade 2 Syllabus <!-- id: 10 -->
+    - [x] Populate Grade 2 Questions <!-- id: 11 -->
+    - [x] Populate Grade 1 Questions <!-- id: 12 -->
+- [x] Mobile Testing / Deployment <!-- id: 13 -->
+    - [x] Enable Network Hosting (Vite) <!-- id: 14 -->
+    - [x] Add PWA Support (Optional) <!-- id: 15 -->
+- [x] Deploy to Public Web <!-- id: 16 -->
+- [ ] Documentation <!-- id: 17 -->
+    - [x] Document Content Sources <!-- id: 18 -->

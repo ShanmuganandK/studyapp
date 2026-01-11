@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, CheckCircle, XCircle, Trophy } from 'lucide-react';
-import { getQuestionsForTopic } from '../data/questions';
+import { ArrowLeft, CheckCircle, XCircle, Trophy, Flame, Star } from 'lucide-react';
+import { getQuestions } from '../utils/questionFactory';
+import { MasteryEngine } from '../utils/masteryEngine';
 
 const QuizEngine = ({ onBack, module }) => {
     const [questions, setQuestions] = useState([]);
@@ -9,9 +10,11 @@ const QuizEngine = ({ onBack, module }) => {
     const [showResult, setShowResult] = useState(false);
     const [selectedOption, setSelectedOption] = useState(null);
     const [isCorrect, setIsCorrect] = useState(null);
+    const [streak, setStreak] = useState(0);
+    const [masteryFeedback, setMasteryFeedback] = useState(null); // 'mastered' | 'streak'
 
     useEffect(() => {
-        const generatedQuestions = getQuestionsForTopic(module.id);
+        const generatedQuestions = getQuestions(module.id);
         setQuestions(generatedQuestions);
 
         // Reset state when module changes
@@ -20,6 +23,7 @@ const QuizEngine = ({ onBack, module }) => {
         setShowResult(false);
         setSelectedOption(null);
         setIsCorrect(null);
+        setStreak(0);
     }, [module]);
 
     const handleOptionSelect = (option) => {
@@ -27,15 +31,33 @@ const QuizEngine = ({ onBack, module }) => {
         setSelectedOption(option);
 
         const currentQuestion = questions[currentQuestionIndex];
-        if (option === currentQuestion.correctAnswer) {
+        const correct = option === currentQuestion.correctAnswer;
+
+        // Record attempt in Mastery Engine
+        // We need a unique ID for the question. Since our questions are dynamically generated/fetched, 
+        // we'll create a composite ID: module.id + index (in a real app, questions would have DB IDs)
+        const questionId = `${module.id}-${currentQuestionIndex}`;
+        const result = MasteryEngine.recordAttempt(questionId, correct);
+
+        if (correct) {
             setIsCorrect(true);
             setScore(score + 1);
+            setStreak(result.streak);
+
+            if (result.justMastered) {
+                setMasteryFeedback('mastered');
+            } else if (result.streak > 1) {
+                setMasteryFeedback('streak');
+            }
         } else {
             setIsCorrect(false);
+            setStreak(0);
+            setMasteryFeedback(null);
         }
 
         // Auto advance after delay
         setTimeout(() => {
+            setMasteryFeedback(null); // Clear feedback
             if (currentQuestionIndex < questions.length - 1) {
                 setCurrentQuestionIndex(currentQuestionIndex + 1);
                 setSelectedOption(null);
@@ -43,7 +65,7 @@ const QuizEngine = ({ onBack, module }) => {
             } else {
                 setShowResult(true);
             }
-        }, 1500);
+        }, 2000); // Slightly longer delay to see feedback
     };
 
     if (questions.length === 0) return <div>Loading...</div>;
@@ -58,7 +80,7 @@ const QuizEngine = ({ onBack, module }) => {
                     onClick={onBack}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full shadow-lg"
                 >
-                    Back to Syllabus
+                    Back to Adventure
                 </button>
             </div>
         );
@@ -67,7 +89,17 @@ const QuizEngine = ({ onBack, module }) => {
     const currentQuestion = questions[currentQuestionIndex];
 
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full relative">
+            {/* Mastery Feedback Overlay */}
+            {masteryFeedback === 'mastered' && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+                    <div className="bg-yellow-400 text-yellow-900 px-6 py-4 rounded-3xl shadow-2xl transform animate-bounce flex flex-col items-center">
+                        <Star size={48} className="fill-current" />
+                        <span className="text-2xl font-black">MASTERED!</span>
+                    </div>
+                </div>
+            )}
+
             <div className="flex items-center gap-4 mb-6">
                 <button onClick={onBack} className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600">
                     <ArrowLeft size={24} />
@@ -80,7 +112,11 @@ const QuizEngine = ({ onBack, module }) => {
                         ></div>
                     </div>
                 </div>
-                <span className="font-bold text-gray-400">{currentQuestionIndex + 1}/{questions.length}</span>
+                {/* Streak Indicator */}
+                <div className={`flex items-center gap-1 font-bold ${streak > 1 ? 'text-orange-500' : 'text-gray-300'}`}>
+                    <Flame size={20} className={streak > 1 ? 'fill-current animate-pulse' : ''} />
+                    <span>{streak}</span>
+                </div>
             </div>
 
             <div className="flex-1 flex flex-col items-center justify-center space-y-8">
@@ -93,10 +129,10 @@ const QuizEngine = ({ onBack, module }) => {
                             onClick={() => handleOptionSelect(option)}
                             disabled={selectedOption !== null}
                             className={`w-full p-4 rounded-xl border-2 text-lg font-bold transition-all ${selectedOption === option
-                                    ? isCorrect
-                                        ? 'bg-green-100 border-green-400 text-green-700'
-                                        : 'bg-red-100 border-red-400 text-red-700'
-                                    : 'bg-white border-indigo-100 text-gray-700 hover:border-indigo-300 hover:bg-indigo-50'
+                                ? isCorrect
+                                    ? 'bg-green-100 border-green-400 text-green-700'
+                                    : 'bg-red-100 border-red-400 text-red-700'
+                                : 'bg-white border-indigo-100 text-gray-700 hover:border-indigo-300 hover:bg-indigo-50'
                                 }`}
                         >
                             <div className="flex items-center justify-between">
