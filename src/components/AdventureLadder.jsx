@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { SYLLABUS } from '../data/syllabus';
 import { getQuestions } from '../utils/questionFactory';
 import { MasteryEngine } from '../utils/masteryEngine';
+import { useAuth } from '../contexts/AuthContext';
 import { Lock, Star, Play, CheckCircle } from 'lucide-react';
 
 const AdventureLadder = ({ onSelectModule }) => {
+    const { currentProfile } = useAuth();
     const [totalStars, setTotalStars] = useState(0);
     const [moduleStats, setModuleStats] = useState({});
 
     useEffect(() => {
+        if (!currentProfile) return;
+
         // Calculate stats for all modules
         const stats = {};
         let total = 0;
@@ -23,7 +27,7 @@ const AdventureLadder = ({ onSelectModule }) => {
                     let masteredCount = 0;
                     questions.forEach((q, index) => {
                         const qId = `${subtopic.id}-${index}`;
-                        const qStats = MasteryEngine.getQuestionStats(qId);
+                        const qStats = MasteryEngine.getQuestionStats(qId, currentProfile.id);
                         if (qStats.status === 'mastered') {
                             masteredCount++;
                         }
@@ -42,7 +46,7 @@ const AdventureLadder = ({ onSelectModule }) => {
 
         setModuleStats(stats);
         setTotalStars(total);
-    }, []);
+    }, [currentProfile]);
 
     const handleStageClick = (subtopic) => {
         onSelectModule({ ...subtopic, type: 'quiz' });

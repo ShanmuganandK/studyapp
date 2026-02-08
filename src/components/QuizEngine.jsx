@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, CheckCircle, XCircle, Trophy, Flame, Star } from 'lucide-react';
 import { getQuestions } from '../utils/questionFactory';
 import { MasteryEngine } from '../utils/masteryEngine';
+import { useAuth } from '../contexts/AuthContext';
 
 const QuizEngine = ({ onBack, module }) => {
+    const { currentProfile } = useAuth();
     const [questions, setQuestions] = useState([]);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [score, setScore] = useState(0);
@@ -35,9 +37,9 @@ const QuizEngine = ({ onBack, module }) => {
 
         // Record attempt in Mastery Engine
         // We need a unique ID for the question. Since our questions are dynamically generated/fetched, 
-        // we'll create a composite ID: module.id + index (in a real app, questions would have DB IDs)
+        // we'll create a composite ID: module.id + index
         const questionId = `${module.id}-${currentQuestionIndex}`;
-        const result = MasteryEngine.recordAttempt(questionId, correct);
+        const result = MasteryEngine.recordAttempt(questionId, correct, currentProfile?.id);
 
         if (correct) {
             setIsCorrect(true);
@@ -87,6 +89,9 @@ const QuizEngine = ({ onBack, module }) => {
     }
 
     const currentQuestion = questions[currentQuestionIndex];
+
+    // Guard against index out of bounds if questions update mid-render
+    if (!currentQuestion) return <div>Loading Question...</div>;
 
     return (
         <div className="flex flex-col h-full relative">

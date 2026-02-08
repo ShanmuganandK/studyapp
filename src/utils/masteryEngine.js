@@ -9,12 +9,19 @@
  * - Stores progress in localStorage.
  */
 
-const STORAGE_KEY = 'math_kids_mastery_v1';
+/**
+ * Mastery Engine
+ * Implements a simplified "Leitner System" + "Streak Mastery" for kids.
+ * Now supports multiple profiles.
+ */
+
+const getStorageKey = (profileId) => `math_kids_mastery_${profileId}`;
 
 // Load progress from local storage
-const loadProgress = () => {
+const loadProgress = (profileId) => {
     try {
-        const stored = localStorage.getItem(STORAGE_KEY);
+        if (!profileId) return {};
+        const stored = localStorage.getItem(getStorageKey(profileId));
         return stored ? JSON.parse(stored) : {};
     } catch (e) {
         console.error("Failed to load mastery progress", e);
@@ -23,9 +30,10 @@ const loadProgress = () => {
 };
 
 // Save progress to local storage
-const saveProgress = (progress) => {
+const saveProgress = (profileId, progress) => {
     try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+        if (!profileId) return;
+        localStorage.setItem(getStorageKey(profileId), JSON.stringify(progress));
     } catch (e) {
         console.error("Failed to save mastery progress", e);
     }
@@ -34,12 +42,11 @@ const saveProgress = (progress) => {
 export const MasteryEngine = {
     /**
      * Records the result of a question attempt.
-     * @param {string} questionId - Unique ID of the question
-     * @param {boolean} isCorrect - Whether the answer was correct
-     * @returns {object} - Updated status for the question { streak, isMastered, justMastered }
      */
-    recordAttempt: (questionId, isCorrect) => {
-        const progress = loadProgress();
+    recordAttempt: (questionId, isCorrect, profileId) => {
+        if (!profileId) return { streak: 0, isMastered: false };
+
+        const progress = loadProgress(profileId);
         const current = progress[questionId] || { streak: 0, status: 'learning' };
 
         let newStreak = current.streak;
@@ -64,7 +71,7 @@ export const MasteryEngine = {
             lastAttempt: Date.now()
         };
 
-        saveProgress(progress);
+        saveProgress(profileId, progress);
 
         return {
             streak: newStreak,
@@ -75,33 +82,25 @@ export const MasteryEngine = {
 
     /**
      * Gets the current stats for a question.
-     * @param {string} questionId 
      */
-    getQuestionStats: (questionId) => {
-        const progress = loadProgress();
+    getQuestionStats: (questionId, profileId) => {
+        const progress = loadProgress(profileId);
         return progress[questionId] || { streak: 0, status: 'new' };
     },
 
     /**
      * Returns the total number of stars (mastered questions)
      */
-    getTotalStars: () => {
-        const progress = loadProgress();
+    getTotalStars: (profileId) => {
+        const progress = loadProgress(profileId);
         return Object.values(progress).filter(p => p.status === 'mastered').length;
     },
 
     /**
      * Smart Recommendation Algorithm
-     * Prioritizes:
-     * 1. Active "Learning" questions (streak > 0 but < 3)
-     * 2. New questions (never attempted)
-     * 3. Mastered questions (Review - 10% chance)
-     * 
-     * @param {Array} allQuestions - Array of question objects with 'id'
-     * @param {number} count - Number of questions to return
      */
-    getRecommendedQuestions: (allQuestions, count = 5) => {
-        const progress = loadProgress();
+    getRecommendedQuestions: (allQuestions, count = 5, profileId) => {
+        const progress = loadProgress(profileId);
 
         // Categorize questions
         const learning = [];
@@ -122,7 +121,6 @@ export const MasteryEngine = {
         const selected = [];
 
         // 1. Prioritize Learning (Finish what you started)
-        // Shuffle learning questions to mix them up
         learning.sort(() => Math.random() - 0.5);
         selected.push(...learning.slice(0, count));
 
@@ -132,11 +130,9 @@ export const MasteryEngine = {
             selected.push(...newQs.slice(0, count - selected.length));
         }
 
-        // 3. If still need more (or occasionally), add Review
-        // Force add a review question if we have space and mastered questions exist
+        // 3. If still need more, add Review
         if (selected.length < count && mastered.length > 0) {
             mastered.sort((a, b) => {
-                // Prioritize reviewing items not seen in a while
                 const timeA = progress[a.id]?.lastAttempt || 0;
                 const timeB = progress[b.id]?.lastAttempt || 0;
                 return timeA - timeB; // Oldest first

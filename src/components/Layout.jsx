@@ -20,18 +20,18 @@ const Layout = ({ children, currentView, onNavigate }) => {
                 {/* Bottom Navigation */}
                 <div className="h-20 bg-white border-t border-gray-100 flex items-center justify-around px-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
                     <button
-                        onClick={() => onNavigate('ladder')}
-                        className={`flex flex-col items-center gap-1 transition-colors ${isActive('ladder')}`}
+                        onClick={() => onNavigate('syllabus')}
+                        className={`flex flex-col items-center gap-1 transition-colors ${isActive('syllabus')}`}
                     >
                         <Home size={24} strokeWidth={2.5} />
                         <span className="text-[10px] font-bold uppercase tracking-wider">Home</span>
                     </button>
                     <button
-                        onClick={() => onNavigate('syllabus')}
-                        className={`flex flex-col items-center gap-1 transition-colors ${isActive('syllabus')}`}
+                        onClick={() => onNavigate('ladder')}
+                        className={`flex flex-col items-center gap-1 transition-colors ${isActive('ladder')}`}
                     >
                         <BookOpen size={24} strokeWidth={2.5} />
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Learn</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Adventure</span>
                     </button>
                     <button
                         onClick={() => onNavigate('parent')}

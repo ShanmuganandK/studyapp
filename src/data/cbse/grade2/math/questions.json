@@ -1,0 +1,930 @@
+{
+    "g2-t1-s1": [
+        {
+            "question": "What comes after 199?",
+            "options": [
+                "200",
+                "190",
+                "201",
+                "100"
+            ],
+            "correctAnswer": "200"
+        },
+        {
+            "question": "Which number is missing? 550, 551, __, 553",
+            "options": [
+                "552",
+                "554",
+                "555",
+                "560"
+            ],
+            "correctAnswer": "552"
+        },
+        {
+            "question": "Count forward: 898, 899, ___",
+            "options": [
+                "900",
+                "800",
+                "901",
+                "999"
+            ],
+            "correctAnswer": "900"
+        }
+    ],
+    "g2-t1-s2": [
+        {
+            "question": "In 345, what is the place value of 4?",
+            "options": [
+                "Tens",
+                "Ones",
+                "Hundreds",
+                "Thousands"
+            ],
+            "correctAnswer": "Tens"
+        },
+        {
+            "question": "Which number has 7 in the Hundreds place?",
+            "options": [
+                "732",
+                "372",
+                "237",
+                "073"
+            ],
+            "correctAnswer": "732"
+        },
+        {
+            "question": "5 Hundreds + 2 Tens + 9 Ones =",
+            "options": [
+                "529",
+                "592",
+                "259",
+                "925"
+            ],
+            "correctAnswer": "529"
+        }
+    ],
+    "g2-t1-s3": [
+        {
+            "question": "Expand 456",
+            "options": [
+                "400 + 50 + 6",
+                "40 + 50 + 6",
+                "400 + 5 + 6",
+                "4 + 5 + 6"
+            ],
+            "correctAnswer": "400 + 50 + 6"
+        },
+        {
+            "question": "What is 200 + 30 + 5?",
+            "options": [
+                "235",
+                "253",
+                "325",
+                "532"
+            ],
+            "correctAnswer": "235"
+        },
+        {
+            "question": "Expand 901",
+            "options": [
+                "900 + 1",
+                "900 + 10",
+                "90 + 1",
+                "9 + 0 + 1"
+            ],
+            "correctAnswer": "900 + 1"
+        }
+    ],
+    "g2-t1-s4": [
+        {
+            "question": "Which is greater: 543 or 534?",
+            "options": [
+                "543",
+                "534",
+                "Equal",
+                "None"
+            ],
+            "correctAnswer": "543"
+        },
+        {
+            "question": "Choose the smallest number:",
+            "options": [
+                "102",
+                "120",
+                "201",
+                "210"
+            ],
+            "correctAnswer": "102"
+        },
+        {
+            "question": "Use <, >, or = : 789 __ 798",
+            "options": [
+                "<",
+                ">",
+                "=",
+                "+"
+            ],
+            "correctAnswer": "<"
+        }
+    ],
+    "g2-t2-s1": [
+        {
+            "question": "23 + 15 =",
+            "options": [
+                "38",
+                "48",
+                "37",
+                "28"
+            ],
+            "correctAnswer": "38"
+        },
+        {
+            "question": "40 + 20 =",
+            "options": [
+                "60",
+                "50",
+                "70",
+                "80"
+            ],
+            "correctAnswer": "60"
+        },
+        {
+            "question": "12 + 12 =",
+            "options": [
+                "24",
+                "22",
+                "42",
+                "20"
+            ],
+            "correctAnswer": "24"
+        }
+    ],
+    "g2-t2-s2": [
+        {
+            "question": "100 + 200 =",
+            "options": [
+                "300",
+                "400",
+                "120",
+                "210"
+            ],
+            "correctAnswer": "300"
+        },
+        {
+            "question": "123 + 100 =",
+            "options": [
+                "223",
+                "133",
+                "323",
+                "124"
+            ],
+            "correctAnswer": "223"
+        },
+        {
+            "question": "300 + 50 =",
+            "options": [
+                "350",
+                "305",
+                "530",
+                "503"
+            ],
+            "correctAnswer": "350"
+        }
+    ],
+    "g2-t2-s3": [
+        {
+            "question": "18 + 5 =",
+            "options": [
+                "23",
+                "22",
+                "13",
+                "33"
+            ],
+            "correctAnswer": "23"
+        },
+        {
+            "question": "29 + 14 =",
+            "options": [
+                "43",
+                "33",
+                "44",
+                "34"
+            ],
+            "correctAnswer": "43"
+        },
+        {
+            "question": "35 + 35 =",
+            "options": [
+                "70",
+                "60",
+                "80",
+                "75"
+            ],
+            "correctAnswer": "70"
+        }
+    ],
+    "g2-t3-s1": [
+        {
+            "question": "45 - 5 =",
+            "options": [
+                "40",
+                "50",
+                "35",
+                "45"
+            ],
+            "correctAnswer": "40"
+        },
+        {
+            "question": "28 - 10 =",
+            "options": [
+                "18",
+                "38",
+                "8",
+                "20"
+            ],
+            "correctAnswer": "18"
+        },
+        {
+            "question": "33 - 11 =",
+            "options": [
+                "22",
+                "44",
+                "12",
+                "21"
+            ],
+            "correctAnswer": "22"
+        }
+    ],
+    "g2-t3-s2": [
+        {
+            "question": "500 - 100 =",
+            "options": [
+                "400",
+                "600",
+                "300",
+                "500"
+            ],
+            "correctAnswer": "400"
+        },
+        {
+            "question": "250 - 50 =",
+            "options": [
+                "200",
+                "300",
+                "150",
+                "205"
+            ],
+            "correctAnswer": "200"
+        },
+        {
+            "question": "125 - 25 =",
+            "options": [
+                "100",
+                "150",
+                "120",
+                "25"
+            ],
+            "correctAnswer": "100"
+        }
+    ],
+    "g2-t3-s3": [
+        {
+            "question": "32 - 15 =",
+            "options": [
+                "17",
+                "27",
+                "13",
+                "23"
+            ],
+            "correctAnswer": "17"
+        },
+        {
+            "question": "50 - 28 =",
+            "options": [
+                "22",
+                "32",
+                "28",
+                "12"
+            ],
+            "correctAnswer": "22"
+        },
+        {
+            "question": "81 - 9 =",
+            "options": [
+                "72",
+                "62",
+                "82",
+                "71"
+            ],
+            "correctAnswer": "72"
+        }
+    ],
+    "g2-t4-s1": [
+        {
+            "question": "2 + 2 + 2 is same as:",
+            "options": [
+                "3 × 2",
+                "2 × 2",
+                "4 × 2",
+                "3 + 2"
+            ],
+            "correctAnswer": "3 × 2"
+        },
+        {
+            "question": "5 + 5 + 5 + 5 =",
+            "options": [
+                "4 × 5",
+                "5 × 5",
+                "3 × 5",
+                "6 × 5"
+            ],
+            "correctAnswer": "4 × 5"
+        },
+        {
+            "question": "How many legs do 2 dogs have?",
+            "options": [
+                "8",
+                "4",
+                "6",
+                "10"
+            ],
+            "correctAnswer": "8"
+        }
+    ],
+    "g2-t4-s2": [
+        {
+            "question": "2 × 3 =",
+            "options": [
+                "6",
+                "5",
+                "8",
+                "4"
+            ],
+            "correctAnswer": "6"
+        },
+        {
+            "question": "2 × 8 =",
+            "options": [
+                "16",
+                "18",
+                "14",
+                "12"
+            ],
+            "correctAnswer": "16"
+        },
+        {
+            "question": "2 × 10 =",
+            "options": [
+                "20",
+                "12",
+                "200",
+                "10"
+            ],
+            "correctAnswer": "20"
+        }
+    ],
+    "g2-t4-s3": [
+        {
+            "question": "3 × 4 =",
+            "options": [
+                "12",
+                "14",
+                "9",
+                "15"
+            ],
+            "correctAnswer": "12"
+        },
+        {
+            "question": "3 × 3 =",
+            "options": [
+                "9",
+                "6",
+                "12",
+                "3"
+            ],
+            "correctAnswer": "9"
+        },
+        {
+            "question": "3 × 7 =",
+            "options": [
+                "21",
+                "24",
+                "18",
+                "27"
+            ],
+            "correctAnswer": "21"
+        }
+    ],
+    "g2-t4-s4": [
+        {
+            "question": "4 × 5 =",
+            "options": [
+                "20",
+                "25",
+                "15",
+                "24"
+            ],
+            "correctAnswer": "20"
+        },
+        {
+            "question": "4 × 2 =",
+            "options": [
+                "8",
+                "6",
+                "12",
+                "16"
+            ],
+            "correctAnswer": "8"
+        },
+        {
+            "question": "4 × 9 =",
+            "options": [
+                "36",
+                "32",
+                "40",
+                "28"
+            ],
+            "correctAnswer": "36"
+        }
+    ],
+    "g2-t4-s5": [
+        {
+            "question": "5 × 6 =",
+            "options": [
+                "30",
+                "35",
+                "25",
+                "20"
+            ],
+            "correctAnswer": "30"
+        },
+        {
+            "question": "5 × 1 =",
+            "options": [
+                "5",
+                "1",
+                "10",
+                "0"
+            ],
+            "correctAnswer": "5"
+        },
+        {
+            "question": "5 × 5 =",
+            "options": [
+                "25",
+                "20",
+                "30",
+                "15"
+            ],
+            "correctAnswer": "25"
+        }
+    ],
+    "g2-t4-s6": [
+        {
+            "question": "10 × 2 =",
+            "options": [
+                "20",
+                "12",
+                "200",
+                "100"
+            ],
+            "correctAnswer": "20"
+        },
+        {
+            "question": "10 × 5 =",
+            "options": [
+                "50",
+                "55",
+                "15",
+                "500"
+            ],
+            "correctAnswer": "50"
+        },
+        {
+            "question": "10 × 9 =",
+            "options": [
+                "90",
+                "99",
+                "19",
+                "900"
+            ],
+            "correctAnswer": "90"
+        }
+    ],
+    "g2-t5-s1": [
+        {
+            "question": "We measure a pencil in:",
+            "options": [
+                "cm",
+                "m",
+                "km",
+                "kg"
+            ],
+            "correctAnswer": "cm"
+        },
+        {
+            "question": "1 meter = ___ centimeters",
+            "options": [
+                "100",
+                "10",
+                "1000",
+                "50"
+            ],
+            "correctAnswer": "100"
+        },
+        {
+            "question": "Which is longer?",
+            "options": [
+                "Bus",
+                "Car",
+                "Bicycle",
+                "Skateboard"
+            ],
+            "correctAnswer": "Bus"
+        }
+    ],
+    "g2-t5-s2": [
+        {
+            "question": "We measure weight in:",
+            "options": [
+                "kg and g",
+                "m and cm",
+                "l and ml",
+                "hours"
+            ],
+            "correctAnswer": "kg and g"
+        },
+        {
+            "question": "Which is heavier?",
+            "options": [
+                "Elephant",
+                "Cat",
+                "Mouse",
+                "Ant"
+            ],
+            "correctAnswer": "Elephant"
+        },
+        {
+            "question": "1 kg = ___ grams",
+            "options": [
+                "1000",
+                "100",
+                "10",
+                "500"
+            ],
+            "correctAnswer": "1000"
+        }
+    ],
+    "g2-t5-s3": [
+        {
+            "question": "We measure water in:",
+            "options": [
+                "Liters",
+                "Meters",
+                "Grams",
+                "Seconds"
+            ],
+            "correctAnswer": "Liters"
+        },
+        {
+            "question": "A bucket holds ___ water than a cup.",
+            "options": [
+                "More",
+                "Less",
+                "Same",
+                "None"
+            ],
+            "correctAnswer": "More"
+        },
+        {
+            "question": "Which holds the least?",
+            "options": [
+                "Spoon",
+                "Cup",
+                "Bottle",
+                "Bucket"
+            ],
+            "correctAnswer": "Spoon"
+        }
+    ],
+    "g2-t6-s1": [
+        {
+            "question": "The long hand shows:",
+            "options": [
+                "Minutes",
+                "Hours",
+                "Seconds",
+                "Days"
+            ],
+            "correctAnswer": "Minutes"
+        },
+        {
+            "question": "The short hand shows:",
+            "options": [
+                "Hours",
+                "Minutes",
+                "Seconds",
+                "Years"
+            ],
+            "correctAnswer": "Hours"
+        },
+        {
+            "question": "When both hands are at 12, it is:",
+            "options": [
+                "12:00",
+                "6:00",
+                "1:00",
+                "12:30"
+            ],
+            "correctAnswer": "12:00"
+        }
+    ],
+    "g2-t6-s2": [
+        {
+            "question": "How many days in a week?",
+            "options": [
+                "7",
+                "5",
+                "10",
+                "30"
+            ],
+            "correctAnswer": "7"
+        },
+        {
+            "question": "Which day comes after Monday?",
+            "options": [
+                "Tuesday",
+                "Sunday",
+                "Wednesday",
+                "Friday"
+            ],
+            "correctAnswer": "Tuesday"
+        },
+        {
+            "question": "Which is a holiday?",
+            "options": [
+                "Sunday",
+                "Monday",
+                "Tuesday",
+                "Friday"
+            ],
+            "correctAnswer": "Sunday"
+        }
+    ],
+    "g2-t6-s3": [
+        {
+            "question": "How many months in a year?",
+            "options": [
+                "12",
+                "10",
+                "6",
+                "24"
+            ],
+            "correctAnswer": "12"
+        },
+        {
+            "question": "Which is the first month?",
+            "options": [
+                "January",
+                "December",
+                "June",
+                "March"
+            ],
+            "correctAnswer": "January"
+        },
+        {
+            "question": "Christmas is in:",
+            "options": [
+                "December",
+                "January",
+                "November",
+                "October"
+            ],
+            "correctAnswer": "December"
+        }
+    ],
+    "g2-t7-s1": [
+        {
+            "question": "Identify the coin with '₹5':",
+            "options": [
+                "5 Rupees",
+                "1 Rupee",
+                "10 Rupees",
+                "2 Rupees"
+            ],
+            "correctAnswer": "5 Rupees"
+        },
+        {
+            "question": "Which note is pink?",
+            "options": [
+                "₹2000",
+                "₹10",
+                "₹500",
+                "₹100"
+            ],
+            "correctAnswer": "₹2000"
+        },
+        {
+            "question": "How many 50 paise make 1 Rupee?",
+            "options": [
+                "2",
+                "1",
+                "4",
+                "10"
+            ],
+            "correctAnswer": "2"
+        }
+    ],
+    "g2-t7-s2": [
+        {
+            "question": "₹10 + ₹10 =",
+            "options": [
+                "₹20",
+                "₹30",
+                "₹100",
+                "₹15"
+            ],
+            "correctAnswer": "₹20"
+        },
+        {
+            "question": "₹50 + ₹20 =",
+            "options": [
+                "₹70",
+                "₹60",
+                "₹80",
+                "₹90"
+            ],
+            "correctAnswer": "₹70"
+        },
+        {
+            "question": "You buy a candy for ₹5. You give ₹10. Change?",
+            "options": [
+                "₹5",
+                "₹2",
+                "₹1",
+                "₹0"
+            ],
+            "correctAnswer": "₹5"
+        }
+    ],
+    "g2-t8-s1": [
+        {
+            "question": "A triangle has __ corners.",
+            "options": [
+                "3",
+                "4",
+                "0",
+                "5"
+            ],
+            "correctAnswer": "3"
+        },
+        {
+            "question": "A circle has __ sides.",
+            "options": [
+                "0",
+                "1",
+                "2",
+                "4"
+            ],
+            "correctAnswer": "0"
+        },
+        {
+            "question": "Opposite sides of a rectangle are:",
+            "options": [
+                "Equal",
+                "Different",
+                "Curved",
+                "Zigzag"
+            ],
+            "correctAnswer": "Equal"
+        }
+    ],
+    "g2-t8-s2": [
+        {
+            "question": "A ball is a:",
+            "options": [
+                "Sphere",
+                "Cube",
+                "Cone",
+                "Cylinder"
+            ],
+            "correctAnswer": "Sphere"
+        },
+        {
+            "question": "A dice is a:",
+            "options": [
+                "Cube",
+                "Cuboid",
+                "Sphere",
+                "Cone"
+            ],
+            "correctAnswer": "Cube"
+        },
+        {
+            "question": "An ice-cream cone is a:",
+            "options": [
+                "Cone",
+                "Cylinder",
+                "Sphere",
+                "Cube"
+            ],
+            "correctAnswer": "Cone"
+        }
+    ],
+    "g2-t8-s3": [
+        {
+            "question": "Complete: 2, 4, 6, __",
+            "options": [
+                "8",
+                "7",
+                "9",
+                "10"
+            ],
+            "correctAnswer": "8"
+        },
+        {
+            "question": "Complete: A, B, C, __",
+            "options": [
+                "D",
+                "E",
+                "F",
+                "G"
+            ],
+            "correctAnswer": "D"
+        },
+        {
+            "question": "Complete: 10, 20, 30, __",
+            "options": [
+                "40",
+                "50",
+                "35",
+                "100"
+            ],
+            "correctAnswer": "40"
+        }
+    ],
+    "g2-t9-s1": [
+        {
+            "question": "Data can be shown in a:",
+            "options": [
+                "Table",
+                "Chair",
+                "Book",
+                "Bag"
+            ],
+            "correctAnswer": "Table"
+        },
+        {
+            "question": "We use tally marks to:",
+            "options": [
+                "Count",
+                "Draw",
+                "Write",
+                "Read"
+            ],
+            "correctAnswer": "Count"
+        },
+        {
+            "question": "||| means:",
+            "options": [
+                "3",
+                "4",
+                "2",
+                "5"
+            ],
+            "correctAnswer": "3"
+        }
+    ],
+    "g2-t9-s2": [
+        {
+            "question": "A pictograph uses ___ to show data.",
+            "options": [
+                "Pictures",
+                "Words",
+                "Numbers",
+                "Sounds"
+            ],
+            "correctAnswer": "Pictures"
+        },
+        {
+            "question": "If 1 🍎 = 2 apples, then 🍎🍎 =",
+            "options": [
+                "4 apples",
+                "2 apples",
+                "3 apples",
+                "5 apples"
+            ],
+            "correctAnswer": "4 apples"
+        },
+        {
+            "question": "Graphs make data ___ to understand.",
+            "options": [
+                "Easy",
+                "Hard",
+                "Boring",
+                "Slow"
+            ],
+            "correctAnswer": "Easy"
+        }
+    ]
+}
