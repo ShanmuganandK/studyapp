@@ -67,6 +67,30 @@ src/
 └── main.jsx            # React DOM rendering
 ```
 
+## 🚀 Deployment
+
+### Deploying to Netlify
+
+1.  **Push to GitHub**: Ensure your project is pushed to a GitHub repository.
+2.  **Connect to Netlify**:
+    *   Log in to Netlify and click **"Add new site"** > **"Import an existing project"**.
+    *   Select **GitHub** and choose your repository (`cbse-math-kids-app`).
+3.  **Build Settings**: Netlify should auto-detect these:
+    *   **Build command**: `npm run build`
+    *   **Publish directory**: `dist`
+4.  **Environment Variables** (Crucial Step 🔐):
+    *   Go to **Site settings** > **Build & deploy** > **Environment** > **Environment variables**.
+    *   Click **"Add variable"**.
+    *   Add each key from your local `.env` file:
+        *   `VITE_FIREBASE_API_KEY`: (Your value)
+        *   `VITE_FIREBASE_AUTH_DOMAIN`: (Your value)
+        *   `VITE_FIREBASE_PROJECT_ID`: (Your value)
+        *   `VITE_FIREBASE_STORAGE_BUCKET`: (Your value)
+        *   `VITE_FIREBASE_MESSAGING_SENDER_ID`: (Your value)
+        *   `VITE_FIREBASE_APP_ID`: (Your value)
+        *   `VITE_FIREBASE_MEASUREMENT_ID`: (Your value)
+5.  **Deploy**: Click **"Deploy site"**.
+
 ## 📚 Documentation
 
 Detailed documentation can be found in the `documents/` directory:

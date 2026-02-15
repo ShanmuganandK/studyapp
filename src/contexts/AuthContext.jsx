@@ -11,18 +11,27 @@ export const AuthProvider = ({ children }) => {
     const [currentProfile, setCurrentProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    const [parentSettings, setParentSettings] = useState({ passcode: null });
+
     // Persist key helper
     const getProfilesKey = (uid) => `math_kids_profiles_${uid}`;
     const getLastProfileKey = (uid) => `math_kids_last_profile_${uid}`;
+    const getSettingsKey = (uid) => `math_kids_settings_${uid}`;
 
     useEffect(() => {
         const unsubscribe = authService.onAuthStateChanged((user) => {
             setUser(user);
             if (user) {
-                // Load profiles from LocalStorage
+                // Load profiles
                 const savedProfiles = localStorage.getItem(getProfilesKey(user.uid));
                 if (savedProfiles) {
                     setProfiles(JSON.parse(savedProfiles));
+                }
+
+                // Load Settings
+                const savedSettings = localStorage.getItem(getSettingsKey(user.uid));
+                if (savedSettings) {
+                    setParentSettings(JSON.parse(savedSettings));
                 }
 
                 // Auto-restore last active profile
@@ -37,6 +46,7 @@ export const AuthProvider = ({ children }) => {
             } else {
                 setProfiles([]);
                 setCurrentProfile(null);
+                setParentSettings({ passcode: null });
             }
             setLoading(false);
         });
@@ -59,6 +69,7 @@ export const AuthProvider = ({ children }) => {
             setUser(null);
             setProfiles([]);
             setCurrentProfile(null);
+            setParentSettings({ passcode: null });
         } catch (error) {
             console.error("Logout failed", error);
         }
@@ -98,16 +109,31 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const updatePasscode = (newPasscode) => {
+        if (!user) return;
+        const newSettings = { ...parentSettings, passcode: newPasscode };
+        setParentSettings(newSettings);
+        localStorage.setItem(getSettingsKey(user.uid), JSON.stringify(newSettings));
+    };
+
+    const verifyPasscode = (inputCode) => {
+        if (!parentSettings.passcode) return true; // Open if no code set
+        return parentSettings.passcode === inputCode;
+    };
+
     const value = {
         user,
         profiles,
         currentProfile,
+        parentSettings,
         loading,
         login,
         logout,
         addProfile,
         selectProfile,
-        switchProfile
+        switchProfile,
+        updatePasscode,
+        verifyPasscode
     };
 
     return (
