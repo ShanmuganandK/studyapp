@@ -8,6 +8,7 @@ import AdventureLadder from './components/AdventureLadder'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Login from './components/Login'
 import ParentGateModal from './components/ParentGateModal'
+import ProfileSelector from './components/ProfileSelector'
 import { Lock } from 'lucide-react'
 
 class ErrorBoundary extends React.Component {
