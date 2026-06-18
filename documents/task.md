@@ -17,5 +17,10 @@
     - [x] Enable Network Hosting (Vite) <!-- id: 14 -->
     - [x] Add PWA Support (Optional) <!-- id: 15 -->
 - [x] Deploy to Public Web <!-- id: 16 -->
+- [x] Gamification & "One Engine, Two Themes" Architecture <!-- id: 19 -->
+    - [x] Implement ThemeManager (Grade 1-2 vs Grade 3+) <!-- id: 20 -->
+    - [x] Implement StampEngine (Offline local storage) <!-- id: 21 -->
+    - [x] Implement PassportDashboard for Grade 3+ <!-- id: 22 -->
+    - [x] Implement StampCelebration Animation Overlay <!-- id: 23 -->
 - [ ] Documentation <!-- id: 17 -->
     - [x] Document Content Sources <!-- id: 18 -->

@@ -1,7 +1,13 @@
 import { firebaseAdapter } from './firebaseAdapter';
+import { localAdapter } from './localAdapter';
 
-// We can easily swap 'firebaseAdapter' with 'supabaseAdapter' or 'localAdapter' in the future.
-const adapter = firebaseAdapter;
+// Detect if Firebase is configured
+const isFirebaseConfigured = 
+  import.meta.env.VITE_FIREBASE_API_KEY && 
+  import.meta.env.VITE_FIREBASE_API_KEY !== 'undefined' && 
+  import.meta.env.VITE_FIREBASE_API_KEY.trim() !== '';
+
+const adapter = isFirebaseConfigured ? firebaseAdapter : localAdapter;
 
 export const authService = {
     login: () => adapter.loginWithGoogle(),

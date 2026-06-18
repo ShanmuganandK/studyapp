@@ -19,6 +19,13 @@ Answering 3 questions correctly in a row triggers the **"MASTERED!"** celebratio
 ### 3. Parent Zone
 The footer navigation works correctly. Clicking "Parent" prompts for a math answer (`10 + 5 = 15`) and grants access to the restricted area.
 
+### 4. Grade 3+ Gamification: Global Math Explorer
+Implemented a "One Engine, Two Themes" architecture:
+- **ThemeManager**: Roots the user based on their grade. Grade 1-2 sees the Adventure Ladder. Grade 3+ sees the Passport Dashboard.
+- **Passport Dashboard**: A mature, achievement-based UI showing a digital passport booklet with mock topics.
+- **StampCelebration Overlay**: A pure CSS, heavy rubber stamp slamming animation with confetti that triggers when an older student masters a topic.
+- **StampEngine**: Offline-first progress tracking using localStorage.
+
 ## Browser Recording
 A full recording of the verification session is available:
 ![Gamification Verification](file:///C:/Users/yshan/.gemini/antigravity/brain/69b49392-36d7-4200-8312-64c1b893f5b3/gamification_verification_1764691741767.webp)

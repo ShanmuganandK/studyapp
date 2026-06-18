@@ -22,13 +22,27 @@ Expand the syllabus to include a comprehensive Grade 2 curriculum, covering Numb
 - App icons for PWA manifest.
 
 ### Core Architecture
-#### [NEW] [App.jsx](file:///C:/Users/yshan/.gemini/antigravity/scratch/cbse-math-kids-app/src/App.jsx)
-- Main entry point.
-- Manages state for current view (Syllabus vs. Lesson vs. Quiz).
+#### [NEW] [components/ThemeManager.jsx](file:///f:/AI%20Programming/CBSC%20App/studyapp/src/components/ThemeManager.jsx)
+- Implements "One Engine, Two Themes" routing architecture.
+- Renders `AdventureLadder` for Grades 1-2 and `PassportDashboard` for Grades 3+.
 
-#### [NEW] [components/Layout.jsx](file:///C:/Users/yshan/.gemini/antigravity/scratch/cbse-math-kids-app/src/components/Layout.jsx)
+#### [MODIFY] [App.jsx](file:///f:/AI%20Programming/CBSC%20App/studyapp/src/App.jsx)
+- Root logic updated or delegates to `ThemeManager` for theme orchestration.
+
+#### [NEW] [components/Layout.jsx](file:///f:/AI%20Programming/CBSC%20App/studyapp/src/components/Layout.jsx)
 - Implements the centered mobile phone frame.
 - Applies the "Candy Land" color palette background.
+
+### Gamification & Themes
+#### [NEW] [utils/StampEngine.js](file:///f:/AI%20Programming/CBSC%20App/studyapp/src/utils/StampEngine.js)
+- Lightweight utility to manage Passport Stamps in `localStorage` offline.
+
+#### [NEW] [components/PassportDashboard.jsx](file:///f:/AI%20Programming/CBSC%20App/studyapp/src/components/PassportDashboard.jsx)
+- Sleek, "Global Math Explorer" themed dashboard for Grade 3+.
+- Maps over mock passport data to show unlocked SVG stamps.
+
+#### [NEW] [components/StampCelebration.jsx](file:///f:/AI%20Programming/CBSC%20App/studyapp/src/components/StampCelebration.jsx)
+- Overlay triggered on mastery, featuring a CSS animation of a stamp slamming and confetti.
 
 ### Data Layer
 #### [NEW] [data/syllabus.js](file:///C:/Users/yshan/.gemini/antigravity/scratch/cbse-math-kids-app/src/data/syllabus.js)

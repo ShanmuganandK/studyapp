@@ -44,6 +44,18 @@ This document tracks the alignment of the **CBSE Math Kids App** content with th
 
 ---
 
+## Grade 3 Content Mapping (In Progress)
+
+| App Topic ID | App Topic Title | NCERT "Math-Magic Book 3" Chapter | Key Concepts Verified |
+| :--- | :--- | :--- | :--- |
+| `g3-t1` | **Multiplication Basics** | *Ch 9: How Many Times?* | 2x, 5x, 10x tables |
+| `g3-t2` | **Intro to Division** | *Ch 12: Can We Share?* | Sharing equally |
+| `g3-t3` | **Fractions** | *Ch 13: Smart Charts* (related concepts) | Parts of a whole |
+| `g3-t4` | **3D Shapes** | *Ch 1: Where to Look From* | Cubes, spheres, views |
+
+---
+
 ## Verification Status
 - [x] **Grade 1**: Fully aligned with 2024-25 Syllabus.
 - [x] **Grade 2**: Aligned with standard Math-Magic curriculum.
+- [ ] **Grade 3**: Initial topics mapped for Global Math Explorer Passport.

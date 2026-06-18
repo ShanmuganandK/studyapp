@@ -3,6 +3,7 @@ import { ArrowLeft, CheckCircle, XCircle, Trophy, Flame, Star } from 'lucide-rea
 import { getQuestions } from '../utils/questionFactory';
 import { MasteryEngine } from '../utils/masteryEngine';
 import { useAuth } from '../contexts/AuthContext';
+import StampCelebration from './StampCelebration';
 
 const QuizEngine = ({ onBack, module }) => {
     const { currentProfile } = useAuth();
@@ -14,6 +15,8 @@ const QuizEngine = ({ onBack, module }) => {
     const [isCorrect, setIsCorrect] = useState(null);
     const [streak, setStreak] = useState(0);
     const [masteryFeedback, setMasteryFeedback] = useState(null); // 'mastered' | 'streak'
+
+    const userGrade = parseInt(localStorage.getItem('userGrade') || '1', 10);
 
     useEffect(() => {
         const generatedQuestions = getQuestions(module.id);
@@ -97,12 +100,20 @@ const QuizEngine = ({ onBack, module }) => {
         <div className="flex flex-col h-full relative">
             {/* Mastery Feedback Overlay */}
             {masteryFeedback === 'mastered' && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
-                    <div className="bg-yellow-400 text-yellow-900 px-6 py-4 rounded-3xl shadow-2xl transform animate-bounce flex flex-col items-center">
-                        <Star size={48} className="fill-current" />
-                        <span className="text-2xl font-black">MASTERED!</span>
+                userGrade <= 2 ? (
+                    <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+                        <div className="bg-yellow-400 text-yellow-900 px-6 py-4 rounded-3xl shadow-2xl transform animate-bounce flex flex-col items-center">
+                            <Star size={48} className="fill-current" />
+                            <span className="text-2xl font-black">MASTERED!</span>
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <StampCelebration 
+                        isVisible={true} 
+                        onClose={() => setMasteryFeedback(null)} 
+                        topicName={module.title} 
+                    />
+                )
             )}
 
             <div className="flex items-center gap-4 mb-6">
