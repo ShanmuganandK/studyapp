@@ -7,16 +7,45 @@
 
 ## Folder map (top level)
 
+New core grows in NEW folders; legacy is FROZEN (never edited) until its replacement is
+proven behind a flag, then deleted. See **Migration strategy** below.
+
 | Path                | What lives there                                                       |
 |---------------------|------------------------------------------------------------------------|
-| `src/recipes/`      | **NEW engine.** Pure question generators (the recipe contract).        |
-| `src/components/`   | Presentational React UI (screens, modules, dashboard).                 |
-| `src/contexts/`     | React contexts (e.g. `AuthContext`).                                   |
-| `src/services/`     | External SDK boundary (`firebaseAdapter.js`).                          |
-| `src/hooks/`        | (planned) React orchestration: session flow, mastery updates.          |
-| `src/utils/`        | **LEGACY** question path (generators, factory, masteryEngine, etc.).   |
-| `src/data/`         | **LEGACY** stored questions/syllabus (`questions.js`, JSON banks).     |
+| `src/recipes/`      | **NEW.** Pure question generators (the recipe contract).               |
+| `src/engine/`       | **NEW** (scaffold). Pure core logic: mastery, spaced-rep, composer, remediation. |
+| `src/hooks/`        | **NEW** (scaffold). React orchestration: session flow, mastery updates. |
+| `src/services/`     | **NEW** SDK boundary (auth/firestore/billing) — but currently also holds **FROZEN** legacy popup-first auth (`authService.js`, `firebaseAdapter.js`, `localAdapter.js`). |
+| `src/config/`       | **NEW.** Single config module — `flags.js` (migration feature flags).  |
+| `src/components/`   | Presentational React UI (screens, modules, dashboard). The migration bridge — screens flip legacy↔new per flag, one at a time. |
+| `src/contexts/`     | React contexts (e.g. `AuthContext`). Legacy until auth is rebuilt.     |
+| `src/lib/`          | **FROZEN.** Legacy Firebase init (`firebase.js`).                       |
+| `src/utils/`        | **FROZEN.** Legacy question path (generators, factory) + `masteryEngine.js`. |
+| `src/data/`         | **FROZEN.** Legacy stored questions/syllabus (`questions*`, JSON banks). |
 | repo root docs      | `CLAUDE.md`, `DECISIONS.md`, `STANDARDS.md`, `RECIPE_TEMPLATE.md`.      |
+
+---
+
+## Migration strategy (legacy → new core)
+
+> Full decision + rationale in **DECISIONS.md "Migration strategy"** (source of truth). Summary here.
+
+The existing Antigravity app is a **validated UI prototype**, not the production foundation:
+its core contradicts locked decisions (popup-first auth, localStorage state, slot-based
+mastery, `Math.random()`/stored questions, dark Wonder theme). We **keep the good screens**
+and **rebuild the core** via **strangler-fig**:
+
+- **`master` stays working** at all times; short task branches, merged frequently.
+- **New core in NEW folders** (`recipes/`, `engine/`, `hooks/`, `services/`, `config/`);
+  **legacy is FROZEN** (`utils/generators`, `data/questions*`, `masteryEngine.js`, `lib/`,
+  localStorage state, popup-first auth in `services/`).
+- **New code never imports legacy; legacy is never edited.** `src/components/` is the only
+  bridge — screens migrate one at a time.
+- **Feature flags** (`src/config/flags.js`: `useRecipeEngine`, `useFirestore`,
+  `useNewMastery`, all default `false`) switch each screen legacy↔new. ON to test, OFF for
+  instant rollback. A legacy path is deleted only after its flag has run `true` confidently.
+
+**End state:** the new core grows until the old is unused, then legacy is removed.
 
 ---
 
@@ -43,12 +72,18 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
 **Depends on it:** (future) session composer, quiz engine, mastery tracker — all consume
 only the contract output, never recipe internals.
 
-### Legacy question path (`src/utils/`, `src/data/`) — being replaced
+### Legacy core (FROZEN) — being retired
 
-The pre-recipe approach: `utils/generators/mathGenerators.js` (Math.random-based generators),
-`utils/questionFactory.js` (router), `data/questions.js` + JSON banks (stored questions).
-Still wired to existing screens. **Not modified** while the new engine is built alongside;
-migration is a later task. New work should target `src/recipes/`, not these.
+The pre-decisions Antigravity core, kept running as-is and **never edited** until its
+new-core replacement is proven behind a flag, then deleted (see Migration strategy):
+- `utils/generators/mathGenerators.js` (Math.random generators), `utils/questionFactory.js`
+  (router), `data/questions*` + JSON banks (stored questions) → replaced by `src/recipes/`.
+- `utils/masteryEngine.js` (slot-based "3-in-a-row") → replaced by `src/engine/`.
+- `services/authService.js` + `firebaseAdapter.js`/`localAdapter.js` (popup-first auth),
+  `lib/firebase.js`, and localStorage app state → replaced by anonymous-first
+  `src/services/` + Firestore.
+
+New work targets the new-core folders; new code never imports these.
 
 ---
 
