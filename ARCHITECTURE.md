@@ -75,6 +75,24 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
 **Depends on it:** (future) session composer, quiz engine, mastery tracker — all consume
 only the contract output, never recipe internals.
 
+### Skill map (`src/recipes/skillMap.js`) — curriculum backbone
+
+Pure data + helpers (no UI/Firebase) defining the Grades 1–2 learning path (`skill-map-spec.md`).
+The session composer reads it + a child's mastery to decide what to teach; the recipe factory
+reads it to know which recipes to build.
+
+- **`SKILLS`** — object keyed by `skillId`; each entry
+  `{ id, name, grade, strand, order, maxDifficulty, prereqs[], recipe, status }`.
+  `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). Only
+  `g1.count.1-20` and `g1.add.within20` are `ready` today; all others `planned`. Several
+  skills share one parameterised recipe (e.g. `counting`, `addition`, `addition2d`).
+- **Helpers** — `getSkill` (throws on unknown), `prereqsMet(id, masteryMap)`,
+  `unlockedSkills(masteryMap)`, `frontierSkill(masteryMap, grade)`, `nextSkills(id)`.
+  Unlock = prereqs at mastery ≥ `MASTERY_THRESHOLD` (3). These are status-agnostic graph
+  helpers; the composer/UI additionally gates on `status:'ready'`.
+- **`__tests__/skillMap.test.js`** — graph validity (prereqs exist, no cycles, unique order
+  per grade, ready⇒recipe exists) + helper unit tests.
+
 ### Legacy core (FROZEN) — being retired
 
 The pre-decisions Antigravity core, kept running as-is and **never edited** until its
@@ -100,6 +118,12 @@ fields (e.g. `render` for `count-objects`). `format` is an extensible open taxon
 `count-objects` shipping; `text-input`, `true-false` reserved). For option-based formats:
 4 distinct options including the answer; `misconceptions` index-aligned with `options`,
 correct slot `null`, wrong slots kebab-case misconception tags.
+
+### The skill-map entry
+Defined in `skill-map-spec.md`, implemented in `src/recipes/skillMap.js`. `SKILLS[skillId] =
+{ id, name, grade, strand, order, maxDifficulty, prereqs:string[], recipe, status }` where
+`status ∈ {'ready','planned'}`. The graph is a DAG (prereqs point backward); `order` is unique
+per grade. `maxDifficulty` mirrors the powering recipe's ceiling.
 
 ---
 
