@@ -64,13 +64,20 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   difficulty. Distractors (canonical tags, see `misconceptions-reference.md`):
   `crossing-ten-misstep`, `add-tens-to-ones`, `operator-mixup`, `off-by-one`, `random-slip`.
   Format `mcq`.
-- **`counting.js`** — reference recipe, `skillId: g1.count.1-20`, count objects, ranges
-  1–5/10/20. Distractors: `double-count-object`, `skip-count-sequence`, `count-from-zero`,
-  `random-slip`. Format `count-objects` (carries a `render: { glyph, count }` payload for
-  drawing the set).
-- **`__tests__/validator.test.js`** — the shared validator (STANDARDS §3). Runs any recipe
-  100× per difficulty and asserts the full contract; branches on `format`. Every recipe
-  (incl. Antigravity's replicas) must pass it before merge.
+- **`counting.js`** — **multi-skill** (`skillIds: g1.count.1-9, g1.count.1-20`), count
+  objects, ranges per skill. Distractors: `double-count-object`, `skip-count-sequence`,
+  `count-from-zero`, `random-slip`. Format `count-objects` (carries a `render: { glyph, count }`
+  payload).
+- **`subtraction.js`** — **multi-skill** (`skillIds: g1.sub.within10, g1.sub.within20`),
+  `a - b`. Distractors: `operator-mixup`, `tens-ignored`, `smaller-from-larger-force`,
+  `off-by-one`, `random-slip`. Format `mcq`.
+- **`compareNumbers.js`** — `skillId: g1.num.compare20`. Pick the sign for `a ? b`. Distractors:
+  `alligator-confusion`, `ones-digit-bias`, `digit-length-bias`. Format `compare` (3 operator
+  options + `render: { left, right }`).
+- **`__tests__/validator.test.js`** — the shared validator (STANDARDS §3). For each recipe and
+  each skill it serves (`skillIds ?? [skillId]`), runs `generate` 100× per difficulty and
+  asserts the full contract; branches on `format` (numeric vs `compare`). Every recipe must
+  pass it before merge.
 
 **Depends on it:** (future) session composer, quiz engine, mastery tracker — all consume
 only the contract output, never recipe internals.
@@ -111,13 +118,15 @@ New work targets the new-core folders; new code never imports these.
 ## Key contracts
 
 ### The recipe contract
-Defined in `RECIPE_TEMPLATE.md`. Default export `{ skillId, maxDifficulty, generate }`;
-`generate(difficulty, rng)` returns core fields `{ questionText, correctAnswer:number,
-options:number[], format, misconceptions:(string|null)[] }` plus optional format-specific
-fields (e.g. `render` for `count-objects`). `format` is an extensible open taxonomy (`mcq`,
-`count-objects` shipping; `text-input`, `true-false` reserved). For option-based formats:
-4 distinct options including the answer; `misconceptions` index-aligned with `options`,
-correct slot `null`, wrong slots kebab-case misconception tags.
+Defined in `RECIPE_TEMPLATE.md`. Default export `{ skillId | skillIds, maxDifficulty,
+generate }`; multi-skill recipes export `skillIds` and take `generate(difficulty, rng,
+skillId)` (single-skill recipes keep `skillId` and ignore the 3rd arg). `generate` returns
+core fields `{ questionText, correctAnswer, options, format, misconceptions:(string|null)[] }`
+plus optional format-specific fields (`render` for `count-objects`/`compare`). `format` is an
+extensible open taxonomy (`mcq`, `count-objects`, `compare` shipping; `text-input`,
+`true-false` reserved). For option-based formats: fixed distinct options including the answer
+(4 numeric for `mcq`/`count-objects`; 3 operator strings for `compare`); `misconceptions`
+index-aligned with `options`, correct slot `null`, wrong slots kebab-case tags.
 
 ### The skill-map entry
 Defined in `skill-map-spec.md`, implemented in `src/recipes/skillMap.js`. `SKILLS[skillId] =
