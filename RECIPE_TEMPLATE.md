@@ -118,38 +118,45 @@ Example output:
   correctAnswer: 7,
   options: [7, 8, 6, 9],
   format: 'count-objects',
-  misconceptions: [null, 'off-by-one', 'miscount-low', 'random-slip'],
+  misconceptions: [null, 'double-count-object', 'skip-count-sequence', 'random-slip'],
   render: { glyph: '🍎', count: 7 },
 }
 ```
+
+(Tags above are the canonical counting tags from `misconceptions-reference.md`:
+`double-count-object` = `7 + 1`, `skip-count-sequence` = `7 - 1` for sets ≥ 6.)
 
 ---
 
 ## 5. Worked example — `addition` at difficulty 3
 
 Skill `g1.add.within20`, difficulty `3` (sums capped at 20). Say the RNG draws `a = 7`,
-`b = 8`, so `sum = 15`.
+`b = 8`, so `sum = 15`. Tags + rules are canonical per `misconceptions-reference.md`.
 
-1. **Build tagged distractors** from misconceptions:
-   - `forgot-carry`: added units, dropped the tens carry → `15 - 10 = 5`.
-   - `counted-extra`: counted one too many → `15 + 1 = 16`.
-   - `random-slip`: a plausible nearby miss → `15 - 2 = 13`.
+1. **Build tagged distractors** from the misconceptions whose condition is met (most specific
+   first):
+   - `crossing-ten-misstep`: the ones carry (`7 + 8 ≥ 10`), so dropping the carried ten gives
+     `15 - 10 = 5`.
+   - `add-tens-to-ones`: skipped — neither operand is a teen, so this rule doesn't apply.
+   - `operator-mixup`: subtracted instead → `|7 - 8| = 1`.
+   - `off-by-one`: miscounted the last hop → `15 + 1 = 16`.
 2. **Pair each value with its tag** (correct answer's tag is `null`):
-   `[{15, null}, {5, 'forgot-carry'}, {16, 'counted-extra'}, {13, 'random-slip'}]`
+   `[{15, null}, {5, 'crossing-ten-misstep'}, {1, 'operator-mixup'}, {16, 'off-by-one'}]`
 3. **Shuffle the pairs together** (so options + misconceptions stay aligned), then split:
 
 ```js
 {
   questionText: '7 + 8 = ?',
   correctAnswer: 15,
-  options:        [16,             15,    5,             13],
+  options:        [1,                15,    5,                      16],
   format: 'mcq',
-  misconceptions: ['counted-extra', null, 'forgot-carry', 'random-slip'],
+  misconceptions: ['operator-mixup', null, 'crossing-ten-misstep', 'off-by-one'],
 }
 ```
 
 `options[1] === 15 === correctAnswer`, and `misconceptions[1] === null`. A child who taps
-`5` reveals `forgot-carry`, so Tinku can hint about carrying the ten — never just "wrong".
+`5` reveals `crossing-ten-misstep`, so Tinku can hint about carrying the ten — never just
+"wrong".
 
 ---
 
