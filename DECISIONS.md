@@ -64,6 +64,25 @@
 
 ---
 
+## Migration strategy (existing app → new core)
+
+**Context:** an audit (after the recipe foundation was built) found the repo is split-brain: a clean new recipe engine (`src/recipes/`, unwired) plus the existing Antigravity app (the running app), which predates these decisions and contradicts several on load-bearing points — auth is Google-popup-first (not anonymous-first), all state is in localStorage (forbidden), mastery is "3-in-a-row keyed to question slots" (not the spec'd spaced-rep), questions come from `Math.random()` generators + stored banks (violates the recipe rule), and the Wonder band uses a dark theme with child-selected grade + out-of-scope Grade 4.
+
+**Decision:** the existing Antigravity app is treated as a **validated UI prototype**, not the production foundation. We **keep the good screens** (Adventure Map, Passport, quiz layout, visual modules) and **rebuild the core** (auth, storage, mastery, question generation, theming, profile/grade model) on the new architecture (recipe engine + Firestore + anonymous-first auth). Rationale: the contradictions are all in the interlocked foundation, so incremental patching would be a tangled rewrite anyway — and most of that core is unbuilt regardless, so "rebuild core" is mostly "build the planned core and don't wire the legacy versions back in."
+
+**Execution — "build forward, retire backward" (strangler-fig):**
+- **One branch line (`master`) stays working at all times.** No long-lived "old vs new" parallel branches. Short task branches only (one per piece of work), merged frequently.
+- **New core grows in NEW folders:** `src/services/` (auth, firestore, billing), `src/engine/` (mastery, composer, remediation), `src/hooks/` (React orchestration). The recipe engine (`src/recipes/`) is already here.
+- **Legacy is FROZEN:** `src/utils/generators/`, `src/data/questions*`, `masteryEngine.js`, the localStorage state, the popup-only auth — these are never modified. They run as-is until their replacement is proven, then deleted.
+- **Rule:** new code never imports legacy; legacy is never edited. Screens (`src/components/`) are the only bridge and migrate one at a time.
+- **Feature flags** (`src/config/flags.js`: `useRecipeEngine`, `useFirestore`, `useNewMastery`, … all default `false`) switch each screen between legacy and new paths. Flip locally to test new; flip off for instant rollback. A legacy path is deleted only after its flag has run `true` confidently.
+- **Cheap contradictions fixed early** (low-risk, high-visibility): light theme for Wonder band; grade is a parent-selected profile property (no child grade-wall, no Grade 4, Grade 3 stays in the Wonder experience).
+
+**End state:** the split-brain ends not by patching the old core but by growing the new one until the old is unused, then removing it. Legacy `utils/generators`, `data/questions`, `masteryEngine.js`, localStorage state, and popup-first auth are retired post-migration.
+
+---
+
 ## Change log (append new decisions here with date)
 
 - _(seed)_ Initial decisions captured from planning sessions.
+- Migration strategy added after the code-vs-docs audit: existing app = UI prototype; rebuild core on recipe engine + Firestore + anonymous auth via strangler-fig with feature flags; keep good screens; legacy frozen then deleted.
