@@ -1,13 +1,15 @@
 /**
- * Recipe: count objects 1–20 (Grade 1).
+ * Recipe: count objects (Grade 1). Multi-skill — serves several counting ranges from one
+ * parameterised recipe (per the skill map's recipe-reuse note):
+ *   - g1.count.1-9   (numbers 1–9)
+ *   - g1.count.1-20  (numbers up to 20)
+ * (g1.num.21-99 is deliberately NOT served here: drawing dozens of objects is unsuitable and
+ *  misconceptions-reference.md has no 21–99 counting tags yet — it stays `planned`.)
  *
- * Shows a set of identical objects and asks how many there are. Conforms to the contract
- * in RECIPE_TEMPLATE.md, using the `count-objects` format: alongside the core fields it
- * carries an optional `render` payload ({ glyph, count }) so the UI can draw the actual set
- * of objects to count. The number drawn equals the answer — that is intentional: in a
- * counting question the visible set IS the prompt.
- *
- * Difficulty caps the largest set (1–5 / 1–10 / 1–20); bigger ranges are a different skill.
+ * `generate(difficulty, rng, skillId)` selects the range from `skillId`. Shows a set of
+ * identical objects and asks how many there are, using the `count-objects` format: alongside
+ * the core fields it carries a `render` payload ({ glyph, count }) so the UI can draw the set.
+ * The number drawn equals the answer — intentional: in counting the visible set IS the prompt.
  *
  * Distractors encode counting misconceptions. Tags + rules are canonical per
  * misconceptions-reference.md ("Counting & number sense (1–20)") — the source of truth:
@@ -24,8 +26,13 @@
 
 const OPTION_COUNT = 4;
 
-// Curriculum ceiling per rung: largest set the child is asked to count.
-const COUNT_MAX = { 1: 5, 2: 10, 3: 20 };
+// Per-skill curriculum ceiling: largest set the child is asked to count, per difficulty rung.
+const COUNT_MAX = {
+  'g1.count.1-9': { 1: 3, 2: 6, 3: 9 },
+  'g1.count.1-20': { 1: 5, 2: 10, 3: 20 },
+};
+const SKILL_IDS = ['g1.count.1-9', 'g1.count.1-20'];
+const DEFAULT_SKILL = 'g1.count.1-20';
 
 // Kid-friendly, visually distinct objects to count.
 const GLYPHS = ['🍎', '⭐', '🐶', '🌸', '🚗', '🍌', '🐟', '🎈'];
@@ -34,11 +41,12 @@ const GLYPHS = ['🍎', '⭐', '🐶', '🌸', '🚗', '🍌', '🐟', '🎈'];
 const SKIP_COUNT_MIN = 6;
 
 const recipe = {
-  skillId: 'g1.count.1-20',
+  skillIds: SKILL_IDS,
   maxDifficulty: 3,
 
-  generate(difficulty, rng) {
-    const max = COUNT_MAX[difficulty];
+  generate(difficulty, rng, skillId = DEFAULT_SKILL) {
+    const caps = COUNT_MAX[skillId] ?? COUNT_MAX[DEFAULT_SKILL];
+    const max = caps[difficulty];
     const count = rng.int(1, max);
     const glyph = rng.pick(GLYPHS);
 

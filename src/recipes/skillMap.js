@@ -9,8 +9,9 @@
  * `status`:
  *   - 'ready'   = a validated recipe file exists for this skill's range.
  *   - 'planned' = recipe still to be built (the map stays complete but honest).
- * Today only `g1.count.1-20` (counting.js) and `g1.add.within20` (addition.js) are ready;
- * everything else is planned until the recipe factory fills it in.
+ * Ready today (recipe files exist): addition (g1.add.within20), counting (g1.count.1-9,
+ * g1.count.1-20), subtraction (g1.sub.within10, g1.sub.within20), and compareNumbers
+ * (g1.num.compare20). Everything else is planned until the recipe factory fills it in.
  *
  * Recipe reuse — several skills share one parameterised recipe (the factory builds ONE recipe
  * that handles the range, not a file per skill):
@@ -46,14 +47,14 @@ const ALL_SKILLS = [
   skill('g1.prenum.patterns', 'Simple patterns (AB, AAB)', 1, 'prenumber', 12, 2, [], 'patterns', 'planned'),
   skill('g1.shapes.2d', '2D shapes (circle, square, triangle, rectangle)', 1, 'shapes', 20, 2, [], 'shapes2d', 'planned'),
   skill('g1.shapes.space', 'Spatial: inside/outside, near/far, top/bottom', 1, 'shapes', 21, 2, [], 'spatial', 'planned'),
-  skill('g1.count.1-9', 'Counting & numbers 1–9', 1, 'numbers', 30, 3, [], 'counting', 'planned'),
+  skill('g1.count.1-9', 'Counting & numbers 1–9', 1, 'numbers', 30, 3, [], 'counting', 'ready'),
   skill('g1.count.1-20', 'Counting & numbers up to 20', 1, 'numbers', 31, 3, ['g1.count.1-9'], 'counting', 'ready'),
-  skill('g1.num.compare20', 'Compare numbers up to 20 (>, <, =)', 1, 'numbers', 32, 3, ['g1.count.1-20'], 'compareNumbers', 'planned'),
+  skill('g1.num.compare20', 'Compare numbers up to 20 (>, <, =)', 1, 'numbers', 32, 3, ['g1.count.1-20'], 'compareNumbers', 'ready'),
   skill('g1.num.ordinal', 'Ordinal numbers (1st–10th)', 1, 'numbers', 33, 2, ['g1.count.1-9'], 'ordinal', 'planned'),
   skill('g1.add.within10', 'Addition within 10', 1, 'addition', 40, 3, ['g1.count.1-9'], 'addition', 'planned'),
   skill('g1.add.within20', 'Addition within 20', 1, 'addition', 41, 3, ['g1.add.within10'], 'addition', 'ready'),
-  skill('g1.sub.within10', 'Subtraction within 10', 1, 'subtraction', 50, 3, ['g1.count.1-9'], 'subtraction', 'planned'),
-  skill('g1.sub.within20', 'Subtraction within 20', 1, 'subtraction', 51, 3, ['g1.sub.within10'], 'subtraction', 'planned'),
+  skill('g1.sub.within10', 'Subtraction within 10', 1, 'subtraction', 50, 3, ['g1.count.1-9'], 'subtraction', 'ready'),
+  skill('g1.sub.within20', 'Subtraction within 20', 1, 'subtraction', 51, 3, ['g1.sub.within10'], 'subtraction', 'ready'),
   skill('g1.num.21-99', 'Numbers 21–99 (read, write, count)', 1, 'numbers', 60, 3, ['g1.count.1-20'], 'counting', 'planned'),
   skill('g1.place.tens-ones', 'Tens & ones (place value intro)', 1, 'placevalue', 61, 3, ['g1.num.21-99'], 'placeValue', 'planned'),
   skill('g1.measure.length', 'Length: longer/shorter, non-standard units', 1, 'measurement', 70, 2, ['g1.prenum.compare'], 'measureLength', 'planned'),

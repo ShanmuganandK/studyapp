@@ -33,6 +33,22 @@ export default recipe;
   - `rng` — a seeded RNG from `src/recipes/_rng.js` (`makeRng(seed)` → `{ int, pick,
     shuffle, next }`). Always use this for randomness so questions are reproducible/testable.
 
+### Multi-skill recipes (recipe reuse)
+
+Some skills share one parameterised recipe (the skill map's recipe-reuse note — e.g.
+`counting` serves `g1.count.1-9` and `g1.count.1-20`; `subtraction` serves `g1.sub.within10`
+and `g1.sub.within20`). Such a recipe exports **`skillIds: [...]`** instead of a single
+`skillId`, and `generate` takes a third arg:
+
+```js
+generate(difficulty, rng, skillId) { /* pick the range/params from skillId */ }
+```
+
+Single-skill recipes keep `skillId` and ignore the third arg. The validator normalises both
+(`recipe.skillIds ?? [recipe.skillId]`) and drives generation per served skill. Each served
+skill still has its own ceiling and canonical tags — build ONE parameterised recipe, not a
+file per skill.
+
 ---
 
 ## 2. The difficulty ceiling
@@ -59,8 +75,8 @@ sections need them — without breaking existing recipes or the validator.
 | Field            | Type       | Meaning                                                        |
 |------------------|------------|----------------------------------------------------------------|
 | `questionText`   | `string`   | The prompt shown to the child. Non-empty.                      |
-| `correctAnswer`  | `number`   | The right answer (a real number — UI stringifies at render).   |
-| `options`        | `number[]` | Choices for option-based formats (see below).                  |
+| `correctAnswer`  | `number\|string` | The right answer. A number for numeric formats; an operator string (`>`/`<`/`=`) for `compare`. UI stringifies at render. |
+| `options`        | `number[]\|string[]` | Choices for option-based formats (see below).            |
 | `format`         | `string`   | Render hint / question type. Open, growing taxonomy.           |
 | `misconceptions` | `(string\|null)[]` | Index-aligned with `options`; why each wrong choice is wrong. |
 
@@ -68,8 +84,9 @@ sections need them — without breaking existing recipes or the validator.
 
 | `format`         | Status   | Render meaning                                                    |
 |------------------|----------|-------------------------------------------------------------------|
-| `mcq`            | shipping | Plain multiple choice. Core fields only.                          |
-| `count-objects`  | shipping | Show a set of objects to count; adds a `render` payload.          |
+| `mcq`            | shipping | Plain multiple choice. 4 numeric options.                         |
+| `count-objects`  | shipping | Show a set of objects to count; 4 numeric options + `render`.     |
+| `compare`        | shipping | Pick the sign: 3 string options `['>','<','=']`; adds `render: { left, right }`. |
 | `text-input`     | reserved | Free-response number entry. May omit `options`/`misconceptions`.  |
 | `true-false`     | reserved | Two options; uses the standard option-based fields.               |
 
@@ -82,9 +99,9 @@ Each distractor is a **deliberate** wrong answer tied to a known misconception, 
 - the **remediation ladder** gives a hint targeted at the actual error, and
 - the **parent dashboard** can explain *why* a child struggles (not just "got it wrong").
 
-Rules for option-based formats (`mcq`, `count-objects`, `true-false`):
-- `options` contains exactly **4 choices** (`OPTION_COUNT`), including `correctAnswer`, with
-  **no duplicates**.
+Rules for option-based formats (`mcq`, `count-objects`, `compare`, `true-false`):
+- `options` contains the format's fixed choice count, including `correctAnswer`, with **no
+  duplicates** (4 for `mcq`/`count-objects`; 3 operators for `compare`).
 - `misconceptions` has the **same length** as `options` and is **index-aligned**:
   `misconceptions[i]` is the tag for `options[i]`.
 - The **correct** option's slot is **`null`**. Every wrong option's slot is a **non-empty,
@@ -125,6 +142,27 @@ Example output:
 
 (Tags above are the canonical counting tags from `misconceptions-reference.md`:
 `double-count-object` = `7 + 1`, `skip-count-sequence` = `7 - 1` for sets ≥ 6.)
+
+### `compare`
+Three operator options; `correctAnswer` is a string. Adds **`render: { left, right }`** so the
+UI shows the two numbers around the blank:
+
+```js
+{
+  questionText: 'Which sign goes in the box?  15 ⬜ 5',
+  correctAnswer: '>',
+  options: ['<', '>', '='],
+  format: 'compare',
+  misconceptions: ['alligator-confusion', null, 'ones-digit-bias'],
+  render: { left: 15, right: 5 },
+}
+```
+
+A comparison has only three possible answers, so each question has exactly two wrong operators
+(the reverse direction + `=`). Both must stay misconception-backed: `alligator-confusion`
+covers the reversed sign; `=` is covered by `ones-digit-bias` (shared ones digit) or
+`digit-length-bias` (shared leading digit), so the recipe builds pairs where one of those
+holds.
 
 ---
 
