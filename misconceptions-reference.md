@@ -10,7 +10,8 @@
 
 **Notation:** for a question with operands `a`, `b`, correct answer `ans`. `tens(n)`/`ones(n)` = digit extraction. `swapDigits(n)` = swap tens/ones of a 2-digit number.
 
-> Source: distilled from *Early Childhood Mathematics Misconception Index (CBSE/NCERT)*, 68 misconceptions across 17 skills. Math formulae lost in doc conversion were reconstructed from the intact prose descriptions. **Before shipping, have a primary-math teacher verify the ~68 rows (especially hint wording).**
+> Source: distilled from *Early Childhood Mathematics Misconception Index (CBSE/NCERT)*, 68 misconceptions across 17 skills. Math formulae lost in doc conversion were reconstructed from the intact prose descriptions.
+> **Review status:** (1) cross-LLM review done — collision guards added (palindrome/zero), `exponentiation-confusion` removed in favour of `skip-count-misstep`, 3 place-value hints rewritten to conceptual "houses/bundles" language, fractions + shape-orientation gaps added (parked). See `llm-review.md`. (2) **Human primary-math teacher review still pending** before launch — see `TEACHER-REVIEW.md` for the running list of items needing sign-off (incl. `regroup-ignored` rule, `g1.num.21-99` tags/format).
 
 ---
 
@@ -22,11 +23,13 @@ Recurring tags (same error type, multiple skills) — keep these stable:
 |---|---|---|
 | `off-by-one` | miscount by exactly 1 | `ans ± 1` |
 | `operator-mixup` | applied the wrong operation | compute with the other operator |
-| `smaller-from-larger-force` | subtract smaller digit from larger ignoring column order | per-column `|tens(a)-tens(b)| · 10 + |ones(a)-ones(b)|` |
+| `smaller-from-larger-force` | subtract smaller digit from larger ignoring column order | per-column `|tens(a)-tens(b)| · 10 + |ones(a)-ones(b)|` — **2-digit/borrow only; never emit on single-digit subtraction where `|a-b|` equals the answer** |
 | `column-alignment-shift` | misaligned a single digit to the wrong column | treat single digit as tens (×10) |
-| `place-value-swap` / `digit-reversal` | swapped tens & ones | `swapDigits(value)` |
-| `identity-error-zero` / `zero-identity-error` | mishandled 0 (×0, +0, −0) | see per-skill |
+| `place-value-swap` / `digit-reversal` | swapped tens & ones | `swapDigits(value)` — **guard: only when `value % 11 != 0` (skip palindromes)** |
+| `identity-error-zero` / `zero-identity-error` | mishandled 0 (×0, +0, −0) | see per-skill — **guard: result must differ from the correct answer (e.g. mult-by-zero requires `a != 0 || b != 0`)** |
 | `forgot-carry` | dropped the carried ten | `ans - 10` |
+
+> **Collision guard (applies to ALL distractor rules):** a distractor must never equal the correct answer. Any rule that *can* collide (digit-swaps/reverses on palindromes, abs-differences that resolve to the answer, zero-identities) must carry an explicit condition so it is skipped when it would produce the correct value. The recipe validator enforces this (no-duplicate-options / correct-answer-present), but rules should be collision-proof by construction so the validator never has to reject them.
 
 Skill-specific tags are listed per skill below.
 
@@ -73,7 +76,7 @@ Skill-specific tags are listed per skill below.
 | tag | rule | example | hint | condition |
 |---|---|---|---|---|
 | `operator-mixup` | `a + b` (adds instead) | 7-3 → 10 | "Minus (−) means take away! Cross out 3." | always |
-| `smaller-from-larger-force` | `|a - b|` (here same as ans unless reversed framing) — use for reversed-operand framings | 3-7 → 4 | "Start with the bigger number and take away." | a<b shown |
+| `smaller-from-larger-force` | `10 + |ones(a)-b|` (teen minuend borrow case ONLY; **do NOT emit on single-digit within-10 where `|a-b|` = the answer**) | 13-5 → 12 | "Can't do 2−7 — regroup a ten first!" | teen minuend, borrow needed |
 | `off-by-one` | `ans ± 1` | — | "Count backward 3 from 7: 6, 5, 4." | always |
 | `subtract-zero-error` | if `b==0`: `a - 1` (or 0) | 7-0 → 6 | "Subtracting zero takes away nothing! Stays the same." | b==0 |
 
@@ -88,7 +91,7 @@ Skill-specific tags are listed per skill below.
 ### Place value intro — tens & ones — recipe: `placeValue`, format `mcq`
 | tag | rule | example | hint | condition |
 |---|---|---|---|---|
-| `separate-digit-reading` | concatenate `tens·10` written-out, e.g. 4 tens 2 ones → 402 | → 402 | "4 tens is forty — the 4 sits in the tens place, drop the extra zero!" | always |
+| `separate-digit-reading` | concatenate `tens·10` written-out, e.g. 4 tens 2 ones → 402 | → 402 | "4 tens makes 40. When the 2 ones join, they take the zero's place to make 42!" | always |
 | `digit-reversal` | `swapDigits(value)` (3 tens 5 ones → 53) | 35 → 53 | "Tens on the left, ones on the right!" | always |
 | `expanded-addition` | `tensDigit + onesDigit` (face values) | 3 tens 4 ones → 7 | "3 tens is 30, 4 ones is 4 → 34!" | value-asked |
 | `unit-counting-only` | count bundles as 1 each → `tensDigit + onesDigit` | 3 rods 4 cubes → 7 | "Each rod is 10! Count by tens: 10, 20, 30." | block representation |
@@ -118,10 +121,10 @@ Skill-specific tags are listed per skill below.
 ### Numbers up to 999 — recipe: `counting3digit`, format `mcq`
 | tag | rule | example | hint | condition |
 |---|---|---|---|---|
-| `expanded-concatenation` | write literal terms w/ extra zeros (309→3009) | → 3009 | "Three hundred and nine = 3 hundreds, 0 tens, 9 ones → 309!" | has zero column |
+| `expanded-concatenation` | write literal terms w/ extra zeros (309→3009) | → 3009 | "Watch out — 3009 is in the thousands family! Put the 3 in the hundreds house, 0 in the tens house, 9 in the ones house → 309." | has zero column |
 | `zero-placeholder-ignored` | drop middle zero (309→39) | 309 → 39 | "Keep the zero in the tens place: 309." | has zero column |
 | `digit-value-blindness` | face value not place value (3 in 372 → 3) | → 3 | "The 3 is in the hundreds house → 300!" | value-asked |
-| `reverse-period-reading` | `reverseDigits(n)` (235→532) | 235 → 532 | "Read left to right, hundreds first!" | always |
+| `reverse-period-reading` | `reverseDigits(n)` (235→532) — **guard: only when first digit ≠ last digit (skip palindromes like 353)** | 235 → 532 | "Read left to right, hundreds first!" | first≠last digit |
 
 ### 2-digit addition without carry — recipe: `addition2d`, format `mcq`
 | tag | rule | example | hint | condition |
@@ -136,7 +139,7 @@ Skill-specific tags are listed per skill below.
 |---|---|---|---|---|
 | `forgot-carry` | `ans - 10` | 47+38=85 → 75 | "Look at the ones: 7+8 is more than 9 — where does the extra ten go?" | carry required |
 | `write-full-sum-in-column` | put 2-digit ones-sum in ones place → concat | 47+38 → 715-ish | "Can't write two digits in ones! Carry the ten." | carry required |
-| `double-carry` | add carry to both columns → `ans + 10` | → +10 | "Add the carried ten to the tens once, not the ones!" | carry required |
+| `double-carry` | add carry to both columns → `ans + 10` | → +10 | "You made a new ten! Add it only to the tens column, not the ones." | carry required |
 | `carry-subtraction-instead` | subtract carry from tens → `ans - 20` | → −20 | "Carrying means ADD the ten to the tens column!" | carry required |
 
 ### 2-digit subtraction without borrow — recipe: `subtraction2d`, format `mcq`
@@ -144,7 +147,7 @@ Skill-specific tags are listed per skill below.
 |---|---|---|---|---|
 | `operator-mixup` | `a + b` | → sum | "Minus means take away!" | always |
 | `column-alignment-shift` | single subtrahend digit under tens | 54−3 → mis | "Line the 3 under the ones (under the 4)!" | one operand single-digit |
-| `digit-subtraction-isolation` | `swapDigits(ans)` (reversed columns) | → swapped | "Tens answer in tens, ones in ones." | always |
+| `digit-subtraction-isolation` | `swapDigits(ans)` (reversed columns) — **guard: only when `ans % 11 != 0` (skip palindromes like 44)** | → swapped | "Tens answer in tens, ones in ones." | always, ans not palindrome |
 | `ones-subtraction-ignored` | subtract only tens, copy ones of `a` | 54−23 → mis | "Subtract the ones column first!" | always |
 
 ### 2-digit subtraction WITH borrow — recipe: `subtraction2d`, format `mcq`
@@ -159,8 +162,8 @@ Skill-specific tags are listed per skill below.
 | tag | rule | example | hint | condition |
 |---|---|---|---|---|
 | `multiplication-as-addition` | `a + b` (adds factors) | 4×3 → 7 | "4×3 means 4 groups of 3: 3+3+3+3 = 12!" | always |
-| `exponentiation-confusion` | `a × a` (squares one factor) | 4×3 → 16 | "Don't multiply 4 by itself! 4 groups of 3." | a≠b |
-| `multiplication-by-zero-identity` | if factor 0: returns other factor | 5×0 → 5 | "5 groups of zero is zero!" | a==0 or b==0 |
+| `skip-count-misstep` | `ans ± a` (lost track of skip count — covers the old "16 for 4×3" case, which is a skip-count slip, NOT squaring) | 4×3 → 16 | "Skip count carefully: 3, 6, 9, 12!" | a≠b |
+| `multiplication-by-zero-identity` | if exactly one factor is 0: returns the OTHER factor (**guard: only when the other factor `!= 0`; never on 0×0**) | 5×0 → 5 | "5 groups of zero is zero!" | one factor 0, other ≠ 0 |
 | `count-factor-swap` *(hint-only — same product)* | swaps group/size meaning | — | "3×5 means 3 groups of 5: 5+5+5." | a≠b |
 
 ### Multiplication tables (2,5,10) — recipe: `mulTable`, format `mcq`
@@ -188,7 +191,25 @@ Skill-specific tags are listed per skill below.
 
 ---
 
-## Implementation notes for the recipe factory
+## PARKED — for `planned` skills not yet built (add when their recipes are built)
+
+These are real, important misconceptions for skills that exist in the skill map as `planned`. Documented now so they're ready when those recipes are built — do NOT build these skills early just because the misconceptions exist.
+
+### Fractions (Grade 2, basic 1/2 & 1/4) — skill not yet in ready set — recipe: TBD, format `mcq` or `compare`
+| tag | rule | example | hint | condition |
+|---|---|---|---|---|
+| `denominator-magnitude-bias` | picks the fraction with the larger denominator as "bigger" (thinks 1/4 > 1/2 because 4>2) | 1/2 vs 1/4 → "1/4 bigger" | "More pieces means each piece is SMALLER! Half a roti is bigger than a quarter." | comparing unit fractions |
+| `numerator-only-focus` *(hint-only)* | compares only numerators, ignores denominator | — | "Look at the whole picture — how big is each piece?" | comparing fractions |
+
+### Shape orientation (Grade 1, 2D shapes) — `g1.shapes.2d` is planned — recipe: `shapes2d`, format `mcq`
+| tag | rule | example | hint | condition |
+|---|---|---|---|---|
+| `rotation-blindness` | fails to identify a square rotated 45° (calls it a "diamond"); picks the non-square | rotated square → "diamond/not square" | "Turn your head! A square is still a square even when it's tilted — count the 4 equal sides." | square shown rotated |
+| `orientation-dependent-naming` *(hint-only)* | names a shape only in its "standard" orientation | — | "Shapes keep their name no matter which way they turn!" | rotated shapes |
+
+---
+
+
 
 1. **Match tags exactly** — the `misconceptions[]` array in each recipe uses these kebab-case tags verbatim. The remediation ladder keys hints off them.
 2. **Distractor selection per question:** pick the misconceptions whose `condition` is satisfied by the generated operands (e.g. `forgot-carry` only when a carry occurs), apply their rules to get wrong values, then dedupe + fill to OPTION_COUNT with a safe `random-slip` fallback (a nearby plausible value not equal to any other option).
