@@ -22,6 +22,25 @@ const EXPECTED_OPTION_COUNT = 4;
 // Formats that present a fixed set of options + index-aligned misconceptions.
 const OPTION_BASED_FORMATS = new Set(['mcq', 'count-objects']);
 
+// Canonical misconception tags per skill, per misconceptions-reference.md (the source of
+// truth — DECISIONS.md). A recipe may only emit tags from its skill's set; this is the drift
+// guard that fails if a recipe invents or mistypes a tag, or strays from the doc.
+const CANONICAL_TAGS = {
+  'g1.add.within20': new Set([
+    'crossing-ten-misstep',
+    'add-tens-to-ones',
+    'operator-mixup',
+    'off-by-one',
+    'random-slip',
+  ]),
+  'g1.count.1-20': new Set([
+    'double-count-object',
+    'skip-count-sequence',
+    'count-from-zero',
+    'random-slip',
+  ]),
+};
+
 /**
  * Independently re-derive the correct answer from the generated question so we test the
  * MATH, not the recipe's own arithmetic.
@@ -85,6 +104,13 @@ function validateRecipe(recipe) {
       const q = recipe.generate(difficulty, rng);
 
       validateContractShape(q);
+
+      // 7. Canonical-tag guard: every non-null tag is in the skill's documented set.
+      const allowed = CANONICAL_TAGS[recipe.skillId];
+      expect(allowed, `no canonical tag set for ${recipe.skillId}`).toBeDefined();
+      q.misconceptions
+        .filter((tag) => tag !== null)
+        .forEach((tag) => expect(allowed).toContain(tag));
 
       // 3. correctAnswer is mathematically correct for the generated params.
       expect(q.correctAnswer).toBe(expectedAnswerFor(recipe.skillId, q));

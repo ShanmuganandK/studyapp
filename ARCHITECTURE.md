@@ -61,10 +61,13 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   (mulberry32 + FNV-1a string-seed hash). All recipe randomness goes through this so output
   is reproducible and testable.
 - **`addition.js`** — reference recipe, `skillId: g1.add.within20`, sums capped 5/10/20 by
-  difficulty. Distractors: `forgot-carry`, `counted-extra`, `random-slip`. Format `mcq`.
+  difficulty. Distractors (canonical tags, see `misconceptions-reference.md`):
+  `crossing-ten-misstep`, `add-tens-to-ones`, `operator-mixup`, `off-by-one`, `random-slip`.
+  Format `mcq`.
 - **`counting.js`** — reference recipe, `skillId: g1.count.1-20`, count objects, ranges
-  1–5/10/20. Distractors: `off-by-one`, `miscount-low`, `random-slip`. Format
-  `count-objects` (carries a `render: { glyph, count }` payload for drawing the set).
+  1–5/10/20. Distractors: `double-count-object`, `skip-count-sequence`, `count-from-zero`,
+  `random-slip`. Format `count-objects` (carries a `render: { glyph, count }` payload for
+  drawing the set).
 - **`__tests__/validator.test.js`** — the shared validator (STANDARDS §3). Runs any recipe
   100× per difficulty and asserts the full contract; branches on `format`. Every recipe
   (incl. Antigravity's replicas) must pass it before merge.

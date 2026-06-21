@@ -9,10 +9,17 @@
  *
  * Difficulty caps the largest set (1–5 / 1–10 / 1–20); bigger ranges are a different skill.
  *
- * Distractors encode counting misconceptions:
- *   - off-by-one   : counted one too many (answer + 1)
- *   - miscount-low : missed one while counting (answer - 1)
- *   - random-slip  : a plausible nearby slip
+ * Distractors encode counting misconceptions. Tags + rules are canonical per
+ * misconceptions-reference.md ("Counting & number sense (1–20)") — the source of truth:
+ *   - double-count-object : counted one object twice          (answer + 1, always)
+ *   - skip-count-sequence : skipped a number word             (answer - 1, when count >= 6)
+ *   - count-from-zero     : started counting at 0, not 1      (answer - 1, always)
+ *   - random-slip         : doc-sanctioned nearby-value fill
+ *
+ * skip-count-sequence and count-from-zero share the value (answer - 1); only one appears per
+ * question (dedup). We prefer skip-count-sequence once a set is large enough to lose track
+ * (count >= 6, the doc's condition) and fall back to count-from-zero for small sets.
+ * teen-reversal is hint-only in the doc, so it is NOT used as a distractor.
  */
 
 const OPTION_COUNT = 4;
@@ -23,6 +30,9 @@ const COUNT_MAX = { 1: 5, 2: 10, 3: 20 };
 // Kid-friendly, visually distinct objects to count.
 const GLYPHS = ['🍎', '⭐', '🐶', '🌸', '🚗', '🍌', '🐟', '🎈'];
 
+// Doc condition for skip-count-sequence: large enough sets to plausibly lose track.
+const SKIP_COUNT_MIN = 6;
+
 const recipe = {
   skillId: 'g1.count.1-20',
   maxDifficulty: 3,
@@ -32,13 +42,16 @@ const recipe = {
     const count = rng.int(1, max);
     const glyph = rng.pick(GLYPHS);
 
-    const candidates = [
-      { value: count + 1, tag: 'off-by-one' },
-      { value: count - 1, tag: 'miscount-low' },
-      { value: count + 2, tag: 'random-slip' },
-      { value: count - 2, tag: 'random-slip' },
-      { value: count + 3, tag: 'random-slip' },
-    ];
+    // Most-specific misconceptions first so random-slip is only ever a fallback.
+    const candidates = [{ value: count + 1, tag: 'double-count-object' }];
+    // The (count - 1) slot: skip-count-sequence for larger sets, else count-from-zero.
+    if (count >= SKIP_COUNT_MIN) {
+      candidates.push({ value: count - 1, tag: 'skip-count-sequence' });
+    }
+    candidates.push({ value: count - 1, tag: 'count-from-zero' });
+    candidates.push({ value: count + 2, tag: 'random-slip' });
+    candidates.push({ value: count - 2, tag: 'random-slip' });
+    candidates.push({ value: count + 3, tag: 'random-slip' });
 
     const distractors = pickDistinctDistractors(candidates, count, rng);
 

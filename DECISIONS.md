@@ -35,6 +35,7 @@
 - **Mastery = ~80% at hard level across multiple days**, then spaced-repetition review (intervals ~1/2/4/7/21 days). Stop drilling once mastered; move to next skill.
 - **Distractors encode misconceptions** (e.g. forgot-carry) to drive targeted hints + dashboard insight.
 - **Remediation ladder, never punish:** wrong#1 = targeted hint; wrong#2 = visual walkthrough + retry easier; wrong#3 = park skill, give a guaranteed-win question (mood floor — a session never ends on failure). Tinku is never disappointed, always "let's try together."
+- **`misconceptions-reference.md` is the canonical source of truth for misconception tags.** Every recipe's `misconceptions[]` tags and every remediation hint must match it exactly (kebab-case). When the doc and a recipe disagree, the doc wins — reconcile the recipe to the doc, and verify the distractor RULE matches the tag's documented rule (don't just rename the label). New recipes draw their tags + rules from this doc. The doc still requires a one-time primary-math teacher review of its ~68 rows before launch; tag changes from that review are a contained follow-up.
 
 ## Auth & accounts
 
@@ -86,3 +87,4 @@
 
 - _(seed)_ Initial decisions captured from planning sessions.
 - Migration strategy added after the code-vs-docs audit: existing app = UI prototype; rebuild core on recipe engine + Firestore + anonymous auth via strangler-fig with feature flags; keep good screens; legacy frozen then deleted.
+- `misconceptions-reference.md` established as the canonical source for misconception tags + rules; reference recipes reconcile to it (doc wins); pending one-time teacher review of the ~68 rows.
