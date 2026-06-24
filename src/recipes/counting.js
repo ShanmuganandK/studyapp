@@ -34,8 +34,22 @@ const COUNT_MAX = {
 const SKILL_IDS = ['g1.count.1-9', 'g1.count.1-20'];
 const DEFAULT_SKILL = 'g1.count.1-20';
 
-// Kid-friendly, visually distinct objects to count.
-const GLYPHS = ['🍎', '⭐', '🐶', '🌸', '🚗', '🍌', '🐟', '🎈'];
+// Kid-friendly, visually distinct countable objects, each with its plural word.
+// IMPORTANT: no stars (⭐/🌟/✨) — stars are reserved exclusively for rewards (session
+// stars, Tinku's math star). Counting a star would collide with the reward theme.
+// The question text uses the WORD; the glyph appears only in the countable tray (render).
+const CONTEXT_BANK = [
+  { glyph: '🍎', word: 'apples' },
+  { glyph: '🎈', word: 'balloons' },
+  { glyph: '⚽', word: 'balls' },
+  { glyph: '🍌', word: 'bananas' },
+  { glyph: '🚗', word: 'cars' },
+  { glyph: '🐟', word: 'fish' },
+  { glyph: '🐶', word: 'dogs' },
+  { glyph: '🌸', word: 'flowers' },
+  { glyph: '🍪', word: 'cookies' },
+  { glyph: '🦋', word: 'butterflies' },
+];
 
 // Doc condition for skip-count-sequence: large enough sets to plausibly lose track.
 const SKIP_COUNT_MIN = 6;
@@ -48,7 +62,7 @@ const recipe = {
     const caps = COUNT_MAX[skillId] ?? COUNT_MAX[DEFAULT_SKILL];
     const max = caps[difficulty];
     const count = rng.int(1, max);
-    const glyph = rng.pick(GLYPHS);
+    const { glyph, word } = rng.pick(CONTEXT_BANK);
 
     // Most-specific misconceptions first so random-slip is only ever a fallback.
     const candidates = [{ value: count + 1, tag: 'double-count-object' }];
@@ -67,12 +81,13 @@ const recipe = {
     const optionPairs = rng.shuffle([{ value: count, tag: null }, ...distractors]);
 
     return {
-      questionText: `How many ${glyph} are there?`,
+      // Question uses the WORD (not the glyph) so it can't be confused with the tray objects.
+      questionText: `How many ${word} are there?`,
       correctAnswer: count,
       options: optionPairs.map((o) => o.value),
       format: 'count-objects',
       misconceptions: optionPairs.map((o) => o.tag),
-      // Format-specific render payload: draw `count` copies of `glyph`.
+      // Format-specific render payload: draw `count` copies of `glyph` in the countable tray.
       render: { glyph, count },
     };
   },
