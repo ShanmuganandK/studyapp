@@ -5,3 +5,19 @@
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
+
+/* Mascot animations — GPU-friendly (transform/opacity only), low-end-Android safe. */
+@keyframes mascot-pop {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes mascot-breathe {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.mascot-pose { animation: mascot-pop 260ms ease-out; }
+.mascot-breathe { animation: mascot-breathe 3.2s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot-pose, .mascot-breathe { animation: none; }
+}

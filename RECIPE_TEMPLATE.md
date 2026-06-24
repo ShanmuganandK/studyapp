@@ -129,9 +129,14 @@ render: { glyph: '🍎', count: 7 }   // draw 7 apples
 
 Example output:
 
+> **Convention:** the question text uses the object **word** ("apples"), never the glyph — an
+> embedded countable glyph is indistinguishable from the objects in the tray. The glyph lives
+> only in `render` (the countable tray). Never use stars (⭐) as countable objects — stars are
+> reserved for rewards.
+
 ```js
 {
-  questionText: 'How many 🍎 are there?',
+  questionText: 'How many apples are there?',
   correctAnswer: 7,
   options: [7, 8, 6, 9],
   format: 'count-objects',

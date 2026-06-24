@@ -15,7 +15,7 @@
 export const flags = {
   /** Questions come from the recipe engine (src/recipes) instead of the legacy
    *  Math.random() generators + stored banks (src/utils/generators, src/data/questions*). */
-  useRecipeEngine: false,
+  useRecipeEngine: true,
 
   /** App state persists to Firestore (anonymous-first UID) instead of the legacy
    *  localStorage state. */

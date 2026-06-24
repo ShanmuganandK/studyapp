@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import AdventureLadder from './AdventureLadder';
 import PassportDashboard from './PassportDashboard';
 import QuizEngine from './QuizEngine';
+import RecipeQuizScreen from './RecipeQuizScreen';
 import Layout from './Layout';
+import { flags } from '../config/flags';
 import Syllabus from './Syllabus';
 import ParentGateModal from './ParentGateModal';
 import VisualFractions from './modules/VisualFractions';
@@ -176,7 +178,12 @@ export default function ThemeManager() {
             <VisualAddition onBack={handleBackToDashboard} />
           )}
           {activeModule.type === 'quiz' && (
-            <QuizEngine onBack={handleBackToDashboard} module={activeModule} />
+            // Strangler-fig branch: flag ON → new recipe engine; OFF → legacy quiz (untouched).
+            flags.useRecipeEngine ? (
+              <RecipeQuizScreen grade={userGrade} onBack={handleBackToDashboard} />
+            ) : (
+              <QuizEngine onBack={handleBackToDashboard} module={activeModule} />
+            )
           )}
         </>
       )}
