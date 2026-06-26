@@ -17,7 +17,7 @@ proven behind a flag, then deleted. See **Migration strategy** below.
 | `src/hooks/`        | **NEW** (scaffold). React orchestration: session flow, mastery updates. |
 | `src/services/`     | **NEW** SDK boundary (auth/firestore/billing) — but currently also holds **FROZEN** legacy popup-first auth (`authService.js`, `firebaseAdapter.js`, `localAdapter.js`). |
 | `src/config/`       | **NEW.** Single config module — `flags.js` (migration feature flags).  |
-| `src/components/`   | Presentational React UI (screens, modules, dashboard). The migration bridge — screens flip legacy↔new per flag, one at a time. |
+| `src/components/`   | Presentational React UI (screens, modules, dashboard). The migration bridge. The child-reachable flow is now entirely new (skill-select → recipe quiz); legacy screens stay on disk but FROZEN/unreachable (see **App flow & screens**). |
 | `src/contexts/`     | React contexts (e.g. `AuthContext`). Legacy until auth is rebuilt.     |
 | `src/lib/`          | **FROZEN.** Legacy Firebase init (`firebase.js`).                       |
 | `src/utils/`        | **FROZEN.** Legacy question path (generators, factory) + `masteryEngine.js`. |
@@ -90,15 +90,49 @@ reads it to know which recipes to build.
 
 - **`SKILLS`** — object keyed by `skillId`; each entry
   `{ id, name, grade, strand, order, maxDifficulty, prereqs[], recipe, status }`.
-  `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). Only
-  `g1.count.1-20` and `g1.add.within20` are `ready` today; all others `planned`. Several
-  skills share one parameterised recipe (e.g. `counting`, `addition`, `addition2d`).
+  `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). Six skills are
+  `ready` today — `g1.count.1-9`, `g1.count.1-20`, `g1.num.compare20`, `g1.add.within20`,
+  `g1.sub.within10`, `g1.sub.within20` (these are exactly what `SkillSelectScreen` lists);
+  all others `planned`. Several skills share one parameterised recipe (e.g. `counting`,
+  `addition`, `addition2d`).
 - **Helpers** — `getSkill` (throws on unknown), `prereqsMet(id, masteryMap)`,
   `unlockedSkills(masteryMap)`, `frontierSkill(masteryMap, grade)`, `nextSkills(id)`.
   Unlock = prereqs at mastery ≥ `MASTERY_THRESHOLD` (3). These are status-agnostic graph
   helpers; the composer/UI additionally gates on `status:'ready'`.
 - **`__tests__/skillMap.test.js`** — graph validity (prereqs exist, no cycles, unique order
   per grade, ready⇒recipe exists) + helper unit tests.
+
+### App flow & screens (`src/components/`) — the single reachable path
+
+The app was collapsed from an old/new mix into ONE coherent flow. There is now exactly one
+child-reachable path, all on the new recipe engine, light Wonder theme + Tinku:
+
+```
+entry → SkillSelectScreen (home) → RecipeQuizScreen → SessionPlayer (session-end inside)
+```
+
+- **`ThemeManager.jsx`** — app root under `AuthProvider`. Holds the view state and routes
+  `skills` (default) → `quiz` → gated `parent`. Grade is `currentProfile?.grade ?? 1`
+  (`DEFAULT_GRADE`); a profile-less/anonymous child lands cleanly on the skill screen. No
+  longer imports any legacy screen.
+- **`SkillSelectScreen.jsx`** — the home / only entry into practice. Reads `SKILLS` from the
+  skill map, filters `status:'ready'`, sorts by `order`, renders one tappable card per skill
+  (friendly `name`). `onSelectSkill(skillId)` → quiz.
+- **`RecipeQuizScreen.jsx`** — thin seam: takes the chosen `skillId` + `grade` and renders
+  `SessionPlayer` (which owns remediation/scoring/session-end via `useQuizSession`). Skill
+  choosing moved out to `SkillSelectScreen`.
+- **`Layout.jsx`** — phone frame + bottom nav. Two coherent items: **Home** (→ `skills`) and
+  **Parent** (→ parent gate). The legacy **Adventure** nav item was removed.
+- **Parent zone** (inline in `ThemeManager`) — simple gated placeholder (passcode set/change)
+  behind `ParentGateModal`.
+
+**FROZEN / unreachable screens** (kept, never edited, no longer wired into navigation):
+`AdventureLadder.jsx`, `Syllabus.jsx`, `PassportDashboard.jsx`, `QuizEngine.jsx`,
+`modules/VisualAddition.jsx`, `modules/VisualFractions.jsx`, and `ProfileSetup.jsx` (the old
+dark child grade-wall, Grades 1–4). These pull from the legacy question/mastery/syllabus path.
+**Deferred:** parent-set grade/profile selection returns later as a proper light-themed,
+parent-gated flow (DECISIONS: grade is a parent property, no child grade-wall) — `ProfileSetup`
+is the frozen reference until then.
 
 ### Legacy core (FROZEN) — being retired
 
