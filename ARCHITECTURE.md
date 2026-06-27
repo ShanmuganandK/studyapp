@@ -123,6 +123,11 @@ entry → SkillSelectScreen (home) → RecipeQuizScreen → SessionPlayer (sessi
   choosing moved out to `SkillSelectScreen`.
 - **`Layout.jsx`** — phone frame + bottom nav. Two coherent items: **Home** (→ `skills`) and
   **Parent** (→ parent gate). The legacy **Adventure** nav item was removed.
+- **`Mascot.jsx`** — single source of truth for Tinku rendering. Imports lossless WebP poses
+  from `assets/mascot/webp/` (≈50% smaller than PNGs, zero visible quality loss; originals
+  kept as source). All 6 images preloaded at module init so emotion changes hit cache instantly.
+  Outer div reserves container size (no layout shift). Emotion transitions cross-fade via opacity
+  (120ms), GPU-only (STANDARDS §5). Breathe float animation stays in `index.css`.
 - **Parent zone** (inline in `ThemeManager`) — simple gated placeholder (passcode set/change)
   behind `ParentGateModal`.
 
