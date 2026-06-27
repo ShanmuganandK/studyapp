@@ -43,14 +43,43 @@ function playNote(ctx, freq, start, duration, gain = 0.20, attack = 0.005) {
 // Import path, preloading, and format are the only things to change here.
 // playSound('correct') at call sites stays identical.
 const synthMap = {
-  // Happy rising chime — C5 → E5 → G5 (major triad ascending).
-  // Arpeggiated so the reward "lands" note by note rather than all at once.
+  // Bell chime: C5 → E5 → G5 → C6, staggered 60ms apart.
+  // Each note = sine bell base + triangle overtone + high-freq sparkle, all with
+  // exponential decays so notes ring out naturally (not electronic/beepy).
   correct: () => {
     const ctx = getCtx();
-    const t = ctx.currentTime;
-    playNote(ctx, 523.25, t,        0.18, 0.20);  // C5
-    playNote(ctx, 659.25, t + 0.09, 0.18, 0.22);  // E5
-    playNote(ctx, 783.99, t + 0.18, 0.28, 0.24);  // G5 — held slightly longer
+    const now = ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.50];
+    notes.forEach((freq, i) => {
+      const t = now + i * 0.06;
+      const dur = 1.0;
+
+      const osc1 = ctx.createOscillator(); const g1 = ctx.createGain();
+      osc1.type = 'sine'; osc1.frequency.setValueAtTime(freq, t);
+      g1.gain.setValueAtTime(0, t);
+      g1.gain.linearRampToValueAtTime(0.2, t + 0.01);
+      g1.gain.exponentialRampToValueAtTime(0.001, t + dur);
+
+      const osc2 = ctx.createOscillator(); const g2 = ctx.createGain();
+      osc2.type = 'triangle'; osc2.frequency.setValueAtTime(freq * 2, t);
+      g2.gain.setValueAtTime(0, t);
+      g2.gain.linearRampToValueAtTime(0.06, t + 0.01);
+      g2.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+
+      const osc3 = ctx.createOscillator(); const g3 = ctx.createGain();
+      osc3.type = 'sine'; osc3.frequency.setValueAtTime(freq * 4, t);
+      g3.gain.setValueAtTime(0, t);
+      g3.gain.linearRampToValueAtTime(0.03, t + 0.005);
+      g3.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+
+      osc1.connect(g1); g1.connect(ctx.destination);
+      osc2.connect(g2); g2.connect(ctx.destination);
+      osc3.connect(g3); g3.connect(ctx.destination);
+
+      osc1.start(t); osc1.stop(t + dur);
+      osc2.start(t); osc2.stop(t + dur);
+      osc3.start(t); osc3.stop(t + dur);
+    });
   },
 
   // Single soft low tone — encouraging, never punishing.

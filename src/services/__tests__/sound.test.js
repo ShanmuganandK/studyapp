@@ -13,7 +13,7 @@ function makeMockCtx() {
     stop: vi.fn(),
   };
   const gain = {
-    gain: { setValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn() },
+    gain: { setValueAtTime: vi.fn(), linearRampToValueAtTime: vi.fn(), exponentialRampToValueAtTime: vi.fn() },
     connect: vi.fn(),
   };
   return {
@@ -125,12 +125,12 @@ describe('sound service', () => {
 
   // ── Note counts verify correct synthesis structure ────────────────────────────────────
 
-  it('correct plays a 3-note chime (C5-E5-G5)', () => {
+  it('correct plays a 4-note bell chime with 3 oscillators per note (12 total)', () => {
     playSound('correct');
-    expect(mockCtx.createOscillator).toHaveBeenCalledTimes(3);
+    expect(mockCtx.createOscillator).toHaveBeenCalledTimes(12);
   });
 
-  it('complete plays a 4-note fanfare (more expansive than correct)', () => {
+  it('complete plays a 4-note fanfare (more oscillators than a single correct note)', () => {
     playSound('complete');
     expect(mockCtx.createOscillator).toHaveBeenCalledTimes(4);
   });
