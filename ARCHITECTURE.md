@@ -139,6 +139,28 @@ dark child grade-wall, Grades 1–4). These pull from the legacy question/master
 parent-gated flow (DECISIONS: grade is a parent property, no child grade-wall) — `ProfileSetup`
 is the frozen reference until then.
 
+### Feel layer (`src/services/sound.js`) — sound + haptics
+
+The **single source of truth for all audio and haptics**. Components call `playSound(event)` /
+`haptic(type)` — they never touch `AudioContext` or `navigator.vibrate` directly (STANDARDS §8).
+All calls are fire-and-forget: the service swallows errors silently so autoplay blocks or missing
+APIs never crash a child's session.
+
+- **Named events** (callers use these; the service decides the implementation):
+  `correct` (rising 3-note chime), `wrong` (single soft low tone — gentle, not a buzzer),
+  `tap` (brief soft click on button press), `complete` (4-note celebratory fanfare).
+- **Haptic type**: `light` (30 ms vibration via Web Vibration API).
+- **Swap points** (marked with `// TODO` in the file):
+  - *Sound:* replace each `synthMap` entry with `new Audio(url).play()` to use real files — callers unchanged.
+  - *Haptics:* replace `hapticMap` bodies with `Capacitor Haptics.impact(...)` — callers unchanged.
+- **Mute**: `setSoundMuted(bool)` / `isSoundMuted()` — one flag silences both sound and haptics
+  instantly. Sound is ON by default; the session UI exposes a 🔊/🔇 toggle.
+- **Wired into**: `SessionPlayer` — tap on every option press; correct/wrong/complete on phase
+  transitions via `useEffect`.
+
+**Tests**: `src/services/__tests__/sound.test.js` (Vitest, node env, globals stubbed) — covers
+mute logic, event mapping, note counts, and silent resilience to API failures.
+
 ### Legacy core (FROZEN) — being retired
 
 The pre-decisions Antigravity core, kept running as-is and **never edited** until its

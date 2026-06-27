@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react';
 import { useQuizSession } from '../hooks/useQuizSession';
+import { playSound, haptic, setSoundMuted, isSoundMuted } from '../services/sound';
 import Mascot from './Mascot';
 import QuestionView from './QuestionView';
 
@@ -7,9 +9,37 @@ import QuestionView from './QuestionView';
  * Presentational: all logic (remediation ladder, scoring, analytics) is in the hook.
  * Bright / Wonder-band palette. (TODO: migrate hardcoded colors to theme tokens when the
  * theme-wonder/theme-explorer token system lands.)
+ *
+ * Sound/haptic events (all fire-and-forget via sound service — never block the UI):
+ *   tap     → every option button press (immediate tactile feedback)
+ *   correct → phase transitions to 'correct'
+ *   wrong   → phase transitions to 'hint' (wrong #1) or 'reveal' (wrong #2)
+ *   complete → phase transitions to 'complete' (session end)
  */
 export default function SessionPlayer({ grade, skillId, onExit }) {
   const s = useQuizSession(grade, { skillId });
+
+  // Mute toggle state — initialised from the service so it survives hot reloads.
+  const [muted, setMuted] = useState(isSoundMuted);
+
+  function toggleMute() {
+    const next = !muted;
+    setSoundMuted(next);
+    setMuted(next);
+  }
+
+  // Fire sound events on phase transitions. Runs after every render where phase changed.
+  // 'solving' is the neutral phase (question loading / retry) — no sound fires for it.
+  useEffect(() => {
+    if (s.phase === 'correct') {
+      playSound('correct');
+      haptic('light');
+    } else if (s.phase === 'hint' || s.phase === 'reveal') {
+      playSound('wrong');
+    } else if (s.phase === 'complete') {
+      playSound('complete');
+    }
+  }, [s.phase]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!s.ready) {
     return <Centered><p className="text-slate-500">Getting Tinku ready…</p></Centered>;
@@ -31,7 +61,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
 
   return (
     <div className="flex flex-col min-h-full bg-sky-50 px-5 py-4">
-      {/* Top: progress + Tinku */}
+      {/* Top bar: back · progress counter · mute toggle */}
       <div className="flex items-center justify-between">
         <button onClick={onExit} className="text-sm font-semibold text-slate-400 hover:text-slate-600">
           ← Skills
@@ -39,6 +69,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
         <span className="text-sm font-bold text-indigo-400">
           {s.questionNumber} / {s.totalQuestions}
         </span>
+        <MuteButton muted={muted} onToggle={toggleMute} />
       </div>
 
       <div className="flex justify-center mt-2">
@@ -66,7 +97,11 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
             label={String(opt)}
             state={optionState(i, s)}
             disabled={locked}
-            onClick={() => s.answer(i)}
+            onClick={() => {
+              playSound('tap');
+              haptic('light');
+              s.answer(i);
+            }}
           />
         ))}
       </div>
@@ -100,6 +135,18 @@ function OptionButton({ label, state, disabled, onClick }) {
       }`}
     >
       {label}
+    </button>
+  );
+}
+
+function MuteButton({ muted, onToggle }) {
+  return (
+    <button
+      onClick={onToggle}
+      aria-label={muted ? 'Unmute sound' : 'Mute sound'}
+      className="text-xl w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 active:scale-90 transition-transform"
+    >
+      {muted ? '🔇' : '🔊'}
     </button>
   );
 }
