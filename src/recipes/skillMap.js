@@ -28,7 +28,9 @@
 /** Mastery level (0–5) at or above which a skill counts as "mastered" for unlocking. */
 export const MASTERY_THRESHOLD = 3;
 
-const skill = (id, name, grade, strand, order, maxDifficulty, prereqs, recipe, status) => ({
+// `extras` carries optional display fields (displayName, subtitle, icon) for ready skills.
+// planned skills omit it; the screen falls back to `name`.
+const skill = (id, name, grade, strand, order, maxDifficulty, prereqs, recipe, status, extras = {}) => ({
   id,
   name,
   grade,
@@ -38,6 +40,7 @@ const skill = (id, name, grade, strand, order, maxDifficulty, prereqs, recipe, s
   prereqs,
   recipe,
   status,
+  ...extras,
 });
 
 const ALL_SKILLS = [
@@ -47,14 +50,20 @@ const ALL_SKILLS = [
   skill('g1.prenum.patterns', 'Simple patterns (AB, AAB)', 1, 'prenumber', 12, 2, [], 'patterns', 'planned'),
   skill('g1.shapes.2d', '2D shapes (circle, square, triangle, rectangle)', 1, 'shapes', 20, 2, [], 'shapes2d', 'planned'),
   skill('g1.shapes.space', 'Spatial: inside/outside, near/far, top/bottom', 1, 'shapes', 21, 2, [], 'spatial', 'planned'),
-  skill('g1.count.1-9', 'Counting & numbers 1–9', 1, 'numbers', 30, 3, [], 'counting', 'ready'),
-  skill('g1.count.1-20', 'Counting & numbers up to 20', 1, 'numbers', 31, 3, ['g1.count.1-9'], 'counting', 'ready'),
-  skill('g1.num.compare20', 'Compare numbers up to 20 (>, <, =)', 1, 'numbers', 32, 3, ['g1.count.1-20'], 'compareNumbers', 'ready'),
+  skill('g1.count.1-9', 'Counting & numbers 1–9', 1, 'numbers', 30, 3, [], 'counting', 'ready',
+    { displayName: 'Number Party', subtitle: 'Numbers 1–9', icon: '🎉' }),
+  skill('g1.count.1-20', 'Counting & numbers up to 20', 1, 'numbers', 31, 3, ['g1.count.1-9'], 'counting', 'ready',
+    { displayName: 'Big Number Party', subtitle: 'Numbers up to 20', icon: '🎉' }),
+  skill('g1.num.compare20', 'Compare numbers up to 20 (>, <, =)', 1, 'numbers', 32, 3, ['g1.count.1-20'], 'compareNumbers', 'ready',
+    { displayName: 'Big or Small?', subtitle: 'Compare numbers (>, <, =)', icon: '⚖️' }),
   skill('g1.num.ordinal', 'Ordinal numbers (1st–10th)', 1, 'numbers', 33, 2, ['g1.count.1-9'], 'ordinal', 'planned'),
   skill('g1.add.within10', 'Addition within 10', 1, 'addition', 40, 3, ['g1.count.1-9'], 'addition', 'planned'),
-  skill('g1.add.within20', 'Addition within 20', 1, 'addition', 41, 3, ['g1.add.within10'], 'addition', 'ready'),
-  skill('g1.sub.within10', 'Subtraction within 10', 1, 'subtraction', 50, 3, ['g1.count.1-9'], 'subtraction', 'ready'),
-  skill('g1.sub.within20', 'Subtraction within 20', 1, 'subtraction', 51, 3, ['g1.sub.within10'], 'subtraction', 'ready'),
+  skill('g1.add.within20', 'Addition within 20', 1, 'addition', 41, 3, ['g1.add.within10'], 'addition', 'ready',
+    { displayName: 'Add it Up!', subtitle: 'Addition within 20', icon: '➕' }),
+  skill('g1.sub.within10', 'Subtraction within 10', 1, 'subtraction', 50, 3, ['g1.count.1-9'], 'subtraction', 'ready',
+    { displayName: 'Pop the Balloons!', subtitle: 'Subtraction within 10', icon: '🎈' }),
+  skill('g1.sub.within20', 'Subtraction within 20', 1, 'subtraction', 51, 3, ['g1.sub.within10'], 'subtraction', 'ready',
+    { displayName: 'Pop More Balloons!', subtitle: 'Subtraction within 20', icon: '🎈' }),
   skill('g1.num.21-99', 'Numbers 21–99 (read, write, count)', 1, 'numbers', 60, 3, ['g1.count.1-20'], 'counting', 'planned'),
   skill('g1.place.tens-ones', 'Tens & ones (place value intro)', 1, 'placevalue', 61, 3, ['g1.num.21-99'], 'placeValue', 'planned'),
   skill('g1.measure.length', 'Length: longer/shorter, non-standard units', 1, 'measurement', 70, 2, ['g1.prenum.compare'], 'measureLength', 'planned'),

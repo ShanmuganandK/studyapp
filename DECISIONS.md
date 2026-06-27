@@ -88,3 +88,4 @@
 - _(seed)_ Initial decisions captured from planning sessions.
 - Migration strategy added after the code-vs-docs audit: existing app = UI prototype; rebuild core on recipe engine + Firestore + anonymous auth via strangler-fig with feature flags; keep good screens; legacy frozen then deleted.
 - `misconceptions-reference.md` established as the canonical source for misconception tags + rules; reference recipes reconcile to it (doc wins); pending one-time teacher review of the ~68 rows.
+- Skill cards use `displayName` (kid-friendly title), `subtitle` (curriculum tag, small/muted), and `icon` (emoji) stored in `skillMap.js` — data-driven, not hardcoded in the screen. Star emoji (⭐) is reserved exclusively for rewards/mastery; skill icons must not use it.

@@ -27,9 +27,23 @@ export default function SkillSelectScreen({ onSelectSkill }) {
           <button
             key={skill.id}
             onClick={() => onSelectSkill(skill.id)}
-            className="bg-white border-4 border-indigo-200 text-indigo-700 font-bold text-lg py-4 px-4 rounded-2xl shadow-sm hover:scale-105 active:scale-95 transition-transform"
+            className="bg-white border-4 border-indigo-200 rounded-2xl shadow-sm py-4 px-5 flex items-center gap-4 hover:scale-105 active:scale-95 transition-transform text-left"
           >
-            {skill.name}
+            {skill.icon && (
+              <span className="text-4xl leading-none flex-shrink-0" aria-hidden="true">
+                {skill.icon}
+              </span>
+            )}
+            <span className="flex flex-col min-w-0">
+              <span className="text-indigo-700 font-extrabold text-lg leading-tight">
+                {skill.displayName ?? skill.name}
+              </span>
+              {skill.subtitle && (
+                <span className="text-slate-400 text-xs font-medium mt-0.5">
+                  {skill.subtitle}
+                </span>
+              )}
+            </span>
           </button>
         ))}
       </div>

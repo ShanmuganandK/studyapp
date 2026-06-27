@@ -167,6 +167,9 @@ Defined in `skill-map-spec.md`, implemented in `src/recipes/skillMap.js`. `SKILL
 { id, name, grade, strand, order, maxDifficulty, prereqs:string[], recipe, status }` where
 `status ∈ {'ready','planned'}`. The graph is a DAG (prereqs point backward); `order` is unique
 per grade. `maxDifficulty` mirrors the powering recipe's ceiling.
+`ready` skills additionally carry optional display fields: `displayName` (kid-friendly title),
+`subtitle` (curriculum tag shown small/muted), `icon` (single emoji). `SkillSelectScreen` reads
+these directly; screens fall back to `name` when absent. Star emoji reserved for rewards only.
 
 ---
 
