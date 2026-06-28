@@ -16,7 +16,7 @@ proven behind a flag, then deleted. See **Migration strategy** below.
 | `src/engine/`       | **NEW** (scaffold). Pure core logic: mastery, spaced-rep, composer, remediation. |
 | `src/hooks/`        | **NEW** (scaffold). React orchestration: session flow, mastery updates. |
 | `src/services/`     | **NEW** SDK boundary (auth/firestore/billing) — but currently also holds **FROZEN** legacy popup-first auth (`authService.js`, `firebaseAdapter.js`, `localAdapter.js`). |
-| `src/config/`       | **NEW.** Single config module — `flags.js` (migration feature flags).  |
+| `src/config/`       | **NEW.** Config modules — `flags.js` (migration feature flags), `masteryConfig.js` (mastery + spaced-rep tunables). |
 | `src/components/`   | Presentational React UI (screens, modules, dashboard). The migration bridge. The child-reachable flow is now entirely new (skill-select → recipe quiz); legacy screens stay on disk but FROZEN/unreachable (see **App flow & screens**). |
 | `src/contexts/`     | React contexts (e.g. `AuthContext`). Legacy until auth is rebuilt.     |
 | `src/lib/`          | **FROZEN.** Legacy Firebase init (`firebase.js`).                       |
@@ -138,6 +138,51 @@ dark child grade-wall, Grades 1–4). These pull from the legacy question/master
 **Deferred:** parent-set grade/profile selection returns later as a proper light-themed,
 parent-gated flow (DECISIONS: grade is a parent property, no child grade-wall) — `ProfileSetup`
 is the frozen reference until then.
+
+### Mastery engine (`src/engine/mastery.js` + `src/config/masteryConfig.js`)
+
+Pure functions — no Firebase, no localStorage, no React, no `Date.now()` inside. Computes
+new skill state from old state + a session result. Persistence is a **separate, later task**;
+this module only does the arithmetic.
+
+**Skill state shape** (one record per child per skill; later persisted at
+`users/{uid}/children/{childId}/skills/{skillId}`):
+```js
+{
+  skillId,           // e.g. 'g1.add.within20'
+  level,             // 0–5 mastery level
+  difficulty,        // current working difficulty 1–maxDifficulty (adaptive)
+  maxDifficulty,     // skill's curriculum ceiling — stored here so pure fns need no skill-map import
+  attempts,          // total questions attempted (all-time)
+  correct,           // total correct (all-time)
+  lastSeen,          // ISO date string of last practice
+  nextReview,        // ISO date string when next due for review (null until first mastery)
+  reviewInterval,    // index into MASTERY.REVIEW_INTERVALS (Leitner position)
+  recentParams,      // last ~20 question signatures (repeat-avoidance handoff to session layer)
+  misconceptions,    // { tag: count } — which mistake patterns this child shows
+}
+```
+
+**Exports** (`src/engine/mastery.js`):
+- `emptySkillState(skillId, maxDifficulty = 3)` — fresh zeroed state
+- `applyResult(skillState, sessionResult, config)` — core: returns NEW state (pure, no mutation)
+- `isMastered(skillState, config)` — level ≥ MASTERED_LEVEL
+- `isUnlockedLevel(skillState, config)` — level ≥ UNLOCK_LEVEL (prereq check for skill map)
+- `isDueForReview(skillState, today)` — mastered AND nextReview ≤ today (ISO string compare)
+- `nextWorkingDifficulty(skillState)` — what difficulty the next session should use
+
+**Config** (`src/config/masteryConfig.js`) — all tunables in `MASTERY`:
+`MAX_LEVEL`, `UNLOCK_LEVEL`, `MASTERED_LEVEL`, `STRONG_RATIO` (0.8), `WEAK_RATIO` (0.5),
+`LEVEL_UP_REQUIRES_HARD` (true), `REVIEW_INTERVALS` ([1, 2, 4, 7, 21] days).
+
+**Tests** (`src/engine/__tests__/mastery.test.js`) — 50+ cases: level up/down/hold, the
+level-5-hard-difficulty gate, adaptive difficulty bounds, full spaced-rep interval progression,
+just-mastered vs in-review, regression recovery, all boundary ratios, 0-attempt edge case,
+determinism.
+
+**Depends on it (later tasks):** session composer (reads `nextWorkingDifficulty` +
+`isDueForReview`), persistence layer (saves `applyResult` output to Firestore), parent
+dashboard (reads `level` + `misconceptions`). None of those are wired yet.
 
 ### Feel layer (`src/services/sound.js`) — sound + haptics
 
