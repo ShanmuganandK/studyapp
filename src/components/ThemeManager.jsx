@@ -3,8 +3,8 @@ import RecipeQuizScreen from './RecipeQuizScreen';
 import SkillSelectScreen from './SkillSelectScreen';
 import Layout from './Layout';
 import ParentGateModal from './ParentGateModal';
+import ParentDashboard from './ParentDashboard';
 import { useAuth } from '../contexts/AuthContext';
-import { Lock } from 'lucide-react';
 
 /**
  * Wonder-band default grade. Grade is a parent-set profile property (DECISIONS: no child
@@ -73,44 +73,11 @@ export default function ThemeManager() {
       )}
 
       {currentView === 'parent' && (
-        <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-6">
-          <h2 className="text-2xl font-bold text-indigo-900">Parent Zone 🔒</h2>
-
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-indigo-100 w-full max-w-sm">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-gray-600 font-medium">Kid Profile</span>
-              <span className="bg-indigo-100 text-indigo-800 text-xs px-2 py-1 rounded-full font-bold">Active</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                {currentProfile?.name?.[0] || 'E'}
-              </div>
-              <div className="text-left">
-                <p className="text-xl font-bold text-indigo-900">{currentProfile?.name || 'Explorer'}</p>
-                <p className="text-sm text-indigo-600 capitalize">Grade {grade}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="w-full max-w-sm space-y-3">
-            <button
-              onClick={() => {
-                setIsGateSettingMode(true);
-                setIsGateOpen(true);
-              }}
-              className="w-full bg-white border-2 border-indigo-100 text-indigo-700 font-bold py-3 rounded-xl hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2"
-            >
-              <Lock size={18} />
-              {parentSettings?.passcode ? "Change Passcode" : "Set Parent Passcode"}
-            </button>
-          </div>
-
-          {user && (
-            <p className="text-xs text-gray-400 mt-8">
-              Logged in as {user.email}
-            </p>
-          )}
-        </div>
+        <ParentDashboard
+          onSetPasscode={() => { setIsGateSettingMode(true); setIsGateOpen(true); }}
+          hasPasscode={!!parentSettings?.passcode}
+          userEmail={user?.email ?? null}
+        />
       )}
     </Layout>
   );

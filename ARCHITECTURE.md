@@ -128,8 +128,11 @@ entry → SkillSelectScreen (home) → RecipeQuizScreen → SessionPlayer (sessi
   kept as source). All 6 images preloaded at module init so emotion changes hit cache instantly.
   Outer div reserves container size (no layout shift). Emotion transitions cross-fade via opacity
   (120ms), GPU-only (STANDARDS §5). Breathe float animation stays in `index.css`.
-- **Parent zone** (inline in `ThemeManager`) — simple gated placeholder (passcode set/change)
-  behind `ParentGateModal`.
+- **`ParentDashboard.jsx`** — encouraging progress snapshot for parents, behind `ParentGateModal`.
+  Renders via `progressSummary` (see below): mastered/in-progress/not-started skill list, wins
+  highlight, "currently working on" strip, light activity signal, passcode button. Reads local
+  mastery data only (no account, no cloud). Deferred: misconception-based "areas to support"
+  (post-teacher-review), activity trends, parent accounts/cloud sync, multiple child profiles.
 
 **FROZEN / unreachable screens** (kept, never edited, no longer wired into navigation):
 `AdventureLadder.jsx`, `Syllabus.jsx`, `PassportDashboard.jsx`, `QuizEngine.jsx`,
@@ -290,6 +293,27 @@ highlight. The child can still tap any card; the highlight is guidance, not a ga
 `useState` initialiser on mount (one storage read). `ThemeManager` conditionally renders it
 (`{currentView === 'skills' && ...}`) so it unmounts during play and remounts when the child
 returns — the init runs again, always reflecting the latest saved state.
+
+### Progress summary (`src/engine/progressSummary.js`) — dashboard view-model
+
+Pure function — no storage reads, no `Date.now()`. Called by `ParentDashboard` after it loads
+skill states; keeps all logic out of the component (STANDARDS §2).
+
+**`progressSummary(skillStates, today)`** → `ProgressSummary`:
+- Loops over `status:'ready'` skills from the skill map, sorted by grade then order.
+- Buckets each into `mastered` (level ≥ `MASTERED_LEVEL`), `inProgress` (0 < level < `MASTERED_LEVEL`),
+  or `notStarted` (level 0 / no saved state).
+- Each bucket entry: `{ skillId, displayName, icon, subtitle, level }`.
+- `masteredCount`, `skillsPractisedCount` (mastered + inProgress), `lastActivity` (friendly
+  relative string from the most-recent `lastSeen` across all states, or `null`).
+
+**`formatRelativeDate(lastSeen, today)`** — exported for testing; returns `'today'`,
+`'yesterday'`, `'N days ago'`, or `'a while ago'`.
+
+**Tests** (`src/engine/__tests__/progressSummary.test.js`) — empty states, all-three-bucket
+mix, entry fields, lastActivity selection + relative formatting, curriculum ordering.
+
+**Deferred outputs** (not in v1): misconception breakdown, activity trends, streak data.
 
 ### Feel layer (`src/services/sound.js`) — sound + haptics
 
