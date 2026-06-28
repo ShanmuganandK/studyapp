@@ -11,14 +11,13 @@ export default function QuestionView({ question }) {
     return (
       <div className="text-center">
         <p className="text-base font-bold text-slate-800 mb-2">{question.questionText}</p>
-        {/* Ten-frame tray: 5-column grid (rows of 5) matches how counting in groups is taught.
-            Glyph size scales with screen width so the tray never clips at 320-360px.
-            NOTE: counts 16-20 are not served (ceiling capped at 15 in counting.js) — if the
-            skill range is ever extended, a numeral/grouped presentation will be needed here. */}
+        {/* Ten-frame tray: rows of 5 (pedagogical grouping). For counts ≤ 5 the grid
+            narrows to the actual count and centers, so small sets don't leave awkward
+            empty cells. For counts 6-15: fixed 5-col rows. 16-20 not served — see counting.js. */}
         <div className="mx-auto rounded-2xl border-2 border-indigo-100 bg-white p-2 shadow-inner">
           <div
-            className="grid gap-1"
-            style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}
+            className="grid gap-1 justify-center"
+            style={{ gridTemplateColumns: `repeat(${Math.min(count, 5)}, 1fr)` }}
             aria-label={`${count} objects to count`}
           >
             {Array.from({ length: count }).map((_, i) => (
