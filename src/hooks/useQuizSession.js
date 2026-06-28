@@ -5,6 +5,14 @@
  * (`initSession`, `applyAnswer`, `advance`) so the teaching logic is unit-testable without React
  * or a DOM. The hook is a thin wrapper that holds state, times the session, and fires analytics.
  *
+ * Mastery wiring (spec-wire-mastery-persistence.md):
+ *   - Session START: loads the skill's saved state via progressStore; uses nextWorkingDifficulty
+ *     so the child resumes at their adapted level, not always difficulty 1.
+ *   - Session END: builds a sessionResult (clock read HERE, not inside the pure engine), calls
+ *     applyResult, and saves the new state via progressStore.
+ *   - misconceptionTags are accumulated during the session via a ref and included in the result.
+ *   - recentParams: kept session-local for now (cross-session repeat-avoidance is a future nicety).
+ *
  * Ladder:
  *   correct      → Tinku 'celebrate', score++, advance on next()
  *   wrong #1     → Tinku 'encourage', show the chosen distractor's hint, let them retry
@@ -18,6 +26,10 @@ import { makeRng } from '../recipes/_rng';
 import { buildLiteSession } from '../engine/sessionLite';
 import { getHint } from '../engine/hints';
 import { logEvent } from '../services/analytics';
+import { loadSkillState, saveSkillState } from '../services/progressStore';
+import { emptySkillState, applyResult, nextWorkingDifficulty } from '../engine/mastery';
+import { MASTERY } from '../config/masteryConfig';
+import { getSkill } from '../recipes/skillMap';
 
 const band = (grade) => (grade <= 3 ? 'wonder' : 'explorer');
 
@@ -79,7 +91,7 @@ export function applyAnswer(state, optionIndex) {
       attempts,
       selectedIndex: optionIndex,
       revealIndex: q.options.indexOf(q.correctAnswer),
-      hint: 'Here’s how — let’s see it together!',
+      hint: "Here’s how — let’s see it together!",
       lastEvent: { type: 'answered', correct: false, tag, attemptNumber },
     };
   }
@@ -133,6 +145,10 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
   const questionStartRef = useRef(0);
   const advanceTimer = useRef(null);
 
+  // Mastery wiring refs — reset on each session start.
+  const skillStateRef = useRef(null);       // loaded SkillState for the active skill
+  const misconceptionTagsRef = useRef([]);  // wrong-answer tags collected during this session
+
   const commit = (nextState) => {
     stateRef.current = nextState;
     setState(nextState);
@@ -146,8 +162,28 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
   };
 
   const build = useCallback(() => {
+    // ── Load saved mastery state for this skill (wiring layer reads clock + skill map) ──
+    let startDifficulty;
+    if (skillId) {
+      try {
+        const skill = getSkill(skillId);
+        const saved = loadSkillState(skillId);
+        const loaded = saved ?? emptySkillState(skillId, skill.maxDifficulty);
+        skillStateRef.current = loaded;
+        startDifficulty = nextWorkingDifficulty(loaded);
+      } catch {
+        // Unknown skillId or storage failure: start fresh, no mastery update this session.
+        skillStateRef.current = null;
+        startDifficulty = undefined;
+      }
+    } else {
+      skillStateRef.current = null;
+      startDifficulty = undefined;
+    }
+    misconceptionTagsRef.current = [];
+
     const rng = makeRng(seed ?? `${skillId ?? 'any'}:${Date.now()}:${Math.random()}`);
-    const session = buildLiteSession(grade, rng, { length, skillId });
+    const session = buildLiteSession(grade, rng, { length, skillId, difficulty: startDifficulty });
     sessionStartRef.current = Date.now();
     questionStartRef.current = Date.now();
     commit(initSession(session));
@@ -181,6 +217,7 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
     const prev = stateRef.current;
     if (!prev) return;
     const n = advance(prev);
+
     if (n.phase === 'complete') {
       logEvent('session_complete', {
         skill_id: prev.skillId,
@@ -188,9 +225,27 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
         questions_correct: prev.score,
         duration_sec: Math.round((Date.now() - sessionStartRef.current) / 1000),
       });
+
+      // ── Save mastery (clock read here; pure engine stays clock-free) ──────────────
+      if (prev.skillId && skillStateRef.current) {
+        const today = new Date().toISOString().slice(0, 10);
+        const difficultyPlayed = Math.max(...prev.questions.map((q) => q.difficulty));
+        const sessionResult = {
+          skillId: prev.skillId,
+          difficultyPlayed,
+          questionsTotal: prev.questions.length,
+          questionsCorrect: prev.score,
+          misconceptionTags: misconceptionTagsRef.current,
+          date: today,
+        };
+        const newSkillState = applyResult(skillStateRef.current, sessionResult, MASTERY);
+        skillStateRef.current = newSkillState;
+        saveSkillState(prev.skillId, newSkillState);
+      }
     } else {
       questionStartRef.current = Date.now();
     }
+
     commit(n);
   };
 
@@ -218,6 +273,10 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
           misconception_tag: ev.hintTag,
           difficulty: q.difficulty,
         });
+      }
+      // Accumulate wrong-answer tags for the session result (ref, not state — no re-render).
+      if (!ev.correct) {
+        misconceptionTagsRef.current.push(ev.tag);
       }
     }
     commit(nextState);

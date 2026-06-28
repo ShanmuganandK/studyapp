@@ -112,12 +112,16 @@ export function rampDifficulty(index, length, maxDifficulty) {
  * Build a short, playable session.
  * @param {number} grade
  * @param {object} rng - seeded RNG from src/recipes/_rng (makeRng)
- * @param {{length?: number, skillId?: string}} [opts] - skillId forces a specific ready skill
- *        (used by the skill picker + tests); otherwise a random ready skill is chosen.
+ * @param {{length?: number, skillId?: string, difficulty?: number}} [opts]
+ *   - skillId: forces a specific ready skill (used by the skill picker + tests)
+ *   - difficulty: when provided, every question is generated at this fixed difficulty
+ *     (clamped to the skill's maxDifficulty). Used by the mastery wiring layer to resume
+ *     at the child's adapted level instead of always ramping from 1. When omitted the
+ *     existing 1→2→3 ramp behaviour is unchanged.
  * @returns {{ skillId, skillName, grade, questions }} questions are recipe contract outputs,
- *          each annotated with its ramp `difficulty` (session metadata for analytics).
+ *          each annotated with its `difficulty` (session metadata for analytics/mastery).
  */
-export function buildLiteSession(grade, rng, { length = DEFAULT_LENGTH, skillId } = {}) {
+export function buildLiteSession(grade, rng, { length = DEFAULT_LENGTH, skillId, difficulty } = {}) {
   const pool = readySkills(grade);
   if (pool.length === 0) return { skillId: null, skillName: null, grade, questions: [] };
 
@@ -132,9 +136,13 @@ export function buildLiteSession(grade, rng, { length = DEFAULT_LENGTH, skillId 
   const questions = generateWithRepeatAvoidance({
     length,
     makeCandidate: (i) => {
-      const difficulty = rampDifficulty(i, length, chosen.maxDifficulty);
+      // Fixed difficulty (mastery-adaptive) when provided; ramp otherwise.
+      const d =
+        difficulty !== undefined
+          ? Math.min(difficulty, chosen.maxDifficulty)
+          : rampDifficulty(i, length, chosen.maxDifficulty);
       // Advancing the same rng across calls varies each question; deterministic given the seed.
-      return { ...recipe.generate(difficulty, rng, chosen.id), difficulty };
+      return { ...recipe.generate(d, rng, chosen.id), difficulty: d };
     },
     signatureOf: (q) => signatureOf(q, kind),
   });

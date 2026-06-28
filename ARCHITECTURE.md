@@ -184,6 +184,69 @@ determinism.
 `isDueForReview`), persistence layer (saves `applyResult` output to Firestore), parent
 dashboard (reads `level` + `misconceptions`). None of those are wired yet.
 
+### Progress store (`src/services/progressStore.js`) — local persistence
+
+The **single place mastery state is saved and loaded**. Callers (hooks, screens) never touch
+the storage API directly — only this service does. This is the swap-point: today the backend
+is `localStorage` (anonymous, on-device, no account); when cloud sync arrives (Firestore,
+separate lawyer-gated task), this service is replaced or augmented without touching any caller.
+
+**Storage:** anonymous, behaviour-only, no PII. Keyed by `skillId` only. DPDP-safe.
+Key: `'tinku:v1:skills'`, shape: `{ version: 1, skills: { [skillId]: skillState } }`.
+
+**Exports:**
+- `loadAllSkillStates() → { [skillId]: skillState }` — used by SkillSelectScreen on mount
+- `loadSkillState(skillId) → skillState | null` — used by `useQuizSession` on session start
+- `saveSkillState(skillId, skillState)` — used by `useQuizSession` on session complete
+
+**Error handling:** all three functions catch storage failures (quota, disabled), log a dev
+warning, and degrade gracefully — the child can still play, progress just won't persist that
+session.
+
+**No feature flag:** the service is purely additive and degrades safely on failure, so it is
+called unconditionally. `flags.useNewMastery` is the future switch for retiring the legacy
+mastery engine, not this service.
+
+**Cloud/account persistence is explicitly deferred** (separate lawyer-gated task). When that
+task lands, `progressStore` is the only file that changes.
+
+**`recentParams` note:** persisted as part of skill state (passed through `applyResult`
+unchanged) but currently always `[]` — neither `buildLiteSession` nor `applyResult` populates
+it. Cross-session repeat-avoidance is a future nicety.
+
+### Session wiring (`src/hooks/useQuizSession.js`) — mastery in/out
+
+`useQuizSession` is the wiring layer between the pure engine and the React lifecycle.
+
+- **Session start (`build` callback):** calls `loadSkillState(skillId)` (or
+  `emptySkillState(skillId, maxDifficulty)` for first play); reads `nextWorkingDifficulty` and
+  passes it as the fixed `difficulty` to `buildLiteSession` so the child resumes at their
+  adapted level, not always difficulty 1.
+- **Session end (`next()` when phase → 'complete'):** reads the real clock here (ISO date
+  string), computes `difficultyPlayed` as the max difficulty of questions in the session,
+  collects `misconceptionTags` accumulated via a ref during `answer()`, calls `applyResult`
+  (pure engine stays clock-free), and saves the new state via `saveSkillState`.
+- The pure engine (`mastery.js`) is NEVER given `Date.now()` — date is always injected by
+  this wiring layer.
+
+**`sessionLite.js` change:** `buildLiteSession` gained an optional `difficulty` param. When
+provided, all questions use that fixed difficulty (clamped to `maxDifficulty`) instead of the
+1→2→3 ramp. Existing ramp behaviour is unchanged when `difficulty` is omitted.
+
+### Mastery pips (`src/components/SkillSelectScreen.jsx`)
+
+Each skill card shows 5 small round pips (8px circles) reflecting the child's current mastery
+level. Pip colours: empty = `slate-200`; levels 1–2 = `sky-400`; levels 3–4 = `indigo-400`;
+level 5 (mastered) = `amber-400`. A `↻` glyph in amber marks skills due for spaced-rep review.
+
+Deliberately not stars (stars = in-session reward, DECISIONS). This is the verify-it-works
+surface; the full parent dashboard is a later task.
+
+`SkillSelectScreen` loads `loadAllSkillStates()` lazily in a `useState` initialiser on mount.
+`ThemeManager` conditionally renders it (`{currentView === 'skills' && ...}`) so it unmounts
+during play and remounts when the child returns — the init runs again, always reflecting the
+latest saved state.
+
 ### Feel layer (`src/services/sound.js`) — sound + haptics
 
 The **single source of truth for all audio and haptics**. Components call `playSound(event)` /
