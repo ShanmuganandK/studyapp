@@ -77,18 +77,14 @@ Use **plan mode** for anything bigger than a trivial edit: state the plan, get a
 - **Reads are progressive.** Show cached/partial data immediately; never block the whole UI on a network read.
 - **No personal data in URLs or query strings.**
 
-## 5. Performance (low-end Android is the target)
+## 5. Performance & layout (low-end Android is the target)
 
 - Animate only `transform` and `opacity` (GPU). Never animate layout properties (`width/height/top/left/box-shadow`) in loops.
-- **Image assets — resize FIRST, then compress (this order matters).** The biggest saving is usually resolution, not format:
-  1. **Resize to display size × DPI.** Find the max on-screen CSS size, multiply by ~3 (covers 3× high-DPI screens). Ship at that resolution — not the source's full size. (E.g. a mascot shown at 160px CSS → 480px asset. Shipping a 1024px source is ~4× wasted pixels nobody sees.)
-  2. **Then convert to WebP, lossy quality ~85–90** for flat illustrations/icons (perceptually lossless — no gradients/texture to degrade). Use lossless WebP only if a specific asset shows artifacts at Q90.
-  3. **Verify visually at on-screen size** (not zoomed): edges crisp, soft glows/gradients un-banded. Bump quality only if needed.
-  4. **Keep the original source files** (compress copies); never destroy the source.
-  - Reference outcome: the 6 Tinku mascots went 3.5MB → 193KB (18×) at 480px/Q90 with no visible loss. This is the template for ALL image assets (badges, reward icons, backgrounds, art).
-- **Preload + reserve space for above-the-fold images** (e.g. the mascot): preload into cache before first render, give the container a fixed size so layout never shifts / goes blank, cross-fade on swap (opacity only).
+- **Images: resize-to-display then compress; preload + reserve space for key images.** Principle: ship images at display-size (not source size), WebP, no visible quality loss; above-the-fold images preload into a fixed-size container (no layout shift) and cross-fade on swap. *Detailed recipe (sizing math, quality, the Tinku reference outcome): see `docs/images.md`.*
+- **Fit-one-viewport principle (core interactions).** The essential interaction of a screen — the question + its answer options — must fit ONE viewport on a standard phone, with no scroll, by default. Adapt content to fit before allowing scroll: size the screen to dynamic viewport height (`100dvh`), distribute contents with flex, use fluid sizing (`clamp()`), and let DECORATIVE elements (e.g. the mascot) shrink/yield space FIRST — they must never push the primary action (answers) off-screen. The primary action stays always-visible. Scroll is a FALLBACK for genuinely exceptional content only (e.g. a very long word problem), and even then only the non-essential area scrolls — never the answers/primary action. *Detailed technique: see `docs/responsive.md`.*
 - Lazy-load non-critical screens/routes. Keep the initial bundle small.
 - Avoid heavy libraries when CSS/a small hook will do (e.g. CSS animation before Framer Motion; Howler only where needed). Audio files: short and compressed, same low-end-Android discipline as images.
+
 
 ## 6. Security & safety basics
 
