@@ -16,7 +16,9 @@ import wavingWebp from '../assets/mascot/webp/Tinku_Bye.webp';
  * Container size is reserved (width/height on outer div) so layout never shifts on load.
  * Emotion changes cross-fade via opacity (GPU-only, low-end-Android safe).
  *
- * Original PNGs kept in assets/mascot/ as source; WebP are the compressed copies (≈50% smaller).
+ * Loading robustness: opacity starts at 0 and is revealed only after onLoad fires, so a
+ * slow/failed first fetch shows the reserved space (not a broken-image icon). onError retries
+ * once after 1.5s to cover transient CDN hiccups; if still fails the space stays blank.
  */
 const POSES = {
   happy: happyWebp,
@@ -27,15 +29,19 @@ const POSES = {
   waving: wavingWebp,
 };
 
-// Preload all 6 images at module load time — before any Mascot renders.
+// Warm the browser cache for all poses at module load time — best-effort, non-blocking.
 Object.values(POSES).forEach(src => { new Image().src = src; });
 
 const FADE_MS = 120;
 
 export default function Mascot({ emotion = 'happy', size = 120, className = '' }) {
   const [activeSrc, setActiveSrc] = useState(() => POSES[emotion] ?? POSES.happy);
-  const [opacity, setOpacity] = useState(1);
+  // Start at opacity 0 — revealed by onLoad, so a failed/slow fetch never shows a broken icon.
+  const [opacity, setOpacity] = useState(0);
+  // imgKey increments on retry to force the img element to remount and re-fetch.
+  const [imgKey, setImgKey] = useState(0);
   const timerRef = useRef(null);
+  const hasRetriedRef = useRef(false);
 
   useEffect(() => {
     const nextSrc = POSES[emotion] ?? POSES.happy;
@@ -45,11 +51,26 @@ export default function Mascot({ emotion = 'happy', size = 120, className = '' }
     setOpacity(0);
     timerRef.current = setTimeout(() => {
       setActiveSrc(nextSrc);
-      setOpacity(1);
+      // Reset retry state for the incoming image.
+      hasRetriedRef.current = false;
+      setImgKey(0);
     }, FADE_MS);
 
     return () => clearTimeout(timerRef.current);
   }, [emotion]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function handleLoad() {
+    setOpacity(1);
+  }
+
+  function handleError() {
+    // Retry once after a short delay — covers transient CDN/network hiccups.
+    // On second failure: imgKey stays at 1, opacity stays 0 → reserved space, no broken icon.
+    if (!hasRetriedRef.current) {
+      hasRetriedRef.current = true;
+      setTimeout(() => setImgKey(1), 1500);
+    }
+  }
 
   return (
     // Outer div reserves layout space so nothing shifts before/between images.
@@ -58,6 +79,7 @@ export default function Mascot({ emotion = 'happy', size = 120, className = '' }
       style={{ width: size, height: size }}
     >
       <img
+        key={`${activeSrc}-${imgKey}`}
         src={activeSrc}
         alt={`Tinku looking ${emotion}`}
         className="select-none pointer-events-none"
@@ -69,6 +91,8 @@ export default function Mascot({ emotion = 'happy', size = 120, className = '' }
           transition: `opacity ${FADE_MS}ms ease`,
         }}
         draggable={false}
+        onLoad={handleLoad}
+        onError={handleError}
       />
     </div>
   );

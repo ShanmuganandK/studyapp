@@ -9,6 +9,12 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      workbox: {
+        // Default globPatterns omits .webp — mascot images would be excluded from
+        // the SW precache and fetched cold on every first load, causing broken-icon
+        // flashes on slow networks. Explicitly include webp here.
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+      },
       manifest: {
         name: 'CBSE Math Kids',
         short_name: 'Math Kids',
