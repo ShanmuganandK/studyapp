@@ -60,9 +60,9 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
   const locked = s.phase === 'correct' || s.phase === 'reveal';
 
   return (
-    <div className="flex flex-col min-h-full bg-sky-50 px-5 py-4">
+    <div className="flex flex-col h-full overflow-hidden bg-sky-50 px-5 py-2">
       {/* Top bar: back · progress counter · mute toggle */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-shrink-0">
         <button onClick={onExit} className="text-sm font-semibold text-slate-400 hover:text-slate-600">
           ← Skills
         </button>
@@ -72,25 +72,31 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
         <MuteButton muted={muted} onToggle={toggleMute} />
       </div>
 
-      <div className="flex justify-center mt-2">
-        <Mascot emotion={s.emotion} size={130} />
+      {/* Mascot: decorative, yields space first — clamp shrinks it on short screens */}
+      <div className="flex justify-center mt-1 flex-shrink-0">
+        <Mascot emotion={s.emotion} size="clamp(70px, 13vh, 130px)" />
       </div>
 
       {/* Hint bubble (Tinku speaking) */}
       {s.hint && (
-        <div className="mx-auto mt-1 mb-2 max-w-sm bg-white border-2 border-amber-200 text-amber-900 rounded-2xl px-4 py-2 text-center text-sm font-medium shadow-sm">
+        <div className="flex-shrink-0 mx-auto mt-1 mb-1 max-w-sm bg-white border-2 border-amber-200 text-amber-900 rounded-2xl px-4 py-2 text-center text-sm font-medium shadow-sm">
           {s.hint}
         </div>
       )}
 
-      {/* Middle: the question */}
-      <div className="flex-1 flex items-center justify-center py-4">
-        <QuestionView question={s.question} />
+      {/* Question area: flex-1 + min-h-0 so it takes remaining space and yields when tight.
+          overflow-y-auto is the scoped fallback for exceptionally long questions (count-objects
+          with many objects). The inner wrapper centers the question when it fits. */}
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="flex items-center justify-center min-h-full">
+          <QuestionView question={s.question} />
+        </div>
       </div>
 
       {/* Options. Buttons are disabled during the post-answer pause (phase correct/reveal) so a
           kid can't double-tap into the next question — it auto-advances after ADVANCE_DELAY_MS. */}
-      <div className="grid grid-cols-2 gap-3 max-w-sm w-full mx-auto pb-4">
+      {/* Answers: flex-shrink-0 — never compressed, always fully visible */}
+      <div className="flex-shrink-0 grid grid-cols-2 gap-3 max-w-sm w-full mx-auto pb-2 pt-1">
         {s.question.options.map((opt, i) => (
           <OptionButton
             key={i}
@@ -130,9 +136,10 @@ function OptionButton({ label, state, disabled, onClick }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`h-20 rounded-2xl border-4 text-3xl font-extrabold shadow-sm transition-transform ${styles} ${
+      className={`rounded-2xl border-4 text-3xl font-extrabold shadow-sm transition-transform flex items-center justify-center ${styles} ${
         disabled ? 'cursor-default' : 'hover:scale-105'
       }`}
+      style={{ height: 'clamp(3rem, 11vh, 5rem)' }}
     >
       {label}
     </button>
@@ -155,7 +162,7 @@ function SessionEnd({ score, total, onPlayAgain, onExit }) {
   // Mood floor: always celebratory, whatever the score.
   return (
     <Centered>
-      <Mascot emotion="celebrate" size={160} />
+      <Mascot emotion="celebrate" size="clamp(90px, 15vh, 160px)" />
       <h2 className="text-3xl font-extrabold text-indigo-700 mt-4">Great job!</h2>
       <div className="flex gap-1 mt-3 text-3xl" aria-label={`${score} of ${total} correct`}>
         {Array.from({ length: total }).map((_, i) => (
@@ -175,7 +182,7 @@ function SessionEnd({ score, total, onPlayAgain, onExit }) {
 
 function Centered({ children }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-full bg-sky-50 px-6 py-10 text-center">
+    <div className="flex flex-col items-center justify-center h-full overflow-hidden bg-sky-50 px-6 py-6 text-center">
       {children}
     </div>
   );

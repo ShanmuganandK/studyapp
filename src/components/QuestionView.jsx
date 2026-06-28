@@ -10,13 +10,12 @@ export default function QuestionView({ question }) {
     const { glyph, count } = question.render;
     return (
       <div className="text-center">
-        <p className="text-2xl font-bold text-slate-800 mb-4">{question.questionText}</p>
-        {/* Countable tray: visually bounded + clearly separate from the question and Tinku.
-            Generous spacing and large objects so kids can point-and-count without miscounts. */}
-        <div className="mx-auto max-w-sm rounded-3xl border-4 border-indigo-100 bg-white p-5 shadow-inner">
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-5" aria-label={`${count} objects to count`}>
+        <p className="text-base font-bold text-slate-800 mb-2">{question.questionText}</p>
+        {/* Countable tray: compact sizing keeps the tray visible on short phones without scroll. */}
+        <div className="mx-auto max-w-sm rounded-2xl border-2 border-indigo-100 bg-white p-2 shadow-inner">
+          <div className="flex flex-wrap justify-center gap-x-3 gap-y-3" aria-label={`${count} objects to count`}>
             {Array.from({ length: count }).map((_, i) => (
-              <span key={i} className="text-5xl leading-none select-none">{glyph}</span>
+              <span key={i} className="text-4xl leading-none select-none">{glyph}</span>
             ))}
           </div>
         </div>
@@ -28,11 +27,12 @@ export default function QuestionView({ question }) {
     const { left, right } = question.render;
     return (
       <div className="text-center">
-        <p className="text-xl font-semibold text-slate-600 mb-4">Which sign goes in the box?</p>
+        <p className="text-base font-semibold text-slate-600 mb-2">Which sign goes in the box?</p>
+        {/* Numbers use clamp() so they shrink on short screens without losing readability. */}
         <div className="flex items-center justify-center gap-4">
-          <span className="text-6xl font-extrabold text-indigo-700">{left}</span>
-          <span className="w-14 h-14 rounded-xl border-4 border-dashed border-indigo-300 flex items-center justify-center text-3xl text-indigo-300">?</span>
-          <span className="text-6xl font-extrabold text-indigo-700">{right}</span>
+          <span className="font-extrabold text-indigo-700" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{left}</span>
+          <span className="w-12 h-12 rounded-xl border-4 border-dashed border-indigo-300 flex items-center justify-center text-2xl text-indigo-300">?</span>
+          <span className="font-extrabold text-indigo-700" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{right}</span>
         </div>
       </div>
     );
