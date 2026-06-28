@@ -60,7 +60,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
   const locked = s.phase === 'correct' || s.phase === 'reveal';
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-sky-50 px-5 py-2">
+    <div className="flex flex-col h-full overflow-hidden bg-sky-50 px-5 pt-1 pb-2">
       {/* Top bar: back · progress counter · mute toggle */}
       <div className="flex items-center justify-between flex-shrink-0">
         <button onClick={onExit} className="text-sm font-semibold text-slate-400 hover:text-slate-600">
@@ -73,7 +73,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
       </div>
 
       {/* Mascot: decorative, yields space first — clamp shrinks it on short screens */}
-      <div className="flex justify-center mt-1 flex-shrink-0">
+      <div className="flex justify-center flex-shrink-0">
         <Mascot emotion={s.emotion} size="clamp(70px, 13vh, 130px)" />
       </div>
 

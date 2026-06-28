@@ -11,11 +11,24 @@ export default function QuestionView({ question }) {
     return (
       <div className="text-center">
         <p className="text-base font-bold text-slate-800 mb-2">{question.questionText}</p>
-        {/* Countable tray: compact sizing keeps the tray visible on short phones without scroll. */}
-        <div className="mx-auto max-w-sm rounded-2xl border-2 border-indigo-100 bg-white p-2 shadow-inner">
-          <div className="flex flex-wrap justify-center gap-x-3 gap-y-3" aria-label={`${count} objects to count`}>
+        {/* Ten-frame tray: 5-column grid (rows of 5) matches how counting in groups is taught.
+            Glyph size scales with screen width so the tray never clips at 320-360px.
+            NOTE: counts 16-20 are not served (ceiling capped at 15 in counting.js) — if the
+            skill range is ever extended, a numeral/grouped presentation will be needed here. */}
+        <div className="mx-auto rounded-2xl border-2 border-indigo-100 bg-white p-2 shadow-inner">
+          <div
+            className="grid gap-1"
+            style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}
+            aria-label={`${count} objects to count`}
+          >
             {Array.from({ length: count }).map((_, i) => (
-              <span key={i} className="text-4xl leading-none select-none">{glyph}</span>
+              <span
+                key={i}
+                className="flex items-center justify-center leading-none select-none"
+                style={{ fontSize: 'clamp(1.5rem, 6.5vw, 2.5rem)' }}
+              >
+                {glyph}
+              </span>
             ))}
           </div>
         </div>
