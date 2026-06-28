@@ -97,7 +97,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
       {/* Options. Buttons are disabled during the post-answer pause (phase correct/reveal) so a
           kid can't double-tap into the next question — it auto-advances after ADVANCE_DELAY_MS. */}
       {/* Answers: flex-shrink-0 — never compressed, always fully visible */}
-      <div className="flex-shrink-0 grid grid-cols-2 gap-3 max-w-sm w-full mx-auto pb-2 pt-1">
+      <div className="flex-shrink-0 flex flex-wrap justify-center gap-3 max-w-sm w-full mx-auto pb-2 pt-1">
         {s.question.options.map((opt, i) => (
           <OptionButton
             key={i}
@@ -140,7 +140,7 @@ function OptionButton({ label, state, disabled, onClick }) {
       className={`rounded-2xl border-4 text-3xl font-extrabold shadow-sm transition-transform flex items-center justify-center ${styles} ${
         disabled ? 'cursor-default' : 'hover:scale-105'
       }`}
-      style={{ height: 'clamp(3rem, 11vh, 5rem)' }}
+      style={{ height: 'clamp(3rem, 11vh, 5rem)', width: 'calc(50% - 0.375rem)' }}
     >
       {label}
     </button>
