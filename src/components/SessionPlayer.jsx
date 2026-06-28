@@ -85,10 +85,11 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
       )}
 
       {/* Question area: flex-1 + min-h-0 so it takes remaining space and yields when tight.
-          overflow-y-auto is the scoped fallback for exceptionally long questions (count-objects
-          with many objects). The inner wrapper centers the question when it fits. */}
+          overflow-y-auto is the scoped fallback for exceptionally long questions.
+          py-3 gives equal breathing room above and below the content; items-start pins the
+          question near the mascot so the free space falls below the objects, not above them. */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="flex items-center justify-center min-h-full">
+        <div className="flex flex-col items-center min-h-full py-3">
           <QuestionView question={s.question} />
         </div>
       </div>
