@@ -89,7 +89,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
           py-3 gives equal breathing room above and below the content; items-start pins the
           question near the mascot so the free space falls below the objects, not above them. */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="flex flex-col items-center min-h-full py-3">
+        <div className="flex flex-col items-stretch min-h-full py-3">
           <QuestionView question={s.question} />
         </div>
       </div>

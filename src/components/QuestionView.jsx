@@ -11,20 +11,20 @@ export default function QuestionView({ question }) {
     return (
       <div className="text-center">
         <p className="text-base font-bold text-slate-800 mb-2">{question.questionText}</p>
-        {/* Ten-frame tray: rows of 5 (pedagogical grouping). For counts ≤ 5 the grid
-            narrows to the actual count and centers, so small sets don't leave awkward
-            empty cells. For counts 6-15: fixed 5-col rows. 16-20 not served — see counting.js. */}
-        <div className="mx-auto rounded-2xl border-2 border-indigo-100 bg-white p-2 shadow-inner">
+        {/* Ten-frame tray: rows of 5. auto columns (not 1fr) so objects cluster to their
+            natural size; justify-content:center centres the group. w-fit shrinks the tray
+            box to the objects so it never looks empty. 16-20 not served — see counting.js. */}
+        <div className="mx-auto w-fit rounded-2xl border-2 border-indigo-100 bg-white p-2 shadow-inner">
           <div
-            className="grid gap-1 justify-center"
-            style={{ gridTemplateColumns: `repeat(${Math.min(count, 5)}, 1fr)` }}
+            className="grid gap-1"
+            style={{ gridTemplateColumns: `repeat(${Math.min(count, 5)}, auto)`, justifyContent: 'center' }}
             aria-label={`${count} objects to count`}
           >
             {Array.from({ length: count }).map((_, i) => (
               <span
                 key={i}
                 className="flex items-center justify-center leading-none select-none"
-                style={{ fontSize: 'clamp(1.5rem, 6.5vw, 2.5rem)' }}
+                style={{ fontSize: 'clamp(1.5rem, 6.5vw, 2.5rem)', minWidth: '1.75rem', minHeight: '1.75rem' }}
               >
                 {glyph}
               </span>
