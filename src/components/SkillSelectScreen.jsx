@@ -3,6 +3,7 @@ import { SKILLS } from '../recipes/skillMap';
 import { loadAllSkillStates } from '../services/progressStore';
 import { isDueForReview } from '../engine/mastery';
 import { MASTERY } from '../config/masteryConfig';
+import { recommendNext } from '../engine/composer';
 import Mascot from './Mascot';
 
 /**
@@ -21,9 +22,15 @@ import Mascot from './Mascot';
  * on every mount, so pips always reflect the latest state after a completed session.
  */
 export default function SkillSelectScreen({ onSelectSkill }) {
-  // Lazy init: synchronous localStorage read once on mount. No subscription needed — the
-  // component remounts after every quiz session (ThemeManager conditional render).
-  const [allStates] = useState(() => loadAllSkillStates());
+  // Lazy init: single synchronous localStorage read on mount. Both allStates and
+  // recommendation are derived from the same snapshot so they stay consistent.
+  // The component remounts after every quiz session (ThemeManager conditional render)
+  // so this always reflects the latest saved state.
+  const [{ allStates, recommendation }] = useState(() => {
+    const states = loadAllSkillStates();
+    const nowDate = new Date().toISOString().slice(0, 10);
+    return { allStates: states, recommendation: recommendNext(states, SKILLS, nowDate) };
+  });
   const today = new Date().toISOString().slice(0, 10);
 
   const skills = Object.values(SKILLS)
@@ -41,11 +48,26 @@ export default function SkillSelectScreen({ onSelectSkill }) {
           const skillState = allStates[skill.id];
           const level = skillState?.level ?? 0;
           const isDue = skillState ? isDueForReview(skillState, today) : false;
+
+          // Highlight only when this skill is the active recommendation.
+          // 'all_caught_up' with a non-null skillId gets the gentle 'frontier' style —
+          // it's a soft nudge, not a review urgency. null skillId means no highlight.
+          const isSuggested =
+            recommendation.skillId === skill.id &&
+            recommendation.reason !== 'all_caught_up';
+          const isReviewSuggested = isSuggested && recommendation.reason === 'review';
+
           return (
             <button
               key={skill.id}
               onClick={() => onSelectSkill(skill.id)}
-              className="bg-white border-4 border-indigo-200 rounded-2xl shadow-sm py-4 px-5 flex items-center gap-4 hover:scale-105 active:scale-95 transition-transform text-left"
+              className={`bg-white rounded-2xl shadow-sm py-4 px-5 flex items-center gap-4 hover:scale-105 active:scale-95 transition-transform text-left border-4 ${
+                isReviewSuggested
+                  ? 'border-amber-400'
+                  : isSuggested
+                  ? 'border-sky-400'
+                  : 'border-indigo-200'
+              }`}
             >
               {skill.icon && (
                 <span className="text-4xl leading-none flex-shrink-0" aria-hidden="true">
@@ -59,6 +81,13 @@ export default function SkillSelectScreen({ onSelectSkill }) {
                 {skill.subtitle && (
                   <span className="text-slate-400 text-xs font-medium mt-0.5">
                     {skill.subtitle}
+                  </span>
+                )}
+                {isSuggested && (
+                  <span
+                    className={`text-xs font-bold mt-1 ${isReviewSuggested ? 'text-amber-500' : 'text-sky-500'}`}
+                  >
+                    {isReviewSuggested ? '↻ Review time!' : 'Tinku suggests!'}
                   </span>
                 )}
                 <MasteryPips level={level} isDue={isDue} />

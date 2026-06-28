@@ -21,5 +21,5 @@ export const MASTERY = {
 
   // Leitner-style review intervals in days.
   // Index advances on a successful review; resets to 0 on a failed review.
-  REVIEW_INTERVALS: [1, 2, 4, 7, 21],
+  REVIEW_INTERVALS: [0, 0, 0, 0, 0], // TEMP: zero-day intervals for review testing — restore to [1, 2, 4, 7, 21]
 };

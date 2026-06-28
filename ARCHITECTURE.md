@@ -184,6 +184,44 @@ determinism.
 `isDueForReview`), persistence layer (saves `applyResult` output to Firestore), parent
 dashboard (reads `level` + `misconceptions`). None of those are wired yet.
 
+### Practice composer (`src/engine/composer.js` + `src/config/composerConfig.js`)
+
+Pure functions — no Firebase, no localStorage, no React, no `Date.now()`. Given skill
+states + the skill map + today's date, returns the single best skill to practise now.
+`skillStates` is passed in by the caller (never loaded here) so the module has zero
+side effects and is trivially testable.
+
+**Recommendation priority (fixed):**
+1. **review** — any mastered skill where `isDueForReview(state, today)`; most-overdue-first
+   when `COMPOSER.PREFER_MOST_OVERDUE_REVIEW` is `true`.
+2. **frontier** — unlocked (prereqs met), started (level > 0), not yet mastered; lowest level
+   or curriculum order per `COMPOSER.FRONTIER_PICK`.
+3. **new** — unlocked, not started (level 0 or no state); earliest in curriculum order.
+4. **all_caught_up** — everything available mastered and nothing due; returns the mastered
+   skill with the nearest upcoming review date (or `skillId: null`).
+
+Only `status:'ready'` skills are ever recommended. Prereqs are checked with `isUnlockedLevel`
+on the prereq's stored state; a missing state counts as locked.
+
+**Returns:** `{ skillId: string | null, reason: 'review' | 'frontier' | 'new' | 'all_caught_up' }`
+
+**Exports:**
+- `recommendNext(skillStates, skillMap, today, config)` — core recommender
+- `getReviewsDue(skillStates, today)` — all due skillIds (also used for UI badging)
+- `getFrontierSkills(skillStates, skillMap)` — started-not-mastered unlocked skills
+- `isPrereqsMet(skillId, skillStates, skillMap)` — prereq check helper
+
+**Config** (`src/config/composerConfig.js`): `PREFER_MOST_OVERDUE_REVIEW` (bool),
+`FRONTIER_PICK` (`'lowest_level'` | `'skillmap_order'`).
+
+**Tests** (`src/engine/__tests__/composer.test.js`) — 47 cases: full priority chain,
+brand-new child, review-over-frontier priority, most-overdue tiebreak, frontier level
+picking, curriculum-order new-unlock, all-caught-up fallback, prereq-chain gating at
+every level, planned-skill exclusion, determinism, no mutation.
+
+**Depends on it:** `SkillSelectScreen` (recommendation display), future session hooks
+(auto-launching the suggested skill).
+
 ### Progress store (`src/services/progressStore.js`) — local persistence
 
 The **single place mastery state is saved and loaded**. Callers (hooks, screens) never touch
@@ -233,7 +271,7 @@ it. Cross-session repeat-avoidance is a future nicety.
 provided, all questions use that fixed difficulty (clamped to `maxDifficulty`) instead of the
 1→2→3 ramp. Existing ramp behaviour is unchanged when `difficulty` is omitted.
 
-### Mastery pips (`src/components/SkillSelectScreen.jsx`)
+### Mastery pips + suggestion highlight (`src/components/SkillSelectScreen.jsx`)
 
 Each skill card shows 5 small round pips (8px circles) reflecting the child's current mastery
 level. Pip colours: empty = `slate-200`; levels 1–2 = `sky-400`; levels 3–4 = `indigo-400`;
@@ -242,10 +280,16 @@ level 5 (mastered) = `amber-400`. A `↻` glyph in amber marks skills due for sp
 Deliberately not stars (stars = in-session reward, DECISIONS). This is the verify-it-works
 surface; the full parent dashboard is a later task.
 
-`SkillSelectScreen` loads `loadAllSkillStates()` lazily in a `useState` initialiser on mount.
-`ThemeManager` conditionally renders it (`{currentView === 'skills' && ...}`) so it unmounts
-during play and remounts when the child returns — the init runs again, always reflecting the
-latest saved state.
+**Suggestion highlight:** `SkillSelectScreen` calls `recommendNext` (from the practice
+composer) on mount using the same skill-state snapshot. The recommended card gets a coloured
+border (`amber-400` for review, `sky-400` for other reasons) and a one-line label —
+`↻ Review time!` or `Tinku suggests!`. `all_caught_up` and `null` skillId produce no
+highlight. The child can still tap any card; the highlight is guidance, not a gate.
+
+`SkillSelectScreen` loads state and computes the recommendation together in a single lazy
+`useState` initialiser on mount (one storage read). `ThemeManager` conditionally renders it
+(`{currentView === 'skills' && ...}`) so it unmounts during play and remounts when the child
+returns — the init runs again, always reflecting the latest saved state.
 
 ### Feel layer (`src/services/sound.js`) — sound + haptics
 
