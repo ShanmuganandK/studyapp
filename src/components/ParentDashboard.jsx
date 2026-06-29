@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Lock } from 'lucide-react';
+import { Lock, MessageCircle } from 'lucide-react';
 import Mascot from './Mascot';
 import { loadAllSkillStates } from '../services/progressStore';
 import { progressSummary } from '../engine/progressSummary';
 import { MASTERY } from '../config/masteryConfig';
+import { feedbackWhatsAppUrl } from '../config/constants';
 
 // ─── Local helpers ────────────────────────────────────────────────────────────
 
@@ -207,6 +208,16 @@ export default function ParentDashboard({ onSetPasscode, hasPasscode, userEmail 
             <Lock size={18} />
             {hasPasscode ? 'Change Passcode' : 'Set Parent Passcode'}
           </button>
+
+          <a
+            href={feedbackWhatsAppUrl()}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-slate-400 hover:text-green-600 transition-colors"
+          >
+            <MessageCircle size={16} />
+            Report a bug / Give feedback
+          </a>
 
           {userEmail && (
             <p className="text-xs text-slate-400 text-center">

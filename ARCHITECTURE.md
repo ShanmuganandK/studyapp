@@ -16,7 +16,7 @@ proven behind a flag, then deleted. See **Migration strategy** below.
 | `src/engine/`       | **NEW** (scaffold). Pure core logic: mastery, spaced-rep, composer, remediation. |
 | `src/hooks/`        | **NEW** (scaffold). React orchestration: session flow, mastery updates. |
 | `src/services/`     | **NEW** SDK boundary (auth/firestore/billing) — but currently also holds **FROZEN** legacy popup-first auth (`authService.js`, `firebaseAdapter.js`, `localAdapter.js`). |
-| `src/config/`       | **NEW.** Config modules — `flags.js` (migration feature flags), `masteryConfig.js` (mastery + spaced-rep tunables). |
+| `src/config/`       | **NEW.** Config modules — `constants.js` (app-wide constants, e.g. `FEEDBACK_WHATSAPP_NUMBER`), `flags.js` (migration feature flags), `masteryConfig.js` (mastery + spaced-rep tunables), `composerConfig.js` (composer tunables). |
 | `src/components/`   | Presentational React UI (screens, modules, dashboard). The migration bridge. The child-reachable flow is now entirely new (skill-select → recipe quiz); legacy screens stay on disk but FROZEN/unreachable (see **App flow & screens**). |
 | `src/contexts/`     | React contexts (e.g. `AuthContext`). Legacy until auth is rebuilt.     |
 | `src/lib/`          | **FROZEN.** Legacy Firebase init (`firebase.js`).                       |
