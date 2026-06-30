@@ -12,11 +12,27 @@
 
 let audioCtx = null;
 let muted = false;
+let unlockListenerInstalled = false;
 
-// Lazily create (or resume) the shared AudioContext.
-// Must be called from a user-gesture stack to satisfy browser autoplay policy.
+// Resolve the AudioContext constructor, with the legacy webkit-prefixed fallback.
+// Older iOS Safari / WKWebView (relevant for the planned Capacitor iOS wrap) expose ONLY
+// `webkitAudioContext`; without this fallback `new AudioContext()` throws there and sound
+// never works at all. Read from globalThis so it resolves in both the browser and tests.
+function getAudioContextCtor() {
+  if (typeof globalThis === 'undefined') return undefined;
+  return globalThis.AudioContext || globalThis.webkitAudioContext;
+}
+
+// Lazily create (or resume) the shared AudioContext. Returns null if Web Audio is
+// unavailable (callers degrade silently). The resume() here covers the suspended-on-create
+// autoplay state — but unlock is now guaranteed up-front by the first-gesture listener
+// below, rather than left to whichever sound happens to fire first.
 function getCtx() {
-  if (!audioCtx) audioCtx = new AudioContext();
+  if (!audioCtx) {
+    const Ctor = getAudioContextCtor();
+    if (!Ctor) return null;
+    audioCtx = new Ctor();
+  }
   if (audioCtx.state === 'suspended') audioCtx.resume();
   return audioCtx;
 }
@@ -155,3 +171,47 @@ export function haptic(type) {
     // Degrade silently: Vibration API not supported on this device.
   }
 }
+
+// ── Audio unlock (explicit, gesture-driven) ─────────────────────────────────────────────────
+// Mobile browsers create the AudioContext SUSPENDED and only allow resume() from within a
+// user-gesture handler. Previously the context happened to unlock because the first sound was
+// always an option tap — but any sound originating from a non-gesture path (a timer, a
+// phase-change effect, a route transition) firing first would be silently dropped. We now
+// unlock explicitly on the first interaction, independent of which sound fires first.
+
+/**
+ * Create + resume the shared AudioContext and play a 1-sample silent buffer — the reliable
+ * way to flip a suspended context to truly running on iOS. Idempotent, best-effort, never throws.
+ * Runs regardless of mute state so that unmuting later takes effect instantly.
+ */
+export function unlockAudio() {
+  try {
+    const ctx = getCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    // Silent-buffer trick: a no-op source whose playback flips iOS's context to running.
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+  } catch {
+    // Best-effort: if Web Audio is blocked/unavailable, sound simply stays off.
+  }
+}
+
+// Register a one-time listener that unlocks audio on the first user gesture, then removes
+// itself. Self-installs on import so no caller wiring is needed (callers stay unchanged).
+function installUnlockListener() {
+  if (unlockListenerInstalled) return;
+  if (typeof document === 'undefined' || !document.addEventListener) return;
+  unlockListenerInstalled = true;
+  const events = ['pointerdown', 'touchend', 'click'];
+  const onFirstGesture = () => {
+    unlockAudio();
+    events.forEach((e) => document.removeEventListener(e, onFirstGesture));
+  };
+  events.forEach((e) => document.addEventListener(e, onFirstGesture));
+}
+
+installUnlockListener();
