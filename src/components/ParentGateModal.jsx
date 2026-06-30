@@ -21,7 +21,7 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
     // If no passcode is set and we are not in setting mode, allow access immediately
     // or show a simple math challenge (optional, effectively "open" for now)
     useEffect(() => {
-        if (isOpen && !isSettingMode && !parentSettings?.passcode) {
+        if (isOpen && !isSettingMode && !parentSettings?.passcodeHash) {
             // No passcode set, just let them in
             onSuccess();
         }
@@ -45,7 +45,7 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
         setError(false);
     };
 
-    const handleSubmit = (code) => {
+    const handleSubmit = async (code) => {
         if (isSettingMode) {
             if (step === 1) {
                 setFirstCode(code);
@@ -53,7 +53,7 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
                 setStep(2);
             } else {
                 if (code === firstCode) {
-                    updatePasscode(code);
+                    await updatePasscode(code);
                     onSuccess();
                 } else {
                     setError(true);
@@ -63,7 +63,7 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
             }
         } else {
             // Verify Mode
-            if (verifyPasscode(code)) {
+            if (await verifyPasscode(code)) {
                 onSuccess();
             } else {
                 setError(true);
@@ -76,7 +76,7 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
 
     // If verification mode and no passcode, we prevent rendering (effect handles it), 
     // but return null to avoid flash
-    if (!isSettingMode && !parentSettings?.passcode) return null;
+    if (!isSettingMode && !parentSettings?.passcodeHash) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">

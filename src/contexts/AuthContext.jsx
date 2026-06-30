@@ -11,12 +11,24 @@ export const AuthProvider = ({ children }) => {
     const [currentProfile, setCurrentProfile] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const [parentSettings, setParentSettings] = useState({ passcode: null });
+    const [parentSettings, setParentSettings] = useState({ passcodeHash: null });
 
     // Persist key helper
     const getProfilesKey = (uid) => `math_kids_profiles_${uid}`;
     const getLastProfileKey = (uid) => `math_kids_last_profile_${uid}`;
     const getSettingsKey = (uid) => `math_kids_settings_${uid}`;
+
+    // Hash the parent PIN before persisting — never store it in cleartext (the device's
+    // localStorage is readable by anyone with the device / devtools). SHA-256 via Web Crypto;
+    // verify by comparing hashes. Note: a 4-digit PIN is low-entropy, so this is a
+    // proportionate kid-gate hardening, not strong cryptographic protection.
+    const hashPasscode = async (code) => {
+        const data = new TextEncoder().encode(code);
+        const digest = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(digest))
+            .map((b) => b.toString(16).padStart(2, '0'))
+            .join('');
+    };
 
     useEffect(() => {
         const unsubscribe = authService.onAuthStateChanged((user) => {
@@ -46,7 +58,7 @@ export const AuthProvider = ({ children }) => {
             } else {
                 setProfiles([]);
                 setCurrentProfile(null);
-                setParentSettings({ passcode: null });
+                setParentSettings({ passcodeHash: null });
             }
             setLoading(false);
         });
@@ -109,16 +121,18 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const updatePasscode = (newPasscode) => {
+    const updatePasscode = async (newPasscode) => {
         if (!user) return;
-        const newSettings = { ...parentSettings, passcode: newPasscode };
+        const passcodeHash = await hashPasscode(newPasscode);
+        const newSettings = { ...parentSettings, passcodeHash };
         setParentSettings(newSettings);
         localStorage.setItem(getSettingsKey(user.uid), JSON.stringify(newSettings));
     };
 
-    const verifyPasscode = (inputCode) => {
-        if (!parentSettings.passcode) return true; // Open if no code set
-        return parentSettings.passcode === inputCode;
+    const verifyPasscode = async (inputCode) => {
+        if (!parentSettings.passcodeHash) return true; // Open if no code set
+        const inputHash = await hashPasscode(inputCode);
+        return parentSettings.passcodeHash === inputHash;
     };
 
     const value = {

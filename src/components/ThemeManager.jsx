@@ -75,7 +75,7 @@ export default function ThemeManager() {
       {currentView === 'parent' && (
         <ParentDashboard
           onSetPasscode={() => { setIsGateSettingMode(true); setIsGateOpen(true); }}
-          hasPasscode={!!parentSettings?.passcode}
+          hasPasscode={!!parentSettings?.passcodeHash}
           userEmail={user?.email ?? null}
         />
       )}
