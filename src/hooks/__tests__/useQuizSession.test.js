@@ -66,6 +66,29 @@ describe('useQuizSession — remediation ladder (pure logic)', () => {
     expect(s.lastEvent.attemptNumber).toBe(2);
   });
 
+  it('wrong #1 locks input (read-beat) so a fast second tap cannot skip the hint', () => {
+    let s = initSession(makeSession());
+    expect(s.inputLocked).toBe(false);
+    s = applyAnswer(s, 1); // wrong #1 → hint
+    expect(s.phase).toBe('hint');
+    expect(s.inputLocked).toBe(true); // options disabled until the hook clears it after HINT_READ_MS
+  });
+
+  it('inputLocked does not carry over from the hint into the next state', () => {
+    // correct retry, reveal, and the next question must all clear the lock (no stale `true`).
+    let s = initSession(makeSession());
+    s = applyAnswer(s, 1);            // hint → locked
+    const retry = applyAnswer(s, 0);  // retry correct
+    expect(retry.inputLocked).toBe(false);
+
+    let r = applyAnswer(initSession(makeSession()), 1); // hint
+    r = applyAnswer(r, 2);            // wrong #2 → reveal
+    expect(r.inputLocked).toBe(false);
+
+    const advanced = advance(r);      // next question / complete
+    expect(advanced.inputLocked).toBe(false);
+  });
+
   it('wrong #2 → gentle reveal of the correct option, then advances (no penalty)', () => {
     let s = initSession(makeSession());
     s = applyAnswer(s, 1); // wrong #1

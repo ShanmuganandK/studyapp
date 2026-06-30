@@ -37,6 +37,11 @@ const band = (grade) => (grade <= 3 ? 'wonder' : 'explorer');
 // for the child to register the green tick + Tinku's reaction, short enough to keep momentum.
 export const ADVANCE_DELAY_MS = 1200;
 
+// After a wrong #1, briefly lock the options so the child actually SEES the misconception hint
+// before tapping again. Without this, a fast second tap (kids mash buttons) skips straight to
+// the wrong #2 reveal and the hint never registers. Short enough not to block a genuine retry.
+export const HINT_READ_MS = 1100;
+
 // ── Pure state machine (testable without React) ─────────────────────────────────────────
 
 export function initSession(session) {
@@ -50,6 +55,7 @@ export function initSession(session) {
     phase: 'solving', // solving | correct | hint | reveal | complete
     emotion: 'thinking',
     hint: null,
+    inputLocked: false, // options disabled (post-answer pause / hint read-beat)
     selectedIndex: null,
     revealIndex: null,
     score: 0,
@@ -74,6 +80,7 @@ export function applyAnswer(state, optionIndex) {
       emotion: 'celebrate',
       selectedIndex: optionIndex,
       hint: null,
+      inputLocked: false, // locked by phase during the advance pause; clear the hint-beat flag
       score: state.score + 1,
       lastEvent: { type: 'answered', correct: true, tag: 'none', attemptNumber },
     };
@@ -92,11 +99,13 @@ export function applyAnswer(state, optionIndex) {
       selectedIndex: optionIndex,
       revealIndex: q.options.indexOf(q.correctAnswer),
       hint: "Here’s how — let’s see it together!",
+      inputLocked: false, // locked by phase during the reveal pause
       lastEvent: { type: 'answered', correct: false, tag, attemptNumber },
     };
   }
 
-  // wrong #1 → targeted hint, stay on the question for a retry
+  // wrong #1 → targeted hint, stay on the question for a retry. Lock options for the read-beat
+  // (the hook unlocks after HINT_READ_MS) so a fast second tap can't skip past the hint.
   return {
     ...state,
     phase: 'hint',
@@ -104,6 +113,7 @@ export function applyAnswer(state, optionIndex) {
     attempts,
     selectedIndex: optionIndex,
     hint: getHint(tag),
+    inputLocked: true,
     lastEvent: { type: 'answered', correct: false, tag, attemptNumber, hintTag: tag },
   };
 }
@@ -117,6 +127,7 @@ export function advance(state) {
       phase: 'complete',
       emotion: 'celebrate', // mood floor: always celebratory
       hint: null,
+      inputLocked: false,
       selectedIndex: null,
       revealIndex: null,
       lastEvent: { type: 'complete' },
@@ -129,6 +140,7 @@ export function advance(state) {
     phase: 'solving',
     emotion: 'thinking',
     hint: null,
+    inputLocked: false,
     selectedIndex: null,
     revealIndex: null,
     lastEvent: null,
@@ -144,6 +156,7 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
   const sessionStartRef = useRef(0);
   const questionStartRef = useRef(0);
   const advanceTimer = useRef(null);
+  const hintLockTimer = useRef(null); // re-enables options after the wrong-#1 hint read-beat
 
   // Mastery wiring refs — reset on each session start.
   const skillStateRef = useRef(null);       // loaded SkillState for the active skill
@@ -158,6 +171,13 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
     if (advanceTimer.current) {
       clearTimeout(advanceTimer.current);
       advanceTimer.current = null;
+    }
+  };
+
+  const clearHintLock = () => {
+    if (hintLockTimer.current) {
+      clearTimeout(hintLockTimer.current);
+      hintLockTimer.current = null;
     }
   };
 
@@ -198,6 +218,7 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
   useEffect(
     () => () => {
       clearAdvance();
+      clearHintLock();
       const s = stateRef.current;
       if (s && s.skillId && s.phase !== 'complete') {
         logEvent('session_abandoned', {
@@ -214,6 +235,7 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
   // after a correct answer or a wrong-#2 reveal — there is no manual "Next" button.
   const next = () => {
     clearAdvance();
+    clearHintLock();
     const prev = stateRef.current;
     if (!prev) return;
     const n = advance(prev);
@@ -287,11 +309,22 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
     if (nextState.phase === 'correct' || nextState.phase === 'reveal') {
       clearAdvance();
       advanceTimer.current = setTimeout(next, ADVANCE_DELAY_MS);
+    } else if (nextState.phase === 'hint') {
+      // Wrong #1: keep the misconception hint un-skippable for a read-beat, then re-enable the
+      // options for the retry (phase/hint unchanged — only inputLocked flips off).
+      clearHintLock();
+      hintLockTimer.current = setTimeout(() => {
+        const cur = stateRef.current;
+        if (cur && cur.phase === 'hint' && cur.inputLocked) {
+          commit({ ...cur, inputLocked: false });
+        }
+      }, HINT_READ_MS);
     }
   };
 
   const restart = () => {
     clearAdvance();
+    clearHintLock();
     logEvent('play_again', { skill_id: stateRef.current?.skillId });
     build();
   };
@@ -309,6 +342,7 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
     emotion: state?.emotion ?? 'happy',
     phase: state?.phase ?? 'solving',
     hint: state?.hint ?? null,
+    inputLocked: state?.inputLocked ?? false,
     selectedIndex: state?.selectedIndex ?? null,
     revealIndex: state?.revealIndex ?? null,
     score: state?.score ?? 0,

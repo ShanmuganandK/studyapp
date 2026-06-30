@@ -57,7 +57,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
     return <SessionEnd score={s.score} total={s.totalQuestions} onPlayAgain={s.restart} onExit={onExit} />;
   }
 
-  const locked = s.phase === 'correct' || s.phase === 'reveal';
+  const locked = s.phase === 'correct' || s.phase === 'reveal' || s.inputLocked;
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-sky-50 px-5 pt-1 pb-2">
