@@ -5,15 +5,16 @@ const Layout = ({ children, currentView, onNavigate }) => {
     const isActive = (view) => currentView === view ? 'text-indigo-600' : 'text-gray-400 hover:text-indigo-600';
 
     return (
-        <div className="min-h-screen bg-indigo-900 flex items-center justify-center p-4 font-sans">
-            {/* Mobile Frame */}
-            <div className="w-full max-w-md h-[85vh] max-h-[800px] bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col relative border-8 border-indigo-950 ring-4 ring-indigo-900/50">
+        <div className="app-shell bg-indigo-900 flex items-center justify-center sm:p-4 font-sans">
+            {/* Full-bleed on phones (max usable height, tracks visible viewport via dvh); the
+                decorative phone-mockup frame — rounded corners, border, 85% height — is desktop-only. */}
+            <div className="app-frame w-full max-w-md bg-white shadow-2xl overflow-hidden flex flex-col relative sm:rounded-[2.5rem] sm:border-8 sm:border-indigo-950 sm:ring-4 sm:ring-indigo-900/50">
 
-                {/* Notch / Status Bar Mockup */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-indigo-950 rounded-b-xl z-50"></div>
+                {/* Notch / Status Bar Mockup — part of the desktop frame only. */}
+                <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-indigo-950 rounded-b-xl z-50"></div>
 
-                {/* Content Area */}
-                <div className="flex-1 overflow-y-auto pt-10 pb-4 px-4 bg-slate-50 scrollbar-hide">
+                {/* Content Area. Less top padding on phones (no mockup notch to clear). */}
+                <div className="flex-1 overflow-y-auto pt-3 sm:pt-10 pb-4 px-4 bg-slate-50 scrollbar-hide">
                     {children}
                 </div>
 

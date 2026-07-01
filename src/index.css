@@ -31,3 +31,13 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-hint-pop { animation: none; }
 }
+
+/* App shell height — track the VISIBLE viewport on mobile via dvh so the browser's address bar
+   can't push content off-screen and force scroll (STANDARDS §5). `vh` first as a fallback for
+   older Android/WebView without dvh; the dvh line overrides where supported. On phones the app
+   is full-bleed (max usable height); the desktop phone-mockup frame is 85% height (see Layout). */
+.app-shell { min-height: 100vh; min-height: 100dvh; }
+.app-frame { height: 100vh; height: 100dvh; }
+@media (min-width: 640px) {
+  .app-frame { height: 85vh; height: 85dvh; max-height: 800px; }
+}
