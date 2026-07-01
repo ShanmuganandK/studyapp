@@ -3,6 +3,7 @@ import { useQuizSession } from '../hooks/useQuizSession';
 import { playSound, haptic, setSoundMuted, isSoundMuted } from '../services/sound';
 import Mascot from './Mascot';
 import QuestionView from './QuestionView';
+import HintBubble from './HintBubble';
 
 /**
  * SessionPlayer — drives one playable session via useQuizSession and renders it.
@@ -13,7 +14,8 @@ import QuestionView from './QuestionView';
  * Sound/haptic events (all fire-and-forget via sound service — never block the UI):
  *   tap     → every option button press (immediate tactile feedback)
  *   correct → phase transitions to 'correct'
- *   wrong   → phase transitions to 'hint' (wrong #1) or 'reveal' (wrong #2)
+ *   hint    → wrong #1 (soft 'let me help' — plays on each hint (re)emission via hintNonce)
+ *   wrong   → wrong #2 reveal
  *   complete → phase transitions to 'complete' (session end)
  */
 export default function SessionPlayer({ grade, skillId, onExit }) {
@@ -28,18 +30,21 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
     setMuted(next);
   }
 
-  // Fire sound events on phase transitions. Runs after every render where phase changed.
-  // 'solving' is the neutral phase (question loading / retry) — no sound fires for it.
+  // Fire sound events on phase transitions. Also depends on hintNonce so the friendly 'hint'
+  // sound replays on each hint re-show (a wrong tap during the soft window), reinforcing it.
+  // 'solving' is the neutral phase (question loading) — no sound fires for it.
   useEffect(() => {
     if (s.phase === 'correct') {
       playSound('correct');
       haptic('light');
-    } else if (s.phase === 'hint' || s.phase === 'reveal') {
+    } else if (s.phase === 'hint') {
+      playSound('hint'); // soft 'let me help' — Tinku is here to help, not a buzzer
+    } else if (s.phase === 'reveal') {
       playSound('wrong');
     } else if (s.phase === 'complete') {
       playSound('complete');
     }
-  }, [s.phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s.phase, s.hintNonce]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!s.ready) {
     return <Centered><p className="text-slate-500">Getting Tinku ready…</p></Centered>;
@@ -57,7 +62,10 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
     return <SessionEnd score={s.score} total={s.totalQuestions} onPlayAgain={s.restart} onExit={onExit} />;
   }
 
-  const locked = s.phase === 'correct' || s.phase === 'reveal' || s.inputLocked;
+  // Options are only locked during the post-answer pause (correct / wrong-#2 reveal). The
+  // wrong-#1 hint keeps them live — the child retries freely; the soft window (in the hook)
+  // makes a fast wrong tap re-show the hint instead of skipping it.
+  const locked = s.phase === 'correct' || s.phase === 'reveal';
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-sky-50 px-5 pt-1 pb-2">
@@ -77,12 +85,9 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
         <Mascot emotion={s.emotion} size="clamp(70px, 13vh, 130px)" />
       </div>
 
-      {/* Hint bubble (Tinku speaking) */}
-      {s.hint && (
-        <div className="flex-shrink-0 mx-auto mt-1 mb-1 max-w-sm bg-white border-2 border-amber-200 text-amber-900 rounded-2xl px-4 py-2 text-center text-sm font-medium shadow-sm">
-          {s.hint}
-        </div>
-      )}
+      {/* Tinku's hint speech bubble. Keyed by hintNonce so it replays its pop-in on every
+          (re)emission — including a re-show when the child taps another wrong answer. */}
+      <HintBubble key={s.hintNonce} hint={s.hint} emotion={s.emotion} />
 
       {/* Question area: flex-1 + min-h-0 so it takes remaining space and yields when tight.
           overflow-y-auto is the scoped fallback for exceptionally long questions.

@@ -37,10 +37,11 @@ const band = (grade) => (grade <= 3 ? 'wonder' : 'explorer');
 // for the child to register the green tick + Tinku's reaction, short enough to keep momentum.
 export const ADVANCE_DELAY_MS = 1200;
 
-// After a wrong #1, briefly lock the options so the child actually SEES the misconception hint
-// before tapping again. Without this, a fast second tap (kids mash buttons) skips straight to
-// the wrong #2 reveal and the hint never registers. Short enough not to block a genuine retry.
-export const HINT_READ_MS = 1100;
+// Soft "read the hint" window after a wrong #1. While it's open, a further WRONG tap just
+// RE-SHOWS the hint (mashing reinforces the teaching) instead of escalating to the wrong-#2
+// reveal — so a fast tapper never skips the hint. Buttons are never disabled; a CORRECT tap
+// always wins instantly. Only a deliberate wrong tap AFTER this window escalates to the reveal.
+export const HINT_GRACE_MS = 1000;
 
 // ── Pure state machine (testable without React) ─────────────────────────────────────────
 
@@ -51,11 +52,12 @@ export function initSession(session) {
     grade: session.grade,
     questions: session.questions,
     index: 0,
-    attempts: 0, // wrong attempts on the current question
+    attempts: 0, // deliberate wrong attempts on the current question (grace re-shows don't count)
     phase: 'solving', // solving | correct | hint | reveal | complete
     emotion: 'thinking',
     hint: null,
-    inputLocked: false, // options disabled (post-answer pause / hint read-beat)
+    hintGrace: false, // inside the soft read-the-hint window (hook opens/closes it via a timer)
+    hintNonce: 0, // bumps on every hint (re)emission so the bubble replays its enter animation
     selectedIndex: null,
     revealIndex: null,
     score: 0,
@@ -74,23 +76,39 @@ export function applyAnswer(state, optionIndex) {
   const attemptNumber = state.attempts + 1;
 
   if (correct) {
+    // Correct always wins instantly, even mid-grace.
     return {
       ...state,
       phase: 'correct',
       emotion: 'celebrate',
       selectedIndex: optionIndex,
       hint: null,
-      inputLocked: false, // locked by phase during the advance pause; clear the hint-beat flag
+      hintGrace: false,
       score: state.score + 1,
       lastEvent: { type: 'answered', correct: true, tag: 'none', attemptNumber },
     };
   }
 
   const tag = q.misconceptions[optionIndex] ?? 'random-slip';
+
+  // Soft window: a wrong tap while the read-window is open RE-SHOWS the tapped distractor's hint
+  // and does NOT escalate — mashing reinforces the hint, never skips to the reveal. Attempts are
+  // NOT incremented here, so only a deliberate wrong AFTER the window counts toward the reveal.
+  if (state.phase === 'hint' && state.hintGrace) {
+    return {
+      ...state,
+      emotion: 'encourage',
+      selectedIndex: optionIndex,
+      hint: getHint(tag),
+      hintNonce: state.hintNonce + 1,
+      lastEvent: { type: 'answered', correct: false, tag, attemptNumber, hintTag: tag },
+    };
+  }
+
   const attempts = state.attempts + 1;
 
   if (attempts >= 2) {
-    // wrong #2 → gentle reveal, advance on next()
+    // wrong #2 (a deliberate retry after the read window) → gentle reveal, advance on next()
     return {
       ...state,
       phase: 'reveal',
@@ -99,13 +117,13 @@ export function applyAnswer(state, optionIndex) {
       selectedIndex: optionIndex,
       revealIndex: q.options.indexOf(q.correctAnswer),
       hint: "Here’s how — let’s see it together!",
-      inputLocked: false, // locked by phase during the reveal pause
+      hintGrace: false,
+      hintNonce: state.hintNonce + 1,
       lastEvent: { type: 'answered', correct: false, tag, attemptNumber },
     };
   }
 
-  // wrong #1 → targeted hint, stay on the question for a retry. Lock options for the read-beat
-  // (the hook unlocks after HINT_READ_MS) so a fast second tap can't skip past the hint.
+  // wrong #1 → targeted hint; open the soft read-window (the hook closes it after HINT_GRACE_MS).
   return {
     ...state,
     phase: 'hint',
@@ -113,7 +131,8 @@ export function applyAnswer(state, optionIndex) {
     attempts,
     selectedIndex: optionIndex,
     hint: getHint(tag),
-    inputLocked: true,
+    hintGrace: true,
+    hintNonce: state.hintNonce + 1,
     lastEvent: { type: 'answered', correct: false, tag, attemptNumber, hintTag: tag },
   };
 }
@@ -127,7 +146,7 @@ export function advance(state) {
       phase: 'complete',
       emotion: 'celebrate', // mood floor: always celebratory
       hint: null,
-      inputLocked: false,
+      hintGrace: false,
       selectedIndex: null,
       revealIndex: null,
       lastEvent: { type: 'complete' },
@@ -140,7 +159,7 @@ export function advance(state) {
     phase: 'solving',
     emotion: 'thinking',
     hint: null,
-    inputLocked: false,
+    hintGrace: false,
     selectedIndex: null,
     revealIndex: null,
     lastEvent: null,
@@ -156,7 +175,7 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
   const sessionStartRef = useRef(0);
   const questionStartRef = useRef(0);
   const advanceTimer = useRef(null);
-  const hintLockTimer = useRef(null); // re-enables options after the wrong-#1 hint read-beat
+  const hintGraceTimer = useRef(null); // closes the soft read-the-hint window after wrong #1
 
   // Mastery wiring refs — reset on each session start.
   const skillStateRef = useRef(null);       // loaded SkillState for the active skill
@@ -174,10 +193,10 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
     }
   };
 
-  const clearHintLock = () => {
-    if (hintLockTimer.current) {
-      clearTimeout(hintLockTimer.current);
-      hintLockTimer.current = null;
+  const clearHintGrace = () => {
+    if (hintGraceTimer.current) {
+      clearTimeout(hintGraceTimer.current);
+      hintGraceTimer.current = null;
     }
   };
 
@@ -218,7 +237,7 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
   useEffect(
     () => () => {
       clearAdvance();
-      clearHintLock();
+      clearHintGrace();
       const s = stateRef.current;
       if (s && s.skillId && s.phase !== 'complete') {
         logEvent('session_abandoned', {
@@ -235,7 +254,7 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
   // after a correct answer or a wrong-#2 reveal — there is no manual "Next" button.
   const next = () => {
     clearAdvance();
-    clearHintLock();
+    clearHintGrace();
     const prev = stateRef.current;
     if (!prev) return;
     const n = advance(prev);
@@ -309,22 +328,23 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
     if (nextState.phase === 'correct' || nextState.phase === 'reveal') {
       clearAdvance();
       advanceTimer.current = setTimeout(next, ADVANCE_DELAY_MS);
-    } else if (nextState.phase === 'hint') {
-      // Wrong #1: keep the misconception hint un-skippable for a read-beat, then re-enable the
-      // options for the retry (phase/hint unchanged — only inputLocked flips off).
-      clearHintLock();
-      hintLockTimer.current = setTimeout(() => {
+    } else if (nextState.phase === 'hint' && prev.phase !== 'hint') {
+      // Entered the hint (wrong #1): open the soft read-window, then close it. We key off
+      // prev.phase so grace re-shows (still phase 'hint') do NOT reset the window — it stays a
+      // fixed beat from the first wrong, after which a further wrong escalates to the reveal.
+      clearHintGrace();
+      hintGraceTimer.current = setTimeout(() => {
         const cur = stateRef.current;
-        if (cur && cur.phase === 'hint' && cur.inputLocked) {
-          commit({ ...cur, inputLocked: false });
+        if (cur && cur.phase === 'hint' && cur.hintGrace) {
+          commit({ ...cur, hintGrace: false });
         }
-      }, HINT_READ_MS);
+      }, HINT_GRACE_MS);
     }
   };
 
   const restart = () => {
     clearAdvance();
-    clearHintLock();
+    clearHintGrace();
     logEvent('play_again', { skill_id: stateRef.current?.skillId });
     build();
   };
@@ -342,7 +362,7 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
     emotion: state?.emotion ?? 'happy',
     phase: state?.phase ?? 'solving',
     hint: state?.hint ?? null,
-    inputLocked: state?.inputLocked ?? false,
+    hintNonce: state?.hintNonce ?? 0,
     selectedIndex: state?.selectedIndex ?? null,
     revealIndex: state?.revealIndex ?? null,
     score: state?.score ?? 0,

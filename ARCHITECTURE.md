@@ -128,6 +128,11 @@ entry → SkillSelectScreen (home) → RecipeQuizScreen → SessionPlayer (sessi
   kept as source). All 6 images preloaded at module init so emotion changes hit cache instantly.
   Outer div reserves container size (no layout shift). Emotion transitions cross-fade via opacity
   (120ms), GPU-only (STANDARDS §5). Breathe float animation stays in `index.css`.
+- **`HintBubble.jsx`** — presentational speech bubble for the remediation hint, rendered below
+  Tinku (encourage pose) with an upward tail so it reads as Tinku speaking. Pops in via
+  `animate-hint-pop` (transform/opacity, in `index.css`); parent keys it on `hintNonce` to replay
+  on each (re)emission. Pure presentation — all hint logic lives in `useQuizSession` (STANDARDS
+  §2), so the coming UI overhaul restyles this file without touching the ladder.
 - **`ParentDashboard.jsx`** — encouraging progress snapshot for parents, behind `ParentGateModal`.
   Renders via `progressSummary` (see below): mastered/in-progress/not-started skill list, wins
   highlight, "currently working on" strip, light activity signal, passcode button. Reads local
@@ -270,6 +275,16 @@ it. Cross-session repeat-avoidance is a future nicety.
 - The pure engine (`mastery.js`) is NEVER given `Date.now()` — date is always injected by
   this wiring layer.
 
+**Remediation hint — soft read-window (Option 1).** The pure ladder puts hint LOGIC here (not
+in the screen): on wrong #1 it sets `phase:'hint'`, the distractor's hint, `hintGrace:true`, and
+bumps `hintNonce`. The hook opens a `HINT_GRACE_MS` (1000ms) window then flips `hintGrace` off.
+While the window is open, a further WRONG tap RE-SHOWS the tapped distractor's hint (bumps
+`hintNonce`, no attempt counted) instead of escalating — so a fast/mashing child never skips the
+hint; a CORRECT tap always wins instantly; only a deliberate wrong AFTER the window escalates to
+the wrong-#2 reveal. Options are never disabled during the hint. The hint is rendered by the
+presentational **`HintBubble`** component (below); `hintNonce` is its React `key` so the pop-in
+animation replays each (re)emission. Logic here, presentation in the component (STANDARDS §2).
+
 **`sessionLite.js` change:** `buildLiteSession` gained an optional `difficulty` param. When
 provided, all questions use that fixed difficulty (clamped to `maxDifficulty`) instead of the
 1→2→3 ramp. Existing ramp behaviour is unchanged when `difficulty` is omitted.
@@ -324,6 +339,7 @@ APIs never crash a child's session.
 
 - **Named events** (callers use these; the service decides the implementation):
   `correct` (rising 3-note chime), `wrong` (single soft low tone — gentle, not a buzzer),
+  `hint` (friendly two-note "let me help", plays with the wrong-#1 hint),
   `tap` (brief soft click on button press), `complete` (4-note celebratory fanfare).
 - **Haptic type**: `light` (30 ms vibration via Web Vibration API).
 - **Swap points** (marked with `// TODO` in the file):
@@ -331,8 +347,8 @@ APIs never crash a child's session.
   - *Haptics:* replace `hapticMap` bodies with `Capacitor Haptics.impact(...)` — callers unchanged.
 - **Mute**: `setSoundMuted(bool)` / `isSoundMuted()` — one flag silences both sound and haptics
   instantly. Sound is ON by default; the session UI exposes a 🔊/🔇 toggle.
-- **Wired into**: `SessionPlayer` — tap on every option press; correct/wrong/complete on phase
-  transitions via `useEffect`.
+- **Wired into**: `SessionPlayer` — tap on every option press; correct/hint/wrong/complete on
+  phase transitions via `useEffect` (keyed off `phase` + `hintNonce` so `hint` replays on re-show).
 
 **Tests**: `src/services/__tests__/sound.test.js` (Vitest, node env, globals stubbed) — covers
 mute logic, event mapping, note counts, and silent resilience to API failures.

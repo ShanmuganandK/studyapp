@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { initSession, applyAnswer, advance } from '../useQuizSession';
+import { getHint } from '../../engine/hints';
 
 // A fixed 2-question session (option 0 is always correct here for easy assertions).
 function makeSession() {
@@ -66,36 +67,45 @@ describe('useQuizSession — remediation ladder (pure logic)', () => {
     expect(s.lastEvent.attemptNumber).toBe(2);
   });
 
-  it('wrong #1 locks input (read-beat) so a fast second tap cannot skip the hint', () => {
+  it('wrong #1 opens the soft read-window (hintGrace) and bumps hintNonce', () => {
     let s = initSession(makeSession());
-    expect(s.inputLocked).toBe(false);
+    expect(s.hintGrace).toBe(false);
+    expect(s.hintNonce).toBe(0);
     s = applyAnswer(s, 1); // wrong #1 → hint
     expect(s.phase).toBe('hint');
-    expect(s.inputLocked).toBe(true); // options disabled until the hook clears it after HINT_READ_MS
+    expect(s.hintGrace).toBe(true); // window open; the hook closes it after HINT_GRACE_MS
+    expect(s.hintNonce).toBe(1);
   });
 
-  it('inputLocked does not carry over from the hint into the next state', () => {
-    // correct retry, reveal, and the next question must all clear the lock (no stale `true`).
+  it('a wrong tap DURING the grace window re-shows the hint, does NOT escalate to reveal', () => {
     let s = initSession(makeSession());
-    s = applyAnswer(s, 1);            // hint → locked
-    const retry = applyAnswer(s, 0);  // retry correct
-    expect(retry.inputLocked).toBe(false);
-
-    let r = applyAnswer(initSession(makeSession()), 1); // hint
-    r = applyAnswer(r, 2);            // wrong #2 → reveal
-    expect(r.inputLocked).toBe(false);
-
-    const advanced = advance(r);      // next question / complete
-    expect(advanced.inputLocked).toBe(false);
+    s = applyAnswer(s, 1); // wrong #1 → hint (grace open), tag off-by-one
+    const nonceAfter1 = s.hintNonce;
+    s = applyAnswer(s, 2); // fast 2nd wrong (operator-mixup) while grace is still open
+    expect(s.phase).toBe('hint');            // still teaching — NOT reveal
+    expect(s.attempts).toBe(1);              // grace re-shows don't count toward the reveal
+    expect(s.hintGrace).toBe(true);          // window stays open (hook owns closing it)
+    expect(s.hint).toBe(getHint('operator-mixup')); // shows the newly-tapped distractor's hint
+    expect(s.hintNonce).toBe(nonceAfter1 + 1); // re-animates
   });
 
-  it('wrong #2 → gentle reveal of the correct option, then advances (no penalty)', () => {
+  it('correct tap during the grace window wins instantly', () => {
     let s = initSession(makeSession());
-    s = applyAnswer(s, 1); // wrong #1
-    s = applyAnswer(s, 2); // wrong #2
+    s = applyAnswer(s, 1); // wrong #1 → hint (grace open)
+    s = applyAnswer(s, 0); // correct while grace open
+    expect(s.phase).toBe('correct');
+    expect(s.score).toBe(1);
+    expect(s.hintGrace).toBe(false);
+  });
+
+  it('wrong #2 AFTER the grace window closes → gentle reveal (no penalty)', () => {
+    let s = initSession(makeSession());
+    s = applyAnswer(s, 1);              // wrong #1 → hint, grace open
+    s = { ...s, hintGrace: false };     // simulate the hook closing the read-window
+    s = applyAnswer(s, 2);             // deliberate 2nd wrong → reveal
     expect(s.phase).toBe('reveal');
     expect(s.emotion).toBe('encourage');
-    expect(s.revealIndex).toBe(0); // index of the correct option
+    expect(s.revealIndex).toBe(0);     // index of the correct option
     expect(s.attempts).toBe(2);
     expect(s.score).toBe(0);
   });
@@ -109,12 +119,14 @@ describe('useQuizSession — remediation ladder (pure logic)', () => {
 
   it('mood floor: a session of all-wrong still ends celebratory', () => {
     let s = initSession(makeSession());
-    // Q1: wrong twice → reveal → advance
+    // Q1: wrong → (window closes) → wrong → reveal → advance
     s = applyAnswer(s, 1);
+    s = { ...s, hintGrace: false };
     s = applyAnswer(s, 2);
     s = advance(s);
-    // Q2: wrong twice → reveal → advance → complete
+    // Q2: wrong → (window closes) → wrong → reveal → advance → complete
     s = applyAnswer(s, 1);
+    s = { ...s, hintGrace: false };
     s = applyAnswer(s, 2);
     s = advance(s);
     expect(s.phase).toBe('complete');

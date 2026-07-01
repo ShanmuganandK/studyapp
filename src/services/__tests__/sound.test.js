@@ -140,6 +140,11 @@ describe('sound service', () => {
     expect(mockCtx.createOscillator).toHaveBeenCalledTimes(1);
   });
 
+  it('hint plays a friendly two-note "let me help" (not a single buzzer tone)', () => {
+    playSound('hint');
+    expect(mockCtx.createOscillator).toHaveBeenCalledTimes(2);
+  });
+
   it('tap plays exactly one brief click', () => {
     playSound('tap');
     expect(mockCtx.createOscillator).toHaveBeenCalledTimes(1);

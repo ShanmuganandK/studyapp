@@ -106,6 +106,15 @@ const synthMap = {
     playNote(ctx, 220, t, 0.32, 0.11, 0.015);  // A3 — slow attack softens the onset
   },
 
+  // Gentle "let me help" — a soft rising two-note (E5 → A5), warm and inviting, NOT a buzzer.
+  // Signals Tinku stepping in with a hint (the teaching moment), distinct from the 'wrong' tone.
+  hint: () => {
+    const ctx = getCtx();
+    const t = ctx.currentTime;
+    playNote(ctx, 659.25, t, 0.16, 0.12, 0.01);        // E5
+    playNote(ctx, 880.0, t + 0.11, 0.22, 0.13, 0.01);  // A5 — rises to a friendly, open resolve
+  },
+
   // Brief soft click — confirms the button press without being distracting.
   tap: () => {
     const ctx = getCtx();
@@ -148,7 +157,7 @@ export function isSoundMuted() {
 
 /**
  * Fire a named sound event. Fire-and-forget — never throws, never blocks the UI.
- * @param {'correct'|'wrong'|'tap'|'complete'} event
+ * @param {'correct'|'wrong'|'hint'|'tap'|'complete'} event
  */
 export function playSound(event) {
   if (muted) return;
