@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 
-import happyWebp from '../assets/mascot/webp/Tinku_Happy_2.webp';
-import celebrateWebp from '../assets/mascot/webp/Tinku_Mascot.webp';
+// Note the file↔emotion pairing: Tinku_Mascot is the calm standing pose (the neutral default),
+// Tinku_Happy_2 is the arms-up + confetti pose (the real win celebration). Mapped accordingly so
+// win moments (correct / session-end) actually celebrate and headers/greetings stay calm.
+import happyWebp from '../assets/mascot/webp/Tinku_Mascot.webp';
+import celebrateWebp from '../assets/mascot/webp/Tinku_Happy_2.webp';
 import encourageWebp from '../assets/mascot/webp/Tinku_Encourage_2.webp';
 import thinkingWebp from '../assets/mascot/webp/Tinku_Think3.webp';
 import sleepingWebp from '../assets/mascot/webp/Tinku_Sleeping.webp';
