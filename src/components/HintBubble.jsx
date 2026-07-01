@@ -20,12 +20,15 @@ export default function HintBubble({ hint, emotion = 'encourage' }) {
   if (!hint) return null;
 
   return (
-    <div className="flex-shrink-0 flex justify-center mt-1 mb-1 px-2">
+    <div className="flex-shrink-0 flex justify-center mt-0.5 mb-1 px-2">
       <div
         role="status"
         aria-live="polite"
         data-emotion={emotion}
-        className="animate-hint-pop origin-top relative max-w-sm bg-white border-2 border-amber-300 text-amber-900 rounded-2xl px-4 py-2.5 text-center text-base font-semibold shadow-md"
+        // Compact but prominent: fluid text so a long hint stays a line or two and never crowds
+        // the question off-screen (STANDARDS §5 fit-one-viewport). Full visual polish comes later.
+        className="animate-hint-pop origin-top relative max-w-xs bg-white border-2 border-amber-300 text-amber-900 rounded-2xl px-3.5 py-1.5 text-center font-semibold leading-snug shadow-md"
+        style={{ fontSize: 'clamp(0.8rem, 3.4vw, 0.95rem)' }}
       >
         {/* Tail pointing up to Tinku — a rotated square sharing the bubble's top/left border. */}
         <span

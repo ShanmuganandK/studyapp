@@ -67,6 +67,12 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
   // makes a fast wrong tap re-show the hint instead of skipping it.
   const locked = s.phase === 'correct' || s.phase === 'reveal';
 
+  // Fit-one-viewport (STANDARDS §5): the mascot is decorative and yields space FIRST. When the
+  // hint bubble is showing, Tinku shrinks so the bubble takes the reclaimed space instead of
+  // pushing the question into scroll. He stays present (it's his speech bubble), just smaller.
+  const hintShowing = !!s.hint;
+  const mascotSize = hintShowing ? 'clamp(40px, 7vh, 64px)' : 'clamp(70px, 13vh, 130px)';
+
   return (
     <div className="flex flex-col h-full overflow-hidden bg-sky-50 px-5 pt-1 pb-2">
       {/* Top bar: back · progress counter · mute toggle */}
@@ -80,9 +86,9 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
         <MuteButton muted={muted} onToggle={toggleMute} />
       </div>
 
-      {/* Mascot: decorative, yields space first — clamp shrinks it on short screens */}
+      {/* Mascot: decorative, yields space first — shrinks while a hint shows (see mascotSize) */}
       <div className="flex justify-center flex-shrink-0">
-        <Mascot emotion={s.emotion} size="clamp(70px, 13vh, 130px)" />
+        <Mascot emotion={s.emotion} size={mascotSize} />
       </div>
 
       {/* Tinku's hint speech bubble. Keyed by hintNonce so it replays its pop-in on every
