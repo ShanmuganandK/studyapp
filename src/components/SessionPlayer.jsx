@@ -71,7 +71,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
   // hint bubble is showing, Tinku shrinks so the bubble takes the reclaimed space instead of
   // pushing the question into scroll. He stays present (it's his speech bubble), just smaller.
   const hintShowing = !!s.hint;
-  const mascotSize = hintShowing ? 'clamp(40px, 7vh, 64px)' : 'clamp(70px, 13vh, 130px)';
+  const mascotSize = hintShowing ? 'clamp(40px, 7vh, 64px)' : 'clamp(96px, 18vh, 180px)';
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-sky-50 px-5 pt-1 pb-2">
@@ -97,10 +97,11 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
 
       {/* Question area: flex-1 + min-h-0 so it takes remaining space and yields when tight.
           overflow-y-auto is the scoped fallback for exceptionally long questions.
-          py-3 gives equal breathing room above and below the content; items-start pins the
-          question near the mascot so the free space falls below the objects, not above them. */}
+          justify-center vertically centres the question in the free space so on tall phones
+          (e.g. S25 Ultra) the slack is balanced above/below rather than pooling into one big
+          void between the question and the answers. */}
       <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="flex flex-col items-stretch min-h-full py-3">
+        <div className="flex flex-col items-stretch justify-center min-h-full py-3">
           <QuestionView question={s.question} />
         </div>
       </div>

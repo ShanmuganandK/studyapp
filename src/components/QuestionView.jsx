@@ -50,9 +50,12 @@ export default function QuestionView({ question }) {
     );
   }
 
-  // mcq
+  // mcq — fluid size so the equation scales up on tall phones and down on short ones.
   return (
-    <p className="text-5xl font-extrabold text-indigo-700 text-center tracking-wide">
+    <p
+      className="font-extrabold text-indigo-700 text-center tracking-wide"
+      style={{ fontSize: 'clamp(3rem, 9vh, 4.75rem)' }}
+    >
       {question.questionText}
     </p>
   );
