@@ -71,7 +71,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
   // hint bubble is showing, Tinku shrinks so the bubble takes the reclaimed space instead of
   // pushing the question into scroll. He stays present (it's his speech bubble), just smaller.
   const hintShowing = !!s.hint;
-  const mascotSize = hintShowing ? 'clamp(40px, 7vh, 64px)' : 'clamp(96px, 18vh, 180px)';
+  const mascotSize = hintShowing ? 'clamp(52px, 10vh, 92px)' : 'clamp(96px, 18vh, 180px)';
 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-sky-50 px-5 pt-1 pb-2">
