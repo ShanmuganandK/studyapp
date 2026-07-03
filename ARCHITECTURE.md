@@ -133,6 +133,10 @@ entry → SkillSelectScreen (home) → RecipeQuizScreen → SessionPlayer (sessi
   `animate-hint-pop` (transform/opacity, in `index.css`); parent keys it on `hintNonce` to replay
   on each (re)emission. Pure presentation — all hint logic lives in `useQuizSession` (STANDARDS
   §2), so the coming UI overhaul restyles this file without touching the ladder.
+- **`PrivacyNotice.jsx`** — parent-facing privacy reassurance; presentational, copy from the
+  single-source `PRIVACY_NOTICE` in `config/constants`. Two variants: `card` (prominent, parent
+  dashboard) and `footer` (subtle muted text, home/skill-select). Never on kid-facing quiz screens.
+  Claims limited to what's true (anonymous, on-device) — no "offline"/"no tracking".
 - **`ParentDashboard.jsx`** — encouraging progress snapshot for parents, behind `ParentGateModal`.
   Renders via `progressSummary` (see below): mastered/in-progress/not-started skill list, wins
   highlight, "currently working on" strip, light activity signal, passcode button. Reads local

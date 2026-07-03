@@ -5,6 +5,7 @@ import { loadAllSkillStates } from '../services/progressStore';
 import { progressSummary } from '../engine/progressSummary';
 import { MASTERY } from '../config/masteryConfig';
 import { feedbackWhatsAppUrl } from '../config/constants';
+import PrivacyNotice from './PrivacyNotice';
 
 // ─── Local helpers ────────────────────────────────────────────────────────────
 
@@ -198,6 +199,9 @@ export default function ParentDashboard({ onSetPasscode, hasPasscode, userEmail 
             </p>
           )}
         </div>
+
+        {/* ── Privacy reassurance (prominent, calm — parents are the audience) ─── */}
+        <PrivacyNotice variant="card" />
 
         {/* ── Settings footer ──────────────────────────────────────────────── */}
         <div className="border-t border-slate-100 pt-4 space-y-3">

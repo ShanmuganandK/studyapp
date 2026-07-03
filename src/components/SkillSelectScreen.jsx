@@ -5,6 +5,7 @@ import { isDueForReview } from '../engine/mastery';
 import { MASTERY } from '../config/masteryConfig';
 import { recommendNext } from '../engine/composer';
 import Mascot from './Mascot';
+import PrivacyNotice from './PrivacyNotice';
 
 /**
  * SkillSelectScreen — the home / landing screen and the ONLY path into practice.
@@ -96,6 +97,9 @@ export default function SkillSelectScreen({ onSelectSkill }) {
           );
         })}
       </div>
+
+      {/* Subtle privacy reassurance for a glancing parent — muted, unobtrusive. */}
+      <PrivacyNotice variant="footer" />
     </div>
   );
 }
