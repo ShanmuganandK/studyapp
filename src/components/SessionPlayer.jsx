@@ -169,7 +169,7 @@ function SessionEnd({ score, total, onPlayAgain, onExit }) {
   return (
     <Centered>
       <Mascot emotion="celebrate" size="clamp(90px, 15vh, 160px)" />
-      <h2 className="text-title font-extrabold text-primary-ink mt-4">Great job!</h2>
+      <h2 className="font-display text-title font-extrabold text-primary-ink mt-4">Great job!</h2>
       {/* Stars here are a REWARD readout (locked: amber/stars = reward only). */}
       <div className="flex gap-1 mt-3 text-3xl" aria-label={`${score} of ${total} correct`}>
         {Array.from({ length: total }).map((_, i) => (

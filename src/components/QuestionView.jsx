@@ -42,9 +42,9 @@ export default function QuestionView({ question }) {
         <p className="text-base font-semibold text-muted mb-2">Which sign goes in the box?</p>
         {/* Numbers use clamp() so they shrink on short screens without losing readability. */}
         <div className="flex items-center justify-center gap-4">
-          <span className="kid-num-3d font-extrabold text-primary-ink" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{left}</span>
+          <span className="kid-num-3d font-display font-extrabold text-primary-ink" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{left}</span>
           <span className="w-12 h-12 rounded-button border-4 border-dashed border-primary-soft bg-bg-card flex items-center justify-center text-2xl text-primary">?</span>
-          <span className="kid-num-3d font-extrabold text-primary-ink" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{right}</span>
+          <span className="kid-num-3d font-display font-extrabold text-primary-ink" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{right}</span>
         </div>
       </div>
     );
@@ -53,7 +53,7 @@ export default function QuestionView({ question }) {
   // mcq — fluid size (text-question token) so the equation scales up on tall phones and down
   // on short ones.
   return (
-    <p className="kid-num-3d text-question font-extrabold text-primary-ink text-center tracking-wide">
+    <p className="kid-num-3d font-display text-question font-extrabold text-primary-ink text-center tracking-wide">
       {question.questionText}
     </p>
   );

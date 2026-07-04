@@ -12,6 +12,8 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@fontsource-variable/baloo-2": "^5.2.7",
+    "@fontsource-variable/nunito": "^5.2.7",
     "firebase": "^12.9.0",
     "lucide-react": "^0.460.0",
     "react": "^18.3.1",

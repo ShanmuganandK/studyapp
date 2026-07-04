@@ -113,8 +113,19 @@ future kid-feedback tuning is a token change, not a screen hunt.
   as utilities so components use named tokens, never raw hex. Groups: colour
   (`bg`, `bg-card`, `primary`/`-soft`/`-ink`, `accent`, `success`/`-soft`, `encourage`/`-soft`/`-ink`,
   `learn`/`-soft`/`-ink`, `ink`, `muted`), `rounded-{button,card}`, `shadow-{button,card}`, fluid
-  `text-{question,option,title,body}` (clamp). **Locked meanings:** `accent`(amber)=reward ONLY;
+  `text-{question,option,title,body}` (clamp), and **type families** `font-body` (`--font-body`)
+  / `font-display` (`--font-display`). **Locked meanings:** `accent`(amber)=reward ONLY;
   `encourage`(soft coral)=wrong answers (never red/amber); `learn`(sky)=hints/learning.
+- **Fonts (self-hosted, no CDN — low-end-Android safe):** **Nunito** (body/parent, the default
+  `font-sans`) + **Baloo 2** (kid-facing display — big numbers/equations/titles/option tiles),
+  via **Fontsource** variable packages imported in `src/main.jsx` (`font-display: swap`, bundled
+  woff2, unicode-range subset so only Latin ~72 kB is fetched). *Follow-up:* SW precache glob
+  omits `woff2`, so fonts degrade to system fallback offline (add a font `CacheFirst` runtime
+  rule later).
+- **Depth utilities** (`index.css`): `.kid-tile-idle` (top-lit gradient for the raised "pillow"
+  answer tiles, paired with the layered `--shadow-button`), `.count-glyph` (drop-shadow so
+  counted objects sit elevated), `.kid-num-3d` (soft depth shadow on big numbers/equations),
+  `.tinku-ground` (mascot ground ellipse). All static (no animated shadow/filter).
 - **Quiz micro-motion** (also `index.css`, all GPU-safe transform/opacity, reduced-motion off):
   `animate-q-enter` (question slide/fade-in, keyed on questionNumber), `animate-opt-in` (option
   stagger), `animate-correct-pop`, `animate-encourage-nudge` (gentle, not a harsh shake).

@@ -3,7 +3,12 @@
 @tailwind utilities;
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Type families (self-hosted via Fontsource, imported in main.jsx). Body = Nunito (friendly,
+     readable, parent-premium); display = Baloo 2 (chunky, round, playful) for big kid-facing
+     numbers/equations/titles. Exposed as Tailwind font-body / font-display. */
+  --font-body: 'Nunito Variable', 'Nunito', system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-display: 'Baloo 2 Variable', 'Baloo 2', system-ui, sans-serif;
+  font-family: var(--font-body);
 }
 
 /* ─── Design tokens — "Tinku's Wonder World" (light Wonder band) ─────────────────────────

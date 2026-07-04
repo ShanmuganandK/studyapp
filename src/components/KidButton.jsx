@@ -28,7 +28,7 @@ export default function KidButton({ label, state = 'idle', disabled = false, onC
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-button border-4 text-option font-extrabold shadow-button flex items-center justify-center transition-transform ${STATE_CLASS[state]} ${
+      className={`rounded-button border-4 text-option font-display font-extrabold shadow-button flex items-center justify-center transition-transform ${STATE_CLASS[state]} ${
         disabled ? 'cursor-default' : 'active:scale-95 hover:scale-[1.03]'
       }`}
       style={{

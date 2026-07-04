@@ -10,6 +10,12 @@ export default {
     ],
     theme: {
         extend: {
+            fontFamily: {
+                // Nunito is the default (sans/body); Baloo 2 is opt-in for big kid-facing text.
+                sans: 'var(--font-body)',
+                body: 'var(--font-body)',
+                display: 'var(--font-display)',
+            },
             colors: {
                 bg: 'var(--color-bg)',
                 'bg-card': 'var(--color-bg-card)',
