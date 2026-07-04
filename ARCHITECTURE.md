@@ -113,7 +113,7 @@ future kid-feedback tuning is a token change, not a screen hunt.
   as utilities so components use named tokens, never raw hex. Groups: colour
   (`bg`, `bg-card`, `primary`/`-soft`/`-ink`, `accent`, `success`/`-soft`, `encourage`/`-soft`/`-ink`,
   `learn`/`-soft`/`-ink`, `ink`, `muted`), `rounded-{button,card}`, `shadow-{button,card}`, fluid
-  `text-{question,option,title,body}` (clamp), and **type families** `font-body` (`--font-body`)
+  `text-{question,option,title,prompt,body}` (clamp), and **type families** `font-body` (`--font-body`)
   / `font-display` (`--font-display`). **Locked meanings:** `accent`(amber)=reward ONLY;
   `encourage`(soft coral)=wrong answers (never red/amber); `learn`(sky)=hints/learning.
 - **Fonts (self-hosted, no CDN — low-end-Android safe):** **Nunito** (body/parent, the default
