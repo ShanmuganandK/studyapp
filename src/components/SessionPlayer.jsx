@@ -94,9 +94,14 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
         <div aria-hidden="true" className="tinku-ground h-3 w-2/5 max-w-[140px] -mt-1 rounded-[50%]" />
       </div>
 
-      {/* Tinku's hint speech bubble. Keyed by hintNonce so it replays its pop-in on every
-          (re)emission — including a re-show when the child taps another wrong answer. */}
-      <HintBubble key={s.hintNonce} hint={s.hint} emotion={s.emotion} />
+      {/* Tinku's hint speech bubble, in a STABLE single-child wrapper slot. HintBubble remounts
+          on each (re)emission via its hintNonce key to replay the pop-in; the dedicated wrapper
+          isolates that remount from the sibling keys used for the question transitions below, so
+          React always cleanly unmounts the previous bubble (no orphaned/stacked bubble that
+          would otherwise persist across taps and questions). */}
+      <div className="flex-shrink-0">
+        <HintBubble key={s.hintNonce} hint={s.hint} emotion={s.emotion} />
+      </div>
 
       {/* Question area: flex-1 + min-h-0 so it takes remaining space and yields when tight.
           overflow-y-auto is the scoped fallback for exceptionally long questions.
