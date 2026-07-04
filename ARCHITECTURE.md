@@ -102,6 +102,31 @@ reads it to know which recipes to build.
 - **`__tests__/skillMap.test.js`** — graph validity (prereqs exist, no cycles, unique order
   per grade, ready⇒recipe exists) + helper unit tests.
 
+### Design tokens & UI-overhaul primitives — "Tinku's Wonder World"
+
+The visual overhaul (RESKIN only — zero logic change) flows from **named design tokens**, so
+future kid-feedback tuning is a token change, not a screen hunt.
+
+- **Tokens** live as CSS custom properties in **`src/index.css`** (`:root` = Wonder-band
+  defaults; the Explorer band, Phase 2, will override the SAME properties under a
+  `.theme-explorer` scope — no component changes needed). **`tailwind.config.js`** exposes them
+  as utilities so components use named tokens, never raw hex. Groups: colour
+  (`bg`, `bg-card`, `primary`/`-soft`/`-ink`, `accent`, `success`/`-soft`, `encourage`/`-soft`/`-ink`,
+  `learn`/`-soft`/`-ink`, `ink`, `muted`), `rounded-{button,card}`, `shadow-{button,card}`, fluid
+  `text-{question,option,title,body}` (clamp). **Locked meanings:** `accent`(amber)=reward ONLY;
+  `encourage`(soft coral)=wrong answers (never red/amber); `learn`(sky)=hints/learning.
+- **Quiz micro-motion** (also `index.css`, all GPU-safe transform/opacity, reduced-motion off):
+  `animate-q-enter` (question slide/fade-in, keyed on questionNumber), `animate-opt-in` (option
+  stagger), `animate-correct-pop`, `animate-encourage-nudge` (gentle, not a harsh shake).
+  `.tinku-ground` = the soft ground ellipse that stages Tinku "in the world".
+- **`KidButton.jsx`** — the kid-facing answer-tile primitive. Big, soft-rounded, squishes on
+  press (`active:scale-95`); state-driven visuals (`idle`/`correct`/`wrong`) from tokens. Purely
+  presentational — all answer logic stays in `useQuizSession`. Used by `SessionPlayer` (4× per
+  question). Later kid-facing screens reuse it.
+- **Reskinned so far (Screen 1 — quiz):** `SessionPlayer.jsx`, `QuestionView.jsx`,
+  `HintBubble.jsx` are now fully token-based (no raw hex). `SessionPlayer`'s in-file `SessionEnd`
+  got an interim token pass; the full celebration EVENT is Screen 2.
+
 ### App flow & screens (`src/components/`) — the single reachable path
 
 The app was collapsed from an old/new mix into ONE coherent flow. There is now exactly one

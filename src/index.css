@@ -6,6 +6,68 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
+/* ─── Design tokens — "Tinku's Wonder World" (light Wonder band) ─────────────────────────
+   Single source of truth for the app's visual language (UI overhaul). Components consume
+   these via tailwind.config.js utilities (bg-bg, text-primary, text-ink, rounded-card,
+   shadow-button, text-question, …) — NO raw hex in components.
+   Band theming (DECISIONS): these are the Wonder defaults on :root. The Explorer band
+   (Phase 2, dark) will override the SAME custom properties under a `.theme-explorer` scope,
+   so no component changes when a second band lands. amber(accent)=reward ONLY; wrong answers
+   use `encourage` (soft coral, never red, never amber); hints use `learn` (gentle sky). */
+:root {
+  /* Color — surfaces */
+  --color-bg: #f0f9ff;              /* airy sky — screen background */
+  --color-bg-card: #ffffff;        /* cards, option tiles (idle), trays */
+
+  /* Color — brand / structure */
+  --color-primary: #4f46e5;        /* indigo — structure, primary buttons, option text */
+  --color-primary-soft: #e0e7ff;   /* soft indigo — borders / tints / fills */
+  --color-primary-ink: #3730a3;    /* deep indigo — question & heading text on light */
+
+  /* Color — reward (LOCKED: amber = achievement/reward ONLY) */
+  --color-accent: #fbbf24;
+
+  /* Color — feedback: correct */
+  --color-success: #22c55e;
+  --color-success-soft: #dcfce7;
+
+  /* Color — feedback: wrong (never punish → soft coral, kid-gentle, never red/amber) */
+  --color-encourage: #fb9a7d;      /* peachy coral border/base */
+  --color-encourage-soft: #ffede6; /* pale coral fill */
+  --color-encourage-ink: #c2410c;  /* warm burnt-orange text (readable, not alarming) */
+
+  /* Color — learning / hints (gentle sky) */
+  --color-learn: #7dd3fc;
+  --color-learn-soft: #e0f2fe;
+  --color-learn-ink: #0369a1;
+
+  /* Color — text */
+  --color-ink: #1e293b;            /* slate-800 — primary body/heading text */
+  --color-muted: #64748b;          /* slate-500 — secondary/muted text */
+
+  /* Radius — soft & rounded everywhere */
+  --radius-button: 1rem;
+  --radius-card: 1.5rem;
+
+  /* Shadow — soft, pressable; STATIC only (never animated in a loop — STANDARDS §5).
+     Button carries a small solid bottom-offset "lift" so it reads as physically pressable. */
+  --shadow-button: 0 4px 0 -1px rgba(79, 70, 229, 0.18), 0 6px 12px -4px rgba(79, 70, 229, 0.28);
+  --shadow-card: 0 10px 26px -10px rgba(79, 70, 229, 0.22);
+
+  /* Fluid type (clamp — docs/responsive.md). Kid-facing = big & round; parent-facing = normal. */
+  --text-question: clamp(3rem, 9vh, 4.75rem);
+  --text-option: clamp(1.75rem, 6vw, 2.25rem);
+  --text-title: clamp(1.6rem, 6vw, 2.25rem);
+  --text-body: clamp(0.95rem, 3.4vw, 1.1rem);
+}
+
+/* Tinku's soft ground shadow — a decorative ellipse that grounds the mascot "in the world"
+   while he breathes/floats above it. Purely decorative; colour lives here (token layer),
+   not in the component, so components stay token-only. */
+.tinku-ground {
+  background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.16), rgba(79, 70, 229, 0) 72%);
+}
+
 /* Mascot animations — GPU-friendly (transform/opacity only), low-end-Android safe.
    Emotion changes cross-fade via opacity in Mascot.jsx; only the breathe float lives here. */
 @keyframes mascot-breathe {
@@ -30,6 +92,46 @@
 
 @media (prefers-reduced-motion: reduce) {
   .animate-hint-pop { animation: none; }
+}
+
+/* Quiz micro-motion — all GPU-safe (transform/opacity), 150–300ms, low-end-Android safe.
+   Replayed per question via a changing React key (questionNumber). */
+
+/* Question swap: the new question gently slides + fades in. */
+@keyframes q-enter {
+  0%   { opacity: 0; transform: translateX(16px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.animate-q-enter { animation: q-enter 200ms ease-out both; }
+
+/* Option tiles stagger in on a new question (tiny, fast). Per-tile delay set inline by index. */
+@keyframes opt-in {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-opt-in { animation: opt-in 180ms ease-out both; }
+
+/* Correct answer: a celebratory pop that syncs with the 'correct' chime. */
+@keyframes correct-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+.animate-correct-pop { animation: correct-pop 300ms ease-out; }
+
+/* Wrong answer: a GENTLE nudge (encourage, never punish) — not a harsh shake. */
+@keyframes encourage-nudge {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-3px); }
+  75%      { transform: translateX(3px); }
+}
+.animate-encourage-nudge { animation: encourage-nudge 260ms ease-in-out; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-q-enter,
+  .animate-opt-in,
+  .animate-correct-pop,
+  .animate-encourage-nudge { animation: none; }
 }
 
 /* App shell height — track the VISIBLE viewport on mobile via dvh so the browser's address bar
