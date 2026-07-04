@@ -5,13 +5,16 @@
  *   - count-objects : the question + a grid of `render.count` glyphs to count
  *   - compare       : the two numbers with a box for the missing sign
  *
- * `solved` (presentation-only, view-state from SessionPlayer's phase) is true during the
- * correct-answer beat. For formats with a BLANK (compare now; text-input later — see the
- * "answer feedback fills the blank" rule locked in DECISIONS.md 2026-07-04) the committed
- * correct value lands in the blank so the child sees the full statement complete before the
- * question transitions out. Formats without a blank (mcq, count-objects) ignore it.
+ * `blankFill` (presentation-only, view-state from SessionPlayer's phase) drives the
+ * "answer feedback fills the blank" rule (DECISIONS.md 2026-07-04) for formats with a BLANK
+ * (compare now; text-input later). It lands the committed CORRECT value in the blank so the
+ * child sees the full statement complete before the question transitions out:
+ *   'correct' → correct answer (green success beat)
+ *   'reveal'  → wrong-#2 reveal ("here's how") — same correct value, sky/learn teaching tone
+ *   null      → dashed placeholder (resting/wrong/hint; never slot a wrong value in)
+ * Formats without a blank (mcq, count-objects) ignore it.
  */
-export default function QuestionView({ question, solved = false }) {
+export default function QuestionView({ question, blankFill = null }) {
   if (question.format === 'count-objects') {
     const { glyph, count } = question.render;
     return (
@@ -49,13 +52,18 @@ export default function QuestionView({ question, solved = false }) {
         {/* Numbers use clamp() so they shrink on short screens without losing readability. */}
         <div className="flex items-center justify-center gap-4">
           <span className="kid-num-3d font-display font-extrabold text-primary-ink" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{left}</span>
-          {solved ? (
-            // Correct beat: the chosen (correct) operator lands in the slot — solid success-green
-            // fill — so the child sees the completed statement (e.g. "5 < 15"). Keyed distinct from
-            // the placeholder so it mounts fresh and the pop-in animation plays.
+          {blankFill ? (
+            // The CORRECT operator lands in the slot so the child sees the completed statement
+            // (e.g. "5 < 15"). Green on a correct win; sky/learn on the wrong-#2 reveal ("here's
+            // how" — a teaching moment, not false praise). Keyed distinct from the placeholder (and
+            // per treatment) so it mounts fresh and the pop-in animation plays.
             <span
-              key="filled"
-              className="animate-slot-fill font-display font-extrabold w-12 h-12 rounded-button border-4 border-success bg-success-soft flex items-center justify-center text-success"
+              key={`fill-${blankFill}`}
+              className={`animate-slot-fill font-display font-extrabold w-12 h-12 rounded-button border-4 flex items-center justify-center ${
+                blankFill === 'correct'
+                  ? 'border-success bg-success-soft text-success'
+                  : 'border-learn bg-learn-soft text-learn-ink'
+              }`}
               style={{ fontSize: 'clamp(1.5rem, 6vh, 2.5rem)' }}
             >
               {question.correctAnswer}

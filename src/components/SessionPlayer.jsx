@@ -73,6 +73,11 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
   const hintShowing = !!s.hint;
   const mascotSize = hintShowing ? 'clamp(52px, 10vh, 92px)' : 'clamp(96px, 18vh, 180px)';
 
+  // Compare blank fills with the CORRECT sign so the statement completes: green on a correct
+  // answer, sky/learn on the wrong-#2 reveal ("here's how"). null → dashed placeholder. Existing
+  // view-state only (phase); QuestionView ignores it for formats without a blank.
+  const blankFill = s.phase === 'correct' ? 'correct' : s.phase === 'reveal' ? 'reveal' : null;
+
   return (
     <div className="flex flex-col h-full overflow-hidden bg-bg px-5 pt-1 pb-2">
       {/* Top bar: back · progress counter · mute toggle */}
@@ -111,7 +116,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
           question gently slides/fades in on each advance (GPU-safe). */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
         <div key={s.questionNumber} className="animate-q-enter flex flex-col items-stretch justify-center min-h-full py-3">
-          <QuestionView question={s.question} solved={s.phase === 'correct'} />
+          <QuestionView question={s.question} blankFill={blankFill} />
         </div>
       </div>
 

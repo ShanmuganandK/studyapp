@@ -129,9 +129,9 @@ future kid-feedback tuning is a token change, not a screen hunt.
 - **Quiz micro-motion** (also `index.css`, all GPU-safe transform/opacity, reduced-motion off):
   `animate-q-enter` (question slide/fade-in, keyed on questionNumber), `animate-opt-in` (option
   stagger), `animate-correct-pop`, `animate-encourage-nudge` (gentle, not a harsh shake),
-  `animate-slot-fill` (compare blank fills with the chosen operator on a correct answer — see
-  the "answer feedback fills the blank" rule, DECISIONS 2026-07-04). `.tinku-ground` = the soft
-  ground ellipse that stages Tinku "in the world".
+  `animate-slot-fill` (compare blank fills with the correct operator — green on a correct answer,
+  sky/learn on the wrong-#2 reveal — see the "answer feedback fills the blank" rule, DECISIONS
+  2026-07-04). `.tinku-ground` = the soft ground ellipse that stages Tinku "in the world".
 - **`KidButton.jsx`** — the kid-facing answer-tile primitive. Big, soft-rounded, squishes on
   press (`active:scale-95`); state-driven visuals (`idle`/`correct`/`wrong`) from tokens. Purely
   presentational — all answer logic stays in `useQuizSession`. Used by `SessionPlayer` (4× per
@@ -139,8 +139,9 @@ future kid-feedback tuning is a token change, not a screen hunt.
 - **Reskinned so far (Screen 1 — quiz):** `SessionPlayer.jsx`, `QuestionView.jsx`,
   `HintBubble.jsx` are now fully token-based (no raw hex). `SessionPlayer`'s in-file `SessionEnd`
   got an interim token pass; the full celebration EVENT is Screen 2. `QuestionView` takes a
-  `solved` prop (`SessionPlayer` passes `phase === 'correct'`, existing view-state — no new
-  hook/recipe data) to fill the compare blank on a correct answer (`animate-slot-fill`).
+  `blankFill` prop (`SessionPlayer` derives `'correct'`/`'reveal'`/`null` from `phase`, existing
+  view-state — no new hook/recipe data) to fill the compare blank with the correct sign
+  (`animate-slot-fill`): green on a correct answer, sky/learn on the wrong-#2 reveal.
 
 ### App flow & screens (`src/components/`) — the single reachable path
 
