@@ -46,6 +46,7 @@ export default {
                 question: 'var(--text-question)',
                 option: 'var(--text-option)',
                 title: 'var(--text-title)',
+                prompt: 'var(--text-prompt)',
                 body: 'var(--text-body)',
             },
         },

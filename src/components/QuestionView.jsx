@@ -10,7 +10,7 @@ export default function QuestionView({ question }) {
     const { glyph, count } = question.render;
     return (
       <div className="text-center">
-        <p className="text-base font-bold text-ink mb-2">{question.questionText}</p>
+        <p className="text-prompt font-extrabold text-ink mb-3">{question.questionText}</p>
         {/* Ten-frame tray: rows of 5. auto columns (not 1fr) so objects cluster to their
             natural size; justify-content:center centres the group. w-fit shrinks the tray
             box to the objects so it never looks empty. 16-20 not served — see counting.js. */}
@@ -39,7 +39,7 @@ export default function QuestionView({ question }) {
     const { left, right } = question.render;
     return (
       <div className="text-center">
-        <p className="text-base font-semibold text-muted mb-2">Which sign goes in the box?</p>
+        <p className="text-prompt font-bold text-ink mb-3">Which sign goes in the box?</p>
         {/* Numbers use clamp() so they shrink on short screens without losing readability. */}
         <div className="flex items-center justify-center gap-4">
           <span className="kid-num-3d font-display font-extrabold text-primary-ink" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{left}</span>
