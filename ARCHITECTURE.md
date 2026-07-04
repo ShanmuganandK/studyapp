@@ -433,3 +433,10 @@ land.
 
 - **Vitest** for tests, configured in `vitest.config.js` (kept separate from
   `vite.config.js`). Scripts: `npm run test` (watch), `npm run test:run` (CI/one-shot).
+- **Test environments:** `node` by default (pure recipes/engine/hooks — fast, no DOM).
+  **Component render tests** use **React Testing Library + jsdom**, opted into per-file with a
+  `// @vitest-environment jsdom` docblock; `vitest.config.js` includes `@vitejs/plugin-react` for
+  the JSX transform. First render test: `src/components/__tests__/SessionPlayer.test.jsx` — mocks
+  `useQuizSession` and asserts hint-bubble render invariants (never stacks, always clears on
+  correct / next question), guarding the keyed-remount fix. This is the render-test layer CLAUDE.md
+  calls for; logic still lives in the pure node-env suites.
