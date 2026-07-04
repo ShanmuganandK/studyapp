@@ -109,7 +109,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
           (e.g. S25 Ultra) the slack is balanced above/below rather than pooling into one big
           void between the question and the answers. Keyed by questionNumber so the new
           question gently slides/fades in on each advance (GPU-safe). */}
-      <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
         <div key={s.questionNumber} className="animate-q-enter flex flex-col items-stretch justify-center min-h-full py-3">
           <QuestionView question={s.question} />
         </div>
