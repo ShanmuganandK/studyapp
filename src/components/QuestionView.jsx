@@ -4,8 +4,14 @@
  *   - mcq           : big equation text (addition / subtraction)
  *   - count-objects : the question + a grid of `render.count` glyphs to count
  *   - compare       : the two numbers with a box for the missing sign
+ *
+ * `solved` (presentation-only, view-state from SessionPlayer's phase) is true during the
+ * correct-answer beat. For formats with a BLANK (compare now; text-input later — see the
+ * "answer feedback fills the blank" rule locked in DECISIONS.md 2026-07-04) the committed
+ * correct value lands in the blank so the child sees the full statement complete before the
+ * question transitions out. Formats without a blank (mcq, count-objects) ignore it.
  */
-export default function QuestionView({ question }) {
+export default function QuestionView({ question, solved = false }) {
   if (question.format === 'count-objects') {
     const { glyph, count } = question.render;
     return (
@@ -43,7 +49,21 @@ export default function QuestionView({ question }) {
         {/* Numbers use clamp() so they shrink on short screens without losing readability. */}
         <div className="flex items-center justify-center gap-4">
           <span className="kid-num-3d font-display font-extrabold text-primary-ink" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{left}</span>
-          <span className="w-12 h-12 rounded-button border-4 border-dashed border-primary-soft bg-bg-card flex items-center justify-center text-2xl text-primary">?</span>
+          {solved ? (
+            // Correct beat: the chosen (correct) operator lands in the slot — solid success-green
+            // fill — so the child sees the completed statement (e.g. "5 < 15"). Keyed distinct from
+            // the placeholder so it mounts fresh and the pop-in animation plays.
+            <span
+              key="filled"
+              className="animate-slot-fill font-display font-extrabold w-12 h-12 rounded-button border-4 border-success bg-success-soft flex items-center justify-center text-success"
+              style={{ fontSize: 'clamp(1.5rem, 6vh, 2.5rem)' }}
+            >
+              {question.correctAnswer}
+            </span>
+          ) : (
+            // Resting / wrong / hint: dashed placeholder — never slot a wrong sign in (never punish).
+            <span key="blank" className="w-12 h-12 rounded-button border-4 border-dashed border-primary-soft bg-bg-card flex items-center justify-center text-2xl text-primary">?</span>
+          )}
           <span className="kid-num-3d font-display font-extrabold text-primary-ink" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{right}</span>
         </div>
       </div>

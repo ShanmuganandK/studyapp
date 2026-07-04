@@ -20,11 +20,12 @@
 - **Establish the design tokens** (color/type/space/radius/shadow per the direction doc) in Tailwind config / tokens file. All Screen-1 styling uses them; later screens reuse.
 - **Layout (keep the proven structure):** top bar (back + progress + mute) / Tinku / question / options — the fit-one-viewport flex structure stays EXACTLY as-is (it's tested); this is a visual dressing of it.
 - **Tinku zone:** Tinku hosted in a subtle "stage" (soft ground shadow/platform so he feels IN the world, not floating). Breathe + cross-fade stay.
-- **Question presentation:** big, friendly question text (token type). Count-objects tray becomes a warm bounded card (soft fill, rounded) — ten-frame grid stays. Compare format: the two numbers get playful weight, the answer box inviting.
+- **Question presentation:** big, friendly question text (token type). Count-objects tray becomes a warm bounded card (soft fill, rounded) — ten-frame grid stays. Compare format: the two numbers get playful weight, the answer box inviting. On a correct answer the operator animates into the blank so the full statement completes (e.g. "5 < 15") before the question transitions out; the placeholder stays in resting/wrong/hint states.
 - **Option buttons → `<KidButton>` primitive:** big, soft-rounded, slight elevation; **press = squish** (transform scale ~0.96); correct = success pop (scale bounce + color) syncing with the chime; wrong = gentle shake-free encourage tint (NO harsh red, no aggressive shake).
 - **Hint = `<TinkuBubble>`:** the hint renders as Tinku's speech bubble (tail pointing to him), animates in (pop/slide, opacity+transform), clearly THE teaching moment. (Representation already improved — this makes it fully on-design.)
 - **Progress indicator:** friendly (e.g. small filled dots/stars-of-progress — but NOT reward-stars; keep meanings distinct) instead of bare "3 / 8" if it reads better; keep it subtle.
 - **Micro-motion:** question transitions (old slides/fades out, new in, 200ms), option stagger-in on new question (tiny, fast).
+- **Feedback completes the visible statement where one exists:** for a format that renders a blank (compare now, text-input later), the correct answer fills the blank so the statement reads complete; formats without a blank (mcq, count-objects) keep the option-pop feedback. View-state only (no new data plumbed from the hook/recipe).
 
 **Verify:** phone; fit-one-viewport holds at 360×640 AND 320px; all three formats (mcq / count-objects / compare); press/correct/wrong/hint feels; low-end smoothness (no jank); tests green (no logic touched).
 

@@ -148,11 +148,22 @@
 }
 .animate-encourage-nudge { animation: encourage-nudge 260ms ease-in-out; }
 
+/* Compare "fill the blank" — on a CORRECT answer the chosen operator pops into the answer box
+   so the full statement completes (e.g. "5 < 15") before the question transitions out. Syncs
+   with the correct chime + green button pop. Transform/opacity only, low-end-Android safe. */
+@keyframes slot-fill {
+  0%   { opacity: 0; transform: scale(0.4); }
+  60%  { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-slot-fill { animation: slot-fill 180ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
 @media (prefers-reduced-motion: reduce) {
   .animate-q-enter,
   .animate-opt-in,
   .animate-correct-pop,
-  .animate-encourage-nudge { animation: none; }
+  .animate-encourage-nudge,
+  .animate-slot-fill { animation: none; }
 }
 
 /* App shell height — track the VISIBLE viewport on mobile via dvh so the browser's address bar

@@ -111,7 +111,7 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
           question gently slides/fades in on each advance (GPU-safe). */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
         <div key={s.questionNumber} className="animate-q-enter flex flex-col items-stretch justify-center min-h-full py-3">
-          <QuestionView question={s.question} />
+          <QuestionView question={s.question} solved={s.phase === 'correct'} />
         </div>
       </div>
 
