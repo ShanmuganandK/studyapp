@@ -50,8 +50,9 @@
   --radius-card: 1.5rem;
 
   /* Shadow — soft, pressable; STATIC only (never animated in a loop — STANDARDS §5).
-     Button carries a small solid bottom-offset "lift" so it reads as physically pressable. */
-  --shadow-button: 0 4px 0 -1px rgba(79, 70, 229, 0.18), 0 6px 12px -4px rgba(79, 70, 229, 0.28);
+     Button = a LAYERED soft "pillow": an inset top highlight + close + far drop shadows so the
+     tile reads raised and tactile (kid-app depth cue). */
+  --shadow-button: inset 0 2px 2px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(30, 41, 59, 0.06), 0 10px 20px -6px rgba(79, 70, 229, 0.20), 0 5px 10px -3px rgba(30, 41, 59, 0.10);
   --shadow-card: 0 10px 26px -10px rgba(79, 70, 229, 0.22);
 
   /* Fluid type (clamp — docs/responsive.md). Kid-facing = big & round; parent-facing = normal. */
@@ -67,6 +68,20 @@
 .tinku-ground {
   background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.16), rgba(79, 70, 229, 0) 72%);
 }
+
+/* Option-tile surface — a subtle top-lit gradient that, together with --shadow-button's layered
+   soft shadow, gives the answer tiles a raised, tactile "pillow" feel (Stitch "Polished" variant
+   cue, adapted to the Wonder palette). */
+.kid-tile-idle { background-image: linear-gradient(180deg, var(--color-bg-card) 0%, #eef2ff 100%); }
+
+/* Count-objects imagery — the things a child counts (🍎/🌸/…) get a soft drop-shadow so they
+   sit ELEVATED off the tray, like a real object on a table (Stitch "Polished" cue). Static
+   filter, low-end-Android safe. */
+.count-glyph { filter: drop-shadow(0 3px 2px rgba(30, 41, 59, 0.28)); }
+
+/* Kid-facing big numbers/equation — a soft depth shadow that adds a "3D pop" while staying
+   crisply readable for early readers (no hard extrusion). Static text-shadow. */
+.kid-num-3d { text-shadow: 0 3px 5px rgba(55, 48, 163, 0.22); }
 
 /* Mascot animations — GPU-friendly (transform/opacity only), low-end-Android safe.
    Emotion changes cross-fade via opacity in Mascot.jsx; only the breathe float lives here. */

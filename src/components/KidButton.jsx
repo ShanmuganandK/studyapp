@@ -18,7 +18,7 @@
 const STATE_CLASS = {
   // idle also carries the stagger-in; correct/wrong swap it out for their own one-shot motion
   // so two transform animations never fight on the same node.
-  idle: 'bg-bg-card border-primary-soft text-primary animate-opt-in',
+  idle: 'kid-tile-idle border-primary-soft text-primary animate-opt-in',
   correct: 'bg-success border-success text-white animate-correct-pop',
   wrong: 'bg-encourage-soft border-encourage text-encourage-ink animate-encourage-nudge',
 };
