@@ -3,8 +3,91 @@
 @tailwind utilities;
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* Type families (self-hosted via Fontsource, imported in main.jsx). Body = Nunito (friendly,
+     readable, parent-premium); display = Baloo 2 (chunky, round, playful) for big kid-facing
+     numbers/equations/titles. Exposed as Tailwind font-body / font-display. */
+  --font-body: 'Nunito Variable', 'Nunito', system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-display: 'Baloo 2 Variable', 'Baloo 2', system-ui, sans-serif;
+  font-family: var(--font-body);
 }
+
+/* ─── Design tokens — "Tinku's Wonder World" (light Wonder band) ─────────────────────────
+   Single source of truth for the app's visual language (UI overhaul). Components consume
+   these via tailwind.config.js utilities (bg-bg, text-primary, text-ink, rounded-card,
+   shadow-button, text-question, …) — NO raw hex in components.
+   Band theming (DECISIONS): these are the Wonder defaults on :root. The Explorer band
+   (Phase 2, dark) will override the SAME custom properties under a `.theme-explorer` scope,
+   so no component changes when a second band lands. amber(accent)=reward ONLY; wrong answers
+   use `encourage` (soft coral, never red, never amber); hints use `learn` (gentle sky). */
+:root {
+  /* Color — surfaces */
+  --color-bg: #f0f9ff;              /* airy sky — screen background */
+  --color-bg-card: #ffffff;        /* cards, option tiles (idle), trays */
+
+  /* Color — brand / structure */
+  --color-primary: #4f46e5;        /* indigo — structure, primary buttons, option text */
+  --color-primary-soft: #e0e7ff;   /* soft indigo — borders / tints / fills */
+  --color-primary-ink: #3730a3;    /* deep indigo — question & heading text on light */
+
+  /* Color — reward (LOCKED: amber = achievement/reward ONLY) */
+  --color-accent: #fbbf24;
+
+  /* Color — feedback: correct */
+  --color-success: #22c55e;
+  --color-success-soft: #dcfce7;
+
+  /* Color — feedback: wrong (never punish → soft coral, kid-gentle, never red/amber) */
+  --color-encourage: #fb9a7d;      /* peachy coral border/base */
+  --color-encourage-soft: #ffede6; /* pale coral fill */
+  --color-encourage-ink: #c2410c;  /* warm burnt-orange text (readable, not alarming) */
+
+  /* Color — learning / hints (gentle sky) */
+  --color-learn: #7dd3fc;
+  --color-learn-soft: #e0f2fe;
+  --color-learn-ink: #0369a1;
+
+  /* Color — text */
+  --color-ink: #1e293b;            /* slate-800 — primary body/heading text */
+  --color-muted: #64748b;          /* slate-500 — secondary/muted text */
+
+  /* Radius — soft & rounded everywhere */
+  --radius-button: 1rem;
+  --radius-card: 1.5rem;
+
+  /* Shadow — soft, pressable; STATIC only (never animated in a loop — STANDARDS §5).
+     Button = a LAYERED soft "pillow": an inset top highlight + close + far drop shadows so the
+     tile reads raised and tactile (kid-app depth cue). */
+  --shadow-button: inset 0 2px 2px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(30, 41, 59, 0.06), 0 10px 20px -6px rgba(79, 70, 229, 0.20), 0 5px 10px -3px rgba(30, 41, 59, 0.10);
+  --shadow-card: 0 10px 26px -10px rgba(79, 70, 229, 0.22);
+
+  /* Fluid type (clamp — docs/responsive.md). Kid-facing = big & round; parent-facing = normal. */
+  --text-question: clamp(3rem, 9vh, 4.75rem);
+  --text-option: clamp(1.75rem, 6vw, 2.25rem);
+  --text-title: clamp(1.6rem, 6vw, 2.25rem);
+  --text-prompt: clamp(1.15rem, 4.5vw, 1.5rem);  /* kid-facing question sentence — bold Nunito */
+  --text-body: clamp(0.95rem, 3.4vw, 1.1rem);
+}
+
+/* Tinku's soft ground shadow — a decorative ellipse that grounds the mascot "in the world"
+   while he breathes/floats above it. Purely decorative; colour lives here (token layer),
+   not in the component, so components stay token-only. */
+.tinku-ground {
+  background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.16), rgba(79, 70, 229, 0) 72%);
+}
+
+/* Option-tile surface — a subtle top-lit gradient that, together with --shadow-button's layered
+   soft shadow, gives the answer tiles a raised, tactile "pillow" feel (Stitch "Polished" variant
+   cue, adapted to the Wonder palette). */
+.kid-tile-idle { background-image: linear-gradient(180deg, var(--color-bg-card) 0%, #eef2ff 100%); }
+
+/* Count-objects imagery — the things a child counts (🍎/🌸/…) get a soft drop-shadow so they
+   sit ELEVATED off the tray, like a real object on a table (Stitch "Polished" cue). Static
+   filter, low-end-Android safe. */
+.count-glyph { filter: drop-shadow(0 3px 2px rgba(30, 41, 59, 0.28)); }
+
+/* Kid-facing big numbers/equation — a soft depth shadow that adds a "3D pop" while staying
+   crisply readable for early readers (no hard extrusion). Static text-shadow. */
+.kid-num-3d { text-shadow: 0 3px 5px rgba(55, 48, 163, 0.22); }
 
 /* Mascot animations — GPU-friendly (transform/opacity only), low-end-Android safe.
    Emotion changes cross-fade via opacity in Mascot.jsx; only the breathe float lives here. */
@@ -30,6 +113,57 @@
 
 @media (prefers-reduced-motion: reduce) {
   .animate-hint-pop { animation: none; }
+}
+
+/* Quiz micro-motion — all GPU-safe (transform/opacity), 150–300ms, low-end-Android safe.
+   Replayed per question via a changing React key (questionNumber). */
+
+/* Question swap: the new question gently slides + fades in. */
+@keyframes q-enter {
+  0%   { opacity: 0; transform: translateX(16px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+.animate-q-enter { animation: q-enter 200ms ease-out both; }
+
+/* Option tiles stagger in on a new question (tiny, fast). Per-tile delay set inline by index. */
+@keyframes opt-in {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.animate-opt-in { animation: opt-in 180ms ease-out both; }
+
+/* Correct answer: a celebratory pop that syncs with the 'correct' chime. */
+@keyframes correct-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+.animate-correct-pop { animation: correct-pop 300ms ease-out; }
+
+/* Wrong answer: a GENTLE nudge (encourage, never punish) — not a harsh shake. */
+@keyframes encourage-nudge {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-3px); }
+  75%      { transform: translateX(3px); }
+}
+.animate-encourage-nudge { animation: encourage-nudge 260ms ease-in-out; }
+
+/* Compare "fill the blank" — on a CORRECT answer the chosen operator pops into the answer box
+   so the full statement completes (e.g. "5 < 15") before the question transitions out. Syncs
+   with the correct chime + green button pop. Transform/opacity only, low-end-Android safe. */
+@keyframes slot-fill {
+  0%   { opacity: 0; transform: scale(0.4); }
+  60%  { opacity: 1; transform: scale(1.15); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-slot-fill { animation: slot-fill 180ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-q-enter,
+  .animate-opt-in,
+  .animate-correct-pop,
+  .animate-encourage-nudge,
+  .animate-slot-fill { animation: none; }
 }
 
 /* App shell height — track the VISIBLE viewport on mobile via dvh so the browser's address bar

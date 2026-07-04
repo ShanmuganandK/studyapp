@@ -10,8 +10,8 @@
  * (the hook's hintNonce) so the pop-in animation replays on every hint (re)emission — the
  * moment must grab a young child's attention, not slip by unnoticed.
  *
- * NOTE: intentionally not final-polished styling — structure + behaviour first; the full
- * visual pass comes with the UI overhaul.
+ * Styled from design tokens (theme-wonder). A hint is a LEARNING moment, so it wears the
+ * gentle `learn` (sky) tint — not amber (amber = reward only) and not the wrong-answer coral.
  *
  * @param {string|null} hint     - the hint text; renders nothing when empty
  * @param {string}      emotion  - Tinku's current emotion (for aria/future styling hooks)
@@ -26,14 +26,14 @@ export default function HintBubble({ hint, emotion = 'encourage' }) {
         aria-live="polite"
         data-emotion={emotion}
         // Compact but prominent: fluid text so a long hint stays a line or two and never crowds
-        // the question off-screen (STANDARDS §5 fit-one-viewport). Full visual polish comes later.
-        className="animate-hint-pop origin-top relative max-w-xs bg-white border-2 border-amber-300 text-amber-900 rounded-2xl px-3.5 py-1.5 text-center font-semibold leading-snug shadow-md"
+        // the question off-screen (STANDARDS §5 fit-one-viewport).
+        className="animate-hint-pop origin-top relative max-w-xs bg-learn-soft border-2 border-learn text-learn-ink rounded-card px-3.5 py-1.5 text-center font-semibold leading-snug shadow-card"
         style={{ fontSize: 'clamp(0.8rem, 3.4vw, 0.95rem)' }}
       >
         {/* Tail pointing up to Tinku — a rotated square sharing the bubble's top/left border. */}
         <span
           aria-hidden="true"
-          className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-t-2 border-l-2 border-amber-300 rotate-45"
+          className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-learn-soft border-t-2 border-l-2 border-learn rotate-45"
         />
         {hint}
       </div>

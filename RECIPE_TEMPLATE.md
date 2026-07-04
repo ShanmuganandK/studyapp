@@ -87,7 +87,7 @@ sections need them — without breaking existing recipes or the validator.
 | `mcq`            | shipping | Plain multiple choice. 4 numeric options.                         |
 | `count-objects`  | shipping | Show a set of objects to count; 4 numeric options + `render`.     |
 | `compare`        | shipping | Pick the sign: 3 string options `['>','<','=']`; adds `render: { left, right }`. |
-| `text-input`     | reserved | Free-response number entry. May omit `options`/`misconceptions`.  |
+| `text-input`     | reserved | Free-response number entry. May omit `options`/`misconceptions`. Renders a blank → the "answer feedback fills the blank" rule applies (see DECISIONS.md, locked 2026-07-04): on correct, the entered value lands in the blank; presentation-only, view-state only; any future blank-bearing format inherits this. |
 | `true-false`     | reserved | Two options; uses the standard option-based fields.               |
 
 > Adding a format = add a row here, a recipe that emits it, and (if its shape differs) a
