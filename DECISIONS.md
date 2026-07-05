@@ -92,3 +92,15 @@
 - Skill cards use `displayName` (kid-friendly title), `subtitle` (curriculum tag, small/muted), and `icon` (emoji) stored in `skillMap.js` — data-driven, not hardcoded in the screen. Star emoji (⭐) is reserved exclusively for rewards/mastery; skill icons must not use it.
 - (2026-07-04) **UI overhaul — Screen 1 (quiz)** established the Wonder **design-token system** (colour/type/space/radius/shadow as CSS custom properties on `:root`, exposed via Tailwind; Explorer will override the same properties under `.theme-explorer`) and the first shared primitive **`<KidButton>`**. Structural map in `ARCHITECTURE.md`; visual language in `ui-overhaul-design-direction.md`. **Locked feedback-colour meanings:** amber/stars = reward/achievement ONLY; correct answer = **success green**; wrong answer = **soft coral** ("encourage" — never red, never amber); hints/learning = **sky**. Component-render tests (RTL + jsdom) added to the stack (per-file `// @vitest-environment jsdom`).
 - (2026-07-04) **Answer feedback fills the blank (LOCKED):** for any format that renders a blank (`compare` now; `text-input` + future blank-bearing formats later), a CORRECT answer lands the committed correct value into the blank as part of the correct-beat, so the child sees the full statement complete before transition. The **wrong-#2 reveal** ("here's how — let's see it together") ALSO fills the blank with the **correct** value — but in the **learning (sky) tone**, not the celebratory green — so the taught statement completes as a teaching beat, not false praise. Formats without a blank (`mcq`, `count-objects`) keep option-pop feedback — no fill. Presentation-only, view-state only; never plumb new data from the hook/recipe for a visual beat. Resting/wrong/hint states show the dashed placeholder; the blank **never shows a wrong value** (fill is always the correct one).
+- (2026-07-05) **Review-due gets its own semantic token, distinct from amber (LOCKED):**
+  amber/gold remains reward/achievement-**ONLY**. Review-due ("come back to this") is a gentle
+  spaced-rep reminder, not a reward, so it must **not** reuse amber — sharing the channel blurs the
+  one colour reserved for celebration. A dedicated token **`color.review` / `--color-review`** (a
+  calm **teal**, `#14b8a6`) carries review-due UI: the skill-card **border** and the **↻ glyph**.
+  It is deliberately kept distinct from the sky `learn` "Tinku suggests" family so *suggest* vs
+  *review* read as different states on the same card list. The **"Review time!" label text** uses a
+  readable **ink** token (never light-on-light; the teal is only on border/glyph). This is the one
+  sanctioned addition to the Screen-1 token set — justified because it **protects** the locked amber
+  meaning, not because the palette is expanding casually. **Any future "needs attention / revisit"
+  state inherits `color.review`, never amber.** (Introduced with UI overhaul Screen 3 — home /
+  skill-select; `SkillCard` consumes `border-review` / `text-review`.)

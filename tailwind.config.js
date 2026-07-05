@@ -31,6 +31,7 @@ export default {
                 learn: 'var(--color-learn)',
                 'learn-soft': 'var(--color-learn-soft)',
                 'learn-ink': 'var(--color-learn-ink)',
+                review: 'var(--color-review)', // review-due only (calm teal, NOT amber — see index.css)
                 ink: 'var(--color-ink)',
                 muted: 'var(--color-muted)',
             },

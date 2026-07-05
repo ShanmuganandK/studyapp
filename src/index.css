@@ -46,6 +46,14 @@
   --color-learn-soft: #e0f2fe;
   --color-learn-ink: #0369a1;
 
+  /* Color — review-due ("come back to this"): a calm TEAL, deliberately NOT amber. amber/gold is
+     reward/achievement-ONLY (LOCKED, DECISIONS 2026-07-05) — a spaced-rep reminder is not a reward,
+     so sharing the amber channel would blur the one colour reserved for celebration. Also kept
+     distinct from the sky `learn` "Tinku suggests" family so suggest vs review read differently on
+     the same card list. The "Review time!" label uses the readable `ink` token (never light-on-light).
+     Any future "needs attention / revisit" state inherits this token, never amber. */
+  --color-review: #14b8a6;
+
   /* Color — text */
   --color-ink: #1e293b;            /* slate-800 — primary body/heading text */
   --color-muted: #64748b;          /* slate-500 — secondary/muted text */
@@ -209,6 +217,24 @@
   .animate-star-pop,
   .animate-rise-in,
   .confetti-piece { animation: none; }
+}
+
+/* Home skill cards (UI overhaul, Screen 3) — GPU-safe (transform/opacity), low-end-Android safe.
+   Non-suggested cards reuse the quick `animate-opt-in` stagger. The recommended ("Tinku suggests"
+   / review-due) card enters with a gentle one-shot emphasis pulse so it reads special without being
+   shouty — a single combined keyframe (entrance THEN a soft bump) so only one animation drives the
+   card's transform (press-squish lives on the same button via :active, same pattern as KidButton).
+   Per-card stagger delay is set inline by index. */
+@keyframes card-in-suggest {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.98); }
+  55%  { opacity: 1; transform: translateY(0) scale(1); }
+  72%  { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+.animate-card-in-suggest { animation: card-in-suggest 620ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-card-in-suggest { animation: none; }
 }
 
 /* App shell height — track the VISIBLE viewport on mobile via dvh so the browser's address bar

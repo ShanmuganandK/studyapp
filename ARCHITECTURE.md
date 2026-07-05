@@ -112,10 +112,13 @@ future kid-feedback tuning is a token change, not a screen hunt.
   `.theme-explorer` scope — no component changes needed). **`tailwind.config.js`** exposes them
   as utilities so components use named tokens, never raw hex. Groups: colour
   (`bg`, `bg-card`, `primary`/`-soft`/`-ink`, `accent`, `success`/`-soft`, `encourage`/`-soft`/`-ink`,
-  `learn`/`-soft`/`-ink`, `ink`, `muted`), `rounded-{button,card}`, `shadow-{button,card}`, fluid
+  `learn`/`-soft`/`-ink`, `review`, `ink`, `muted`), `rounded-{button,card}`, `shadow-{button,card}`, fluid
   `text-{question,option,title,prompt,body}` (clamp), and **type families** `font-body` (`--font-body`)
   / `font-display` (`--font-display`). **Locked meanings:** `accent`(amber)=reward ONLY;
-  `encourage`(soft coral)=wrong answers (never red/amber); `learn`(sky)=hints/learning.
+  `encourage`(soft coral)=wrong answers (never red/amber); `learn`(sky)=hints/learning;
+  `review`(teal, added Screen 3)=review-due only ("come back to this" — NOT amber; kept distinct
+  from `learn`/suggests; DECISIONS 2026-07-05). Any future "needs attention/revisit" state inherits
+  `review`.
 - **Fonts (self-hosted, no CDN — low-end-Android safe):** **Nunito** (body/parent, the default
   `font-sans`) + **Baloo 2** (kid-facing display — big numbers/equations/titles/option tiles),
   via **Fontsource** variable packages imported in `src/main.jsx` (`font-display: swap`, bundled
@@ -138,6 +141,10 @@ future kid-feedback tuning is a token change, not a screen hunt.
   by per-piece inline vars `--dx/--dy/--rot/--dur/--delay`). The session-end sequence is choreographed
   entirely by per-element `animation-delay` (no JS timers); reduced-motion collapses it to
   everything-visible-at-once.
+- **Home card motion** (Screen 3, `index.css`): non-suggested cards reuse `animate-opt-in` for the
+  stagger-in; the recommended card uses `animate-card-in-suggest` (entrance + a soft one-shot emphasis
+  bump — single keyframe so it never fights the button's `:active` press-squish). Per-card stagger
+  delay set inline by index; reduced-motion off.
 - **`KidButton.jsx`** — the kid-facing answer-tile primitive. Big, soft-rounded, squishes on
   press (`active:scale-95`); state-driven visuals (`idle`/`correct`/`wrong`) from tokens. Purely
   presentational — all answer logic stays in `useQuizSession`. Used by `SessionPlayer` (4× per
@@ -160,8 +167,21 @@ future kid-feedback tuning is a token change, not a screen hunt.
   `blankFill` prop (`SessionPlayer` derives `'correct'`/`'reveal'`/`null` from `phase`, existing
   view-state — no new hook/recipe data) to fill the compare blank with the correct sign
   (`animate-slot-fill`): green on a correct answer, sky/learn on the wrong-#2 reveal.
+- **`SkillCard.jsx`** — presentational home-screen skill card primitive (Screen 3). Renders one
+  skill's icon/`displayName`/`subtitle` + `MasteryPips`, with token styling, press-squish and a
+  stagger-in (`animate-opt-in`; the recommended card enters with the `animate-card-in-suggest`
+  emphasis pulse). Takes pure view data — `{ skill, level, isDue, isSuggested, isReviewSuggested,
+  index, onClick }`; **never calls the engine** (recommendation/review-due are computed upstream and
+  handed in as booleans). Colour rule: review-due uses `border-review`/`text-review` (teal), suggest
+  uses `learn` (sky), mastered pip uses `accent` (amber = reward). Smoke test:
+  `__tests__/SkillCard.test.jsx` (suggest vs review vs plain, pips, review-token-not-amber).
 - **Reskinned (Screen 2 — session-end):** the interim in-file `SessionEnd` was replaced by the
   `CelebrationScreen` + `Confetti` primitives above.
+- **Reskinned (Screen 3 — home / skill-select):** `SkillSelectScreen.jsx` moved onto tokens and now
+  renders `<SkillCard>` per skill; the `MasteryPips` sub-component moved into `SkillCard`. The engine
+  data-flow is unchanged — the lazy `useState` initialiser still does `loadAllSkillStates` +
+  `recommendNext`, and `isDueForReview` is still called per card (thin delegation to the pure engine,
+  deliberately preserved — the reskin only changed rendering).
 
 ### App flow & screens (`src/components/`) — the single reachable path
 
@@ -359,20 +379,24 @@ animation replays each (re)emission. Logic here, presentation in the component (
 provided, all questions use that fixed difficulty (clamped to `maxDifficulty`) instead of the
 1→2→3 ramp. Existing ramp behaviour is unchanged when `difficulty` is omitted.
 
-### Mastery pips + suggestion highlight (`src/components/SkillSelectScreen.jsx`)
+### Mastery pips + suggestion highlight (`SkillSelectScreen.jsx` + `SkillCard.jsx`)
 
-Each skill card shows 5 small round pips (8px circles) reflecting the child's current mastery
-level. Pip colours: empty = `slate-200`; levels 1–2 = `sky-400`; levels 3–4 = `indigo-400`;
-level 5 (mastered) = `amber-400`. A `↻` glyph in amber marks skills due for spaced-rep review.
+Each skill card shows 5 small round pips reflecting the child's current mastery level (rendered by
+`MasteryPips` inside `SkillCard` since Screen 3). Pip colours (tokens): empty = `primary-soft`;
+levels 1–2 = `learn` (sky); levels 3–4 = `primary` (indigo); level 5 (mastered) = `accent` (amber =
+reward). A `↻` glyph in the `review` token (teal) marks skills due for spaced-rep review — NOT amber
+(DECISIONS 2026-07-05).
 
 Deliberately not stars (stars = in-session reward, DECISIONS). This is the verify-it-works
 surface; the full parent dashboard is a later task.
 
 **Suggestion highlight:** `SkillSelectScreen` calls `recommendNext` (from the practice
-composer) on mount using the same skill-state snapshot. The recommended card gets a coloured
-border (`amber-400` for review, `sky-400` for other reasons) and a one-line label —
-`↻ Review time!` or `Tinku suggests!`. `all_caught_up` and `null` skillId produce no
-highlight. The child can still tap any card; the highlight is guidance, not a gate.
+composer) on mount using the same skill-state snapshot, and passes the result to each `SkillCard`
+as booleans. The recommended card gets a coloured border + one-line label — `border-review` (teal)
+with `↻ Review time!` for a review recommendation, or `border-learn` (sky) with `Tinku suggests!`
+otherwise — plus a gentle one-shot entrance pulse (`animate-card-in-suggest`). `all_caught_up` and
+`null` skillId produce no highlight. The child can still tap any card; the highlight is guidance,
+not a gate.
 
 `SkillSelectScreen` loads state and computes the recommendation together in a single lazy
 `useState` initialiser on mount (one storage read). `ThemeManager` conditionally renders it

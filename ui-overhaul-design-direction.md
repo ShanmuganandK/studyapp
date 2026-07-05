@@ -24,6 +24,7 @@ The app is Tinku the elephant's warm, bright, playful world where math is play. 
 - **Action/joy:** a warm accent for celebration and positive moments — amber/gold (already the mastery/reward color — keep that meaning consistent: amber = achievement).
 - **Feedback colors:** success green (correct), gentle sky (learning/hints), NEVER harsh red for wrong — wrong is a soft, encouraging tone (muted coral/orange at most), because "never punish."
 - **Rule:** stars & amber = rewards/achievement ONLY (locked decision). Countable objects never stars.
+- **Review-due** ("come back to this") uses its own token `color.review` (calm teal, distinct from the sky `learn`/"suggests" family) — amber stays reward/achievement-only (locked 2026-07-05).
 - Define ALL of these as tokens: `color.bg`, `color.primary`, `color.accent`, `color.success`, `color.encourage`, etc. No raw hex in components.
 
 ### Type
