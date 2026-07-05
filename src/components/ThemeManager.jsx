@@ -1,10 +1,19 @@
 import React, { useState } from 'react';
 import RecipeQuizScreen from './RecipeQuizScreen';
 import SkillSelectScreen from './SkillSelectScreen';
+import SkillPathScreen from './SkillPathScreen';
 import Layout from './Layout';
 import ParentGateModal from './ParentGateModal';
 import ParentDashboard from './ParentDashboard';
 import { useAuth } from '../contexts/AuthContext';
+
+// EXPERIMENT (screen-3b): `?home=path` renders the Journey Path Home variant instead of the
+// production SkillSelectScreen. Read once at load; production (no flag) is completely unaffected.
+// To RETIRE the experiment: delete this line, the SkillPathScreen import, and restore the plain
+// <SkillSelectScreen> render below.
+const USE_PATH_HOME =
+  typeof window !== 'undefined' &&
+  new URLSearchParams(window.location.search).get('home') === 'path';
 
 /**
  * Wonder-band default grade. Grade is a parent-set profile property (DECISIONS: no child
@@ -64,9 +73,12 @@ export default function ThemeManager() {
         isSettingMode={isGateSettingMode}
       />
 
-      {currentView === 'skills' && (
-        <SkillSelectScreen onSelectSkill={handleSelectSkill} />
-      )}
+      {currentView === 'skills' &&
+        (USE_PATH_HOME ? (
+          <SkillPathScreen onSelectSkill={handleSelectSkill} />
+        ) : (
+          <SkillSelectScreen onSelectSkill={handleSelectSkill} />
+        ))}
 
       {currentView === 'quiz' && activeSkillId && (
         <RecipeQuizScreen grade={grade} skillId={activeSkillId} onBack={handleBackToSkills} />

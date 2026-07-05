@@ -462,6 +462,27 @@ New work targets the new-core folders; new code never imports these.
 
 ---
 
+## Experiments (decision-pending — not production)
+
+Parallel variants built for kid-testing, kept trivially removable until a decision. They never
+replace production; production stays the default.
+
+- **`SkillPathScreen.jsx` — "Journey Path" Home (Screen 3-B).** A vertical winding-path variant of
+  the Home screen (medallions alternating left/right on a soft SVG spine, Tinku beside the suggested
+  node). Reached ONLY via the **`?home=path`** query flag, read once in `ThemeManager` (a single
+  ternary on the `skills` view; production `SkillSelectScreen` is the untouched default when the flag
+  is absent). **Data flow is identical to `SkillSelectScreen`** (copied `loadAllSkillStates` +
+  `recommendNext` + per-node `isDueForReview`; no new engine calls/logic); pip/label code is
+  intentionally **duplicated**, not shared (de-dup only after the decision, §0.2). Tokens only;
+  review-due = `review` (teal), mastered = `accent` (amber). The `locked` medallion style exists but
+  is **unwired** (ready-only data yields no locked nodes — mirrors "locked cards deferred"). Motion:
+  reuses `animate-opt-in` for the node stagger + a repeating `path-pulse` sonar ring on the suggested
+  node (reduced-motion off). Smoke test: `__tests__/SkillPathScreen.test.jsx`. **To retire:** delete
+  `SkillPathScreen.jsx`, its test, the `path-pulse` keyframe, and the `?home=path` block in
+  `ThemeManager`. **Status:** kid-test pending; not merged to `master` until a decision.
+
+---
+
 ## Key contracts
 
 ### The recipe contract

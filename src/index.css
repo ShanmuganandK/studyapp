@@ -237,6 +237,20 @@
   .animate-card-in-suggest { animation: none; }
 }
 
+/* Journey Path experiment (Screen 3-B) — the suggested medallion's gentle repeating "sonar" pulse.
+   GPU-safe (transform/opacity only), low-end-Android safe. Reduced-motion hides it entirely so no
+   solid ring is left sitting there. */
+@keyframes path-pulse {
+  0%   { opacity: 0.7; transform: scale(1); }
+  70%  { opacity: 0; transform: scale(1.5); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+.path-pulse { animation: path-pulse 1800ms ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .path-pulse { animation: none; opacity: 0; }
+}
+
 /* App shell height — track the VISIBLE viewport on mobile via dvh so the browser's address bar
    can't push content off-screen and force scroll (STANDARDS §5). `vh` first as a fallback for
    older Android/WebView without dvh; the dvh line overrides where supported. On phones the app
