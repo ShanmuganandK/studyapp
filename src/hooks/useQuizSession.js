@@ -27,7 +27,7 @@ import { buildLiteSession } from '../engine/sessionLite';
 import { getHint } from '../engine/hints';
 import { logEvent } from '../services/analytics';
 import { loadSkillState, saveSkillState } from '../services/progressStore';
-import { emptySkillState, applyResult, nextWorkingDifficulty } from '../engine/mastery';
+import { emptySkillState, applyResult, nextWorkingDifficulty, isMastered } from '../engine/mastery';
 import { MASTERY } from '../config/masteryConfig';
 import { getSkill } from '../recipes/skillMap';
 
@@ -259,6 +259,12 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
     if (!prev) return;
     const n = advance(prev);
 
+    // Presentational read-out for the session-end celebration's mastery-up beat. Derived from the
+    // state applyResult ALREADY computes (level before vs after) — no new mastery/ladder logic,
+    // just surfacing what the engine produced so the screen can celebrate it. null when nothing
+    // levelled up (or when this session tracked no skill state). View data only.
+    let masteryUp = null;
+
     if (n.phase === 'complete') {
       logEvent('session_complete', {
         skill_id: prev.skillId,
@@ -269,6 +275,8 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
 
       // ── Save mastery (clock read here; pure engine stays clock-free) ──────────────
       if (prev.skillId && skillStateRef.current) {
+        const prevState = skillStateRef.current;
+        const wasMastered = isMastered(prevState, MASTERY);
         const today = new Date().toISOString().slice(0, 10);
         const difficultyPlayed = Math.max(...prev.questions.map((q) => q.difficulty));
         const sessionResult = {
@@ -279,15 +287,21 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
           misconceptionTags: misconceptionTagsRef.current,
           date: today,
         };
-        const newSkillState = applyResult(skillStateRef.current, sessionResult, MASTERY);
+        const newSkillState = applyResult(prevState, sessionResult, MASTERY);
         skillStateRef.current = newSkillState;
         saveSkillState(prev.skillId, newSkillState);
+
+        const leveledUp = newSkillState.level > prevState.level;
+        const justMastered = !wasMastered && isMastered(newSkillState, MASTERY);
+        if (leveledUp || justMastered) {
+          masteryUp = { leveledUp, justMastered, level: newSkillState.level, skillName: prev.skillName };
+        }
       }
     } else {
       questionStartRef.current = Date.now();
     }
 
-    commit(n);
+    commit({ ...n, masteryUp });
   };
 
   const answer = (optionIndex) => {
@@ -367,6 +381,7 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
     revealIndex: state?.revealIndex ?? null,
     score: state?.score ?? 0,
     sessionComplete: state?.phase === 'complete',
+    masteryUp: state?.masteryUp ?? null,
     answer,
     next,
     restart,

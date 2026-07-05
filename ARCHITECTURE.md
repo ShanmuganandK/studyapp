@@ -132,16 +132,36 @@ future kid-feedback tuning is a token change, not a screen hunt.
   `animate-slot-fill` (compare blank fills with the correct operator — green on a correct answer,
   sky/learn on the wrong-#2 reveal — see the "answer feedback fills the blank" rule, DECISIONS
   2026-07-04). `.tinku-ground` = the soft ground ellipse that stages Tinku "in the world".
+- **Celebration motion** (Screen 2, `index.css`, GPU-safe, reduced-motion off): `animate-celebrate-pop`
+  (warm scale-in — Tinku, title, mastery beat), `animate-star-pop` (per-star count-up bounce),
+  `animate-rise-in` (buttons/score fade+rise), `.confetti-piece` (one `confetti-fall` keyframe driven
+  by per-piece inline vars `--dx/--dy/--rot/--dur/--delay`). The session-end sequence is choreographed
+  entirely by per-element `animation-delay` (no JS timers); reduced-motion collapses it to
+  everything-visible-at-once.
 - **`KidButton.jsx`** — the kid-facing answer-tile primitive. Big, soft-rounded, squishes on
   press (`active:scale-95`); state-driven visuals (`idle`/`correct`/`wrong`) from tokens. Purely
   presentational — all answer logic stays in `useQuizSession`. Used by `SessionPlayer` (4× per
   question). Later kid-facing screens reuse it.
+- **`Confetti.jsx`** — reusable, GPU-safe celebration burst primitive (Screen 2). A modest sprinkle
+  of pieces fans out from its parent's top-centre via `.confetti-piece`; `palette` (`party` default /
+  `amber` for the mastery beat) picks token colours. Purely decorative (aria-hidden, pointer-events-none);
+  renders nothing under prefers-reduced-motion. Reused by `CelebrationScreen` (background burst + the
+  amber mastery-up beat).
+- **`CelebrationScreen.jsx`** — the session-end EVENT (Screen 2), rendered by `SessionPlayer` on
+  `sessionComplete`. Beat sequence (Tinku pops in → confetti → score stars count up → "Great job!" →
+  optional mastery-up beat → buttons last), choreographed by per-element `animation-delay`. Purely
+  presentational: mood floor + mastery-up detection live in the engine/hook; it renders `score`/`total`/
+  `masteryUp` and reuses `Confetti`. Uses token-based CTA buttons (not `KidButton`, which is an
+  answer-tile primitive — 50% width, idle/correct/wrong — semantically wrong for CTAs). Smoke test:
+  `__tests__/CelebrationScreen.test.jsx` (mood-floor title, score read-out, both CTAs, mastery-up beat
+  shown only when surfaced).
 - **Reskinned so far (Screen 1 — quiz):** `SessionPlayer.jsx`, `QuestionView.jsx`,
-  `HintBubble.jsx` are now fully token-based (no raw hex). `SessionPlayer`'s in-file `SessionEnd`
-  got an interim token pass; the full celebration EVENT is Screen 2. `QuestionView` takes a
+  `HintBubble.jsx` are now fully token-based (no raw hex). `QuestionView` takes a
   `blankFill` prop (`SessionPlayer` derives `'correct'`/`'reveal'`/`null` from `phase`, existing
   view-state — no new hook/recipe data) to fill the compare blank with the correct sign
   (`animate-slot-fill`): green on a correct answer, sky/learn on the wrong-#2 reveal.
+- **Reskinned (Screen 2 — session-end):** the interim in-file `SessionEnd` was replaced by the
+  `CelebrationScreen` + `Confetti` primitives above.
 
 ### App flow & screens (`src/components/`) — the single reachable path
 
@@ -317,6 +337,11 @@ it. Cross-session repeat-avoidance is a future nicety.
   string), computes `difficultyPlayed` as the max difficulty of questions in the session,
   collects `misconceptionTags` accumulated via a ref during `answer()`, calls `applyResult`
   (pure engine stays clock-free), and saves the new state via `saveSkillState`.
+- **`masteryUp` read-out (Screen 2):** on completion the hook derives a read-only
+  `{ leveledUp, justMastered, level, skillName }` (or `null`) by comparing the level `applyResult`
+  ALREADY produced against the previous level — no new mastery/ladder logic, just surfacing the
+  computed result so `CelebrationScreen` can add a mastery-up beat. Attached to the committed
+  complete-state and returned as `masteryUp`; view data only.
 - The pure engine (`mastery.js`) is NEVER given `Date.now()` — date is always injected by
   this wiring layer.
 

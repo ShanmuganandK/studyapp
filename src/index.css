@@ -166,6 +166,51 @@
   .animate-slot-fill { animation: none; }
 }
 
+/* Session-end celebration (UI overhaul, Screen 2) — a beat-by-beat EVENT. All GPU-safe
+   (transform/opacity only), each element 150–300ms, low-end-Android safe. The beats are
+   choreographed by per-element animation-delay so no JS timers are needed; reduced-motion
+   (below) collapses the whole sequence to "everything visible at once". */
+
+/* Warm scale-in "pop" — Tinku, the "Great job!" title, and the mastery-up beat. */
+@keyframes celebrate-pop {
+  0%   { opacity: 0; transform: scale(0.6); }
+  60%  { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-celebrate-pop { animation: celebrate-pop 250ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Score stars count up — each star pops in sequentially (per-star delay set inline by index). */
+@keyframes star-pop {
+  0%   { opacity: 0; transform: scale(0.2); }
+  55%  { opacity: 1; transform: scale(1.25); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-star-pop { animation: star-pop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Buttons arrive last — a gentle fade + rise. */
+@keyframes rise-in {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-rise-in { animation: rise-in 200ms ease-out both; }
+
+/* Confetti burst — a brief, modest sprinkle from the celebration's top. Each piece gets its own
+   spread (--dx/--dy), rotation (--rot), duration (--dur) and delay (--delay) inline, all driving
+   this one keyframe (transform/opacity only). Piece count is kept small (see Confetti.jsx). */
+@keyframes confetti-fall {
+  0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg) scale(0.6); }
+  12%  { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(var(--dx, 0), var(--dy, 200px), 0) rotate(var(--rot, 360deg)) scale(1); }
+}
+.confetti-piece { animation: confetti-fall var(--dur, 1200ms) ease-out both; animation-delay: var(--delay, 0ms); }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-celebrate-pop,
+  .animate-star-pop,
+  .animate-rise-in,
+  .confetti-piece { animation: none; }
+}
+
 /* App shell height — track the VISIBLE viewport on mobile via dvh so the browser's address bar
    can't push content off-screen and force scroll (STANDARDS §5). `vh` first as a fallback for
    older Android/WebView without dvh; the dvh line overrides where supported. On phones the app

@@ -5,6 +5,7 @@ import Mascot from './Mascot';
 import QuestionView from './QuestionView';
 import HintBubble from './HintBubble';
 import KidButton from './KidButton';
+import CelebrationScreen from './CelebrationScreen';
 
 /**
  * SessionPlayer — drives one playable session via useQuizSession and renders it.
@@ -59,7 +60,15 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
     );
   }
   if (s.sessionComplete) {
-    return <SessionEnd score={s.score} total={s.totalQuestions} onPlayAgain={s.restart} onExit={onExit} />;
+    return (
+      <CelebrationScreen
+        score={s.score}
+        total={s.totalQuestions}
+        masteryUp={s.masteryUp}
+        onPlayAgain={s.restart}
+        onExit={onExit}
+      />
+    );
   }
 
   // Options are only locked during the post-answer pause (correct / wrong-#2 reveal). The
@@ -164,31 +173,6 @@ function MuteButton({ muted, onToggle }) {
     >
       {muted ? '🔇' : '🔊'}
     </button>
-  );
-}
-
-// NOTE: this is the interim, token-only session-end. Screen 2 of the overhaul turns it into a
-// full celebration EVENT (confetti, count-up, mastery beat); the mood-floor logic is untouched.
-function SessionEnd({ score, total, onPlayAgain, onExit }) {
-  // Mood floor: always celebratory, whatever the score.
-  return (
-    <Centered>
-      <Mascot emotion="celebrate" size="clamp(90px, 15vh, 160px)" />
-      <h2 className="font-display text-title font-extrabold text-primary-ink mt-4">Great job!</h2>
-      {/* Stars here are a REWARD readout (locked: amber/stars = reward only). */}
-      <div className="flex gap-1 mt-3 text-3xl" aria-label={`${score} of ${total} correct`}>
-        {Array.from({ length: total }).map((_, i) => (
-          <span key={i}>{i < score ? '⭐' : '☆'}</span>
-        ))}
-      </div>
-      <p className="text-muted mt-2">{score} / {total} correct</p>
-      <div className="flex flex-col gap-3 mt-6 w-full max-w-xs">
-        <PrimaryButton onClick={onPlayAgain}>Play again</PrimaryButton>
-        <button onClick={onExit} className="text-muted font-semibold py-2 hover:text-ink transition-colors">
-          Pick another skill
-        </button>
-      </div>
-    </Centered>
   );
 }
 
