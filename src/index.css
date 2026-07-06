@@ -46,6 +46,14 @@
   --color-learn-soft: #e0f2fe;
   --color-learn-ink: #0369a1;
 
+  /* Color — review-due ("come back to this"): a calm TEAL, deliberately NOT amber. amber/gold is
+     reward/achievement-ONLY (LOCKED, DECISIONS 2026-07-05) — a spaced-rep reminder is not a reward,
+     so sharing the amber channel would blur the one colour reserved for celebration. Also kept
+     distinct from the sky `learn` "Tinku suggests" family so suggest vs review read differently on
+     the same card list. The "Review time!" label uses the readable `ink` token (never light-on-light).
+     Any future "needs attention / revisit" state inherits this token, never amber. */
+  --color-review: #14b8a6;
+
   /* Color — text */
   --color-ink: #1e293b;            /* slate-800 — primary body/heading text */
   --color-muted: #64748b;          /* slate-500 — secondary/muted text */
@@ -164,6 +172,83 @@
   .animate-correct-pop,
   .animate-encourage-nudge,
   .animate-slot-fill { animation: none; }
+}
+
+/* Session-end celebration (UI overhaul, Screen 2) — a beat-by-beat EVENT. All GPU-safe
+   (transform/opacity only), each element 150–300ms, low-end-Android safe. The beats are
+   choreographed by per-element animation-delay so no JS timers are needed; reduced-motion
+   (below) collapses the whole sequence to "everything visible at once". */
+
+/* Warm scale-in "pop" — Tinku, the "Great job!" title, and the mastery-up beat. */
+@keyframes celebrate-pop {
+  0%   { opacity: 0; transform: scale(0.6); }
+  60%  { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-celebrate-pop { animation: celebrate-pop 250ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Score stars count up — each star pops in sequentially (per-star delay set inline by index). */
+@keyframes star-pop {
+  0%   { opacity: 0; transform: scale(0.2); }
+  55%  { opacity: 1; transform: scale(1.25); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-star-pop { animation: star-pop 300ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+/* Buttons arrive last — a gentle fade + rise. */
+@keyframes rise-in {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-rise-in { animation: rise-in 200ms ease-out both; }
+
+/* Confetti burst — a brief, modest sprinkle from the celebration's top. Each piece gets its own
+   spread (--dx/--dy), rotation (--rot), duration (--dur) and delay (--delay) inline, all driving
+   this one keyframe (transform/opacity only). Piece count is kept small (see Confetti.jsx). */
+@keyframes confetti-fall {
+  0%   { opacity: 0; transform: translate3d(0, 0, 0) rotate(0deg) scale(0.6); }
+  12%  { opacity: 1; }
+  100% { opacity: 0; transform: translate3d(var(--dx, 0), var(--dy, 200px), 0) rotate(var(--rot, 360deg)) scale(1); }
+}
+.confetti-piece { animation: confetti-fall var(--dur, 1200ms) ease-out both; animation-delay: var(--delay, 0ms); }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-celebrate-pop,
+  .animate-star-pop,
+  .animate-rise-in,
+  .confetti-piece { animation: none; }
+}
+
+/* Home skill cards (UI overhaul, Screen 3) — GPU-safe (transform/opacity), low-end-Android safe.
+   Non-suggested cards reuse the quick `animate-opt-in` stagger. The recommended ("Tinku suggests"
+   / review-due) card enters with a gentle one-shot emphasis pulse so it reads special without being
+   shouty — a single combined keyframe (entrance THEN a soft bump) so only one animation drives the
+   card's transform (press-squish lives on the same button via :active, same pattern as KidButton).
+   Per-card stagger delay is set inline by index. */
+@keyframes card-in-suggest {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.98); }
+  55%  { opacity: 1; transform: translateY(0) scale(1); }
+  72%  { transform: scale(1.035); }
+  100% { transform: scale(1); }
+}
+.animate-card-in-suggest { animation: card-in-suggest 620ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-card-in-suggest { animation: none; }
+}
+
+/* Journey Path experiment (Screen 3-B) — the suggested medallion's gentle repeating "sonar" pulse.
+   GPU-safe (transform/opacity only), low-end-Android safe. Reduced-motion hides it entirely so no
+   solid ring is left sitting there. */
+@keyframes path-pulse {
+  0%   { opacity: 0.7; transform: scale(1); }
+  70%  { opacity: 0; transform: scale(1.5); }
+  100% { opacity: 0; transform: scale(1.5); }
+}
+.path-pulse { animation: path-pulse 1800ms ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .path-pulse { animation: none; opacity: 0; }
 }
 
 /* App shell height — track the VISIBLE viewport on mobile via dvh so the browser's address bar

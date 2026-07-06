@@ -112,10 +112,13 @@ future kid-feedback tuning is a token change, not a screen hunt.
   `.theme-explorer` scope — no component changes needed). **`tailwind.config.js`** exposes them
   as utilities so components use named tokens, never raw hex. Groups: colour
   (`bg`, `bg-card`, `primary`/`-soft`/`-ink`, `accent`, `success`/`-soft`, `encourage`/`-soft`/`-ink`,
-  `learn`/`-soft`/`-ink`, `ink`, `muted`), `rounded-{button,card}`, `shadow-{button,card}`, fluid
+  `learn`/`-soft`/`-ink`, `review`, `ink`, `muted`), `rounded-{button,card}`, `shadow-{button,card}`, fluid
   `text-{question,option,title,prompt,body}` (clamp), and **type families** `font-body` (`--font-body`)
   / `font-display` (`--font-display`). **Locked meanings:** `accent`(amber)=reward ONLY;
-  `encourage`(soft coral)=wrong answers (never red/amber); `learn`(sky)=hints/learning.
+  `encourage`(soft coral)=wrong answers (never red/amber); `learn`(sky)=hints/learning;
+  `review`(teal, added Screen 3)=review-due only ("come back to this" — NOT amber; kept distinct
+  from `learn`/suggests; DECISIONS 2026-07-05). Any future "needs attention/revisit" state inherits
+  `review`.
 - **Fonts (self-hosted, no CDN — low-end-Android safe):** **Nunito** (body/parent, the default
   `font-sans`) + **Baloo 2** (kid-facing display — big numbers/equations/titles/option tiles),
   via **Fontsource** variable packages imported in `src/main.jsx` (`font-display: swap`, bundled
@@ -132,16 +135,53 @@ future kid-feedback tuning is a token change, not a screen hunt.
   `animate-slot-fill` (compare blank fills with the correct operator — green on a correct answer,
   sky/learn on the wrong-#2 reveal — see the "answer feedback fills the blank" rule, DECISIONS
   2026-07-04). `.tinku-ground` = the soft ground ellipse that stages Tinku "in the world".
+- **Celebration motion** (Screen 2, `index.css`, GPU-safe, reduced-motion off): `animate-celebrate-pop`
+  (warm scale-in — Tinku, title, mastery beat), `animate-star-pop` (per-star count-up bounce),
+  `animate-rise-in` (buttons/score fade+rise), `.confetti-piece` (one `confetti-fall` keyframe driven
+  by per-piece inline vars `--dx/--dy/--rot/--dur/--delay`). The session-end sequence is choreographed
+  entirely by per-element `animation-delay` (no JS timers); reduced-motion collapses it to
+  everything-visible-at-once.
+- **Home card motion** (Screen 3, `index.css`): non-suggested cards reuse `animate-opt-in` for the
+  stagger-in; the recommended card uses `animate-card-in-suggest` (entrance + a soft one-shot emphasis
+  bump — single keyframe so it never fights the button's `:active` press-squish). Per-card stagger
+  delay set inline by index; reduced-motion off.
 - **`KidButton.jsx`** — the kid-facing answer-tile primitive. Big, soft-rounded, squishes on
   press (`active:scale-95`); state-driven visuals (`idle`/`correct`/`wrong`) from tokens. Purely
   presentational — all answer logic stays in `useQuizSession`. Used by `SessionPlayer` (4× per
   question). Later kid-facing screens reuse it.
+- **`Confetti.jsx`** — reusable, GPU-safe celebration burst primitive (Screen 2). A modest sprinkle
+  of pieces fans out from its parent's top-centre via `.confetti-piece`; `palette` (`party` default /
+  `amber` for the mastery beat) picks token colours. Purely decorative (aria-hidden, pointer-events-none);
+  renders nothing under prefers-reduced-motion. Reused by `CelebrationScreen` (background burst + the
+  amber mastery-up beat).
+- **`CelebrationScreen.jsx`** — the session-end EVENT (Screen 2), rendered by `SessionPlayer` on
+  `sessionComplete`. Beat sequence (Tinku pops in → confetti → score stars count up → "Great job!" →
+  optional mastery-up beat → buttons last), choreographed by per-element `animation-delay`. Purely
+  presentational: mood floor + mastery-up detection live in the engine/hook; it renders `score`/`total`/
+  `masteryUp` and reuses `Confetti`. Uses token-based CTA buttons (not `KidButton`, which is an
+  answer-tile primitive — 50% width, idle/correct/wrong — semantically wrong for CTAs). Smoke test:
+  `__tests__/CelebrationScreen.test.jsx` (mood-floor title, score read-out, both CTAs, mastery-up beat
+  shown only when surfaced).
 - **Reskinned so far (Screen 1 — quiz):** `SessionPlayer.jsx`, `QuestionView.jsx`,
-  `HintBubble.jsx` are now fully token-based (no raw hex). `SessionPlayer`'s in-file `SessionEnd`
-  got an interim token pass; the full celebration EVENT is Screen 2. `QuestionView` takes a
+  `HintBubble.jsx` are now fully token-based (no raw hex). `QuestionView` takes a
   `blankFill` prop (`SessionPlayer` derives `'correct'`/`'reveal'`/`null` from `phase`, existing
   view-state — no new hook/recipe data) to fill the compare blank with the correct sign
   (`animate-slot-fill`): green on a correct answer, sky/learn on the wrong-#2 reveal.
+- **`SkillCard.jsx`** — presentational home-screen skill card primitive (Screen 3). Renders one
+  skill's icon/`displayName`/`subtitle` + `MasteryPips`, with token styling, press-squish and a
+  stagger-in (`animate-opt-in`; the recommended card enters with the `animate-card-in-suggest`
+  emphasis pulse). Takes pure view data — `{ skill, level, isDue, isSuggested, isReviewSuggested,
+  index, onClick }`; **never calls the engine** (recommendation/review-due are computed upstream and
+  handed in as booleans). Colour rule: review-due uses `border-review`/`text-review` (teal), suggest
+  uses `learn` (sky), mastered pip uses `accent` (amber = reward). Smoke test:
+  `__tests__/SkillCard.test.jsx` (suggest vs review vs plain, pips, review-token-not-amber).
+- **Reskinned (Screen 2 — session-end):** the interim in-file `SessionEnd` was replaced by the
+  `CelebrationScreen` + `Confetti` primitives above.
+- **Reskinned (Screen 3 — home / skill-select):** `SkillSelectScreen.jsx` moved onto tokens and now
+  renders `<SkillCard>` per skill; the `MasteryPips` sub-component moved into `SkillCard`. The engine
+  data-flow is unchanged — the lazy `useState` initialiser still does `loadAllSkillStates` +
+  `recommendNext`, and `isDueForReview` is still called per card (thin delegation to the pure engine,
+  deliberately preserved — the reskin only changed rendering).
 
 ### App flow & screens (`src/components/`) — the single reachable path
 
@@ -317,6 +357,11 @@ it. Cross-session repeat-avoidance is a future nicety.
   string), computes `difficultyPlayed` as the max difficulty of questions in the session,
   collects `misconceptionTags` accumulated via a ref during `answer()`, calls `applyResult`
   (pure engine stays clock-free), and saves the new state via `saveSkillState`.
+- **`masteryUp` read-out (Screen 2):** on completion the hook derives a read-only
+  `{ leveledUp, justMastered, level, skillName }` (or `null`) by comparing the level `applyResult`
+  ALREADY produced against the previous level — no new mastery/ladder logic, just surfacing the
+  computed result so `CelebrationScreen` can add a mastery-up beat. Attached to the committed
+  complete-state and returned as `masteryUp`; view data only.
 - The pure engine (`mastery.js`) is NEVER given `Date.now()` — date is always injected by
   this wiring layer.
 
@@ -334,20 +379,24 @@ animation replays each (re)emission. Logic here, presentation in the component (
 provided, all questions use that fixed difficulty (clamped to `maxDifficulty`) instead of the
 1→2→3 ramp. Existing ramp behaviour is unchanged when `difficulty` is omitted.
 
-### Mastery pips + suggestion highlight (`src/components/SkillSelectScreen.jsx`)
+### Mastery pips + suggestion highlight (`SkillSelectScreen.jsx` + `SkillCard.jsx`)
 
-Each skill card shows 5 small round pips (8px circles) reflecting the child's current mastery
-level. Pip colours: empty = `slate-200`; levels 1–2 = `sky-400`; levels 3–4 = `indigo-400`;
-level 5 (mastered) = `amber-400`. A `↻` glyph in amber marks skills due for spaced-rep review.
+Each skill card shows 5 small round pips reflecting the child's current mastery level (rendered by
+`MasteryPips` inside `SkillCard` since Screen 3). Pip colours (tokens): empty = `primary-soft`;
+levels 1–2 = `learn` (sky); levels 3–4 = `primary` (indigo); level 5 (mastered) = `accent` (amber =
+reward). A `↻` glyph in the `review` token (teal) marks skills due for spaced-rep review — NOT amber
+(DECISIONS 2026-07-05).
 
 Deliberately not stars (stars = in-session reward, DECISIONS). This is the verify-it-works
 surface; the full parent dashboard is a later task.
 
 **Suggestion highlight:** `SkillSelectScreen` calls `recommendNext` (from the practice
-composer) on mount using the same skill-state snapshot. The recommended card gets a coloured
-border (`amber-400` for review, `sky-400` for other reasons) and a one-line label —
-`↻ Review time!` or `Tinku suggests!`. `all_caught_up` and `null` skillId produce no
-highlight. The child can still tap any card; the highlight is guidance, not a gate.
+composer) on mount using the same skill-state snapshot, and passes the result to each `SkillCard`
+as booleans. The recommended card gets a coloured border + one-line label — `border-review` (teal)
+with `↻ Review time!` for a review recommendation, or `border-learn` (sky) with `Tinku suggests!`
+otherwise — plus a gentle one-shot entrance pulse (`animate-card-in-suggest`). `all_caught_up` and
+`null` skillId produce no highlight. The child can still tap any card; the highlight is guidance,
+not a gate.
 
 `SkillSelectScreen` loads state and computes the recommendation together in a single lazy
 `useState` initialiser on mount (one storage read). `ThemeManager` conditionally renders it
@@ -410,6 +459,27 @@ new-core replacement is proven behind a flag, then deleted (see Migration strate
   `src/services/` + Firestore.
 
 New work targets the new-core folders; new code never imports these.
+
+---
+
+## Experiments (decision-pending — not production)
+
+Parallel variants built for kid-testing, kept trivially removable until a decision. They never
+replace production; production stays the default.
+
+- **`SkillPathScreen.jsx` — "Journey Path" Home (Screen 3-B).** A vertical winding-path variant of
+  the Home screen (medallions alternating left/right on a soft SVG spine, Tinku beside the suggested
+  node). Reached ONLY via the **`?home=path`** query flag, read once in `ThemeManager` (a single
+  ternary on the `skills` view; production `SkillSelectScreen` is the untouched default when the flag
+  is absent). **Data flow is identical to `SkillSelectScreen`** (copied `loadAllSkillStates` +
+  `recommendNext` + per-node `isDueForReview`; no new engine calls/logic); pip/label code is
+  intentionally **duplicated**, not shared (de-dup only after the decision, §0.2). Tokens only;
+  review-due = `review` (teal), mastered = `accent` (amber). The `locked` medallion style exists but
+  is **unwired** (ready-only data yields no locked nodes — mirrors "locked cards deferred"). Motion:
+  reuses `animate-opt-in` for the node stagger + a repeating `path-pulse` sonar ring on the suggested
+  node (reduced-motion off). Smoke test: `__tests__/SkillPathScreen.test.jsx`. **To retire:** delete
+  `SkillPathScreen.jsx`, its test, the `path-pulse` keyframe, and the `?home=path` block in
+  `ThemeManager`. **Status:** kid-test pending; not merged to `master` until a decision.
 
 ---
 
