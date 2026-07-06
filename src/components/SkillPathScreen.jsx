@@ -9,8 +9,8 @@ import PrivacyNotice from './PrivacyNotice';
 
 /**
  * SkillPathScreen — EXPERIMENT (Screen 3-B): a "Journey Path" Home variant, parallel to the
- * production SkillSelectScreen. Decision-pending — we kid-test both, then keep one. Reached only
- * via the `?home=path` flag (ThemeManager); the production Home is the untouched default.
+ * card-list SkillSelectScreen. Decision-pending — we kid-test both, then keep one. Currently the
+ * DEFAULT Home on master; SkillSelectScreen is reachable via `?home=cards` (ThemeManager).
  *
  * Same skill set + ORDER as production (status:'ready', by `order`), laid out as a vertical winding
  * path of medallions alternating left/right, connected by a soft SVG spine.

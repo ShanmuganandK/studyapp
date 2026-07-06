@@ -7,13 +7,14 @@ import ParentGateModal from './ParentGateModal';
 import ParentDashboard from './ParentDashboard';
 import { useAuth } from '../contexts/AuthContext';
 
-// EXPERIMENT (screen-3b): `?home=path` renders the Journey Path Home variant instead of the
-// production SkillSelectScreen. Read once at load; production (no flag) is completely unaffected.
-// To RETIRE the experiment: delete this line, the SkillPathScreen import, and restore the plain
-// <SkillSelectScreen> render below.
-const USE_PATH_HOME =
+// EXPERIMENT (screen-3b): SkillPathScreen is the current default Home (kid-test in progress).
+// `?home=cards` switches to the card-list variant (SkillSelectScreen) for A/B comparison —
+// same production build serves both variants without a deploy.
+// To RETIRE the path and restore card-list as default: swap the ternary below, remove the
+// SkillPathScreen import + the `path-pulse` keyframe in index.css, and delete SkillPathScreen.jsx.
+const USE_CARD_HOME =
   typeof window !== 'undefined' &&
-  new URLSearchParams(window.location.search).get('home') === 'path';
+  new URLSearchParams(window.location.search).get('home') === 'cards';
 
 /**
  * Wonder-band default grade. Grade is a parent-set profile property (DECISIONS: no child
@@ -74,10 +75,10 @@ export default function ThemeManager() {
       />
 
       {currentView === 'skills' &&
-        (USE_PATH_HOME ? (
-          <SkillPathScreen onSelectSkill={handleSelectSkill} />
-        ) : (
+        (USE_CARD_HOME ? (
           <SkillSelectScreen onSelectSkill={handleSelectSkill} />
+        ) : (
+          <SkillPathScreen onSelectSkill={handleSelectSkill} />
         ))}
 
       {currentView === 'quiz' && activeSkillId && (

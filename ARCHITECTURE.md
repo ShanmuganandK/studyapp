@@ -189,13 +189,14 @@ The app was collapsed from an old/new mix into ONE coherent flow. There is now e
 child-reachable path, all on the new recipe engine, light Wonder theme + Tinku:
 
 ```
-entry → SkillSelectScreen (home) → RecipeQuizScreen → SessionPlayer (session-end inside)
+entry → SkillPathScreen (default) or SkillSelectScreen (?home=cards) → RecipeQuizScreen → SessionPlayer (session-end inside)
 ```
 
 - **`ThemeManager.jsx`** — app root under `AuthProvider`. Holds the view state and routes
   `skills` (default) → `quiz` → gated `parent`. Grade is `currentProfile?.grade ?? 1`
-  (`DEFAULT_GRADE`); a profile-less/anonymous child lands cleanly on the skill screen. No
-  longer imports any legacy screen.
+  (`DEFAULT_GRADE`); a profile-less/anonymous child lands cleanly on the skill screen. The
+  `skills` view renders `SkillPathScreen` by default (kid-test in progress — Screen 3-B);
+  `?home=cards` switches to `SkillSelectScreen` for A/B comparison. No legacy screens imported.
 - **`SkillSelectScreen.jsx`** — the home / only entry into practice. Reads `SKILLS` from the
   skill map, filters `status:'ready'`, sorts by `order`, renders one tappable card per skill
   (friendly `name`). `onSelectSkill(skillId)` → quiz.
@@ -469,17 +470,17 @@ replace production; production stays the default.
 
 - **`SkillPathScreen.jsx` — "Journey Path" Home (Screen 3-B).** A vertical winding-path variant of
   the Home screen (medallions alternating left/right on a soft SVG spine, Tinku beside the suggested
-  node). Reached ONLY via the **`?home=path`** query flag, read once in `ThemeManager` (a single
-  ternary on the `skills` view; production `SkillSelectScreen` is the untouched default when the flag
-  is absent). **Data flow is identical to `SkillSelectScreen`** (copied `loadAllSkillStates` +
-  `recommendNext` + per-node `isDueForReview`; no new engine calls/logic); pip/label code is
-  intentionally **duplicated**, not shared (de-dup only after the decision, §0.2). Tokens only;
-  review-due = `review` (teal), mastered = `accent` (amber). The `locked` medallion style exists but
-  is **unwired** (ready-only data yields no locked nodes — mirrors "locked cards deferred"). Motion:
+  node). **Currently the DEFAULT Home on master** (kid-test in progress); `SkillSelectScreen` is
+  reachable via **`?home=cards`** for A/B comparison — same production build, no deploy needed.
+  **Data flow is identical to `SkillSelectScreen`** (copied `loadAllSkillStates` + `recommendNext` +
+  per-node `isDueForReview`; no new engine calls/logic); pip/label code is intentionally
+  **duplicated**, not shared (de-dup only after the decision, §0.2). Tokens only; review-due =
+  `review` (teal), mastered = `accent` (amber). The `locked` medallion style exists but is
+  **unwired** (ready-only data yields no locked nodes — mirrors "locked cards deferred"). Motion:
   reuses `animate-opt-in` for the node stagger + a repeating `path-pulse` sonar ring on the suggested
-  node (reduced-motion off). Smoke test: `__tests__/SkillPathScreen.test.jsx`. **To retire:** delete
-  `SkillPathScreen.jsx`, its test, the `path-pulse` keyframe, and the `?home=path` block in
-  `ThemeManager`. **Status:** kid-test pending; not merged to `master` until a decision.
+  node (reduced-motion off). Smoke test: `__tests__/SkillPathScreen.test.jsx`. **To retire (if
+  cards win the kid-test):** swap the ternary in `ThemeManager`, delete `SkillPathScreen.jsx` +
+  its test + the `path-pulse` keyframe in `index.css`. **Status:** kid-test pending.
 
 ---
 
