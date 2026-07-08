@@ -16,12 +16,13 @@ function levelLabel(level) {
 }
 
 function levelLabelColour(level) {
-  if (level >= MASTERY.MASTERED_LEVEL) return 'text-amber-600';
-  if (level >= MASTERY.UNLOCK_LEVEL) return 'text-indigo-500';
-  return 'text-sky-500';
+  if (level >= MASTERY.MASTERED_LEVEL) return 'text-accent';
+  if (level >= MASTERY.UNLOCK_LEVEL) return 'text-primary';
+  return 'text-learn-ink';
 }
 
-// Matches the pip style on SkillSelectScreen so parents see the same visual language.
+// Pip colours match the path screen and skill select: learn(sky)=1-2, primary(indigo)=3-4,
+// accent(amber)=mastered. Token-only; no raw hex.
 function MasteryPips({ level }) {
   return (
     <span
@@ -32,11 +33,11 @@ function MasteryPips({ level }) {
         const filled = i < level;
         const colour = filled
           ? level >= MASTERY.MASTERED_LEVEL
-            ? 'bg-amber-400'
+            ? 'bg-accent'
             : level >= MASTERY.UNLOCK_LEVEL
-            ? 'bg-indigo-400'
-            : 'bg-sky-400'
-          : 'bg-slate-200';
+            ? 'bg-primary'
+            : 'bg-learn'
+          : 'bg-primary-soft';
         return <span key={i} className={`w-2 h-2 rounded-full ${colour}`} />;
       })}
     </span>
@@ -45,7 +46,7 @@ function MasteryPips({ level }) {
 
 function SkillRow({ skill }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0">
+    <div className="flex items-center justify-between py-3 border-b border-primary-soft last:border-0">
       <div className="flex items-center gap-3 min-w-0">
         {skill.icon && (
           <span className="text-2xl flex-shrink-0" aria-hidden="true">
@@ -53,9 +54,9 @@ function SkillRow({ skill }) {
           </span>
         )}
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-slate-800 truncate">{skill.displayName}</p>
+          <p className="text-sm font-semibold text-ink truncate">{skill.displayName}</p>
           {skill.subtitle && (
-            <p className="text-xs text-slate-400">{skill.subtitle}</p>
+            <p className="text-xs text-muted">{skill.subtitle}</p>
           )}
         </div>
       </div>
@@ -73,7 +74,7 @@ function SkillRow({ skill }) {
 
 function SectionLabel({ children }) {
   return (
-    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide px-4 pt-4 pb-0.5">
+    <p className="text-xs font-semibold text-muted uppercase tracking-wide px-4 pt-4 pb-0.5">
       {children}
     </p>
   );
@@ -104,27 +105,29 @@ export default function ParentDashboard({ onSetPasscode, hasPasscode, userEmail 
   const totalReady = mastered.length + inProgress.length + notStarted.length;
 
   return (
-    <div className="flex flex-col min-h-full bg-gradient-to-b from-sky-50 to-white overflow-y-auto">
+    <div className="flex flex-col min-h-full bg-bg overflow-y-auto">
 
       {/* ── Warm header ─────────────────────────────────────────────────── */}
       <div className="flex flex-col items-center pt-6 pb-4 px-4 text-center">
         <Mascot emotion="happy" size={80} />
-        <h1 className="text-xl font-bold text-indigo-900 mt-3">Your child's progress</h1>
-        <p className="text-sm text-slate-400 mt-0.5">Tinku Math</p>
+        <h1 className="font-display text-xl font-extrabold text-primary-ink mt-3">
+          Your child's progress
+        </h1>
+        <p className="text-sm text-muted mt-0.5">Tinku Math</p>
       </div>
 
       <div className="px-4 pb-8 space-y-4">
 
         {/* ── Wins highlight ──────────────────────────────────────────────── */}
-        <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+        <div className="bg-accent-soft rounded-card shadow-card p-4">
           {masteredCount > 0 ? (
             <>
-              <p className="font-bold text-amber-800">
+              <p className="font-bold text-primary-ink text-base">
                 {masteredCount === 1
                   ? '1 skill mastered! 🎉'
                   : `${masteredCount} skills mastered! 🎉`}
               </p>
-              <p className="text-sm text-amber-700 mt-0.5">
+              <p className="text-sm text-ink mt-0.5">
                 {masteredCount === totalReady
                   ? 'All ready skills complete — wonderful work!'
                   : 'Keep it up — great progress so far!'}
@@ -132,8 +135,8 @@ export default function ParentDashboard({ onSetPasscode, hasPasscode, userEmail 
             </>
           ) : (
             <>
-              <p className="font-bold text-amber-800">Just getting started ✨</p>
-              <p className="text-sm text-amber-700 mt-0.5">
+              <p className="font-bold text-primary-ink text-base">Just getting started ✨</p>
+              <p className="text-sm text-ink mt-0.5">
                 Every bit of practice helps — great things take a little time!
               </p>
             </>
@@ -142,13 +145,13 @@ export default function ParentDashboard({ onSetPasscode, hasPasscode, userEmail 
 
         {/* ── Currently working on ─────────────────────────────────────────── */}
         {inProgress.length > 0 && (
-          <div className="bg-sky-50 border border-sky-100 rounded-2xl p-4">
-            <p className="text-xs font-semibold text-sky-500 uppercase tracking-wide mb-2">
+          <div className="bg-learn-soft rounded-card p-4">
+            <p className="text-xs font-semibold text-learn-ink uppercase tracking-wide mb-2">
               Currently working on
             </p>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
               {inProgress.map((s) => (
-                <span key={s.skillId} className="text-sm text-sky-800 font-medium">
+                <span key={s.skillId} className="text-sm text-ink font-medium">
                   {s.icon} {s.displayName}
                 </span>
               ))}
@@ -157,7 +160,7 @@ export default function ParentDashboard({ onSetPasscode, hasPasscode, userEmail 
         )}
 
         {/* ── Skills list ──────────────────────────────────────────────────── */}
-        <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-bg-card rounded-card border border-primary-soft overflow-hidden">
           {mastered.length > 0 && (
             <>
               <SectionLabel>Mastered</SectionLabel>
@@ -189,25 +192,25 @@ export default function ParentDashboard({ onSetPasscode, hasPasscode, userEmail 
         {/* ── Light activity signal ────────────────────────────────────────── */}
         <div className="text-center py-1">
           {lastActivity ? (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted">
               Last practised:{' '}
-              <span className="text-slate-600 font-medium">{lastActivity}</span>
+              <span className="text-ink font-medium">{lastActivity}</span>
             </p>
           ) : (
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-muted">
               No practice sessions yet — pick a skill to get started!
             </p>
           )}
         </div>
 
-        {/* ── Privacy reassurance (prominent, calm — parents are the audience) ─── */}
+        {/* ── Privacy reassurance ──────────────────────────────────────────── */}
         <PrivacyNotice variant="card" />
 
         {/* ── Settings footer ──────────────────────────────────────────────── */}
-        <div className="border-t border-slate-100 pt-4 space-y-3">
+        <div className="border-t border-primary-soft pt-4 space-y-3">
           <button
             onClick={onSetPasscode}
-            className="w-full bg-white border-2 border-indigo-100 text-indigo-700 font-bold py-3 rounded-xl hover:bg-indigo-50 transition-colors flex items-center justify-center gap-2"
+            className="w-full bg-primary text-white rounded-button shadow-button font-semibold py-3 flex items-center justify-center gap-2 active:scale-95 transition-transform"
           >
             <Lock size={18} />
             {hasPasscode ? 'Change Passcode' : 'Set Parent Passcode'}
@@ -217,14 +220,14 @@ export default function ParentDashboard({ onSetPasscode, hasPasscode, userEmail 
             href={feedbackWhatsAppUrl()}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-slate-400 hover:text-green-600 transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-muted hover:text-learn-ink transition-colors"
           >
             <MessageCircle size={16} />
             Report a bug / Give feedback
           </a>
 
           {userEmail && (
-            <p className="text-xs text-slate-400 text-center">
+            <p className="text-xs text-muted text-center">
               Logged in as {userEmail}
             </p>
           )}
