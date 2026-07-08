@@ -31,6 +31,7 @@
 
   /* Color — reward (LOCKED: amber = achievement/reward ONLY) */
   --color-accent: #fbbf24;
+  --color-accent-soft: #fef3c7;     /* light amber tint — achievement card backgrounds */
 
   /* Color — feedback: correct */
   --color-success: #22c55e;
@@ -96,6 +97,17 @@
 /* Kid-facing big numbers/equation — a soft depth shadow that adds a "3D pop" while staying
    crisply readable for early readers (no hard extrusion). Static text-shadow. */
 .kid-num-3d { text-shadow: 0 3px 5px rgba(55, 48, 163, 0.22); }
+
+/* Parent gate error feedback — transform-only shake, GPU-safe. Runs once on wrong PIN.
+   Applied to the modal wrapper so the whole card nudges, not individual elements. */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-6px); }
+  40%       { transform: translateX(6px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+.animate-shake { animation: shake 0.4s ease-in-out; }
 
 /* Mascot animations — GPU-friendly (transform/opacity only), low-end-Android safe.
    Emotion changes cross-fade via opacity in Mascot.jsx; only the breathe float lives here. */

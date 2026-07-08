@@ -23,6 +23,7 @@ export default {
                 'primary-soft': 'var(--color-primary-soft)',
                 'primary-ink': 'var(--color-primary-ink)',
                 accent: 'var(--color-accent)',
+                'accent-soft': 'var(--color-accent-soft)',
                 success: 'var(--color-success)',
                 'success-soft': 'var(--color-success-soft)',
                 encourage: 'var(--color-encourage)',

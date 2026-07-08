@@ -26,9 +26,9 @@ export default function PrivacyNotice({ variant = 'card' }) {
   }
 
   return (
-    <div className="bg-white border border-sky-100 rounded-2xl p-4 text-left">
-      <p className="text-sm font-bold text-sky-800">{title}</p>
-      <p className="text-sm text-slate-500 mt-1 leading-snug">{body}</p>
+    <div className="bg-bg-card rounded-card shadow-card p-4 text-left">
+      <p className="text-sm font-bold text-learn-ink">{title}</p>
+      <p className="text-sm text-muted mt-1 leading-snug">{body}</p>
     </div>
   );
 }
