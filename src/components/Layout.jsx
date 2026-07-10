@@ -33,9 +33,12 @@ const Layout = ({ children, currentView, onNavigate }) => {
           </div>
         )}
 
-        {/* Content area. Key drives the view-enter transition on every view change. */}
-        <div className="flex-1 overflow-y-auto pt-3 sm:pt-10 pb-4 px-4 bg-bg scrollbar-hide">
-          <div key={currentView} className="h-full animate-view-enter">
+        {/* Content area. Keyed by currentView so the scroll container itself remounts on
+            each nav change — scrollTop resets to 0 and the view-enter animation fires on the
+            fresh inner div. Key on the outer (scroll) div, not the inner, so the scroll
+            position can never bleed across views. */}
+        <div key={currentView} className="flex-1 overflow-y-auto pt-3 sm:pt-10 pb-4 px-4 bg-bg scrollbar-hide">
+          <div className="h-full animate-view-enter">
             {children}
           </div>
         </div>
