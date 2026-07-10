@@ -19,8 +19,8 @@ export default function PrivacyNotice({ variant = 'card' }) {
 
   if (variant === 'footer') {
     return (
-      <p className="text-[11px] leading-snug text-slate-400 text-center max-w-xs mx-auto mt-8 px-2">
-        <span className="font-semibold text-slate-500">{title}</span> {body}
+      <p className="text-[11px] leading-snug text-muted text-center max-w-xs mx-auto mt-8 px-2">
+        <span className="font-semibold text-muted">{title}</span> {body}
       </p>
     );
   }

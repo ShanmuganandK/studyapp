@@ -48,7 +48,12 @@ export default function SessionPlayer({ grade, skillId, onExit }) {
   }, [s.phase, s.hintNonce]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!s.ready) {
-    return <Centered><p className="text-muted">Getting Tinku ready…</p></Centered>;
+    return (
+      <Centered>
+        <Mascot emotion="thinking" size={100} />
+        <p className="text-muted text-sm mt-3">Getting ready…</p>
+      </Centered>
+    );
   }
   if (s.empty) {
     return (

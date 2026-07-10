@@ -141,6 +141,10 @@ future kid-feedback tuning is a token change, not a screen hunt.
   by per-piece inline vars `--dx/--dy/--rot/--dur/--delay`). The session-end sequence is choreographed
   entirely by per-element `animation-delay` (no JS timers); reduced-motion collapses it to
   everything-visible-at-once.
+- **Screen transitions** (Screen 5, `index.css`): `animate-view-enter` (opacity 0→1 + translateY
+  10→0, 200ms ease-out) fires whenever the active view changes. `Layout` keys its content wrapper
+  by `currentView`, so React remounts it with this animation on every nav change. GPU-only;
+  reduced-motion collapses to instant. No JS timers or third-party animation libraries.
 - **Home card motion** (Screen 3, `index.css`): non-suggested cards reuse `animate-opt-in` for the
   stagger-in; the recommended card uses `animate-card-in-suggest` (entrance + a soft one-shot emphasis
   bump — single keyframe so it never fights the button's `:active` press-squish). Per-card stagger
@@ -346,6 +350,13 @@ task lands, `progressStore` is the only file that changes.
 unchanged) but currently always `[]` — neither `buildLiteSession` nor `applyResult` populates
 it. Cross-session repeat-avoidance is a future nicety.
 
+### `useOnline` hook (`src/hooks/useOnline.js`)
+
+Returns a live `isOnline: boolean` (initialised from `navigator.onLine`, updated via
+`window online/offline` events). Used by `Layout` to conditionally render the offline
+banner — a gentle `bg-learn-soft` strip that tells the child Tinku can still play and
+that progress will sync on reconnect. Non-blocking: the session continues normally.
+
 ### Session wiring (`src/hooks/useQuizSession.js`) — mastery in/out
 
 `useQuizSession` is the wiring layer between the pure engine and the React lifecycle.
@@ -447,6 +458,13 @@ APIs never crash a child's session.
 
 **Tests**: `src/services/__tests__/sound.test.js` (Vitest, node env, globals stubbed) — covers
 mute logic, event mapping, note counts, and silent resilience to API failures.
+
+### Utilities (`src/utils/logger.js`)
+
+**`logger.js`** — the single logging path for all new code (STANDARDS §8). `debug`/`info` are
+dev-only (stripped in production builds); `warn`/`error` always log. All callers import this;
+raw `console.*` calls are banned in new committed code. Non-PII only (children's app, §6).
+Existing `console.*` calls in FROZEN legacy code are left as-is (legacy is never edited).
 
 ### Legacy core (FROZEN) — being retired
 

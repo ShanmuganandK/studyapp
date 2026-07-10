@@ -263,6 +263,19 @@
   .path-pulse { animation: none; opacity: 0; }
 }
 
+/* Screen transition — a gentle rise-and-fade when the active view changes (ThemeManager
+   sets key={currentView} on the content wrapper so React remounts it with this animation).
+   200ms, GPU-only (transform/opacity), respects prefers-reduced-motion. */
+@keyframes view-enter {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-view-enter { animation: view-enter 200ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-view-enter { animation: none; }
+}
+
 /* App shell height — track the VISIBLE viewport on mobile via dvh so the browser's address bar
    can't push content off-screen and force scroll (STANDARDS §5). `vh` first as a fallback for
    older Android/WebView without dvh; the dvh line overrides where supported. On phones the app
