@@ -448,6 +448,13 @@ APIs never crash a child's session.
 **Tests**: `src/services/__tests__/sound.test.js` (Vitest, node env, globals stubbed) — covers
 mute logic, event mapping, note counts, and silent resilience to API failures.
 
+### Utilities (`src/utils/logger.js`)
+
+**`logger.js`** — the single logging path for all new code (STANDARDS §8). `debug`/`info` are
+dev-only (stripped in production builds); `warn`/`error` always log. All callers import this;
+raw `console.*` calls are banned in new committed code. Non-PII only (children's app, §6).
+Existing `console.*` calls in FROZEN legacy code are left as-is (legacy is never edited).
+
 ### Legacy core (FROZEN) — being retired
 
 The pre-decisions Antigravity core, kept running as-is and **never edited** until its
