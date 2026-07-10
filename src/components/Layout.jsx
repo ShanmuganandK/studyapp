@@ -1,6 +1,7 @@
 import React from 'react';
 import { Home, Lock } from 'lucide-react';
 import useOnline from '../hooks/useOnline';
+import tinkuImg from '../assets/mascot/webp/Tinku_Mascot.webp';
 
 /**
  * Layout — the app shell: outer phone-mockup frame (desktop-only), scrollable content area,
@@ -28,8 +29,9 @@ const Layout = ({ children, currentView, onNavigate }) => {
         {/* Offline banner — appears when the device loses connectivity. Auto-hides on
             reconnect. Non-blocking: child can keep playing (local state intact). */}
         {!isOnline && (
-          <div className="bg-learn-soft text-learn-ink text-xs text-center py-2 px-4 flex-shrink-0" role="status">
-            You're offline — Tinku can still play! Progress saves when you reconnect. 🐘
+          <div className="bg-learn-soft text-learn-ink text-xs py-2 px-4 flex-shrink-0 flex items-center justify-center gap-2" role="status">
+            <img src={tinkuImg} alt="" aria-hidden="true" className="w-7 h-7 object-contain flex-shrink-0" />
+            <span>You're offline — Tinku can still play! Progress saves when you reconnect.</span>
           </div>
         )}
 

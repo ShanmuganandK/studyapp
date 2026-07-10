@@ -2,6 +2,7 @@ import React from 'react';
 import { AuthProvider } from './contexts/AuthContext';
 import ThemeManager from './components/ThemeManager';
 import logger from './utils/logger';
+import tinkuImg from './assets/mascot/webp/Tinku_Mascot.webp';
 
 // Child-safe error boundary: never shows a raw stack trace to a child.
 // Must be a class component (React requirement for componentDidCatch).
@@ -25,7 +26,7 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-bg px-6 text-center gap-4">
-          <span className="text-6xl" aria-hidden="true">🐘</span>
+          <img src={tinkuImg} alt="" aria-hidden="true" className="w-24 h-24 object-contain" />
           <p className="font-display text-primary-ink text-xl font-extrabold">
             Tinku needs a moment!
           </p>
