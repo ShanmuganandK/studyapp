@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, Lock } from 'lucide-react';
+import useOnline from '../hooks/useOnline';
 
 /**
  * Layout — the app shell: outer phone-mockup frame (desktop-only), scrollable content area,
@@ -14,6 +15,8 @@ import { Home, Lock } from 'lucide-react';
  * not tokenised further — the token rule targets product UI, not the dev preview frame.
  */
 const Layout = ({ children, currentView, onNavigate }) => {
+  const isOnline = useOnline();
+
   return (
     <div className="app-shell bg-primary-ink flex items-center justify-center sm:p-4 font-sans">
       {/* Full-bleed on phones; decorative phone-mockup frame on desktop only. */}
@@ -21,6 +24,14 @@ const Layout = ({ children, currentView, onNavigate }) => {
 
         {/* Notch / Status Bar Mockup — desktop frame only. */}
         <div className="hidden sm:block absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-indigo-950 rounded-b-xl z-50" />
+
+        {/* Offline banner — appears when the device loses connectivity. Auto-hides on
+            reconnect. Non-blocking: child can keep playing (local state intact). */}
+        {!isOnline && (
+          <div className="bg-learn-soft text-learn-ink text-xs text-center py-2 px-4 flex-shrink-0" role="status">
+            You're offline — Tinku can still play! Progress saves when you reconnect. 🐘
+          </div>
+        )}
 
         {/* Content area. Key drives the view-enter transition on every view change. */}
         <div className="flex-1 overflow-y-auto pt-3 sm:pt-10 pb-4 px-4 bg-bg scrollbar-hide">

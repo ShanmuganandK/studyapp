@@ -350,6 +350,13 @@ task lands, `progressStore` is the only file that changes.
 unchanged) but currently always `[]` — neither `buildLiteSession` nor `applyResult` populates
 it. Cross-session repeat-avoidance is a future nicety.
 
+### `useOnline` hook (`src/hooks/useOnline.js`)
+
+Returns a live `isOnline: boolean` (initialised from `navigator.onLine`, updated via
+`window online/offline` events). Used by `Layout` to conditionally render the offline
+banner — a gentle `bg-learn-soft` strip that tells the child Tinku can still play and
+that progress will sync on reconnect. Non-blocking: the session continues normally.
+
 ### Session wiring (`src/hooks/useQuizSession.js`) — mastery in/out
 
 `useQuizSession` is the wiring layer between the pure engine and the React lifecycle.
