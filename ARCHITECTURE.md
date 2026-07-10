@@ -141,6 +141,10 @@ future kid-feedback tuning is a token change, not a screen hunt.
   by per-piece inline vars `--dx/--dy/--rot/--dur/--delay`). The session-end sequence is choreographed
   entirely by per-element `animation-delay` (no JS timers); reduced-motion collapses it to
   everything-visible-at-once.
+- **Screen transitions** (Screen 5, `index.css`): `animate-view-enter` (opacity 0→1 + translateY
+  10→0, 200ms ease-out) fires whenever the active view changes. `Layout` keys its content wrapper
+  by `currentView`, so React remounts it with this animation on every nav change. GPU-only;
+  reduced-motion collapses to instant. No JS timers or third-party animation libraries.
 - **Home card motion** (Screen 3, `index.css`): non-suggested cards reuse `animate-opt-in` for the
   stagger-in; the recommended card uses `animate-card-in-suggest` (entrance + a soft one-shot emphasis
   bump — single keyframe so it never fights the button's `:active` press-squish). Per-card stagger
