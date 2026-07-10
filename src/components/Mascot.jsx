@@ -23,7 +23,8 @@ import wavingWebp from '../assets/mascot/webp/Tinku_Bye.webp';
  * it's ready — so a slow/failed first fetch shows reserved space, never a broken-image icon.
  * Cache-hit gotcha: React onLoad doesn't fire when an image loads synchronously from cache
  * before the event listener attaches. The img.complete check in the effect covers this case.
- * onError retries once after 1.5s (transient CDN hiccup); if still fails, space stays blank.
+ * onError retries once after 1.5s (transient CDN hiccup); on second failure it reverts to
+ * the last confirmed-loaded pose so Tinku stays visible even when offline mid-session.
  */
 const POSES = {
   happy: happyWebp,
@@ -48,6 +49,9 @@ export default function Mascot({ emotion = 'happy', size = 120, className = '' }
   const imgRef = useRef(null);
   const timerRef = useRef(null);
   const hasRetriedRef = useRef(false);
+  // Tracks the most recently confirmed-loaded src so we can fall back to it if a subsequent
+  // pose fails to load (e.g. user goes offline mid-session and the new pose isn't in cache).
+  const lastGoodSrcRef = useRef(null);
 
   // After every activeSrc / imgKey change the img remounts. If the browser already has the
   // image in cache it loads synchronously — img.complete is true but onLoad never fires
@@ -55,6 +59,7 @@ export default function Mascot({ emotion = 'happy', size = 120, className = '' }
   // The effect runs after the DOM commit, at which point img.complete is reliable.
   useEffect(() => {
     if (imgRef.current?.complete && imgRef.current?.naturalWidth > 0) {
+      lastGoodSrcRef.current = activeSrc;
       setOpacity(1);
     }
   }, [activeSrc, imgKey]);
@@ -75,15 +80,28 @@ export default function Mascot({ emotion = 'happy', size = 120, className = '' }
   }, [emotion]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleLoad() {
+    lastGoodSrcRef.current = activeSrc;
     setOpacity(1);
   }
 
   function handleError() {
-    // Retry once after a short delay — covers transient CDN/network hiccup.
-    // On second failure: imgKey stays at 1, opacity stays 0 → reserved space, no broken icon.
+    // First failure: retry once after a short delay (transient network hiccup).
     if (!hasRetriedRef.current) {
       hasRetriedRef.current = true;
       setTimeout(() => setImgKey(1), 1500);
+      return;
+    }
+    // Second failure (e.g. offline and pose not yet cached): revert to the last pose
+    // that was confirmed loaded so Tinku stays visible rather than disappearing.
+    const fallback = lastGoodSrcRef.current;
+    if (fallback && fallback !== activeSrc) {
+      setActiveSrc(fallback);
+      setImgKey(0);
+      hasRetriedRef.current = false;
+    } else {
+      // No prior pose in cache either — reveal at full opacity (worst case: browser's
+      // default broken-image placeholder, but Tinku never turns invisible).
+      setOpacity(1);
     }
   }
 
