@@ -135,7 +135,7 @@ const RING_CLASS = {
   mastered: 'border-accent',
   suggested: 'border-learn',
   review: 'border-review',
-  locked: 'border-slate-300',
+  locked: 'border-primary-soft',
 };
 
 function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft, onClick }) {
