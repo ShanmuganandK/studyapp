@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Lock, MessageCircle } from 'lucide-react';
 import Mascot from './Mascot';
+import MasteryPips from './MasteryPips';
 import { loadAllSkillStates } from '../services/progressStore';
 import { progressSummary } from '../engine/progressSummary';
 import { MASTERY } from '../config/masteryConfig';
@@ -21,28 +22,6 @@ function levelLabelColour(level) {
   return 'text-learn-ink';
 }
 
-// Pip colours match the path screen and skill select: learn(sky)=1-2, primary(indigo)=3-4,
-// accent(amber)=mastered. Token-only; no raw hex.
-function MasteryPips({ level }) {
-  return (
-    <span
-      className="flex gap-1 items-center"
-      aria-label={`Level ${level} of ${MASTERY.MAX_LEVEL}`}
-    >
-      {Array.from({ length: MASTERY.MAX_LEVEL }).map((_, i) => {
-        const filled = i < level;
-        const colour = filled
-          ? level >= MASTERY.MASTERED_LEVEL
-            ? 'bg-accent'
-            : level >= MASTERY.UNLOCK_LEVEL
-            ? 'bg-primary'
-            : 'bg-learn'
-          : 'bg-primary-soft';
-        return <span key={i} className={`w-2 h-2 rounded-full ${colour}`} />;
-      })}
-    </span>
-  );
-}
 
 function SkillRow({ skill }) {
   return (

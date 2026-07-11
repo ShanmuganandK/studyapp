@@ -10,14 +10,7 @@
  * Fire-and-forget: logging must never block or break the UI.
  */
 
-// Vite sets import.meta.env.DEV; default to dev-safe if unavailable (e.g. plain node).
-const IS_DEV = (() => {
-  try {
-    return import.meta.env?.DEV ?? true;
-  } catch {
-    return true;
-  }
-})();
+import logger from '../utils/logger';
 
 /**
  * Log a behavioural analytics event.
@@ -26,16 +19,14 @@ const IS_DEV = (() => {
  */
 export function logEvent(name, params = {}) {
   try {
-    if (IS_DEV) {
-      // Dev/test: surface events to the console so the kid-test + local runs are observable.
-      // eslint-disable-next-line no-console
-      console.log('[analytics]', name, params);
-      return;
-    }
-    // TODO(prod): forward to Firebase Analytics once it's enabled
-    //   (getAnalytics(app) → logEvent(analytics, name, params)). Deferred — this thin build
-    //   only needs the wrapper + event shapes; prod forwarding lands with the Firebase task.
-  } catch {
-    // Never let analytics break the UI.
+    // Dev: surface events via logger so the kid-test + local runs are observable.
+    // logger.info is a no-op in prod, so this line is automatically stripped there.
+    logger.info('[analytics]', name, params);
+    // TODO(prod): forward to Firebase Analytics once it's enabled:
+    //   if (!import.meta.env.DEV) { firebaseLogEvent(analytics, name, params); }
+    //   Deferred — only the wrapper + event shapes are needed now; prod forwarding
+    //   lands with the Firebase task.
+  } catch (err) {
+    logger.warn('[analytics] logEvent failed', err);
   }
 }

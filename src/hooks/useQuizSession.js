@@ -30,6 +30,7 @@ import { loadSkillState, saveSkillState } from '../services/progressStore';
 import { emptySkillState, applyResult, nextWorkingDifficulty, isMastered } from '../engine/mastery';
 import { MASTERY } from '../config/masteryConfig';
 import { getSkill } from '../recipes/skillMap';
+import logger from '../utils/logger';
 
 const band = (grade) => (grade <= 3 ? 'wonder' : 'explorer');
 
@@ -210,8 +211,9 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
         const loaded = saved ?? emptySkillState(skillId, skill.maxDifficulty);
         skillStateRef.current = loaded;
         startDifficulty = nextWorkingDifficulty(loaded);
-      } catch {
+      } catch (err) {
         // Unknown skillId or storage failure: start fresh, no mastery update this session.
+        logger.warn('[useQuizSession] skill state load failed — starting fresh', err);
         skillStateRef.current = null;
         startDifficulty = undefined;
       }

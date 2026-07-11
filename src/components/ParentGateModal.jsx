@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Delete, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Mascot from './Mascot';
+import logger from '../utils/logger';
+
+// PIN length — single source of truth. All digit-count logic reads this.
+const PIN_DIGITS = 4;
 
 const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) => {
     const { parentSettings, updatePasscode, verifyPasscode } = useAuth();
@@ -27,11 +31,12 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
     }, [isOpen, isSettingMode, parentSettings, onSuccess]);
 
     const handleNumberClick = (num) => {
-        if (inputCode.length < 4) {
+        if (inputCode.length < PIN_DIGITS) {
             const newCode = inputCode + num;
             setInputCode(newCode);
             setError(false);
-            if (newCode.length === 4) {
+            if (newCode.length === PIN_DIGITS) {
+                // handleSubmit is async but handles all errors internally; safe as fire-and-forget.
                 setTimeout(() => handleSubmit(newCode), 300);
             }
         }
@@ -43,27 +48,33 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
     };
 
     const handleSubmit = async (code) => {
-        if (isSettingMode) {
-            if (step === 1) {
-                setFirstCode(code);
-                setInputCode('');
-                setStep(2);
+        try {
+            if (isSettingMode) {
+                if (step === 1) {
+                    setFirstCode(code);
+                    setInputCode('');
+                    setStep(2);
+                } else {
+                    if (code === firstCode) {
+                        await updatePasscode(code);
+                        onSuccess();
+                    } else {
+                        setError(true);
+                        setInputCode('');
+                    }
+                }
             } else {
-                if (code === firstCode) {
-                    await updatePasscode(code);
+                if (await verifyPasscode(code)) {
                     onSuccess();
                 } else {
                     setError(true);
                     setInputCode('');
                 }
             }
-        } else {
-            if (await verifyPasscode(code)) {
-                onSuccess();
-            } else {
-                setError(true);
-                setInputCode('');
-            }
+        } catch (err) {
+            logger.warn('[ParentGateModal] auth error', err);
+            setError(true);
+            setInputCode('');
         }
     };
 
@@ -100,7 +111,7 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
 
                 {/* PIN dots */}
                 <div className="py-6 flex justify-center gap-4">
-                    {[0, 1, 2, 3].map((i) => (
+                    {Array.from({ length: PIN_DIGITS }, (_, i) => i).map((i) => (
                         <div
                             key={i}
                             className={`w-4 h-4 rounded-full transition-colors ${

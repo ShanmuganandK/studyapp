@@ -14,25 +14,10 @@
  * dev mode errors surface as warnings so they're observable during testing.
  */
 
+import logger from '../utils/logger';
+
 const STORAGE_KEY = 'tinku:v1:skills';
 export const SCHEMA_VERSION = 1;
-
-// ─── Dev-mode logging (never blocks the UI) ──────────────────────────────────
-
-const IS_DEV = (() => {
-  try {
-    return import.meta.env?.DEV ?? true;
-  } catch {
-    return true;
-  }
-})();
-
-function warnStorage(op, err) {
-  if (IS_DEV) {
-    // eslint-disable-next-line no-console
-    console.warn(`[progressStore] ${op} failed — progress won't persist this session.`, err);
-  }
-}
 
 // ─── Internal read/write helpers ─────────────────────────────────────────────
 
@@ -46,7 +31,7 @@ function readStore() {
     if (parsed?.version !== SCHEMA_VERSION) return { version: SCHEMA_VERSION, skills: {} };
     return { version: SCHEMA_VERSION, skills: parsed.skills ?? {} };
   } catch (err) {
-    warnStorage('read', err);
+    logger.warn('[progressStore] read failed — progress won\'t persist this session.', err);
     return { version: SCHEMA_VERSION, skills: {} };
   }
 }
@@ -56,7 +41,7 @@ function writeStore(store) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
   } catch (err) {
-    warnStorage('write', err);
+    logger.warn('[progressStore] write failed — progress won\'t persist this session.', err);
   }
 }
 

@@ -56,13 +56,8 @@ export default function ThemeManager() {
 
   const handleGateSuccess = () => {
     setIsGateOpen(false);
-    if (!isGateSettingMode) {
-      // Navigate to parent zone if we were just verifying
-      setActiveSkillId(null);
-      setCurrentView('parent');
-    } else {
-      alert("Passcode set successfully!");
-    }
+    setActiveSkillId(null);
+    setCurrentView('parent');
   };
 
   return (

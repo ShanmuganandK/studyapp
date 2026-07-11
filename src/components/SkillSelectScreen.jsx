@@ -28,19 +28,17 @@ import SkillCard from './SkillCard';
  * as plain booleans (SkillCard never calls the engine).
  */
 export default function SkillSelectScreen({ onSelectSkill }) {
-  // Lazy init: single synchronous localStorage read on mount. Both allStates and
-  // recommendation are derived from the same snapshot so they stay consistent.
-  // The component remounts after every quiz session (ThemeManager conditional render)
-  // so this always reflects the latest saved state.
-  // NOTE (Screen 3): these engine calls in the component are PRESERVED, not overlooked — a
-  // conscious scope decision. It's a thin delegation to the pure engine (composer/mastery), not
-  // recomputed logic; the reskin only changed rendering, not this data-flow.
+  // today is derived once at mount and closed over by the lazy useState initialiser so
+  // both the recommendation and the per-card isDueForReview check use the same date.
+  // (The component remounts after every quiz session — ThemeManager conditional render —
+  // so the snapshot is always fresh. NOTE: these engine calls are PRESERVED by design —
+  // thin delegation to the pure engine, not recomputed logic; the Screen-3 reskin only
+  // changed rendering, not this data-flow.)
+  const today = new Date().toISOString().slice(0, 10);
   const [{ allStates, recommendation }] = useState(() => {
     const states = loadAllSkillStates();
-    const nowDate = new Date().toISOString().slice(0, 10);
-    return { allStates: states, recommendation: recommendNext(states, SKILLS, nowDate) };
+    return { allStates: states, recommendation: recommendNext(states, SKILLS, today) };
   });
-  const today = new Date().toISOString().slice(0, 10);
 
   const skills = Object.values(SKILLS)
     .filter((s) => s.status === 'ready')

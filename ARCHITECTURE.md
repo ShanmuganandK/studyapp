@@ -171,6 +171,10 @@ future kid-feedback tuning is a token change, not a screen hunt.
   `blankFill` prop (`SessionPlayer` derives `'correct'`/`'reveal'`/`null` from `phase`, existing
   view-state — no new hook/recipe data) to fill the compare blank with the correct sign
   (`animate-slot-fill`): green on a correct answer, sky/learn on the wrong-#2 reveal.
+- **`MasteryPips.jsx`** — shared pip indicator for mastery level 0–MAX_LEVEL. Used by `SkillCard`
+  and `ParentDashboard`. Props: `level`, optional `isDue` (shows ↻ glyph in `review` teal), optional
+  `className` for call-site layout (e.g. `"mt-1.5"`). NOT used by `SkillPathScreen`'s `PathPips`
+  — that duplicate is intentional pending the A/B test decision (see Experiments).
 - **`SkillCard.jsx`** — presentational home-screen skill card primitive (Screen 3). Renders one
   skill's icon/`displayName`/`subtitle` + `MasteryPips`, with token styling, press-squish and a
   stagger-in (`animate-opt-in`; the recommended card enters with the `animate-card-in-suggest`

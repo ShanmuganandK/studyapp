@@ -1,4 +1,4 @@
-import { MASTERY } from '../config/masteryConfig';
+import MasteryPips from './MasteryPips';
 
 /**
  * SkillCard — presentational card for one skill on the home screen (UI overhaul, Screen 3).
@@ -57,37 +57,8 @@ export default function SkillCard({ skill, level, isDue, isSuggested, isReviewSu
           ) : (
             <span className="text-xs font-bold mt-1 text-learn-ink">Tinku suggests!</span>
           ))}
-        <MasteryPips level={level} isDue={isDue} />
+        <MasteryPips level={level} isDue={isDue} className="mt-1.5" />
       </span>
     </button>
-  );
-}
-
-/**
- * Five filled dots showing a skill's mastery level (0–MAX_LEVEL).
- * Colour progression reads as "getting stronger": sky (learn) → indigo (primary) → amber (accent,
- * mastered = reward). Deliberately not stars — stars are the in-session reward (DECISIONS). The ↻
- * "due for review" glyph uses the `review` token (teal), never amber.
- */
-function MasteryPips({ level, isDue }) {
-  return (
-    <span className="flex gap-1 items-center mt-1.5" aria-label={`Level ${level} of ${MASTERY.MAX_LEVEL}`}>
-      {Array.from({ length: MASTERY.MAX_LEVEL }).map((_, i) => {
-        const filled = i < level;
-        const colour = filled
-          ? level >= MASTERY.MASTERED_LEVEL
-            ? 'bg-accent'
-            : level >= MASTERY.UNLOCK_LEVEL
-            ? 'bg-primary'
-            : 'bg-learn'
-          : 'bg-primary-soft';
-        return <span key={i} className={`w-2 h-2 rounded-full ${colour}`} />;
-      })}
-      {isDue && (
-        <span className="ml-0.5 text-review text-xs font-bold leading-none" aria-label="due for review">
-          ↻
-        </span>
-      )}
-    </span>
   );
 }
