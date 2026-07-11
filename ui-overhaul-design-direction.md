@@ -64,7 +64,7 @@ space-* (consistent spacing scale) /
 text-question / text-option / text-title / text-body (fluid clamp values) /
 shadow-card / shadow-button
 ```
-Primitives to extract AS THEY REPEAT (not upfront): `<KidButton>`, `<Card>`, `<ScreenShell>`, `<TinkuBubble>`, celebration components.
+Primitives to extract AS THEY REPEAT (not upfront): `<KidButton>`, `<Card>`, `<ScreenShell>`, `HintBubble.jsx`, celebration components.
 
 ---
 

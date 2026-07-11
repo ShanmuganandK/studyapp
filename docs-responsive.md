@@ -1,6 +1,6 @@
 # docs/responsive.md — Fit-One-Viewport & Responsive Sizing (detailed reference)
 
-> Referenced from STANDARDS §5. Read when building or fixing screen layouts. STANDARDS holds the principle (core interaction fits one viewport; scroll is a fallback); this holds the technique.
+> Read alongside `ui-overhaul-design-direction.md` and STANDARDS §5. Read when building or fixing screen layouts. STANDARDS holds the principle (core interaction fits one viewport; scroll is a fallback); this holds the technique.
 
 ## The principle (restated)
 The essential interaction of a screen — for the quiz, the **question + its answer options** — must fit ONE viewport on a standard phone, no scroll, by default. Decorative elements yield space first. Scroll is a fallback for exceptional content only, and never hides the primary action.
@@ -28,7 +28,11 @@ The essential interaction of a screen — for the quiz, the **question + its ans
 **5. Scroll only as fallback, scoped.**
 - The screen itself does not scroll by default. If a question is genuinely too long to fit even after the above, only the question-text area gets an internal scroll — the answers stay fixed and visible.
 
+**6. Animation.**
+- Animate `transform`/`opacity` only (GPU-safe; see STANDARDS §5); ~200ms for a standard transition; respect `prefers-reduced-motion`.
+
 ## Testing
+- Test widths: **360px** (standard check) and **320px** (small-phone check) — both must pass before any screen task commits. Question text and answer tiles must stay readable and tappable at 320px.
 - Test across a range of phone heights: small budget Android (short viewport), typical phone, large phone. The critical check: on a standard phone, question + 4 answers + mascot fit with NO scroll, and the answer options are ALWAYS visible.
 - Test the longest real content (long compare/word questions) to confirm the fallback behaves (question scrolls internally, answers stay put) rather than the whole screen overflowing.
 - `100dvh` behavior: check with the mobile browser address bar both visible and hidden.
