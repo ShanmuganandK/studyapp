@@ -104,3 +104,4 @@
   meaning, not because the palette is expanding casually. **Any future "needs attention / revisit"
   state inherits `color.review`, never amber.** (Introduced with UI overhaul Screen 3 — home /
   skill-select; `SkillCard` consumes `border-review` / `text-review`.)
+- (2026-07-12) **Mute is session-scoped by design; sound defaults ON each app start** (kids' app, restart-heavy usage). The `muted` flag is module-scoped (not persisted), so it resets to ON on full reload/restart — this is intentional, NOT a bug. (Flagged by the 2026-07-12 feel-layer audit precisely because it reads like one; locked here so future audits don't re-flag it.)
