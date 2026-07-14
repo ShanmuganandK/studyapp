@@ -48,6 +48,15 @@ describe('ParentGateModal', () => {
     expect(onSuccess).toHaveBeenCalled();
   });
 
+  it('set mode with no passcode does NOT auto-succeed — shows the set screen (regression: first-click no-op)', () => {
+    // parentSettings has no passcodeHash; opening in setting mode must show the PIN-set screen,
+    // never fire the no-code auto-success (which previously closed the gate on the first click).
+    const onSuccess = vi.fn();
+    render(<ParentGateModal isOpen isSettingMode onClose={() => {}} onSuccess={onSuccess} />);
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(screen.getByText('Set a Passcode')).toBeTruthy();
+  });
+
   it('verify: wrong PIN shakes and does not proceed', async () => {
     auth.parentSettings = { passcodeHash: HASH };
     auth.verifyPasscode.mockResolvedValue(false);

@@ -22,12 +22,27 @@ export const AuthProvider = ({ children }) => {
     // localStorage is readable by anyone with the device / devtools). SHA-256 via Web Crypto;
     // verify by comparing hashes. Note: a 4-digit PIN is low-entropy, so this is a
     // proportionate kid-gate hardening, not strong cryptographic protection.
+    //
+    // `crypto.subtle` only exists in a SECURE context (HTTPS or localhost). On a non-secure dev
+    // origin (e.g. a LAN IP over HTTP) it's undefined, which would throw and silently break both
+    // set and verify. The gate is a DETERRENT, not a security boundary (DECISIONS 2026-07-14), so
+    // we fall back to a simple non-crypto hash there — the PIN still works, just without SHA. The
+    // `plain:` prefix keeps the two schemes from ever colliding on a single origin.
     const hashPasscode = async (code) => {
-        const data = new TextEncoder().encode(code);
-        const digest = await crypto.subtle.digest('SHA-256', data);
-        return Array.from(new Uint8Array(digest))
-            .map((b) => b.toString(16).padStart(2, '0'))
-            .join('');
+        if (globalThis.crypto?.subtle) {
+            const data = new TextEncoder().encode(code);
+            const digest = await crypto.subtle.digest('SHA-256', data);
+            return Array.from(new Uint8Array(digest))
+                .map((b) => b.toString(16).padStart(2, '0'))
+                .join('');
+        }
+        // Non-secure context fallback (deterrent only): FNV-1a-style string hash.
+        let h = 0x811c9dc5;
+        for (let i = 0; i < code.length; i++) {
+            h ^= code.charCodeAt(i);
+            h = Math.imul(h, 0x01000193);
+        }
+        return 'plain:' + (h >>> 0).toString(16);
     };
 
     useEffect(() => {

@@ -54,20 +54,30 @@ export default function ThemeManager() {
     setCurrentView(view);
   };
 
+  const closeGate = () => {
+    setIsGateOpen(false);
+    setIsGateSettingMode(false); // never let the "setting" flag leak into the next open
+  };
+
   const handleGateSuccess = () => {
     setIsGateOpen(false);
+    setIsGateSettingMode(false);
     setActiveSkillId(null);
     setCurrentView('parent');
   };
 
   return (
     <Layout currentView={currentView} onNavigate={handleNavigate} scrollLocked={isGateOpen}>
-      <ParentGateModal
-        isOpen={isGateOpen}
-        onClose={() => setIsGateOpen(false)}
-        onSuccess={handleGateSuccess}
-        isSettingMode={isGateSettingMode}
-      />
+      {/* Mounted only while open so it starts fresh each time — its internal mode initialises
+          from isSettingMode with no stale-state lag (fixes the first-click-no-op race). */}
+      {isGateOpen && (
+        <ParentGateModal
+          isOpen
+          onClose={closeGate}
+          onSuccess={handleGateSuccess}
+          isSettingMode={isGateSettingMode}
+        />
+      )}
 
       {currentView === 'skills' &&
         (USE_CARD_HOME ? (

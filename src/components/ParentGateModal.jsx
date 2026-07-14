@@ -41,11 +41,13 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
     }, [isOpen, isSettingMode]);
 
     // No passcode set + verify mode → let them through immediately (the deterrent's no-code state).
+    // Guarded by !isSettingMode (the authoritative prop) so a not-yet-synced `mode` can never make
+    // an open-in-set flow auto-succeed and close before the set screen shows.
     useEffect(() => {
-        if (isOpen && mode === 'verify' && !parentSettings?.passcodeHash) {
+        if (isOpen && !isSettingMode && mode === 'verify' && !parentSettings?.passcodeHash) {
             onSuccess();
         }
-    }, [isOpen, mode, parentSettings, onSuccess]);
+    }, [isOpen, isSettingMode, mode, parentSettings, onSuccess]);
 
     const handleNumberClick = (num) => {
         if (inputCode.length < PIN_DIGITS) {
@@ -120,7 +122,7 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
     };
 
     if (!isOpen) return null;
-    if (mode === 'verify' && !parentSettings?.passcodeHash) return null;
+    if (!isSettingMode && mode === 'verify' && !parentSettings?.passcodeHash) return null;
     if (typeof document === 'undefined') return null;
 
     const heading = mode === 'challenge'
