@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
     const hashPasscode = async (code) => {
         if (globalThis.crypto?.subtle) {
             const data = new TextEncoder().encode(code);
-            const digest = await crypto.subtle.digest('SHA-256', data);
+            const digest = await globalThis.crypto.subtle.digest('SHA-256', data);
             return Array.from(new Uint8Array(digest))
                 .map((b) => b.toString(16).padStart(2, '0'))
                 .join('');
@@ -55,12 +55,6 @@ export const AuthProvider = ({ children }) => {
                     setProfiles(JSON.parse(savedProfiles));
                 }
 
-                // Load Settings
-                const savedSettings = localStorage.getItem(getSettingsKey(user.uid));
-                if (savedSettings) {
-                    setParentSettings(JSON.parse(savedSettings));
-                }
-
                 // Auto-restore last active profile
                 const lastProfileId = localStorage.getItem(getLastProfileKey(user.uid));
                 if (lastProfileId && savedProfiles) {
@@ -73,8 +67,14 @@ export const AuthProvider = ({ children }) => {
             } else {
                 setProfiles([]);
                 setCurrentProfile(null);
-                setParentSettings({ passcodeHash: null });
             }
+
+            // The parent passcode is a device-local, anonymous DETERRENT — it must work with or
+            // without a signed-in account (the current build has no anonymous sign-in, so `user`
+            // is null on a fresh device). Namespace it under the uid when present, else 'anon',
+            // and load it regardless of auth state so it survives reloads.
+            const savedSettings = localStorage.getItem(getSettingsKey(user?.uid ?? 'anon'));
+            setParentSettings(savedSettings ? JSON.parse(savedSettings) : { passcodeHash: null });
             setLoading(false);
         });
 
@@ -137,11 +137,10 @@ export const AuthProvider = ({ children }) => {
     };
 
     const updatePasscode = async (newPasscode) => {
-        if (!user) return;
         const passcodeHash = await hashPasscode(newPasscode);
         const newSettings = { ...parentSettings, passcodeHash };
         setParentSettings(newSettings);
-        localStorage.setItem(getSettingsKey(user.uid), JSON.stringify(newSettings));
+        localStorage.setItem(getSettingsKey(user?.uid ?? 'anon'), JSON.stringify(newSettings));
     };
 
     const verifyPasscode = async (inputCode) => {
@@ -154,10 +153,9 @@ export const AuthProvider = ({ children }) => {
     // (the deterrent's no-code state). Used by "Remove passcode" and the forgot-passcode recovery.
     // Persists to the SAME settings key; no new storage. Never touches child progress.
     const clearPasscode = () => {
-        if (!user) return;
         const newSettings = { ...parentSettings, passcodeHash: null };
         setParentSettings(newSettings);
-        localStorage.setItem(getSettingsKey(user.uid), JSON.stringify(newSettings));
+        localStorage.setItem(getSettingsKey(user?.uid ?? 'anon'), JSON.stringify(newSettings));
     };
 
     const value = {
