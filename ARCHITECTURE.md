@@ -227,11 +227,26 @@ entry → SkillPathScreen (default) or SkillSelectScreen (?home=cards) → Recip
   single-source `PRIVACY_NOTICE` in `config/constants`. Two variants: `card` (prominent, parent
   dashboard) and `footer` (subtle muted text, home/skill-select). Never on kid-facing quiz screens.
   Claims limited to what's true (anonymous, on-device) — no "offline"/"no tracking".
+- **`ParentGateModal.jsx`** — the Families-Policy DETERRENT gate (not a security boundary; DECISIONS
+  2026-07-14). Rendered via **`createPortal` to `document.body`** so the `fixed inset-0` overlay pins
+  to the true viewport regardless of scroll position or ancestor transform (fixes the off-viewport
+  bug — it used to live inside Layout's scrolled/`animate-view-enter` wrapper). Internal `mode` state
+  `'verify' | 'set' | 'challenge'` (seeded by the `isSettingMode` prop). **Forgot-passcode recovery:**
+  a "Forgot passcode?" link → runtime adult arithmetic challenge (`makeAdultChallenge` in
+  `parentChallenge.js`, two-digit × one-digit, never stored); correct answer calls `clearPasscode`
+  and drops into set-new-passcode; wrong = `animate-shake` + retry, no lockout. Never touches child
+  progress. Card is `max-h-[92dvh] overflow-y-auto` for fit-one-viewport at 320px. Background scroll
+  lock is Layout's `scrollLocked` prop (the real scroller is Layout's `.flex-1`, not `body`), driven
+  by `ThemeManager`'s `isGateOpen`. Tests: `__tests__/ParentGateModal.test.jsx` (portal target,
+  verify/set/forgot lifecycle) + `__tests__/parentChallenge.test.js` (pure challenge).
 - **`ParentDashboard.jsx`** — encouraging progress snapshot for parents, behind `ParentGateModal`.
   Renders via `progressSummary` (see below): mastered/in-progress/not-started skill list, wins
-  highlight, "currently working on" strip, light activity signal, passcode button. Reads local
-  mastery data only (no account, no cloud). Deferred: misconception-based "areas to support"
-  (post-teacher-review), activity trends, parent accounts/cloud sync, multiple child profiles.
+  highlight, "currently working on" strip, light activity signal, passcode actions. Passcode
+  lifecycle in the footer: **Change/Set** (`onSetPasscode`) and **Remove** (`onRemovePasscode` →
+  `clearPasscode`, with a two-step inline confirm; removal leaves the zone ungated until a new code is
+  set). Reads local mastery data only (no account, no cloud). Test: `__tests__/ParentDashboard.test.jsx`.
+  Deferred: misconception-based "areas to support" (post-teacher-review), activity trends, parent
+  accounts/cloud sync, multiple child profiles.
 
 **FROZEN / unreachable screens** (kept, never edited, no longer wired into navigation):
 `AdventureLadder.jsx`, `Syllabus.jsx`, `PassportDashboard.jsx`, `QuizEngine.jsx`,

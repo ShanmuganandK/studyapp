@@ -68,11 +68,12 @@ function SectionLabel({ children }) {
  *
  * Tone: positive, never judgmental. No grades, percentages, rankings, or guilt.
  *
- * @param {() => void}  onSetPasscode  - triggers the parent gate in "set passcode" mode
- * @param {boolean}     hasPasscode    - whether a passcode is already set
- * @param {string|null} userEmail      - logged-in email, or null
+ * @param {() => void}  onSetPasscode    - triggers the parent gate in "set passcode" mode
+ * @param {() => void}  onRemovePasscode - clears the stored passcode (zone then opens ungated)
+ * @param {boolean}     hasPasscode      - whether a passcode is already set
+ * @param {string|null} userEmail        - logged-in email, or null
  */
-export default function ParentDashboard({ onSetPasscode, hasPasscode, userEmail }) {
+export default function ParentDashboard({ onSetPasscode, onRemovePasscode, hasPasscode, userEmail }) {
   // Single storage read on mount; remounts when navigating back from child view.
   const [summary] = useState(() => {
     const skillStates = loadAllSkillStates();
@@ -82,6 +83,9 @@ export default function ParentDashboard({ onSetPasscode, hasPasscode, userEmail 
 
   const { mastered, inProgress, notStarted, masteredCount, lastActivity } = summary;
   const totalReady = mastered.length + inProgress.length + notStarted.length;
+
+  // Inline "Remove passcode?" confirm — avoids an accidental one-tap removal of the gate.
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   return (
     <div className="flex flex-col min-h-full bg-bg overflow-y-auto">
@@ -194,6 +198,34 @@ export default function ParentDashboard({ onSetPasscode, hasPasscode, userEmail 
             <Lock size={18} />
             {hasPasscode ? 'Change Passcode' : 'Set Parent Passcode'}
           </button>
+
+          {/* Remove passcode — only when one is set. Two-step inline confirm (no modal system):
+              removing the code leaves the parent zone open ungated until a new code is set. */}
+          {hasPasscode && (
+            confirmRemove ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => { setConfirmRemove(false); onRemovePasscode(); }}
+                  className="flex-1 bg-encourage text-encourage-ink rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+                >
+                  Remove passcode
+                </button>
+                <button
+                  onClick={() => setConfirmRemove(false)}
+                  className="flex-1 border border-primary-soft text-muted rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmRemove(true)}
+                className="w-full py-2.5 text-sm text-muted hover:text-encourage-ink transition-colors"
+              >
+                Remove passcode
+              </button>
+            )
+          )}
 
           <a
             href={feedbackWhatsAppUrl()}

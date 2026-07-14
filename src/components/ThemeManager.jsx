@@ -25,7 +25,7 @@ const USE_CARD_HOME =
 const DEFAULT_GRADE = 1;
 
 export default function ThemeManager() {
-  const { user, currentProfile, parentSettings } = useAuth();
+  const { user, currentProfile, parentSettings, clearPasscode } = useAuth();
   const grade = currentProfile?.grade ?? DEFAULT_GRADE;
 
   // The only child-reachable path: skill-selection → quiz → session-end (inside the quiz).
@@ -61,7 +61,7 @@ export default function ThemeManager() {
   };
 
   return (
-    <Layout currentView={currentView} onNavigate={handleNavigate}>
+    <Layout currentView={currentView} onNavigate={handleNavigate} scrollLocked={isGateOpen}>
       <ParentGateModal
         isOpen={isGateOpen}
         onClose={() => setIsGateOpen(false)}
@@ -83,6 +83,7 @@ export default function ThemeManager() {
       {currentView === 'parent' && (
         <ParentDashboard
           onSetPasscode={() => { setIsGateSettingMode(true); setIsGateOpen(true); }}
+          onRemovePasscode={clearPasscode}
           hasPasscode={!!parentSettings?.passcodeHash}
           userEmail={user?.email ?? null}
         />

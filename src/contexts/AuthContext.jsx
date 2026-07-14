@@ -135,6 +135,16 @@ export const AuthProvider = ({ children }) => {
         return parentSettings.passcodeHash === inputHash;
     };
 
+    // Remove the passcode entirely — the parent zone then opens ungated until a new code is set
+    // (the deterrent's no-code state). Used by "Remove passcode" and the forgot-passcode recovery.
+    // Persists to the SAME settings key; no new storage. Never touches child progress.
+    const clearPasscode = () => {
+        if (!user) return;
+        const newSettings = { ...parentSettings, passcodeHash: null };
+        setParentSettings(newSettings);
+        localStorage.setItem(getSettingsKey(user.uid), JSON.stringify(newSettings));
+    };
+
     const value = {
         user,
         profiles,
@@ -147,7 +157,8 @@ export const AuthProvider = ({ children }) => {
         selectProfile,
         switchProfile,
         updatePasscode,
-        verifyPasscode
+        verifyPasscode,
+        clearPasscode
     };
 
     return (

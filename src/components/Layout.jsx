@@ -15,7 +15,7 @@ import tinkuImg from '../assets/mascot/webp/Tinku_Mascot.webp';
  * decoration (never seen on a phone) and don't participate in band theming, so they're
  * not tokenised further — the token rule targets product UI, not the dev preview frame.
  */
-const Layout = ({ children, currentView, onNavigate }) => {
+const Layout = ({ children, currentView, onNavigate, scrollLocked = false }) => {
   const isOnline = useOnline();
 
   return (
@@ -39,7 +39,9 @@ const Layout = ({ children, currentView, onNavigate }) => {
             each nav change — scrollTop resets to 0 and the view-enter animation fires on the
             fresh inner div. Key on the outer (scroll) div, not the inner, so the scroll
             position can never bleed across views. */}
-        <div key={currentView} className="flex-1 overflow-y-auto pt-3 sm:pt-10 pb-4 px-4 bg-bg scrollbar-hide">
+        {/* scrollLocked (gate open) freezes this scroller so the background can't scroll behind
+            the portalled modal — the real scroll container is here, not the body. */}
+        <div key={currentView} className={`flex-1 ${scrollLocked ? 'overflow-hidden' : 'overflow-y-auto'} pt-3 sm:pt-10 pb-4 px-4 bg-bg scrollbar-hide`}>
           <div className="h-full animate-view-enter">
             {children}
           </div>
