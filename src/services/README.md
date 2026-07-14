@@ -7,6 +7,10 @@ strategy"). Keeps the rest of the codebase pure and mockable (STANDARDS §2/§3)
 **Purpose (planned new-core modules):**
 - **Auth** — anonymous-first (`signInAnonymously()` on first launch), with later
   anonymous → Google linking via `linkWithCredential` (zero progress loss).
+  **⚠️ PLANNED, NOT YET IMPLEMENTED (T109).** The current build has *no* anonymous
+  sign-in — the live path is the frozen Google-**popup-first** `authService.js` below, so
+  `user` is `null` until a Google login. Device-local features (parent passcode, child
+  progress) therefore key off `'anon'` and must not depend on a signed-in `user`.
 - **Firestore** — child state persistence under `users/{uid}/...` (see STANDARDS §4),
   offline-first.
 - **Billing** — Google Play Billing (later task).
