@@ -171,18 +171,26 @@ future kid-feedback tuning is a token change, not a screen hunt.
   `blankFill` prop (`SessionPlayer` derives `'correct'`/`'reveal'`/`null` from `phase`, existing
   view-state — no new hook/recipe data) to fill the compare blank with the correct sign
   (`animate-slot-fill`): green on a correct answer, sky/learn on the wrong-#2 reveal.
-- **`MasteryPips.jsx`** — shared pip indicator for mastery level 0–MAX_LEVEL. Used by `SkillCard`
-  and `ParentDashboard`. Props: `level`, optional `isDue` (shows ↻ glyph in `review` teal), optional
-  `className` for call-site layout (e.g. `"mt-1.5"`). NOT used by `SkillPathScreen`'s `PathPips`
-  — that duplicate is intentional pending the A/B test decision (see Experiments).
+- **`skillStateVisual.jsx`** — **the shared skill-state visual grammar** (SINGLE source both Home views
+  consume so they can't drift). `getSkillVisual({ level, isDue, isSuggested, isReviewSuggested })` →
+  `{ state, ring, cue, loud }` with fixed precedence: suggested-review (teal ring, loud review cue) >
+  suggested-frontier (sky, suggest cue) > **due-not-suggested (NEUTRAL ring + muted teal cue — never
+  amber while due)** > mastered-not-due (amber ring) > idle. `loud` marks the one call-to-action.
+  `SkillStateCue({ cue, className })` renders the shared label markup (↻ Review time! / Tinku
+  suggests!). Presentation only — state is computed by the engine. Test: `__tests__/skillStateVisual.test.js`
+  (+ `skillStateGrammar.crossview.test.jsx` asserts card ≡ path). LOCKED rule fix: DECISIONS 2026-07-15.
+- **`MasteryPips.jsx`** — shared pip indicator for mastery level 0–MAX_LEVEL (**level only** now; the
+  review-due ↻ moved to the shared label cue, 2026-07-15). Used by `SkillCard` and `ParentDashboard`.
+  Props: `level`, optional `className`. NOT used by `SkillPathScreen`'s `PathPips` — that duplicate is
+  intentional pending the A/B test decision (see Experiments).
 - **`SkillCard.jsx`** — presentational home-screen skill card primitive (Screen 3). Renders one
-  skill's icon/`displayName`/`subtitle` + `MasteryPips`, with token styling, press-squish and a
-  stagger-in (`animate-opt-in`; the recommended card enters with the `animate-card-in-suggest`
-  emphasis pulse). Takes pure view data — `{ skill, level, isDue, isSuggested, isReviewSuggested,
-  index, onClick }`; **never calls the engine** (recommendation/review-due are computed upstream and
-  handed in as booleans). Colour rule: review-due uses `border-review`/`text-review` (teal), suggest
-  uses `learn` (sky), mastered pip uses `accent` (amber = reward). Smoke test:
-  `__tests__/SkillCard.test.jsx` (suggest vs review vs plain, pips, review-token-not-amber).
+  skill's icon/`displayName`/`subtitle` + a `SkillStateCue` + `MasteryPips`, with token styling,
+  press-squish and a stagger-in (`animate-opt-in`; the loud/recommended card enters with
+  `animate-card-in-suggest`). Takes pure view data — `{ skill, level, isDue, isSuggested,
+  isReviewSuggested, index, onClick }`; **never calls the engine**. Ring/label come from the shared
+  `getSkillVisual` grammar (identical to `SkillPathScreen`): review-due = teal, suggest = sky,
+  mastered-not-due = amber ring, due-but-not-suggested = neutral ring + muted teal cue (never amber).
+  Smoke test: `__tests__/SkillCard.test.jsx`.
 - **Reskinned (Screen 2 — session-end):** the interim in-file `SessionEnd` was replaced by the
   `CelebrationScreen` + `Confetti` primitives above.
 - **Reskinned (Screen 3 — home / skill-select):** `SkillSelectScreen.jsx` moved onto tokens and now
@@ -415,8 +423,9 @@ provided, all questions use that fixed difficulty (clamped to `maxDifficulty`) i
 Each skill card shows 5 small round pips reflecting the child's current mastery level (rendered by
 `MasteryPips` inside `SkillCard` since Screen 3). Pip colours (tokens): empty = `primary-soft`;
 levels 1–2 = `learn` (sky); levels 3–4 = `primary` (indigo); level 5 (mastered) = `accent` (amber =
-reward). A `↻` glyph in the `review` token (teal) marks skills due for spaced-rep review — NOT amber
-(DECISIONS 2026-07-05).
+reward). Review-due is signalled by the shared `SkillStateCue` **label** ("↻ Review time!" in the
+`review` teal token) — NOT a pip glyph, NOT amber (DECISIONS 2026-07-05 / 2026-07-15). Ring/label for
+both Home views derive from the shared `getSkillVisual` grammar (`skillStateVisual.jsx`).
 
 Deliberately not stars (stars = in-session reward, DECISIONS). This is the verify-it-works
 surface; the full parent dashboard is a later task.
@@ -510,10 +519,11 @@ replace production; production stays the default.
   node). **Currently the DEFAULT Home on master** (kid-test in progress); `SkillSelectScreen` is
   reachable via **`?home=cards`** for A/B comparison — same production build, no deploy needed.
   **Data flow is identical to `SkillSelectScreen`** (copied `loadAllSkillStates` + `recommendNext` +
-  per-node `isDueForReview`; no new engine calls/logic); pip/label code is intentionally
-  **duplicated**, not shared (de-dup only after the decision, §0.2). Tokens only; review-due =
-  `review` (teal), mastered = `accent` (amber). The `locked` medallion style exists but is
-  **unwired** (ready-only data yields no locked nodes — mirrors "locked cards deferred"). Motion:
+  per-node `isDueForReview`; no new engine calls/logic). Ring/label derivation now uses the **shared
+  `getSkillVisual` grammar** (`skillStateVisual.jsx`) — identical to `SkillCard`, so the two views
+  can't drift (fixed the amber-while-due bug, 2026-07-15); only `PathPips` stays duplicated from
+  `MasteryPips` (de-dup deferred until the kid-test decision, §0.2). Tokens only; review-due = `review`
+  (teal), mastered-not-due = `accent` (amber), due-but-not-suggested = neutral (never amber). Motion:
   reuses `animate-opt-in` for the node stagger + a repeating `path-pulse` sonar ring on the suggested
   node (reduced-motion off). Smoke test: `__tests__/SkillPathScreen.test.jsx`. **To retire (if
   cards win the kid-test):** swap the ternary in `ThemeManager`, delete `SkillPathScreen.jsx` +

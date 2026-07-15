@@ -43,29 +43,47 @@ describe('SkillPathScreen', () => {
     expect(screen.queryByText(/Review time!/)).toBeNull();
   });
 
+  // Skill-state builder for the mastery/review cases.
+  const mastered = (id, nextReview) => ({
+    skillId: id, level: 5, difficulty: 3, maxDifficulty: 3, attempts: 20, correct: 18,
+    lastSeen: '2000-01-01', nextReview, reviewInterval: 1, recentParams: [], misconceptions: {},
+  });
+
   it('shows a review-due skill in the teal review token, never amber', () => {
     const firstId = readySkills[0].id;
-    mockStates = {
-      [firstId]: {
-        skillId: firstId,
-        level: 5,
-        difficulty: 3,
-        maxDifficulty: 3,
-        attempts: 20,
-        correct: 18,
-        lastSeen: '2000-01-01',
-        nextReview: '2000-01-01', // safely in the past → due
-        reviewInterval: 1,
-        recentParams: [],
-        misconceptions: {},
-      },
-    };
+    mockStates = { [firstId]: mastered(firstId, '2000-01-01') }; // in the past → due (and the only rec)
     const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
     expect(screen.getByText(/Review time!/)).toBeTruthy();
     expect(container.querySelector('.text-review')).toBeTruthy();
     expect(container.querySelector('.border-review')).toBeTruthy();
     // Amber is reward-only; it must not carry the review meaning.
-    expect(container.querySelector('.text-amber-500')).toBeNull();
-    expect(container.querySelector('.border-amber-400')).toBeNull();
+    expect(container.querySelector('.border-accent')).toBeNull();
+  });
+
+  it('TWO reviews due: suggested one is teal; the other is NEUTRAL, never amber (the fix)', () => {
+    const [a, b] = [readySkills[0].id, readySkills[1].id];
+    mockStates = {
+      [a]: mastered(a, '2000-01-01'), // most overdue → suggested-review (teal)
+      [b]: mastered(b, '2000-06-01'), // also due, not suggested → neutral ring, muted cue
+    };
+    const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
+    // Both due nodes show the review cue.
+    expect(screen.getAllByText(/Review time!/).length).toBe(2);
+    // Exactly one loud (teal) ring; the due-not-suggested node does NOT wear amber.
+    expect(container.querySelector('.border-review')).toBeTruthy();
+    expect(container.querySelectorAll('.border-accent').length).toBe(0);
+  });
+
+  it('mastered-not-due shows the amber ring; a separate frontier skill is the suggestion', () => {
+    const [a, b] = [readySkills[0].id, readySkills[1].id];
+    mockStates = {
+      [a]: mastered(a, '2999-12-31'), // mastered, review far in the future → NOT due → amber ring
+      [b]: { ...mastered(b, null), level: 2, correct: 6 }, // started, not mastered → frontier suggestion
+    };
+    const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
+    expect(container.querySelector('.border-accent')).toBeTruthy(); // amber only when not due
+    expect(container.querySelector('.border-learn')).toBeTruthy();  // sky suggestion
+    expect(screen.getByText('Tinku suggests!')).toBeTruthy();
+    expect(screen.queryByText(/Review time!/)).toBeNull();          // nothing is due
   });
 });

@@ -4,6 +4,7 @@ import { loadAllSkillStates } from '../services/progressStore';
 import { isDueForReview } from '../engine/mastery';
 import { MASTERY } from '../config/masteryConfig';
 import { recommendNext } from '../engine/composer';
+import { getSkillVisual, SkillStateCue } from './skillStateVisual';
 import Mascot from './Mascot';
 import PrivacyNotice from './PrivacyNotice';
 
@@ -126,30 +127,11 @@ export default function SkillPathScreen({ onSelectSkill }) {
 
 // ── One stop on the path: medallion + label + (when suggested) the Tinku "go here" marker ──
 
-// Medallion ring by state. `locked` is spec'd + STYLED here but intentionally UNWIRED in this
-// experiment: the identical-to-production data flow yields no locked nodes (ready-only, no prereq
-// computation) — mirrors the Screen-3 "locked cards deferred" decision. Kept ready for a future
-// lock signal. amber(accent)=mastered reward only; review(teal)=review-due; sky(learn)=suggested.
-const RING_CLASS = {
-  idle: 'border-primary-soft',
-  mastered: 'border-accent',
-  suggested: 'border-learn',
-  review: 'border-review',
-  locked: 'border-primary-soft',
-};
-
 function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft, onClick }) {
-  const isMastered = level >= MASTERY.MASTERED_LEVEL;
-  const ringState = isReviewSuggested
-    ? 'review'
-    : isSuggested
-    ? 'suggested'
-    : isMastered
-    ? 'mastered'
-    : 'idle';
-
-  // The pulse (on the active recommendation) matches its ring colour so "go here" reads at a glance.
-  const pulseBorder = isReviewSuggested ? 'border-review' : 'border-learn';
+  // SHARED state→visual grammar (skillStateVisual.jsx) — identical mapping to SkillCard, so the two
+  // Home views can't drift. due-but-not-suggested is NEUTRAL (never amber while due); mastered-not-
+  // due is amber; the single loud element is the suggested node. (DECISIONS 2026-07-15.)
+  const visual = getSkillVisual({ level, isDue, isSuggested, isReviewSuggested });
 
   const lanePct = isLeft ? LANE_LEFT : LANE_RIGHT;
   // Label fills the opposite (inner) side of the row so it never overlaps the node.
@@ -163,12 +145,12 @@ function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft,
       <button
         onClick={onClick}
         aria-label={skill.displayName ?? skill.name}
-        className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-[76px] h-[76px] rounded-full bg-bg-card border-[5px] ${RING_CLASS[ringState]} shadow-card flex items-center justify-center active:scale-95 hover:scale-105 transition-transform`}
+        className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-[76px] h-[76px] rounded-full bg-bg-card border-[5px] ${visual.ring} shadow-card flex items-center justify-center active:scale-95 hover:scale-105 transition-transform`}
         style={{ left: `${lanePct}%` }}
       >
-        {/* Gentle repeating sonar pulse on the active recommendation (transform/opacity only). */}
-        {isSuggested && (
-          <span aria-hidden="true" className={`path-pulse absolute inset-[-5px] rounded-full border-[3px] ${pulseBorder}`} />
+        {/* Gentle repeating sonar pulse on the single loud node; matches its ring colour. */}
+        {visual.loud && (
+          <span aria-hidden="true" className={`path-pulse absolute inset-[-5px] rounded-full border-[3px] ${visual.ring}`} />
         )}
         <span className="text-3xl leading-none" aria-hidden="true">
           {skill.icon}
@@ -176,7 +158,7 @@ function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft,
       </button>
 
       {/* Tinku "you are here / go here" marker beside the suggested node (outer side). */}
-      {isSuggested && (
+      {visual.loud && (
         <div
           className="absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none"
           style={isLeft ? { left: '-2px' } : { right: '-2px' }}
@@ -185,21 +167,14 @@ function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft,
         </div>
       )}
 
-      {/* Label block on the inner side. */}
+      {/* Label block on the inner side. Cue uses the SHARED grammar (skillStateVisual). */}
       <div className="absolute top-1/2 -translate-y-1/2 flex flex-col min-w-0" style={labelSide}>
         <span className="font-display text-primary-ink font-extrabold text-base leading-tight truncate">
           {skill.displayName ?? skill.name}
         </span>
         {skill.subtitle && <span className="text-muted text-xs font-medium truncate">{skill.subtitle}</span>}
 
-        {/* Review-due (teal, never amber) takes precedence over the suggest label. */}
-        {isDue || isReviewSuggested ? (
-          <span className={`text-xs font-bold mt-0.5 text-ink ${isLeft ? '' : 'self-end'}`}>
-            <span className="text-review">↻</span> Review time!
-          </span>
-        ) : isSuggested ? (
-          <span className={`text-xs font-bold mt-0.5 text-learn-ink ${isLeft ? '' : 'self-end'}`}>Tinku suggests!</span>
-        ) : null}
+        <SkillStateCue cue={visual.cue} className={`mt-0.5 ${isLeft ? '' : 'self-end'}`} />
 
         <PathPips level={level} isLeft={isLeft} />
       </div>
