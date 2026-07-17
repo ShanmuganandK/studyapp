@@ -487,6 +487,17 @@ APIs never crash a child's session.
 **Tests**: `src/services/__tests__/sound.test.js` (Vitest, node env, globals stubbed) — covers
 mute logic, event mapping, note counts, and silent resilience to API failures.
 
+### Analytics seam (`src/services/analytics.js`) — INERT no-op
+
+MVP ships with **no analytics whatsoever** (DECISIONS 2026-07-16): no Firebase Analytics SDK in the
+build, no telemetry (`firebase` is retained for **auth only** — `firebase/analytics`/`getAnalytics`
+is imported nowhere). `logEvent(name, params)` is a deliberate **no-op** — emits nothing (no console,
+no network, no Firebase). The **seam pattern**: feature code keeps calling `logEvent(...)` at its 6
+call-sites (all in `useQuizSession.js`), so when analytics returns — **post-traction, only behind
+verified parental consent** — ONLY this file changes; call-sites stay identical. Guard test
+`__tests__/analytics.test.js` asserts the API is callable, emits nothing, and that no source file
+imports the Analytics SDK (so it can't enter the bundle).
+
 ### Utilities (`src/utils/logger.js`)
 
 **`logger.js`** — the single logging path for all new code (STANDARDS §8). `debug`/`info` are

@@ -1,32 +1,22 @@
 /**
- * analytics — a tiny, swappable wrapper around event logging (analytics-plan.md).
+ * analytics — an INERT no-op seam (MVP ships with NO analytics whatsoever).
  *
- * Everything calls `logEvent` here, never Firebase directly — so it's mockable in tests,
- * silent in dev, and we can swap providers later without touching feature code.
+ * Per DECISIONS 2026-07-16: no Firebase Analytics SDK in the build, no telemetry (guest or
+ * otherwise). Feature code still calls `logEvent(...)` everywhere (the seam is preserved), but the
+ * wrapper does nothing — it emits no console output, no network, no Firebase. Analytics returns only
+ * post-traction and only behind verified parental consent; when it does, ONLY this file changes
+ * (call-sites stay identical). Do NOT re-add emission here without that consent decision.
  *
- * Child-safety (Families Policy / DPDP): callers must pass behaviour only — skill ids,
- * difficulty, correctness, tags, counts, timings. NO names/emails/free-text/PII, ever.
- *
- * Fire-and-forget: logging must never block or break the UI.
+ * Child-safety (Families Policy / DPDP): if/when this is wired, callers must pass behaviour only —
+ * skill ids, difficulty, correctness, tags, counts, timings. NO names/emails/free-text/PII, ever.
  */
 
-import logger from '../utils/logger';
-
 /**
- * Log a behavioural analytics event.
+ * Log a behavioural analytics event. Currently a deliberate no-op (see file header).
  * @param {string} name - snake_case event name (analytics-plan.md is the source of truth)
  * @param {object} [params] - low-cardinality, non-PII properties
  */
+// eslint-disable-next-line no-unused-vars
 export function logEvent(name, params = {}) {
-  try {
-    // Dev: surface events via logger so the kid-test + local runs are observable.
-    // logger.info is a no-op in prod, so this line is automatically stripped there.
-    logger.info('[analytics]', name, params);
-    // TODO(prod): forward to Firebase Analytics once it's enabled:
-    //   if (!import.meta.env.DEV) { firebaseLogEvent(analytics, name, params); }
-    //   Deferred — only the wrapper + event shapes are needed now; prod forwarding
-    //   lands with the Firebase task.
-  } catch (err) {
-    logger.warn('[analytics] logEvent failed', err);
-  }
+  // Intentionally inert — no emission of any kind (DECISIONS 2026-07-16).
 }
