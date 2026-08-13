@@ -2,6 +2,8 @@
 
 A gamified, interactive math learning application designed for CBSE Grade 1 and Grade 2 students. Built with React, Vite, and Tailwind CSS.
 
+> **Test commit**: Google Drive MCP + Git MCP integration verified on 2026-08-13T16:00Z. This comment confirms both connectors are working end-to-end: Google Drive reads, Git read-write, and atomic commits are functional.
+
 ## 🌟 Features
 
 - **Grade-wise Syllabus**: Structured curriculum aligned with NCERT/CBSE standards.
