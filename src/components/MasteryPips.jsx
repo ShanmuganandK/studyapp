@@ -1,7 +1,7 @@
 import { MASTERY } from '../config/masteryConfig';
 
 /**
- * MasteryPips — shared pip indicator for a skill's mastery level.
+ * MasteryPips — shared pip indicator for a skill's mastery LEVEL (level only).
  *
  * Used by SkillCard (home screen) and ParentDashboard. NOT used by SkillPathScreen's
  * PathPips — that duplicate is intentional pending the home-screen A/B test decision
@@ -9,14 +9,13 @@ import { MASTERY } from '../config/masteryConfig';
  *
  * Colour progression reads as "getting stronger": sky (learn) → indigo (primary) → amber
  * (accent, mastered = reward only). Deliberately not stars — stars are the in-session
- * reward (DECISIONS). The optional `isDue` glyph uses the `review` token (teal), never
- * amber (DECISIONS 2026-07-05).
+ * reward (DECISIONS). The review-due ↻ cue lives in the LABEL now (shared skillStateVisual
+ * grammar, 2026-07-15), NOT in the pips — pips carry level only, in every consumer.
  *
  * @param {number}  level     - mastery level 0–MASTERY.MAX_LEVEL
- * @param {boolean} [isDue]   - when true, shows a ↻ review-due glyph after the pips
  * @param {string}  [className] - extra Tailwind classes for call-site layout (e.g. "mt-1.5")
  */
-export default function MasteryPips({ level, isDue = false, className = '' }) {
+export default function MasteryPips({ level, className = '' }) {
   return (
     <span
       className={`flex gap-1 items-center ${className}`}
@@ -33,11 +32,6 @@ export default function MasteryPips({ level, isDue = false, className = '' }) {
           : 'bg-primary-soft';
         return <span key={i} className={`w-2 h-2 rounded-full ${colour}`} />;
       })}
-      {isDue && (
-        <span className="ml-0.5 text-review text-xs font-bold leading-none" aria-label="due for review">
-          ↻
-        </span>
-      )}
     </span>
   );
 }

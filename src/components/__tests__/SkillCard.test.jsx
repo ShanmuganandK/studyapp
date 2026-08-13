@@ -48,9 +48,20 @@ describe('SkillCard', () => {
     expect(container.querySelector('.border-review')).toBeTruthy();
   });
 
-  it('marks a due-for-review skill in the pips with the review token', () => {
-    const { container } = render(<SkillCard {...base} isDue />);
-    expect(screen.getByLabelText('due for review')).toBeTruthy();
+  it('due-but-not-suggested: neutral ring + muted teal cue, never amber, ↻ only in the label', () => {
+    const { container } = render(<SkillCard {...base} level={5} isDue />);
+    // Muted review cue carries the teal ↻; the ring stays neutral (NOT amber while due).
+    expect(screen.getByText(/Review time!/)).toBeTruthy();
     expect(container.querySelector('.text-review')).toBeTruthy();
+    expect(container.querySelector('.border-primary-soft')).toBeTruthy();
+    expect(container.querySelector('.border-accent')).toBeNull();
+    // Dedupe: ↻ lives in the label, never as a pip glyph.
+    expect(screen.queryByLabelText('due for review')).toBeNull();
+  });
+
+  it('mastered-not-due: amber ring, no review label', () => {
+    const { container } = render(<SkillCard {...base} level={5} />);
+    expect(container.querySelector('.border-accent')).toBeTruthy();
+    expect(screen.queryByText(/Review time!/)).toBeNull();
   });
 });
