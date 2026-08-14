@@ -73,28 +73,63 @@ Layer 2) and a paid-unlock-without-accounts path.
 
 ## Done — Legal research & re-scope (2026-08-14)
 
-- **DPDP Rules 2025 status established** — notified **13 Nov 2025** (G.S.R. 846(E)), phased:
-  13 Nov 2025 (Board live) → 13 Nov 2026 (penalties, Consent Manager registration) →
-  **13 May 2027 (full compliance, incl. children's data)**. Both the v1 questionnaire and the
-  NyayGuru draft had been written on the stale premise that the Rules were still pending.
-- **Rule 10 read against primary text** — the parent must be checked as an *identifiable adult* via
-  (a) details already held by the fiduciary, or (b) details voluntarily provided by the individual or
-  via a **virtual token issued by an authorised entity** (incl. Digital Locker). **Illustrations Case 2
-  and Case 4** (parent is not an existing registered user — our situation) point to the
-  government-token route. **OTP and Google sign-in are not on the menu.** The AI advocate
-  recommended that stack twice; it does not survive the text.
-- **Schedule IV checked** — Part A *educational institution* exemption is **NOT available to us**
-  (we are an app, not an institution; conditions assume *children enrolled*). Part B(5) *does* allow
-  the processing needed to run Rule 10 due diligence itself (bootstrap), if ever built.
-- **Decision taken:** don't build the token/VPC rail on an unvalidated product. MVP processes no
-  child personal data at all → s.9 / Rule 10 never trigger. **DECISIONS 2026-08-14.**
-- **Rebrand-as-a-game considered and rejected** — DPDP turns on processing, not on what the app is
-  called; the relabel buys nothing and costs the CBSE differentiator.
+**Status: verification closed.** Read against three independent reproductions of
+G.S.R. 846(E) (13 Nov 2025) — `dpdpa.com`, `dpdpa.in`, and **Spice Route Legal**,
+which reproduces the full notification (preamble → Seventh Schedule). SRL is the
+reference text. Not yet checked against the Gazette PDF itself — sufficient for
+the current decision, close before any Layer 2 build.
+
+⚠️ **Reproduction quality varies — do not trust a single source:**
+`dpdpa.in` **omits Rule 10's Illustrations** entirely; `dpdpa.com` **drops one
+Fourth-Schedule Part B entry** and mis-cites the Fourth Schedule as *"[See rule 11]"*
+(correct: **rule 12**). An interim read off `dpdpa.in` briefly and wrongly suggested
+the Illustrations weren't in the final Rules.
+
+**Findings**
+
+- **Commencement, from Rule 1(2)–(4):** Rules 1, 2, 17–21 on publication;
+  Rule 4 at one year (13 Nov 2026); **Rules 3, 5–16, 22, 23 at eighteen months
+  (13 May 2027)** — Rule 10 is in that third bucket.
+- **Rule 10** — parent must be checked as an *identifiable adult* via (a) reliable
+  identity/age details **already held by us**, or (b) details voluntarily provided by
+  the individual or **through a virtual token issued by an authorised entity**
+  (incl. via a Digital Locker Service Provider). Rule 10's four **Illustrations** are
+  in the final Rules; **Cases 2 and 4** (parent not an existing registered user — our
+  situation) direct us to the government-details / token route.
+  **OTP and Google sign-in are not on that menu.** Also: 10(2)(c) — Digital Locker
+  providers are *"as may be notified"*, so the designated set may not be settled.
+- **Fourth Schedule `[See rule 12]`** — Part A(3) *educational institution* exemption
+  is **NOT available to us** (we are an app, not an institution of learning; condition
+  assumes *children enrolled*). **Part B(6)** *does* permit processing needed to confirm
+  a Data Principal is not a child and to observe Rule 10 due diligence — the bootstrap,
+  if that path is ever built.
+- **Decision taken:** don't build the token/VPC rail on an unvalidated product.
+  MVP processes no child personal data at all → s.9 / Rule 10 never trigger.
+  **DECISIONS 2026-08-14.**
+- **Rebrand-as-a-game considered and rejected** — DPDP turns on processing, not on the
+  label; and *online gaming intermediary* is a defined class in the Third Schedule.
+
+**Answers picked up for free** (were open questions, now just text — full list in DECISIONS):
+
+| Was | Now |
+|---|---|
+| Grievance officer — India residency required? | **Rule 9** — publish contact for DPO or a person able to answer processing questions. **No residency requirement in the rule text.** |
+| Grievance response window? | **Rule 14(3)** — not exceeding **90 days**, published on site/app. |
+| Breach notification timing? | **Rule 7** — Data Principals without delay; Board without delay (description) then detailed report within **72 hours**. |
+| Could we act as a Consent Manager? | **No** — First Schedule Part A requires an India-incorporated company with net worth ≥ **₹2 crore**. |
+| Does the 3-year erasure rule hit us? | **No** — Third Schedule binds e-commerce ≥2cr, online gaming ≥50L, social media ≥2cr users only. |
+| ⚠️ New constraint for Layer 2 | **Rule 8(3)** — personal data, traffic data and processing logs must be retained a **minimum of one year**. This is a FLOOR that cuts against delete-on-withdrawal designs. Irrelevant under MVP (we process nothing); load-bearing the day Layer 2 returns. |
+
+**Still open for counsel (one question):** the Rule 10(1) qualifier — *"identifiable
+**if required in connection with compliance with any law for the time being in force
+in India**"* — whether it narrows the identifiability duty.
+
+**Also done**
+
 - **Questionnaire v2 drafted** — 22 questions → 12, with answered items retired to a §0
-  "closed, please confirm" table. Parked with the deferred consult; ready when the trigger fires.
-- ⚠️ **Verification debt:** the Rule 10 / Schedule IV reading came from published reproductions,
-  **not the Gazette itself**. Confirm against G.S.R. 846(E) before any Layer 2 build.
-- ✅ `claude-chat/` now lives in the repo (self-hosted GitHub MCP working) — the Drive fallback is retired.
+  "closed, please confirm" table. Several more now answerable from the text above.
+  Parked with the deferred consult; ready when the trigger fires.
+- ✅ `claude-chat/` now lives in the repo (self-hosted GitHub MCP working) — Drive fallback retired.
 
 ## Done — UI Overhaul (T111–T115)
 
@@ -137,7 +172,7 @@ Layer 2) and a paid-unlock-without-accounts path.
 ## Done — Legal / MVP Scope Cuts (2026-07-16 — the first simplification)
 
 - **Legal pack created:** `questionnaire-lawyer-dpdp.md`, `questionnaire-ca-tax-uae-india.md`, `dpdp-lawyer-conversation-guide.md` — all reflect Indian-citizen/UAE-resident (NRI) founder profile
-- **NyayGuru AI-advocate response received** — coherent on design questions, but **drifted on the one question governed by text** (recommended OTP/Google for Rule 10 twice). Useful for architecture, not for statutory reading. See 2026-08-14 block above.
+- **NyayGuru AI-advocate response received** — coherent on design questions, but **drifted on the one question governed by text** (recommended OTP/Google for Rule 10 twice, the second time while quoting text that doesn't support it). Useful for architecture, not for statutory reading. See 2026-08-14 block above.
 - **Analytics removed entirely from MVP** — no Firebase Analytics SDK in the build, zero telemetry (guest or otherwise). Wrapper (T91) reduced to inert no-op seam; call-sites preserved for future reactivation.
   - **DECISIONS 2026-07-16:** MVP ships with NO analytics whatsoever.
 - **T107 (privacy notice)** — reopened 2026-08-14: wording needs the store/hosting-data line (see Now #2); the absolute "we collect no personal data" claim is not used.
@@ -182,6 +217,7 @@ Layer 2) and a paid-unlock-without-accounts path.
 
 - KG band content
 - Client-side-encrypted cloud backup (blob we cannot decrypt) — open question whether that still counts as processing child personal data; ask at the revisit trigger
+- Using a registered Consent Manager as an outsourced verification path (we cannot BE one — First Schedule Part A — but using one is a separate question)
 - See prior Drive tracker for the complete historical parked-ideas list (pre-2026-07-16)
 
 ---
@@ -192,4 +228,5 @@ Dated entries relevant to this tracker's recent changes: 2026-07-05 (color rule)
 2026-07-14 (gate = deterrent not security), 2026-07-15 (skill-state grammar),
 2026-07-16 (mute behavior; NO analytics in MVP; NO outbound messaging in MVP),
 **2026-08-14 (device-local MVP: no child personal data, no accounts, no payment;
-Layer 2 deferred; positioning unchanged).**
+Layer 2 deferred; positioning unchanged; Rule 10 / Fourth Schedule source basis
+and the constraints that bind when Layer 2 returns).**
