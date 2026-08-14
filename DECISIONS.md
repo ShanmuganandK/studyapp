@@ -122,19 +122,37 @@
 - (2026-07-15) **Skill-state grammar:** one call-to-action (suggested node); due-but-not-suggested shows muted teal cue on neutral ring, never amber; mastered shows amber only when not due; both home views share one mapping. (Fixes the amber-while-due violation of the 2026-07-05 rule; the shared source is `src/components/skillStateVisual.jsx` — `getSkillVisual` + `SkillStateCue` — consumed by both `SkillCard` and `SkillPathScreen`. The ↻ cue lives in the label; pips are level-only.)
 - (2026-07-16) **MVP ships with NO analytics whatsoever** (no Firebase Analytics SDK in the build, no telemetry, guest or otherwise). Wrapper (T91) reduced to inert no-op seam; call-sites preserved. Analytics returns only post-traction, and only behind verified parental consent per DECISIONS entry on consent stack. Launch insight = observation, reviews, WhatsApp feedback, Play Console vitals.
 - (2026-08-14) **MVP is device-local, processes no child personal data, and takes no money (LOCKED).**
-  **Finding that forced this.** The DPDP Rules 2025 were notified 13 Nov 2025 (G.S.R. 846(E)); the
-  children's-data obligations bind from 13 May 2027. **Rule 10** requires the person identifying as the
-  parent to be checked as an *identifiable adult* by reference to (a) identity/age details already held by
-  the Data Fiduciary, or (b) identity/age details voluntarily provided by the individual or through a
-  **virtual token mapped to such details, issued by an authorised entity** (including via a Digital Locker
-  service provider). Rule 10's own **Illustrations Case 2 and Case 4** — where the parent is NOT already a
-  registered user, which is exactly our situation — direct the fiduciary to the government-issued-details /
-  token route. **OTP-to-mobile and Google sign-in are NOT on that menu:** OTP proves control of a phone
-  number, not identity or age; Google holds the identity details, we do not, and Google is not an
-  "authorised entity". **Schedule IV Part A's *educational institution* exemption is NOT available to us** —
-  we are an app, not an institution of learning, and its conditions are drafted around *children enrolled
-  with such institution*. (Schedule IV **Part B(5)** *does* permit the processing needed to run the Rule 10
-  due diligence itself — the bootstrap — if we ever build that path.)
+
+  **Source basis (verified 2026-08-14).** DPDP Rules 2025, notified **13 Nov 2025 as G.S.R. 846(E)**
+  (draft was G.S.R. 02(E) of 3 Jan 2025). Read against **three independent reproductions**:
+  `dpdpa.com` (rule pages), `dpdpa.in` (rule pages + per-rule commencement index), and
+  **Spice Route Legal**, which reproduces the full notification — preamble through Seventh Schedule.
+  ⚠️ Reproduction quality varies: `dpdpa.in` **omits Rule 10's Illustrations**; `dpdpa.com` **drops one
+  Fourth-Schedule Part B entry** and mis-cites the Fourth Schedule as *"[See rule 11]"*. The SRL
+  full text is treated as the reference; **anything below citing a rule or schedule number follows SRL.**
+
+  **Commencement (Rule 1(2)–(4)).** Rules 1, 2 and 17–21 on publication; Rule 4 at one year
+  (13 Nov 2026); **Rules 3, 5–16, 22 and 23 at eighteen months (13 May 2027)** — Rule 10 is in that
+  third bucket.
+
+  **Finding that forced this decision.** **Rule 10** requires the person identifying as the parent to be
+  checked as an *identifiable adult* by reference to (a) reliable identity/age details **already held by the
+  Data Fiduciary**, or (b) identity/age details voluntarily provided by the individual or **through a virtual
+  token mapped to such details, issued by an authorised entity** (10(2)(b) — an entity entrusted by law or
+  by Government with issuing such details, including details or a token made available and verified by a
+  Digital Locker Service Provider). Rule 10 ships with four **Illustrations**; **Cases 2 and 4** — where the
+  parent is *not* an existing registered user, which is exactly our situation — direct the fiduciary to the
+  government-issued-details / token route. **OTP-to-mobile and Google sign-in are NOT on that menu:**
+  OTP proves control of a phone number, not identity or age; Google holds the identity details, we do not,
+  and Google is not an "authorised entity". Note also 10(2)(c): a Digital Locker service provider is one
+  **"as may be notified"** by the Central Government — the designated set may not yet be settled.
+
+  **Fourth Schedule (`[See rule 12]`) checked.** **Part A(3)**'s *educational institution* exemption is
+  **NOT available to us** — we are an app, not "an institution of learning that imparts education", and the
+  condition is drafted around *children enrolled with such institution*. **Part B(6)** *does* permit the
+  processing needed for confirmation that a Data Principal is not a child and for **observance of due
+  diligence under rule 10** — the bootstrap that makes a verification flow lawful, if we ever build one.
+
   **Decision.** Rather than build a DigiLocker/token VPC rail as a solo foreign operator on an unvalidated
   product, the MVP **never processes child personal data at all**, so s.9 and Rule 10 never trigger.
   **In scope:** device-local progress only; no accounts; no cloud; no sync; no analytics; no telemetry;
@@ -143,25 +161,49 @@
   Firestore, cloud sync, parent accounts, paywall, subscriptions.
   **Supersedes for MVP only:** the *Auth & accounts* and *Monetization* sections above, and the
   Firestore/anonymous-auth half of the migration strategy. All remain the intended post-validation design.
+
   **Positioning is UNCHANGED.** We remain a CBSE/NCERT-aligned maths app. Rebranding as a "game" was
-  considered and **rejected**: DPDP applies to processing personal data of a child regardless of what the
-  app is called, so the relabel buys nothing legally, discards our main differentiator with Indian parents,
-  and risks volunteering into the *online gaming intermediary* category.
+  considered and **rejected**: DPDP turns on *processing personal data of a child*, not on what the app is
+  called, so the relabel buys nothing legally, discards our main differentiator with Indian parents, and
+  risks volunteering into the *online gaming intermediary* category (a defined class in the Third Schedule).
+
   **When money returns, it is Google Play Billing only** — most likely a one-time paid unlock, never a
   subscription-with-account, and **never** direct or informal payment. Direct payment would breach Play's
   payments policy (app-removal risk) and would likely make us an OIDAR supplier needing Indian GST
   registration, which Play Billing otherwise absorbs as merchant of record.
+
   **Data loss is solved in code, not in a disclaimer:** parent-zone **export/import** of progress as a local
   JSON file. Zero server, zero account, zero personal data — this replaces cloud backup for MVP.
+
   **Residual MVP obligations (not zero):** Play requires a privacy policy for every app; the Play Console
   **Data Safety** form must be accurate; **Designed-for-Families** programme rules apply (we target
   under-13s); Play Console surfaces crash/install data to us automatically. The notice therefore reads
   *no sign-up, no accounts, progress stays on this device, no ads, no analytics, no tracking* **plus** one
   line acknowledging standard store/hosting technical data — **not** the absolute claim "we collect no
   personal data."
+
+  **Constraints that bind the day Layer 2 returns** (recorded now so the deferred design starts correct):
+  - **Rule 8(3) — one-year retention FLOOR.** Personal data, associated traffic data and processing logs
+    must be retained **a minimum of one year** from the date of processing. This cuts against
+    delete-everything-on-withdrawal instincts; withdrawal design must reconcile with it.
+  - **Rule 6(1)(e)** — security logs likewise retained one year.
+  - **Rule 14(3)** — grievance response period **not exceeding ninety days**, published on site/app.
+  - **Rule 9** — must publish business contact info for the DPO or a person able to answer processing
+    questions. **No India-residency requirement appears in the rule text.**
+  - **Rule 7** — breach: intimate affected Data Principals without delay; intimate the Board without delay
+    with a description, then a detailed report **within seventy-two hours**.
+  - **First Schedule Part A** — a Consent Manager must be a company **incorporated in India** with net
+    worth **not less than ₹2 crore**; that route is closed to us as an operator (using one is a separate
+    question).
+  - **Third Schedule** three-year erasure binds only e-commerce ≥2 crore, online gaming ≥50 lakh, and
+    social media ≥2 crore registered users — not us.
+
   **Revisit trigger:** real retention signal, or unprompted willingness to pay. At that point engage the
   DPDP lawyer and the CA, and choose between the token-VPC path (full Layer 2) and a
   paid-unlock-without-accounts path.
-  **Verification caveat:** the Rule 10 / Schedule IV reading above is taken from published reproductions of
-  the notified text, **not yet checked against the Gazette itself**. It is load-bearing for this decision and
-  must be confirmed against G.S.R. 846(E) before any Layer 2 build.
+
+  **Residual verification note:** the above is confirmed across three reproductions including a law-firm
+  full text, but **not against the Gazette PDF itself**. That is sufficient for this decision (which is safe
+  under any reading) and should be closed before any Layer 2 build. Open interpretive question for
+  counsel: the Rule 10(1) qualifier *"identifiable **if required in connection with compliance with any law
+  for the time being in force in India**"* — whether it narrows the identifiability duty.
