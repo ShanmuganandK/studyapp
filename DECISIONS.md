@@ -40,12 +40,20 @@
 
 ## Auth & accounts
 
+> **DEFERRED FOR MVP — see the 2026-08-14 entry in the change log.** MVP ships with no
+> accounts, no anonymous UID, no Firestore. The bullets below remain the intended design for the
+> post-validation tier; none of them are built now.
+
 - **Anonymous-first.** `signInAnonymously()` on first launch; every guest is a real UID; all progress saved to it.
 - **Play-first, login at value moments** (save streak, parent dashboard, purchase, add sibling, device switch). NEVER a login wall at app open.
 - **Account linking** anonymous→Google via `linkWithCredential` — ZERO progress loss. Never create a second account; never lose streak/pet.
 - **Login is parent-framed** ("Parents: sign in to save progress & view reports") — supports DPDP parental consent. The parent creates the account.
 
 ## Monetization
+
+> **DEFERRED FOR MVP — see the 2026-08-14 entry in the change log.** MVP takes no money at all.
+> When monetisation returns it is Google Play Billing only (most likely a one-time paid unlock),
+> never direct/informal payment. The bullets below describe the post-validation subscription tier.
 
 - **Google Play Billing** as the payment route (Google handles UPI + Indian GST for foreign/UAE developer). No direct web billing until ~₹3–5L/month (avoids OIDAR GST burden).
 - **Pricing in ₹** set per-country manually (e.g. ₹99–149/mo, ₹499–999/yr). NOT $ — the Stitch paywall's $4.99/$49.99 is wrong for India.
@@ -82,6 +90,11 @@
 
 **End state:** the split-brain ends not by patching the old core but by growing the new one until the old is unused, then removing it. Legacy `utils/generators`, `data/questions`, `masteryEngine.js`, localStorage state, and popup-first auth are retired post-migration.
 
+> **Note (2026-08-14):** the Firestore/anonymous-auth half of this migration is **deferred, not
+> cancelled** — see the 2026-08-14 change-log entry. The recipe-engine, mastery, theming and
+> profile-model halves proceed unchanged. `progressStore` remains the local persistence
+> swap-point and stays local for MVP.
+
 ---
 
 ## Change log (append new decisions here with date)
@@ -108,3 +121,47 @@
 - (2026-07-14) **Parent gate is a Families-Policy deterrent, not a security boundary.** Recovery = an adult-skill challenge (runtime-generated two-digit × one-digit arithmetic, never stored), which resets the code and **never touches child progress**. Remove/change passcode lives inside the parent zone. The gate renders as a portal to `document.body` (true viewport overlay, independent of scroll/ancestor transform). Wrong challenge answer = gentle shake + retry, **no lockout counters** (deterrent, not security).
 - (2026-07-15) **Skill-state grammar:** one call-to-action (suggested node); due-but-not-suggested shows muted teal cue on neutral ring, never amber; mastered shows amber only when not due; both home views share one mapping. (Fixes the amber-while-due violation of the 2026-07-05 rule; the shared source is `src/components/skillStateVisual.jsx` — `getSkillVisual` + `SkillStateCue` — consumed by both `SkillCard` and `SkillPathScreen`. The ↻ cue lives in the label; pips are level-only.)
 - (2026-07-16) **MVP ships with NO analytics whatsoever** (no Firebase Analytics SDK in the build, no telemetry, guest or otherwise). Wrapper (T91) reduced to inert no-op seam; call-sites preserved. Analytics returns only post-traction, and only behind verified parental consent per DECISIONS entry on consent stack. Launch insight = observation, reviews, WhatsApp feedback, Play Console vitals.
+- (2026-08-14) **MVP is device-local, processes no child personal data, and takes no money (LOCKED).**
+  **Finding that forced this.** The DPDP Rules 2025 were notified 13 Nov 2025 (G.S.R. 846(E)); the
+  children's-data obligations bind from 13 May 2027. **Rule 10** requires the person identifying as the
+  parent to be checked as an *identifiable adult* by reference to (a) identity/age details already held by
+  the Data Fiduciary, or (b) identity/age details voluntarily provided by the individual or through a
+  **virtual token mapped to such details, issued by an authorised entity** (including via a Digital Locker
+  service provider). Rule 10's own **Illustrations Case 2 and Case 4** — where the parent is NOT already a
+  registered user, which is exactly our situation — direct the fiduciary to the government-issued-details /
+  token route. **OTP-to-mobile and Google sign-in are NOT on that menu:** OTP proves control of a phone
+  number, not identity or age; Google holds the identity details, we do not, and Google is not an
+  "authorised entity". **Schedule IV Part A's *educational institution* exemption is NOT available to us** —
+  we are an app, not an institution of learning, and its conditions are drafted around *children enrolled
+  with such institution*. (Schedule IV **Part B(5)** *does* permit the processing needed to run the Rule 10
+  due diligence itself — the bootstrap — if we ever build that path.)
+  **Decision.** Rather than build a DigiLocker/token VPC rail as a solo foreign operator on an unvalidated
+  product, the MVP **never processes child personal data at all**, so s.9 and Rule 10 never trigger.
+  **In scope:** device-local progress only; no accounts; no cloud; no sync; no analytics; no telemetry;
+  no ads; no outbound messaging; **no payment of any kind**.
+  **Out of scope for MVP (deferred, NOT cancelled):** T109 auth rebuild, anonymous→Google linking,
+  Firestore, cloud sync, parent accounts, paywall, subscriptions.
+  **Supersedes for MVP only:** the *Auth & accounts* and *Monetization* sections above, and the
+  Firestore/anonymous-auth half of the migration strategy. All remain the intended post-validation design.
+  **Positioning is UNCHANGED.** We remain a CBSE/NCERT-aligned maths app. Rebranding as a "game" was
+  considered and **rejected**: DPDP applies to processing personal data of a child regardless of what the
+  app is called, so the relabel buys nothing legally, discards our main differentiator with Indian parents,
+  and risks volunteering into the *online gaming intermediary* category.
+  **When money returns, it is Google Play Billing only** — most likely a one-time paid unlock, never a
+  subscription-with-account, and **never** direct or informal payment. Direct payment would breach Play's
+  payments policy (app-removal risk) and would likely make us an OIDAR supplier needing Indian GST
+  registration, which Play Billing otherwise absorbs as merchant of record.
+  **Data loss is solved in code, not in a disclaimer:** parent-zone **export/import** of progress as a local
+  JSON file. Zero server, zero account, zero personal data — this replaces cloud backup for MVP.
+  **Residual MVP obligations (not zero):** Play requires a privacy policy for every app; the Play Console
+  **Data Safety** form must be accurate; **Designed-for-Families** programme rules apply (we target
+  under-13s); Play Console surfaces crash/install data to us automatically. The notice therefore reads
+  *no sign-up, no accounts, progress stays on this device, no ads, no analytics, no tracking* **plus** one
+  line acknowledging standard store/hosting technical data — **not** the absolute claim "we collect no
+  personal data."
+  **Revisit trigger:** real retention signal, or unprompted willingness to pay. At that point engage the
+  DPDP lawyer and the CA, and choose between the token-VPC path (full Layer 2) and a
+  paid-unlock-without-accounts path.
+  **Verification caveat:** the Rule 10 / Schedule IV reading above is taken from published reproductions of
+  the notified text, **not yet checked against the Gazette itself**. It is load-bearing for this decision and
+  must be confirmed against G.S.R. 846(E) before any Layer 2 build.
