@@ -6,36 +6,95 @@
 > like ARCHITECTURE.md. Optimized for "what's next," not for exhaustive history —
 > git log holds the detail behind each line.
 
-_Last synced: 2026-07-16_
+_Last synced: 2026-08-14_
 
 ---
 
-## Now
+## ⚑ Current shape of the product (read this first)
 
-| Item | Status | Detail |
-|---|---|---|
-| Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. |
-| Screen 3-B verdict (journey path vs. cards) | ⏳ Pending | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. |
-| Legal — lawyer questionnaire sent | ⏳ Pending send | `claude-chat/questionnaire-lawyer-dpdp.md` ready. NyayGuru AI-advocate draft response received (covers A–G) — human lawyer is now a VERIFICATION pass, not open exploration. |
-| Legal — CA questionnaire sent | ⏳ Pending send | `claude-chat/questionnaire-ca-tax-uae-india.md` ready. Founder = Indian citizen, UAE resident (NRI). |
-| Move claude-chat/ into GitHub repo | ⏳ Pending | Currently living in Drive as a fallback — GitHub write connector was broken this session. Use Claude Code or a self-hosted GitHub MCP to migrate. |
+Per **DECISIONS 2026-08-14**, MVP is **device-local, processes no child personal
+data, and takes no money**. That is a deliberate scope choice, not a limitation
+waiting to be lifted: it keeps us outside DPDP s.9 / Rule 10 entirely so we can
+ship and get real signal before spending on legal infrastructure.
 
-## Blocked / Gated
+**In:** device-local progress · no accounts · no cloud · no analytics · no ads ·
+no outbound messaging · no payment.
+**Out (deferred, not cancelled):** T109 auth rebuild · Firestore · cloud sync ·
+parent accounts · paywall · subscriptions.
 
-| Item | Gated on |
+**Positioning is unchanged** — still a CBSE/NCERT-aligned maths app. Rebranding
+as a "game" was considered and rejected (see DECISIONS).
+
+---
+
+## Now — build queue
+
+| # | Item | Status | Detail |
+|---|---|---|---|
+| 1 | **Network audit of shipping build** | ⏳ Next | Prove nothing leaves the device, so the privacy notice is literally true. Grep for `fetch`/XHR/`sendBeacon`, residual Firebase init, SW telemetry. **Confirm Fontsource woff2 are bundled, not CDN-fetched.** Record findings here. |
+| 2 | **Privacy policy + Play Data Safety form** | ⏳ Next | Play requires a policy for every app regardless of collection. Notice wording per DECISIONS 2026-08-14 — no absolute "we collect no personal data" claim; acknowledge store/hosting technical data. |
+| 3 | **Progress export/import** | ⏳ Next | Parent-zone download/restore of progress as local JSON. Replaces cloud backup for MVP; built on the existing `progressStore` seam. Zero server, zero personal data. **v1 item, not a nice-to-have** — device-local PWA progress is fragile (clear-data / new phone / uninstall). |
+| 4 | Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. |
+| 5 | Screen 3-B verdict (journey path vs. cards) | ⏳ Pending | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. Kid-testing is the gate. |
+| 6 | Session composer build | ⏳ Queued | Spec settled (below). Unaffected by the legal re-scope — pure local engine work. |
+| 7 | Remaining ~29 recipes | ⏳ Background | Curriculum breadth. Fully unblocked. |
+| 8 | **Designed-for-Families programme rules** | ⏳ Read before submit | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. |
+
+## Out of MVP scope (by decision, not blocked)
+
+> These were previously "gated on lawyer verification." As of 2026-08-14 they are
+> **deliberately out of scope** — nothing is waiting on anyone. Revisit only on the
+> trigger below.
+
+| Item | Note |
 |---|---|
-| T109 — Auth rebuild (anonymous→Google linking, Firestore) | Lawyer verification of VPC (verifiable parental consent) mechanism |
-| Cloud sync / accounts / paywall (Layer 2) | Same — T109 |
-| Weekly parent summary (WhatsApp/email) | Deferred past MVP entirely — see Decisions Log below |
-| Analytics (Firebase) | Deferred past MVP entirely — see Decisions Log below |
-| KG band expansion | Wonder band stable + kid-test signal |
+| T109 — Auth rebuild (anonymous→Google, Firestore) | Deferred. Legacy auth stays frozen; no new auth work in MVP. |
+| Cloud sync / parent accounts (Layer 2) | Deferred. Export/import (#3) covers the backup need locally. |
+| Paywall / subscriptions | Deferred. **No payment of any kind in MVP.** When money returns it is Play Billing only — most likely a one-time unlock, never direct/informal payment. |
+| Analytics (Firebase) | Deferred past MVP entirely — DECISIONS 2026-07-16. |
+| Weekly parent summary (WhatsApp/email) | Deferred past MVP entirely — DECISIONS 2026-07-16. |
+| DPDP lawyer consult | Deferred to the revisit trigger. Questionnaire + findings preserved below. |
+| KG band expansion | Wonder band stable + kid-test signal. |
+
+**Revisit trigger:** real retention signal, or unprompted willingness to pay.
+Then engage the DPDP lawyer + CA and choose between the token-VPC path (full
+Layer 2) and a paid-unlock-without-accounts path.
 
 ## Parallel (non-code)
 
-- India trip timing — highest-leverage window to close the legal consult
-- Kid-testing — ongoing signal source for 3-B verdict and composer suggestion logic
+| Item | Status | Detail |
+|---|---|---|
+| **CA / tax questionnaire — SEND** | ⏳ Still live | `claude-chat/questionnaire-ca-tax-uae-india.md`. **Not** deferred with the DPDP consult. Section D1 (India day-count before UAE income is at risk of Indian residence taxation) is time-sensitive ahead of the India kid-testing trip. |
+| **India day-count log** | ⏳ Start now | Track days-in-India from now, independent of when the CA replies. |
+| Kid-testing in India | ⏳ Planned | Signal source for the 3-B verdict, FRONTIER_PICK validation, and the revisit trigger above. |
+| Teacher review of `misconceptions-reference.md` | ⏳ Pending | ~68 rows, one-time, arrange in India. Unblocks richer dashboard insight. |
 
 ---
+
+## Done — Legal research & re-scope (2026-08-14)
+
+- **DPDP Rules 2025 status established** — notified **13 Nov 2025** (G.S.R. 846(E)), phased:
+  13 Nov 2025 (Board live) → 13 Nov 2026 (penalties, Consent Manager registration) →
+  **13 May 2027 (full compliance, incl. children's data)**. Both the v1 questionnaire and the
+  NyayGuru draft had been written on the stale premise that the Rules were still pending.
+- **Rule 10 read against primary text** — the parent must be checked as an *identifiable adult* via
+  (a) details already held by the fiduciary, or (b) details voluntarily provided by the individual or
+  via a **virtual token issued by an authorised entity** (incl. Digital Locker). **Illustrations Case 2
+  and Case 4** (parent is not an existing registered user — our situation) point to the
+  government-token route. **OTP and Google sign-in are not on the menu.** The AI advocate
+  recommended that stack twice; it does not survive the text.
+- **Schedule IV checked** — Part A *educational institution* exemption is **NOT available to us**
+  (we are an app, not an institution; conditions assume *children enrolled*). Part B(5) *does* allow
+  the processing needed to run Rule 10 due diligence itself (bootstrap), if ever built.
+- **Decision taken:** don't build the token/VPC rail on an unvalidated product. MVP processes no
+  child personal data at all → s.9 / Rule 10 never trigger. **DECISIONS 2026-08-14.**
+- **Rebrand-as-a-game considered and rejected** — DPDP turns on processing, not on what the app is
+  called; the relabel buys nothing and costs the CBSE differentiator.
+- **Questionnaire v2 drafted** — 22 questions → 12, with answered items retired to a §0
+  "closed, please confirm" table. Parked with the deferred consult; ready when the trigger fires.
+- ⚠️ **Verification debt:** the Rule 10 / Schedule IV reading came from published reproductions,
+  **not the Gazette itself**. Confirm against G.S.R. 846(E) before any Layer 2 build.
+- ✅ `claude-chat/` now lives in the repo (self-hosted GitHub MCP working) — the Drive fallback is retired.
 
 ## Done — UI Overhaul (T111–T115)
 
@@ -57,7 +116,7 @@ _Last synced: 2026-07-16_
 
 - **Parent gate v1.1** — portal-to-`document.body` fix (modal was resolving `position:fixed` against a transform-animated ancestor, off-viewport when scrolled); passcode lifecycle added (change/remove in parent zone; forgot→runtime adult-arithmetic challenge, never stored); decoupled passcode from legacy auth (validation was silently no-op'ing when logged out — pre-dated the reskin). 282 tests.
   - **DECISIONS:** gate = deterrent model, not a security boundary
-  - **Note for T109:** legacy auth never actually implemented anonymous-first despite README claim; passcode storage needs proper re-homing during the rebuild; README corrected
+  - **Note (was for T109, now deferred):** legacy auth never actually implemented anonymous-first despite README claim; passcode storage needs proper re-homing **whenever** the auth rebuild happens; README corrected
 - **Skill-state visual grammar unified** — shared `skillStateVisual.jsx` helper, both Home views (path + cards) now derive ring/label/pips identically by construction. Fixed the amber-while-due violation (a review-due node was wearing the achievement color). One loud CTA per screen; due-not-suggested = muted teal cue on neutral ring, never amber. Cross-view identity test added. 296 tests.
   - **DECISIONS 2026-07-15:** grammar locked as above
 
@@ -75,18 +134,17 @@ _Last synced: 2026-07-16_
 - Rationale: kids don't persist through backward-pointing suggestions; forward motion must be the visible default; retention happens invisibly inside sessions
 - Validate against real kid behavior (follow Tinku's pointer, or route around him?) before building
 
-## Done — Legal / MVP Scope Cuts (2026-07-16 — the big simplification)
+## Done — Legal / MVP Scope Cuts (2026-07-16 — the first simplification)
 
 - **Legal pack created:** `questionnaire-lawyer-dpdp.md`, `questionnaire-ca-tax-uae-india.md`, `dpdp-lawyer-conversation-guide.md` — all reflect Indian-citizen/UAE-resident (NRI) founder profile
-- **NyayGuru AI-advocate response received** — conservative but coherent read on all sections A–G; narrows the human lawyer's job to a verification pass
+- **NyayGuru AI-advocate response received** — coherent on design questions, but **drifted on the one question governed by text** (recommended OTP/Google for Rule 10 twice). Useful for architecture, not for statutory reading. See 2026-08-14 block above.
 - **Analytics removed entirely from MVP** — no Firebase Analytics SDK in the build, zero telemetry (guest or otherwise). Wrapper (T91) reduced to inert no-op seam; call-sites preserved for future reactivation.
-  - **DECISIONS 2026-07-16:** MVP ships with NO analytics whatsoever. Returns only post-traction, behind verified parental consent.
-- **T107 (privacy notice) closed again** — notice is true as written once analytics are out; no qualification needed
+  - **DECISIONS 2026-07-16:** MVP ships with NO analytics whatsoever.
+- **T107 (privacy notice)** — reopened 2026-08-14: wording needs the store/hosting-data line (see Now #2); the absolute "we collect no personal data" claim is not used.
 - **T91 amended** — inert seam pattern, 2026-07-16
-- **T47 / T60** (Firebase instrumentation, auth-state analytics) — moved MVP → post-traction, consent-gated
-- **Weekly WhatsApp/email summary deferred entirely from MVP** — parent dashboard (on-demand, in-app) IS the MVP report. No outbound messaging, no parent contact details collected at all in MVP.
-  - **DECISIONS 2026-07-16:** returns post-consent-stack only, as an explicit opt-in scope, strictly transactional content, no upsell in-message (per legal Q C3 guidance). Inbound feedback link (parent-initiated WhatsApp) is UNAFFECTED — stays as-is.
-- **MVP legal surface, net result:** collects nothing, sends nothing, stores everything on-device. Launch requirements = accurate privacy notice + Play Families data-safety form + grievance contact.
+- **T47 / T60** (Firebase instrumentation, auth-state analytics) — moved MVP → post-traction
+- **Weekly WhatsApp/email summary deferred entirely from MVP** — parent dashboard (on-demand, in-app) IS the MVP report. No outbound messaging, no parent contact details collected at all in MVP. Inbound feedback link (parent-initiated WhatsApp) is UNAFFECTED — stays as-is.
+- **MVP legal surface, net result:** collects nothing, sends nothing, stores everything on-device.
 
 ---
 
@@ -97,7 +155,7 @@ _Last synced: 2026-07-16_
 - Web/desktop responsive (same codebase)
 - B2B / schools
 - Design-system component library
-- Cloud accounts, sync, paywall (T109-gated)
+- Cloud accounts, sync, paywall (revisit-trigger gated)
 - Analytics reactivation (consent-gated, post-traction)
 - Weekly parent summary via WhatsApp/email (consent-gated, post-traction)
 - T99 — Tinku expressiveness / feel-layer polish (candidates below)
@@ -117,12 +175,13 @@ _Last synced: 2026-07-16_
 
 - Does the kid follow Tinku's pointer, or route around it?
 - Does a backward (review) suggestion visibly deflate motivation?
+- Does progress loss (cleared data / new device) actually happen in practice, and do parents notice? — informs whether export/import is sufficient
 - (existing items carried from prior log — see git history / prior Drive export for full list predating this file)
 
 ## Parked Ideas (carried over, one line each)
 
-- Full session composer build (spec settled above, not yet built)
 - KG band content
+- Client-side-encrypted cloud backup (blob we cannot decrypt) — open question whether that still counts as processing child personal data; ask at the revisit trigger
 - See prior Drive tracker for the complete historical parked-ideas list (pre-2026-07-16)
 
 ---
@@ -131,12 +190,6 @@ _Last synced: 2026-07-16_
 
 Dated entries relevant to this tracker's recent changes: 2026-07-05 (color rule),
 2026-07-14 (gate = deterrent not security), 2026-07-15 (skill-state grammar),
-2026-07-16 (mute behavior; NO analytics in MVP; NO outbound messaging in MVP).
-
-## Provenance note
-
-This file was authored in a strategy chat session (2026-07-16) and written to
-Drive as a working fallback after the GitHub write connector failed (403 on all
-writes this session — reported as a bug). Move into the repo's `claude-chat/`
-folder once GitHub write access is restored, then this becomes the file Claude
-Code maintains in-commit going forward.
+2026-07-16 (mute behavior; NO analytics in MVP; NO outbound messaging in MVP),
+**2026-08-14 (device-local MVP: no child personal data, no accounts, no payment;
+Layer 2 deferred; positioning unchanged).**
