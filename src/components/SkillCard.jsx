@@ -34,7 +34,7 @@ export default function SkillCard({ skill, level, isDue, isSuggested, isReviewSu
       className={`${entranceClass} bg-bg-card rounded-card shadow-card py-4 px-5 flex items-center gap-4 text-left border-4 ${visual.ring} hover:scale-[1.03] active:scale-95 transition-transform`}
     >
       {skill.icon && (
-        <span className="text-4xl leading-none flex-shrink-0" aria-hidden="true">
+        <span className="text-[#ff00ff] text-4xl leading-none flex-shrink-0" aria-hidden="true">
           {skill.icon}
         </span>
       )}

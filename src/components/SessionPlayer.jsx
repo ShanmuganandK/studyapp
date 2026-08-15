@@ -199,3 +199,6 @@ function PrimaryButton({ onClick, children }) {
     </button>
   );
 }
+
+// DELIBERATE VIOLATION — proving CI goes red. This branch is temporary.
+console.log("this must fail the standards guard");
