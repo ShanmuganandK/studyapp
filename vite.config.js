@@ -13,7 +13,12 @@ export default defineConfig({
         // Default globPatterns omits .webp — mascot images would be excluded from
         // the SW precache and fetched cold on every first load, causing broken-icon
         // flashes on slow networks. Explicitly include webp here.
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
+        //
+        // woff2 likewise: the fonts are self-hosted and bundled (no CDN), but omitting
+        // them from the precache meant an offline first load fell back to system fonts,
+        // losing the Baloo 2 / Nunito type identity exactly when connectivity is worst.
+        // Confirmed still open by the 2026-08-15 network audit.
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
       },
       manifest: {
         name: 'CBSE Math Kids',
