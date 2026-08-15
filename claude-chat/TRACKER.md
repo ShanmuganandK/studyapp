@@ -234,6 +234,10 @@ in India**"* — whether it narrows the identifiability duty.
 - **Questionnaire v2 drafted** — 22 questions → 12, with answered items retired to a §0
   "closed, please confirm" table. Several more now answerable from the text above.
   Parked with the deferred consult; ready when the trigger fires.
+  ⚠️ **2026-08-15: v2 is NOT in this repo** — `questionnaire-lawyer-dpdp.md` is still v1
+  (22 questions, sections A–F, no §0). The v2 draft never landed. Commit it before the
+  pack is sent, or send v1. **A4 is annotated in place in v1** as closed unconditionally
+  (its factual premise was verified by the network audit — see the Done block above).
 - ✅ `claude-chat/` now lives in the repo (self-hosted GitHub MCP working) — Drive fallback retired.
 
 ## Done — UI Overhaul (T111–T115)
