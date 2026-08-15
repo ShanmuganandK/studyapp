@@ -34,7 +34,7 @@ as a "game" was considered and rejected (see DECISIONS).
 | 1 | **Network audit of shipping build** | ✅ **Done 2026-08-15** | Found 1 blocker (startup Firebase Auth init), now fixed — see the audit block below. Everything else clean. |
 | 1b | **De-Firebase the MVP build** | ✅ **Done 2026-08-15** | Blocker from #1 closed. Firebase dep dropped, `lib/firebase.js` + `firebaseAdapter.js` deleted, `localAdapter` rewritten as an inert null-user seam, guard test added. **The app now makes zero off-origin requests at runtime (verified in a real browser).** |
 | 2 | **Privacy policy + Play Data Safety form** | ⏳ **Next — now unblocked** | Play requires a policy for every app regardless of collection. Notice wording per DECISIONS 2026-08-14 — no absolute "we collect no personal data" claim; keep the store/hosting technical-data line. **The app-side claim can now be stated flatly** (no accounts, no auth SDK, no network calls from `src/`) — see the amended DECISIONS 2026-08-14 residual-obligations paragraph. |
-| 2a | **CI wiring / standards guard** | ✅ **Done 2026-08-15** | Was a false claim (see the corrected Done entry below). Now real: `eslint.config.js` (ESLint 9 flat), `scripts/check-raw-hex.mjs`, `scripts/frozen-legacy.mjs`, `.github/workflows/ci.yml`. **Proven red on injected violations, not trusted green.** |
+| 2a | **CI wiring / standards guard** | ✅ **Done 2026-08-15** | Was a false claim (see the corrected Done entry below). Now real: `eslint.config.js` (ESLint 9 flat), `scripts/check-raw-hex.mjs`, `scripts/frozen-legacy.mjs`, `.github/workflows/ci.yml`. **Proven red on a real Actions run**, not trusted green. |
 | 3 | **Progress export/import** | ⏳ Next | Parent-zone download/restore of progress as local JSON. Replaces cloud backup for MVP; built on the existing `progressStore` seam. Zero server, zero personal data. **v1 item, not a nice-to-have** — device-local PWA progress is fragile (clear-data / new phone / uninstall). |
 | 4 | Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. |
 | 5 | Screen 3-B verdict (journey path vs. cards) | ⏳ Pending | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. Kid-testing is the gate. |
@@ -169,9 +169,10 @@ reports **Baloo 2 Variable + Nunito Variable loaded**, not a system fallback.
 
 ### 🔴 Second finding (FOUND, then FIXED) — the "standards guard, wired into CI" did not exist
 
-Surfaced while running `npm run lint` before committing. **`npm run lint` fails outright:**
-ESLint 9 finds no `eslint.config.js`. There is also **no `.github/workflows/`** and **no
-`scripts/`** directory — on this branch *or on `master`*. The "Done — Quality / Guardrails"
+Surfaced while running `npm run lint` before committing. **`npm run lint` failed outright:**
+ESLint 9 found no `eslint.config.js`. There was also **no `.github/workflows/`** and **no
+`scripts/`** directory — on this branch *or on `master`*. (CodeQL and Netlify checks *were*
+running via default setup, but neither runs our lint, hex guard or tests.) The "Done — Quality / Guardrails"
 entry below claims *"Standards guard (automated) — ESLint `no-console`/empty-catch/
 unhandled-promise + raw-hex grep script, wired into CI; violations can't merge."* That is
 **not true of the committed repo**: nothing is wired, and nothing blocks a merge.
@@ -288,7 +289,14 @@ in India**"* — whether it narrows the identifiability duty.
     "unhandled-promise" without upgrading the tooling.**
   - **Proven red, not trusted green:** `console.log` into `SessionPlayer.jsx` → lint exit 1; raw hex
     into `SkillCard.jsx` → `lint:hex` exit 1; `console.log` into FROZEN `masteryEngine.js` → exit 0,
-    confirming the scoping works by design.
+    confirming the scoping works by design. **Then proven on real GitHub Actions runs:** clean branch
+    → `verify` **success**; a throwaway branch carrying the same two injected violations → `verify`
+    **failure** at the Lint step (run `31883216200`, branch deleted after).
+  - **Precision on the original finding:** the repo had **no committed workflow**, which is what made
+    lint/tests unenforced. It was not running *nothing* — **CodeQL** and **Netlify** checks were
+    already attached via GitHub/Netlify default setup (no file in `.github/`). Neither runs our lint,
+    our raw-hex guard, or our test suite, so the gap was real — but "no CI at all" would have been
+    the wrong description.
 - **Full regression — automated pass** — 296/296 green at the time (grew from 268 as fixes landed; **now 308** — the count drifted to 299 before the 2026-08-15 de-Firebase work added 9); token discipline, GPU-safety, frozen-file integrity all verified. `docs/responsive.md` "gap" was a FALSE POSITIVE (flat `docs-*.md` naming) — folded 2 missing lines (360/320 test widths; 200ms + prefers-reduced-motion) into existing `docs-responsive.md` instead of creating a duplicate
 - **`TinkuBubble` → `HintBubble.jsx`** naming fix in spec
 
