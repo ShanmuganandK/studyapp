@@ -6,7 +6,7 @@
 > like ARCHITECTURE.md. Optimized for "what's next," not for exhaustive history —
 > git log holds the detail behind each line.
 
-_Last synced: 2026-08-14_
+_Last synced: 2026-08-15_
 
 ---
 
@@ -31,14 +31,17 @@ as a "game" was considered and rejected (see DECISIONS).
 
 | # | Item | Status | Detail |
 |---|---|---|---|
-| 1 | **Network audit of shipping build** | ⏳ Next | Prove nothing leaves the device, so the privacy notice is literally true. Grep for `fetch`/XHR/`sendBeacon`, residual Firebase init, SW telemetry. **Confirm Fontsource woff2 are bundled, not CDN-fetched.** Record findings here. |
-| 2 | **Privacy policy + Play Data Safety form** | ⏳ Next | Play requires a policy for every app regardless of collection. Notice wording per DECISIONS 2026-08-14 — no absolute "we collect no personal data" claim; acknowledge store/hosting technical data. |
+| 1 | **Network audit of shipping build** | ✅ **Done 2026-08-15** | Found 1 blocker (startup Firebase Auth init), now fixed — see the audit block below. Everything else clean. |
+| 1b | **De-Firebase the MVP build** | ✅ **Done 2026-08-15** | Blocker from #1 closed. Firebase dep dropped, `lib/firebase.js` + `firebaseAdapter.js` deleted, `localAdapter` rewritten as an inert null-user seam, guard test added. **The app now makes zero off-origin requests at runtime (verified in a real browser).** |
+| 2 | **Privacy policy + Play Data Safety form** | ⏳ **Next — now unblocked** | Play requires a policy for every app regardless of collection. Notice wording per DECISIONS 2026-08-14 — no absolute "we collect no personal data" claim; keep the store/hosting technical-data line. **The app-side claim can now be stated flatly** (no accounts, no auth SDK, no network calls from `src/`) — see the amended DECISIONS 2026-08-14 residual-obligations paragraph. |
 | 3 | **Progress export/import** | ⏳ Next | Parent-zone download/restore of progress as local JSON. Replaces cloud backup for MVP; built on the existing `progressStore` seam. Zero server, zero personal data. **v1 item, not a nice-to-have** — device-local PWA progress is fragile (clear-data / new phone / uninstall). |
 | 4 | Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. |
 | 5 | Screen 3-B verdict (journey path vs. cards) | ⏳ Pending | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. Kid-testing is the gate. |
 | 6 | Session composer build | ⏳ Queued | Spec settled (below). Unaffected by the legal re-scope — pure local engine work. |
 | 7 | Remaining ~29 recipes | ⏳ Background | Curriculum breadth. Fully unblocked. |
 | 8 | **Designed-for-Families programme rules** | ⏳ Read before submit | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. |
+| 9 | **Restore the standards guard / CI** | 🔴 Needs a decision | `npm run lint` **fails** — no `eslint.config.js`, no `.github/workflows/`, no `scripts/`, on master either. The "wired into CI; violations can't merge" claim below is not true of the committed repo. Guard tests (T91 analytics, new de-Firebase) only run if something runs them. Restore the config + a CI workflow, or correct the claim. |
+| 10 | SW precache misses `woff2` | ⏳ Small, verified open | `globPatterns` in `vite.config.js` omits `woff2`, so an offline first load drops to system fonts. Two-line fix; kept out of the de-Firebase diff deliberately. |
 
 ## Out of MVP scope (by decision, not blocked)
 
@@ -68,6 +71,108 @@ Layer 2) and a paid-unlock-without-accounts path.
 | **India day-count log** | ⏳ Start now | Track days-in-India from now, independent of when the CA replies. |
 | Kid-testing in India | ⏳ Planned | Signal source for the 3-B verdict, FRONTIER_PICK validation, and the revisit trigger above. |
 | Teacher review of `misconceptions-reference.md` | ⏳ Pending | ~68 rows, one-time, arrange in India. Unblocks richer dashboard insight. |
+
+---
+
+## Done — Network audit of the shipping build (2026-08-15)
+
+Audited `src/` + the built `dist/` (Vite build, `index-CKPQEueh.js`). Method: grep source
+for network APIs; extract every external host from the built bundle, SW and `index.html`;
+trace the static import graph from `App.jsx`.
+
+### 🔴 BLOCKER (FOUND, then FIXED same day) — Firebase Auth initialized on every app start
+
+The audited bundle contained the **Firebase Auth SDK** and **ran it at launch**, so the claim
+"nothing leaves the device" was **not true**. Fixed in the de-Firebase commit — resolution and
+verification at the end of this block.
+
+- **Chain (all static ESM imports, so the module body always executes):**
+  `App.jsx` → `AuthProvider` → `contexts/AuthContext.jsx` → `services/authService.js`
+  → `import { firebaseAdapter }` → `services/firebaseAdapter.js` → `lib/firebase.js`
+  → **`initializeApp()` + `getAuth()` at module scope.**
+- **`isFirebaseConfigured` does not prevent this.** It only chooses *which adapter object*
+  is called; the static import has already executed `lib/firebase.js` by then.
+- **Live Google endpoints present in the bundle:** `identitytoolkit.googleapis.com`,
+  `securetoken.googleapis.com`, `apis.google.com`, `firebaseapp.com`.
+- **Prod takes the Firebase path, not the local one.** `netlify.toml` whitelists the
+  `VITE_FIREBASE_*` keys, so they are set at build time; the audited `dist/` confirms it —
+  the `mock-api-key-for-local-dev` fallback string is **absent** from the bundle (real key
+  inlined) ⇒ `isFirebaseConfigured === true` ⇒ `firebaseAdapter`.
+- **Actual runtime exposure:** `AuthContext` calls `onAuthStateChanged` on mount. On a *fresh*
+  device with no persisted user this resolves locally (no request). But on **any device
+  carrying a persisted legacy Google session**, launch triggers a token refresh to
+  `securetoken.googleapis.com` — an outbound request carrying a refresh token and the child's
+  device IP to Google. Legacy installs from the popup-auth era are exactly that population.
+- **Mitigating:** `Login.jsx` is **not rendered anywhere**, so no *new* sign-in can occur.
+  This limits the blast radius; it does not remove the init or the SDK.
+- **Also:** removing it is a bundle win on low-end Android (`firebase@12.9.0` is a prod
+  dependency; total JS is 318 kB).
+**✅ RESOLUTION (same day).** MVP has no accounts at all (DECISIONS 2026-08-14), so the SDK had
+no job. The `firebase` dependency is gone (84 packages removed), `lib/firebase.js` and
+`services/firebaseAdapter.js` are deleted, and `localAdapter` is now an inert **null-user**
+seam. `AuthProvider` **stays in the tree** — it still owns the parent passcode and profile
+state; only the adapter beneath it changed, so no call-site moved (same seam pattern as the
+T91 analytics no-op). The `protobufjs` override went too: it existed only to pin Firebase's
+transitive dep for GHSA-j3f2-48v5-ccww, and protobufjs has left the tree entirely.
+
+The old `localAdapter` returned a **fake signed-in user** (`explorer@local.dev`); reusing it
+would have flowed a fabricated account into `AuthContext` and printed "Logged in as
+explorer@local.dev" in the parent dashboard. It was nulled, not reused.
+
+**Verification:**
+
+| Check | Result |
+|---|---|
+| Tests | **308 green** (299 baseline + 9 new). ⚠️ The "296/296" figure below was **stale** — master measured **299** before this change. |
+| Built bundle | **Zero** matches for `identitytoolkit` / `securetoken` / `apis.google.com` / `firebaseapp` anywhere in `dist/`. |
+| **Runtime (real browser, built app)** | **12 requests, ALL same-origin. Zero off-origin. No page errors.** This is the strongest form of the privacy claim — measured, not inferred. |
+| Blank-screen risk | Clear. The null user must still let `AuthContext` clear `loading` (it gates `{!loading && children}`); the app renders normally. |
+| Child progress | **Unaffected.** `progressStore` keys on `'tinku:v1:skills'`, never on a uid — progress was always independent of auth. |
+| Parent passcode | **Unaffected in the normal case.** Already keyed `math_kids_settings_anon` (`user?.uid ?? 'anon'`), and `user` was already null in prod. |
+| Bundle size | **317.6 kB → 201.1 kB** (−116.5 kB, −37%) — a real win on low-end Android. |
+
+⚠️ **Narrow edge case, accepted:** a device carrying a *persisted legacy Google session* had its
+passcode stored under `math_kids_settings_<uid>`, and now reads `…_anon` — so that device's
+parent gate reverts to unset until a new code is entered. It never touches child progress, and
+the gate is a deterrent, not a security boundary (DECISIONS 2026-07-14). Affects only testers
+who signed in on a build from before `Login.jsx` was unwired. Same class: any profiles saved
+under a uid are no longer loaded, so `grade` falls back to `DEFAULT_GRADE` — harmless while
+every `ready` skill is Grade 1.
+
+### ✅ Clean — everything else
+
+| Checked | Result |
+|---|---|
+| `fetch` / `XMLHttpRequest` / `sendBeacon` / `WebSocket` / `EventSource` in `src/` | **None.** Only hit is a `vi.stubGlobal` in `services/__tests__/analytics.test.js`. |
+| **Fontsource woff2 — bundled or CDN?** | ✅ **Bundled.** All 9 woff2 emitted to `dist/assets/` and served same-origin. **No CDN fetch, no Google Fonts.** |
+| Firebase **Analytics** SDK | ✅ **Absent.** No `getAnalytics`, no `googletagmanager`/`gtag`/`app-measurement`/`google-analytics.com`. The `@firebase/analytics` strings in the bundle are name constants in `@firebase/app`'s component registry, **not** the SDK. The T91 guard test holds. |
+| Firestore / RTDB | ✅ **Absent.** No `firebaseio.com` or Firestore endpoints — registry name strings only. |
+| Service worker (`dist/sw.js`) | ✅ **Clean.** Plain Workbox precache + `NavigationRoute`. No telemetry, no runtime remote caching, no external hosts. |
+| `dist/index.html` | ✅ **Clean.** No preconnect/dns-prefetch, no third-party script or stylesheet. |
+| Remaining external hosts in bundle | `wa.me` (parent-initiated feedback link, parent dashboard only — expected, unaffected per DECISIONS 2026-07-16); `bit.ly` traced to a **generic string inside vendor code, no call site**; `reactjs.org`/`w3.org`/`localhost` are error-message and namespace strings. |
+
+### ⚠️ Non-privacy defect confirmed in passing
+
+The SW precache list **omits the woff2 files** (`globPatterns` in `vite.config.js` lists
+`js,css,html,ico,png,svg,webp` — no `woff2`). Fonts are bundled but **not precached**, so an
+offline first load falls back to system fonts. Cosmetic, not a privacy issue — this is the
+known follow-up already noted in DECISIONS (2026-07-04 typography) and ARCHITECTURE; the audit
+**confirms it is still open**. Fix = add `woff2` to the glob or a font `CacheFirst` runtime rule.
+
+### 🔴 Second finding — the "standards guard, wired into CI" does not exist in this repo
+
+Surfaced while running `npm run lint` before committing. **`npm run lint` fails outright:**
+ESLint 9 finds no `eslint.config.js`. There is also **no `.github/workflows/`** and **no
+`scripts/`** directory — on this branch *or on `master`*. The "Done — Quality / Guardrails"
+entry below claims *"Standards guard (automated) — ESLint `no-console`/empty-catch/
+unhandled-promise + raw-hex grep script, wired into CI; violations can't merge."* That is
+**not true of the committed repo**: nothing is wired, and nothing blocks a merge.
+
+This matters more than usual right now: the new de-Firebase guard test, and the T91 analytics
+guard, are only as good as the thing that runs them. With no CI they run only when someone
+remembers `npm run test:run` locally. **Not fixed here — different concern, and it needs a
+decision** (restore the ESLint config + a CI workflow, or correct the claim). Untangling which
+happened — built-but-never-committed, or lost — is the first step.
 
 ---
 
@@ -144,7 +249,7 @@ in India**"* — whether it narrows the identifiability duty.
 
 - **Standards alignment** (one-time §8 cleanup, new code only) — logger adoption, swallowed catches fixed, MasteryPips de-dup, PIN constant, `alert()` replaced
 - **Standards guard** (automated) — ESLint `no-console`/empty-catch/unhandled-promise + raw-hex grep script, wired into CI; violations can't merge
-- **Full regression — automated pass** — 296/296 green (grew from 268 as fixes landed); token discipline, GPU-safety, frozen-file integrity all verified. `docs/responsive.md` "gap" was a FALSE POSITIVE (flat `docs-*.md` naming) — folded 2 missing lines (360/320 test widths; 200ms + prefers-reduced-motion) into existing `docs-responsive.md` instead of creating a duplicate
+- **Full regression — automated pass** — 296/296 green at the time (grew from 268 as fixes landed; **now 308** — the count drifted to 299 before the 2026-08-15 de-Firebase work added 9); token discipline, GPU-safety, frozen-file integrity all verified. `docs/responsive.md` "gap" was a FALSE POSITIVE (flat `docs-*.md` naming) — folded 2 missing lines (360/320 test widths; 200ms + prefers-reduced-motion) into existing `docs-responsive.md` instead of creating a duplicate
 - **`TinkuBubble` → `HintBubble.jsx`** naming fix in spec
 
 ## Done — Parent Gate & Skill-State Fixes (found via phone checklist walk)
