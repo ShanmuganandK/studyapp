@@ -6,7 +6,7 @@
 > like ARCHITECTURE.md. Optimized for "what's next," not for exhaustive history —
 > git log holds the detail behind each line.
 
-_Last synced: 2026-08-14_
+_Last synced: 2026-08-15_
 
 ---
 
@@ -31,8 +31,10 @@ as a "game" was considered and rejected (see DECISIONS).
 
 | # | Item | Status | Detail |
 |---|---|---|---|
-| 1 | **Network audit of shipping build** | ⏳ Next | Prove nothing leaves the device, so the privacy notice is literally true. Grep for `fetch`/XHR/`sendBeacon`, residual Firebase init, SW telemetry. **Confirm Fontsource woff2 are bundled, not CDN-fetched.** Record findings here. |
-| 2 | **Privacy policy + Play Data Safety form** | ⏳ Next | Play requires a policy for every app regardless of collection. Notice wording per DECISIONS 2026-08-14 — no absolute "we collect no personal data" claim; acknowledge store/hosting technical data. |
+| 1 | **Network audit of shipping build** | ✅ **Done 2026-08-15** | Found 1 blocker (startup Firebase Auth init), now fixed — see the audit block below. Everything else clean. |
+| 1b | **De-Firebase the MVP build** | ✅ **Done 2026-08-15** | Blocker from #1 closed. Firebase dep dropped, `lib/firebase.js` + `firebaseAdapter.js` deleted, `localAdapter` rewritten as an inert null-user seam, guard test added. **The app now makes zero off-origin requests at runtime (verified in a real browser).** |
+| 2 | **Privacy policy + Play Data Safety form** | ⏳ **Next — now unblocked** | Play requires a policy for every app regardless of collection. Notice wording per DECISIONS 2026-08-14 — no absolute "we collect no personal data" claim; keep the store/hosting technical-data line. **The app-side claim can now be stated flatly** (no accounts, no auth SDK, no network calls from `src/`) — see the amended DECISIONS 2026-08-14 residual-obligations paragraph. |
+| 2a | **CI wiring / standards guard** | ✅ **Done 2026-08-15** | Was a false claim (see the corrected Done entry below). Now real: `eslint.config.js` (ESLint 9 flat), `scripts/check-raw-hex.mjs`, `scripts/frozen-legacy.mjs`, `.github/workflows/ci.yml`. **Proven red on a real Actions run**, not trusted green. |
 | 3 | **Progress export/import** | ⏳ Next | Parent-zone download/restore of progress as local JSON. Replaces cloud backup for MVP; built on the existing `progressStore` seam. Zero server, zero personal data. **v1 item, not a nice-to-have** — device-local PWA progress is fragile (clear-data / new phone / uninstall). |
 | 4 | Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. |
 | 5 | Screen 3-B verdict (journey path vs. cards) | ⏳ Pending | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. Kid-testing is the gate. |
@@ -68,6 +70,122 @@ Layer 2) and a paid-unlock-without-accounts path.
 | **India day-count log** | ⏳ Start now | Track days-in-India from now, independent of when the CA replies. |
 | Kid-testing in India | ⏳ Planned | Signal source for the 3-B verdict, FRONTIER_PICK validation, and the revisit trigger above. |
 | Teacher review of `misconceptions-reference.md` | ⏳ Pending | ~68 rows, one-time, arrange in India. Unblocks richer dashboard insight. |
+
+---
+
+## Done — Network audit of the shipping build (2026-08-15)
+
+Audited `src/` + the built `dist/` (Vite build, `index-CKPQEueh.js`). Method: grep source
+for network APIs; extract every external host from the built bundle, SW and `index.html`;
+trace the static import graph from `App.jsx`.
+
+### 🔴 BLOCKER (FOUND, then FIXED same day) — Firebase Auth initialized on every app start
+
+The audited bundle contained the **Firebase Auth SDK** and **ran it at launch**, so the claim
+"nothing leaves the device" was **not true**. Fixed in the de-Firebase commit — resolution and
+verification at the end of this block.
+
+- **Chain (all static ESM imports, so the module body always executes):**
+  `App.jsx` → `AuthProvider` → `contexts/AuthContext.jsx` → `services/authService.js`
+  → `import { firebaseAdapter }` → `services/firebaseAdapter.js` → `lib/firebase.js`
+  → **`initializeApp()` + `getAuth()` at module scope.**
+- **`isFirebaseConfigured` does not prevent this.** It only chooses *which adapter object*
+  is called; the static import has already executed `lib/firebase.js` by then.
+- **Live Google endpoints present in the bundle:** `identitytoolkit.googleapis.com`,
+  `securetoken.googleapis.com`, `apis.google.com`, `firebaseapp.com`.
+- **Prod takes the Firebase path, not the local one.** `netlify.toml` whitelists the
+  `VITE_FIREBASE_*` keys, so they are set at build time; the audited `dist/` confirms it —
+  the `mock-api-key-for-local-dev` fallback string is **absent** from the bundle (real key
+  inlined) ⇒ `isFirebaseConfigured === true` ⇒ `firebaseAdapter`.
+- **Actual runtime exposure:** `AuthContext` calls `onAuthStateChanged` on mount. On a *fresh*
+  device with no persisted user this resolves locally (no request). But on **any device
+  carrying a persisted legacy Google session**, launch triggers a token refresh to
+  `securetoken.googleapis.com` — an outbound request carrying a refresh token and the child's
+  device IP to Google. Legacy installs from the popup-auth era are exactly that population.
+- **Mitigating:** `Login.jsx` is **not rendered anywhere**, so no *new* sign-in can occur.
+  This limits the blast radius; it does not remove the init or the SDK.
+- **Also:** removing it is a bundle win on low-end Android (`firebase@12.9.0` is a prod
+  dependency; total JS is 318 kB).
+**✅ RESOLUTION (same day).** MVP has no accounts at all (DECISIONS 2026-08-14), so the SDK had
+no job. The `firebase` dependency is gone (84 packages removed), `lib/firebase.js` and
+`services/firebaseAdapter.js` are deleted, and `localAdapter` is now an inert **null-user**
+seam. `AuthProvider` **stays in the tree** — it still owns the parent passcode and profile
+state; only the adapter beneath it changed, so no call-site moved (same seam pattern as the
+T91 analytics no-op). The `protobufjs` override went too: it existed only to pin Firebase's
+transitive dep for GHSA-j3f2-48v5-ccww, and protobufjs has left the tree entirely.
+
+The old `localAdapter` returned a **fake signed-in user** (`explorer@local.dev`); reusing it
+would have flowed a fabricated account into `AuthContext` and printed "Logged in as
+explorer@local.dev" in the parent dashboard. It was nulled, not reused.
+
+**Verification:**
+
+| Check | Result |
+|---|---|
+| Tests | **308 green** (299 baseline + 9 new). ⚠️ The "296/296" figure below was **stale** — master measured **299** before this change. |
+| Built bundle | **Zero** matches for `identitytoolkit` / `securetoken` / `apis.google.com` / `firebaseapp` anywhere in `dist/`. |
+| **Runtime (real browser, built app)** | **12 requests, ALL same-origin. Zero off-origin. No page errors.** This is the strongest form of the privacy claim — measured, not inferred. |
+| Blank-screen risk | Clear. The null user must still let `AuthContext` clear `loading` (it gates `{!loading && children}`); the app renders normally. |
+| Child progress | **Unaffected.** `progressStore` keys on `'tinku:v1:skills'`, never on a uid — progress was always independent of auth. |
+| Parent passcode | **Unaffected in the normal case.** Already keyed `math_kids_settings_anon` (`user?.uid ?? 'anon'`), and `user` was already null in prod. |
+| Bundle size | **317.6 kB → 201.1 kB** (−116.5 kB, −37%) — a real win on low-end Android. |
+
+⚠️ **Narrow edge case, accepted:** a device carrying a *persisted legacy Google session* had its
+passcode stored under `math_kids_settings_<uid>`, and now reads `…_anon` — so that device's
+parent gate reverts to unset until a new code is entered. It never touches child progress, and
+the gate is a deterrent, not a security boundary (DECISIONS 2026-07-14). Affects only testers
+who signed in on a build from before `Login.jsx` was unwired. Same class: any profiles saved
+under a uid are no longer loaded, so `grade` falls back to `DEFAULT_GRADE` — harmless while
+every `ready` skill is Grade 1.
+
+### ✅ Clean — everything else
+
+| Checked | Result |
+|---|---|
+| `fetch` / `XMLHttpRequest` / `sendBeacon` / `WebSocket` / `EventSource` in `src/` | **None.** Only hit is a `vi.stubGlobal` in `services/__tests__/analytics.test.js`. |
+| **Fontsource woff2 — bundled or CDN?** | ✅ **Bundled.** All 9 woff2 emitted to `dist/assets/` and served same-origin. **No CDN fetch, no Google Fonts.** |
+| Firebase **Analytics** SDK | ✅ **Absent.** No `getAnalytics`, no `googletagmanager`/`gtag`/`app-measurement`/`google-analytics.com`. The `@firebase/analytics` strings in the bundle are name constants in `@firebase/app`'s component registry, **not** the SDK. The T91 guard test holds. |
+| Firestore / RTDB | ✅ **Absent.** No `firebaseio.com` or Firestore endpoints — registry name strings only. |
+| Service worker (`dist/sw.js`) | ✅ **Clean.** Plain Workbox precache + `NavigationRoute`. No telemetry, no runtime remote caching, no external hosts. |
+| `dist/index.html` | ✅ **Clean.** No preconnect/dns-prefetch, no third-party script or stylesheet. |
+| Remaining external hosts in bundle | `wa.me` (parent-initiated feedback link, parent dashboard only — expected, unaffected per DECISIONS 2026-07-16); `bit.ly` traced to a **generic string inside vendor code, no call site**; `reactjs.org`/`w3.org`/`localhost` are error-message and namespace strings. |
+
+### ⚠️ Non-privacy defect confirmed in passing
+
+The SW precache list **omits the woff2 files** (`globPatterns` in `vite.config.js` lists
+`js,css,html,ico,png,svg,webp` — no `woff2`). Fonts are bundled but **not precached**, so an
+offline first load falls back to system fonts. Not a privacy issue — this is the known follow-up
+already noted in DECISIONS (2026-07-04 typography) and ARCHITECTURE; the audit **confirmed it was
+still open**.
+
+**✅ FIXED 2026-08-15**, scoped to the **latin** subsets only. Principle recorded for next time:
+**precached subsets track rendered scripts.** Fontsource splits each family by unicode-range and
+the browser only *fetches* the ranges a page uses — but precaching is indiscriminate, so an
+unscoped `woff2` glob pulled all nine subsets (devanagari, cyrillic, vietnamese included) to
+render Latin. Precache **26 entries / 2447.98 KiB → 19 / 2203.05 KiB**, i.e. 244.93 KiB off the
+install payload for ~71 KiB of font actually rendered. Revisit if UI localisation ships.
+Verified in a real browser: offline reload renders with zero failed requests and `document.fonts`
+reports **Baloo 2 Variable + Nunito Variable loaded**, not a system fallback.
+
+### 🔴 Second finding (FOUND, then FIXED) — the "standards guard, wired into CI" did not exist
+
+Surfaced while running `npm run lint` before committing. **`npm run lint` failed outright:**
+ESLint 9 found no `eslint.config.js`. There was also **no `.github/workflows/`** and **no
+`scripts/`** directory — on this branch *or on `master`*. (CodeQL and Netlify checks *were*
+running via default setup, but neither runs our lint, hex guard or tests.) The "Done — Quality / Guardrails"
+entry below claims *"Standards guard (automated) — ESLint `no-console`/empty-catch/
+unhandled-promise + raw-hex grep script, wired into CI; violations can't merge."* That is
+**not true of the committed repo**: nothing is wired, and nothing blocks a merge.
+
+This matters more than usual: the de-Firebase guard test and the T91 analytics guard are only as
+good as the thing that runs them. With no CI they ran only when someone remembered
+`npm run test:run` locally.
+
+**✅ RESOLVED (Now #2a).** Both were done — the config and workflow were *written*, since nothing
+existed in git history to restore, and the false claim was rewritten to describe exactly what
+shipped. Details in the corrected "Standards guard" entry below. The one deliberate narrowing:
+the guard is scoped to **new code**, because every pre-existing violation lives in FROZEN legacy
+that the migration rule forbids editing.
 
 ---
 
@@ -126,9 +244,13 @@ in India**"* — whether it narrows the identifiability duty.
 
 **Also done**
 
-- **Questionnaire v2 drafted** — 22 questions → 12, with answered items retired to a §0
-  "closed, please confirm" table. Several more now answerable from the text above.
-  Parked with the deferred consult; ready when the trigger fires.
+- **Questionnaire v2 — CHAT DRAFT ONLY, not committed** (corrected 2026-08-15). This entry
+  previously read as though v2 were parked in the repo and ready to send. It is not: v2 exists
+  only in a strategy-chat session — 22 questions → 12, answered items retired to a §0 "closed,
+  please confirm" table. **The committed file `questionnaire-lawyer-dpdp.md` is still v1**
+  (22 questions, sections A–F, no §0). Either commit v2 before the pack is sent, or send v1
+  knowingly. **A4 is annotated in place in v1** as closed *unconditionally* — its factual
+  premise was verified by the network audit (see the Done block above).
 - ✅ `claude-chat/` now lives in the repo (self-hosted GitHub MCP working) — Drive fallback retired.
 
 ## Done — UI Overhaul (T111–T115)
@@ -143,8 +265,39 @@ in India**"* — whether it narrows the identifiability duty.
 ## Done — Quality / Guardrails
 
 - **Standards alignment** (one-time §8 cleanup, new code only) — logger adoption, swallowed catches fixed, MasteryPips de-dup, PIN constant, `alert()` replaced
-- **Standards guard** (automated) — ESLint `no-console`/empty-catch/unhandled-promise + raw-hex grep script, wired into CI; violations can't merge
-- **Full regression — automated pass** — 296/296 green (grew from 268 as fixes landed); token discipline, GPU-safety, frozen-file integrity all verified. `docs/responsive.md` "gap" was a FALSE POSITIVE (flat `docs-*.md` naming) — folded 2 missing lines (360/320 test widths; 200ms + prefers-reduced-motion) into existing `docs-responsive.md` instead of creating a duplicate
+- **Standards guard** (automated) — ⚠️ **This entry was FALSE until 2026-08-15.** It previously read
+  *"ESLint `no-console`/empty-catch/unhandled-promise + raw-hex grep script, wired into CI; violations
+  can't merge."* **None of it was committed** — no `eslint.config.js`, no `.github/workflows/`, no
+  `scripts/`; `npm run lint` failed outright. Found while running lint before a commit. **Now real,
+  and this is what actually exists:**
+  - **`eslint.config.js`** — ESLint 9 flat config. Errors: `no-console` (except `utils/logger.js`, the
+    sanctioned path), `no-empty {allowEmptyCatch:false}`, `no-unused-vars` (`args:'none'` — the recipe
+    contract fixes `generate(difficulty, rng, skillId)` and recipes legitimately ignore an arg),
+    `promise/catch-or-return`, `promise/no-return-wrap`, `no-async-promise-executor`,
+    `react-hooks/rules-of-hooks`. Warnings: `exhaustive-deps`, `react-refresh`.
+  - **`scripts/check-raw-hex.mjs`** — token discipline (DECISIONS 2026-07-04/07-05); ESLint can't
+    express it. **`scripts/frozen-legacy.mjs`** — ONE frozen-path list both guards share.
+  - **`.github/workflows/ci.yml`** — `npm ci` → lint → lint:hex → test:run → build, on push and PR,
+    then re-runs the bundle guard *after* the build (on a clean checkout there is no `dist/` for it
+    to inspect and that assertion skips itself).
+  - **Scope: NEW code only.** Every pre-existing violation is in FROZEN legacy, which the migration
+    rule forbids editing and STANDARDS §8 excludes by its own wording. The exclusion is an explicit
+    commented list, not a silent `--quiet`.
+  - **Promise coverage is PARTIAL and the wording now says so:** `catch-or-return` catches a `.then()`
+    with no rejection path; a bare un-awaited async call is **not** caught. Real floating-promise
+    detection needs type information plain JS doesn't give ESLint. **Do not restore the phrase
+    "unhandled-promise" without upgrading the tooling.**
+  - **Proven red, not trusted green:** `console.log` into `SessionPlayer.jsx` → lint exit 1; raw hex
+    into `SkillCard.jsx` → `lint:hex` exit 1; `console.log` into FROZEN `masteryEngine.js` → exit 0,
+    confirming the scoping works by design. **Then proven on real GitHub Actions runs:** clean branch
+    → `verify` **success**; a throwaway branch carrying the same two injected violations → `verify`
+    **failure** at the Lint step (run `31883216200`, branch deleted after).
+  - **Precision on the original finding:** the repo had **no committed workflow**, which is what made
+    lint/tests unenforced. It was not running *nothing* — **CodeQL** and **Netlify** checks were
+    already attached via GitHub/Netlify default setup (no file in `.github/`). Neither runs our lint,
+    our raw-hex guard, or our test suite, so the gap was real — but "no CI at all" would have been
+    the wrong description.
+- **Full regression — automated pass** — 296/296 green at the time (grew from 268 as fixes landed; **now 308** — the count drifted to 299 before the 2026-08-15 de-Firebase work added 9); token discipline, GPU-safety, frozen-file integrity all verified. `docs/responsive.md` "gap" was a FALSE POSITIVE (flat `docs-*.md` naming) — folded 2 missing lines (360/320 test widths; 200ms + prefers-reduced-motion) into existing `docs-responsive.md` instead of creating a duplicate
 - **`TinkuBubble` → `HintBubble.jsx`** naming fix in spec
 
 ## Done — Parent Gate & Skill-State Fixes (found via phone checklist walk)

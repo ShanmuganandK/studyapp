@@ -20,7 +20,7 @@ import {
   getFrontierSkills,
   recommendNext,
 } from '../composer.js';
-import { emptySkillState, isMastered } from '../mastery.js';
+import { emptySkillState } from '../mastery.js';
 import { MASTERY } from '../../config/masteryConfig.js';
 import { COMPOSER } from '../../config/composerConfig.js';
 

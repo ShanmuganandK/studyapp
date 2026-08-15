@@ -62,6 +62,35 @@ collect your child's name, email, or personal information. Your child's progress
 saved right here on your device.") legally accurate now that analytics are fully
 removed from MVP?
 
+> ### ✅ A4 — CLOSED UNCONDITIONALLY (2026-08-15). Factual premise now verified.
+>
+> A4 was previously closed **conditionally**, pending a check that the shipping build
+> actually behaved as this question describes. **That check has been done** — the
+> 2026-08-15 network audit — and it did **not** pass on the first look: the build was
+> initializing **Firebase Auth on every app start**, so a device carrying a persisted
+> legacy Google session was contacting Google at launch. The wording above would have
+> been inaccurate as shipped.
+>
+> **That defect is fixed** (`firebase` dependency removed, `lib/firebase.js` and
+> `firebaseAdapter.js` deleted, auth seam reduced to an inert null-user adapter), and the
+> premise is now verified three ways: no source file imports firebase; **zero** Google
+> identity endpoints anywhere in `dist/`; and the built app, loaded in a real browser,
+> issues **12 requests — all same-origin, zero off-origin**. A standing guard test
+> (`services/__tests__/noFirebaseAuth.test.js`) prevents silent regression.
+>
+> **Do not reopen A4 as a factual question.** What remains is only the legal
+> characterisation, and it is already settled in the same direction by DECISIONS
+> 2026-08-14: **do not use the absolute claim "we collect no personal data."** The notice
+> states the app-side facts flatly (no sign-up, no accounts, no analytics, no tracking,
+> progress stays on the device) **plus** one line acknowledging standard store/hosting
+> technical data — Play Console vitals and Netlify request logs are real and outside our
+> control. See the 2026-08-15 amendment in DECISIONS.
+>
+> ⚠️ **Note for whoever sends this pack:** the tracker records a **v2** of this
+> questionnaire (22 questions → 12, answered items retired to a §0 "closed, please
+> confirm" table). **v2 is not in this repo** — this file is still v1. Either commit v2
+> before sending, or send v1 and treat this box as its §0 entry for A4.
+
 ## Section B — Verifiable parental consent (gates all account/cloud/paywall work)
 
 **B1.** For Layer 2: parent authenticates with their own Google account via a
