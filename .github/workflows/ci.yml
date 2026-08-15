@@ -35,6 +35,13 @@ jobs:
       - name: Raw-hex colour guard
         run: npm run lint:hex
 
+      # Standards guard, part 3 — the published privacy policy. `public/privacy.html` is a
+      # GENERATED artefact committed to the repo, so it can go stale the moment someone edits
+      # the policy text without rerunning the generator. This runs BEFORE the build on purpose:
+      # `npm run build` regenerates the page, which would mask exactly the drift being checked.
+      - name: Privacy policy page is in sync
+        run: npm run privacy:check
+
       # The suite that carries the privacy guards.
       - name: Test
         run: npm run test:run

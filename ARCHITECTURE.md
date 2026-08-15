@@ -16,7 +16,7 @@ proven behind a flag, then deleted. See **Migration strategy** below.
 | `src/engine/`       | **NEW** (scaffold). Pure core logic: mastery, spaced-rep, composer, remediation. |
 | `src/hooks/`        | **NEW** (scaffold). React orchestration: session flow, mastery updates. |
 | `src/services/`     | **NEW** SDK boundary (auth/firestore/billing) — but currently also holds **FROZEN** legacy popup-first auth (`authService.js`, `firebaseAdapter.js`, `localAdapter.js`). |
-| `src/config/`       | **NEW.** Config modules — `constants.js` (app-wide constants, e.g. `FEEDBACK_WHATSAPP_NUMBER`), `flags.js` (migration feature flags), `masteryConfig.js` (mastery + spaced-rep tunables), `composerConfig.js` (composer tunables). |
+| `src/config/`       | **NEW.** Config modules — `constants.js` (app-wide constants, e.g. `FEEDBACK_WHATSAPP_NUMBER`, `PRIVACY_NOTICE`), `privacyPolicy.js` (**the published privacy policy, as data** — see below), `flags.js` (migration feature flags), `masteryConfig.js` (mastery + spaced-rep tunables), `composerConfig.js` (composer tunables). |
 | `src/components/`   | Presentational React UI (screens, modules, dashboard). The migration bridge. The child-reachable flow is now entirely new (skill-select → recipe quiz); legacy screens stay on disk but FROZEN/unreachable (see **App flow & screens**). |
 | `src/contexts/`     | React contexts (e.g. `AuthContext`). Legacy until auth is rebuilt.     |
 | `src/lib/`          | **FROZEN.** Legacy Firebase init (`firebase.js`).                       |
@@ -497,6 +497,44 @@ call-sites (all in `useQuizSession.js`), so when analytics returns — **post-tr
 verified parental consent** — ONLY this file changes; call-sites stay identical. Guard test
 `__tests__/analytics.test.js` asserts the API is callable, emits nothing, and that no source file
 imports the Analytics SDK (so it can't enter the bundle).
+
+### Privacy policy (`src/config/privacyPolicy.js`) — one text, two surfaces
+
+The policy must exist at a **public URL** (Play requires a linkable policy in the store listing,
+openable by a reviewer who has not installed the app) **and inside the app** (Designed-for-Families
+expects it reachable in-app). Two hand-maintained copies of a legal text drift, and the stale one is
+always the one nobody opens — so the words live in exactly one module and both surfaces render from it:
+
+- **`src/config/privacyPolicy.js`** — SOURCE OF TRUTH. Plain data (`SECTIONS`: `{ id, heading,
+  paragraphs }`), no markup, no JSX, so Node and React can both consume it. Also exports
+  `linkifyEmailParts()` so each renderer builds the `mailto` link in its own idiom without
+  re-deriving where the address sits.
+- **`scripts/build-privacy-page.mjs`** → **`public/privacy.html`** — the hosted page. Generated into
+  `public/` (not `dist/`) on purpose: Vite copies `public/` verbatim, so the page enters the PWA
+  precache and stays available offline. Standalone and **self-contained by requirement** — inline CSS,
+  system font stack, no webfont, no script, no external host. A policy page that fetched a CDN asset
+  would contradict its own text in the reader's devtools.
+- **`src/components/PrivacyPolicy.jsx`** — the in-app copy, shown from the parent zone
+  (`ParentDashboard` → `PrivacyNotice` card → "Read the full privacy policy"). It swaps in over the
+  dashboard via local state rather than routing or opening a browser tab: in the Capacitor wrap an
+  external link drops the parent out of the app entirely.
+- **`vite.config.js`** carries `navigateFallbackDenylist: [/^\/privacy\.html$/]` — without it the
+  service worker's navigation fallback answers `/privacy.html` with the app shell, so a reviewer or
+  parent opening the policy link on a device with the PWA installed gets the app, not the policy.
+
+**Relationship to `PRIVACY_NOTICE` (`constants.js`):** that is the SHORT reassurance rendered on the
+home screens (footer) and the parent dashboard (card). This is the FULL policy. They are separate
+texts with separate homes; the card links to the policy.
+
+**Guards.** `src/config/__tests__/privacyPolicy.test.js` asserts the committed HTML is byte-identical
+to the generator output (drift = red CI, via the `privacy:check` step that runs *before* the build,
+since the build would regenerate and mask it), that the page references no external host and runs no
+script, and that the DECISIONS 2026-08-14 wording constraints hold — store/hosting section present,
+absolute "we collect no personal data" claim absent, unshipped export/backup not promised.
+`src/components/__tests__/PrivacyPolicy.test.jsx` asserts the in-app route is actually reachable.
+
+**Play Data Safety answers** live in `claude-chat/play-data-safety-form.md`, with the factual basis
+for each "No" and the checklist to re-run whenever the build gains a network capability.
 
 ### Utilities (`src/utils/logger.js`)
 

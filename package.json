@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "vite build",
+    "build": "node scripts/build-privacy-page.mjs && vite build",
     "lint": "eslint .",
     "lint:hex": "node scripts/check-raw-hex.mjs",
+    "privacy:build": "node scripts/build-privacy-page.mjs",
+    "privacy:check": "node scripts/build-privacy-page.mjs --check",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run"

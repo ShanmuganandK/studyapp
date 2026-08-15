@@ -7,6 +7,7 @@ import { progressSummary } from '../engine/progressSummary';
 import { MASTERY } from '../config/masteryConfig';
 import { feedbackWhatsAppUrl } from '../config/constants';
 import PrivacyNotice from './PrivacyNotice';
+import PrivacyPolicy from './PrivacyPolicy';
 
 // ─── Local helpers ────────────────────────────────────────────────────────────
 
@@ -86,6 +87,16 @@ export default function ParentDashboard({ onSetPasscode, onRemovePasscode, hasPa
 
   // Inline "Remove passcode?" confirm — avoids an accidental one-tap removal of the gate.
   const [confirmRemove, setConfirmRemove] = useState(false);
+
+  // Full policy swaps in over the dashboard rather than routing or opening a browser tab:
+  // Designed-for-Families wants it reachable in-app, and in the Capacitor wrap an external
+  // link would drop the parent out of the app entirely. Local state — nothing above the
+  // parent zone needs to know this view exists.
+  const [showPolicy, setShowPolicy] = useState(false);
+
+  if (showPolicy) {
+    return <PrivacyPolicy onBack={() => setShowPolicy(false)} />;
+  }
 
   return (
     <div className="flex flex-col min-h-full bg-bg overflow-y-auto">
@@ -187,7 +198,7 @@ export default function ParentDashboard({ onSetPasscode, onRemovePasscode, hasPa
         </div>
 
         {/* ── Privacy reassurance ──────────────────────────────────────────── */}
-        <PrivacyNotice variant="card" />
+        <PrivacyNotice variant="card" onReadPolicy={() => setShowPolicy(true)} />
 
         {/* ── Settings footer ──────────────────────────────────────────────── */}
         <div className="border-t border-primary-soft pt-4 space-y-3">

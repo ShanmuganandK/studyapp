@@ -37,14 +37,14 @@ as a "game" was considered and rejected (see DECISIONS).
 |---|---|---|---|
 | 1 | **Network audit of shipping build** | ✅ **Done 2026-08-15** | Found 1 blocker (startup Firebase Auth init), now fixed — see the audit block below. Everything else clean. |
 | 1b | **De-Firebase the MVP build** | ✅ **Done 2026-08-15** | Blocker from #1 closed. Firebase dep dropped, `lib/firebase.js` + `firebaseAdapter.js` deleted, `localAdapter` rewritten as an inert null-user seam, guard test added. **The app now makes zero off-origin requests at runtime (verified in a real browser).** |
-| 2 | **Privacy policy + Play Data Safety form** | ⏳ **Next — now unblocked** | Play requires a policy for every app regardless of collection. Notice wording per DECISIONS 2026-08-14 — no absolute "we collect no personal data" claim; keep the store/hosting technical-data line. **The app-side claim can now be stated flatly** (no accounts, no auth SDK, no network calls from `src/`) — see the amended DECISIONS 2026-08-14 residual-obligations paragraph. Contact for queries/complaints: **shanmuganand.kanniappan@gmail.com** (interim — see pre-launch checklist). Needs BOTH a public URL and an in-app link. |
+| 2 | **Privacy policy + Play Data Safety form** | ✅ **Done 2026-08-15** — 2 human actions left | Both surfaces shipped: public page at **`/privacy.html`** and in-app via parent zone → "Read the full privacy policy", rendering from ONE source module and guarded against drift. Data Safety answers written verbatim in `play-data-safety-form.md`. Wording per DECISIONS 2026-08-14 + its 2026-08-15 amendment — app-side claim flat, store/hosting line kept, absolute claim not used. Contact for queries/complaints: **shanmuganand.kanniappan@gmail.com** (interim — see pre-launch checklist). **Still needs the human:** the live Netlify domain (nothing in the repo knows it) and the app-name decision — both in the pre-launch checklist below. Detail in the Done block. |
 | 2a | **CI wiring / standards guard** | ✅ **Done 2026-08-15** | Was a false claim (see the corrected Done entry below). Now real: `eslint.config.js` (ESLint 9 flat), `scripts/check-raw-hex.mjs`, `scripts/frozen-legacy.mjs`, `.github/workflows/ci.yml`. **Proven red on a real Actions run**, not trusted green. |
-| 3 | **Progress export/import** | ⏳ Next | Parent-zone download/restore of progress as local JSON. Replaces cloud backup for MVP; built on the existing `progressStore` seam. Zero server, zero personal data. **v1 item, not a nice-to-have** — device-local PWA progress is fragile (clear-data / new phone / uninstall). |
+| 3 | **Progress export/import** | ⏳ **Next** | Parent-zone download/restore of progress as local JSON. Replaces cloud backup for MVP; built on the existing `progressStore` seam. Zero server, zero personal data. **v1 item, not a nice-to-have** — device-local PWA progress is fragile (clear-data / new phone / uninstall). **Now also owes the policy a sentence:** the approved draft's *"You can save a backup copy from the Parent Zone at any time"* was deliberately left OUT because the feature does not exist. Restore it in `src/config/privacyPolicy.js`, and delete the matching guard assertion, in the SAME commit that ships export. |
 | 4 | Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. **ADD a new step (2026-08-15): verify the Netlify published deploy SHA matches `master` BEFORE walking anything** — see "Deploy verification" below. |
 | 5 | Screen 3-B verdict (journey path vs. cards) | ⏳ Pending | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. Kid-testing is the gate. |
 | 6 | Session composer build | ⏳ Queued | Spec settled (below). Unaffected by the legal re-scope — pure local engine work. |
 | 7 | Remaining ~29 recipes | ⏳ Background | Curriculum breadth. Fully unblocked. |
-| 8 | **Designed-for-Families programme rules** | ⏳ Read before submit | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. |
+| 8 | **Designed-for-Families programme rules** | ⏳ Read before submit — **privacy half now done** | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. The **policy** obligations are closed by #2 (policy exists, is linked, is reachable in-app, no ads, no collection). **Still open:** target-age declaration, content rating questionnaire, content policy, store-listing assets, and the external-link rule as it applies to the parent-zone WhatsApp link — enumerated in `play-data-safety-form.md` §4. |
 | 9 | **Welcome / onboarding screen — TRACE, then decide** | ❓ **Unresolved** | Recalled as built ("two pages — a welcome page and one other"), but **there is no `Welcome.jsx` in `src/components`** and nothing in `ThemeManager` renders one. First view on launch is `SkillPathScreen`. Three possibilities, in order of likelihood: (a) it's `ProfileSetup.jsx` / `ProfileSelector.jsx` under a different mental name — both exist, **both currently unrendered**; (b) it was built on a branch that was never merged; (c) it was never committed — a fourth claim-without-artifact. **Action: `git log --diff-filter=A --name-only | grep -i -E 'welcome|onboard|intro|splash'` and check unmerged branches, before rebuilding anything.** Then decide whether MVP even wants a welcome screen — a no-account app arguably shouldn't gate a child behind one. |
 
 ## Deploy verification (standing step — added 2026-08-15)
@@ -78,8 +78,8 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 |---|---|---|
 | ⚠️ **App name decision + "CBSE" in the name** | ❗ **Open — decide early** | The PWA manifest says **`CBSE Math Kids`** / short name `Math Kids` / *"Fun math learning for CBSE students"*, but every doc calls the product **Tinku Math**. That inconsistency needs resolving regardless. **Separately and more importantly:** CBSE is a statutory board, and putting "CBSE" in the *app name* risks reading as official affiliation or endorsement, which Play's impersonation policy prohibits. Describing the app as *CBSE/NCERT-**aligned*** in the description is a different and much safer claim. **Check this before building store assets** — a name change after asset creation wastes the assets. |
 | Developer / publisher name | ⏳ Open | Own name vs. a trade name. Appears on the store listing and in the privacy policy. Interim contact is the personal Gmail; decide whether that ships. |
-| Privacy policy public URL | ⏳ With #2 | Play requires a reachable link in the listing. Host on Netlify (e.g. `/privacy`) and link it in-app too (Designed for Families expects in-app reachability). |
-| Play Data Safety form | ⏳ With #2 | Expected answer: **no data collected, no data shared**. Verify against the live form — it is Google's UI and it changes. |
+| Privacy policy public URL | 🔶 **Code done (#2) — needs the domain** | Page ships at **`/privacy.html`** (generated, precached, offline-reachable) and is linked in-app from the parent zone. **Nothing in the repo knows the live Netlify domain**, so `play-data-safety-form.md` carries `https://<SITE>/privacy.html` as a placeholder. Fill it into **both** places Play asks — store listing *and* Data Safety form — and confirm it loads in a **private window** (per Deploy verification above: incognito is also what proves it is the deploy, not your cache). |
+| Play Data Safety form | 🔶 **Answers drafted (#2) — needs entering** | `claude-chat/play-data-safety-form.md` holds the verbatim wizard answers, the factual basis for each, and a pre-submission checklist. Answer is **no data collected, no data shared**. Still verify against the live form — it is Google's UI and it changes. ⚠️ **The declaration is a claim about the BUILD:** if any future build adds a network call, an SDK or an account, re-answer it *before* that build ships. |
 | Designed for Families enrolment | ⏳ #8 | We target under-13s, so we are in it. Content + ads rules, independent of DPDP. |
 | Store listing assets | ⏳ Not started | Icon, feature graphic, screenshots, short + full description. Blocked on the name decision above. |
 | Play Console account | ❓ Unknown | DECISIONS says individual account under UAE identity, payouts to UAE bank. **Is it actually created and verified?** Google identity verification for individual developers takes time — start it early even though MVP takes no money. |
@@ -124,6 +124,72 @@ Layer 2) and a paid-unlock-without-accounts path.
 | **India day-count log** | ⏳ Start now | Track days-in-India from now, independent of when the CA replies. |
 | Kid-testing in India | ⏳ Planned | Signal source for the 3-B verdict, FRONTIER_PICK validation, and the revisit trigger above. |
 | Teacher review of `misconceptions-reference.md` | ⏳ Pending | ~68 rows, one-time, arrange in India. Unblocks richer dashboard insight. |
+
+---
+
+## Done — Privacy policy + Play Data Safety (2026-08-15)
+
+**Shape of the solution: one text, two surfaces, guarded.** The policy has to be at a public URL
+(Play needs a link a reviewer can open without installing) *and* inside the app
+(Designed-for-Families). Two hand-maintained copies of a legal text drift, and the stale one is
+always the one nobody opens — so the words are **data** in `src/config/privacyPolicy.js` and both
+surfaces render from it.
+
+| Piece | What it is |
+|---|---|
+| `src/config/privacyPolicy.js` | **Source of truth.** Sections as plain data — no markup, no JSX — so Node and React both consume it. |
+| `scripts/build-privacy-page.mjs` → `public/privacy.html` | The public page. Generated into `public/` (not `dist/`) so Vite copies it and it enters the **PWA precache** — offline-reachable like the in-app copy. |
+| `src/components/PrivacyPolicy.jsx` | In-app copy: parent zone → privacy card → "Read the full privacy policy". Swaps in over the dashboard via local state — an external link would drop the parent out of the app in the Capacitor wrap. |
+| `claude-chat/play-data-safety-form.md` | The Data Safety wizard answers **verbatim**, with the factual basis for each, plus a pre-submission checklist and the Designed-for-Families split (what #2 closed vs what #8 still owns). |
+
+**Two deliberate departures from the approved draft** — both because the text may only claim what
+is true today (full reasoning in DECISIONS 2026-08-15):
+
+1. **"Short version: we don't collect anything" → "the app collects nothing about you or your
+   child."** The original is the absolute claim DECISIONS 2026-08-14 rejects, and the draft itself
+   contradicts it two sections later with the technical-information line. The shipped wording keeps
+   the punch and draws the exact distinction: *the app* collects nothing (measured); the delivery
+   services log what delivery services log.
+2. **"You can save a backup copy from the Parent Zone at any time" — OMITTED.** Export/import is
+   Now #3, not built. A policy may not describe a feature that doesn't exist. Restored (and the
+   guard assertion deleted) in the same commit that ships export.
+
+**Data Safety answer is "No" to collection or sharing.** The form and the policy answer *different
+questions* and must both stay as written — the form asks what **the app** collects (nothing: no
+SDK, no network call); the policy additionally discloses Play Console vitals and Netlify request
+logs because a parent deserves the whole picture. **Do not "reconcile" them** in either direction.
+
+**Verification**
+
+| Check | Result |
+|---|---|
+| Tests | **328 green** (+21 new), 1 skipped. Baseline before this work measured **308** across 4 clean runs. |
+| Lint / raw-hex guard | Clean — 0 errors (3 pre-existing warnings, unchanged). |
+| Drift guard | `npm run privacy:check` compares the committed HTML byte-for-byte with the generator output. Wired into CI **before** the build step on purpose — `npm run build` regenerates the page and would mask exactly the drift being checked. |
+| SW navigation fallback | `navigateFallbackDenylist: [/^\/privacy\.html$/]` confirmed **present in the built `dist/sw.js`**, and `privacy.html` confirmed **in the precache manifest**. Without it the SW answers the policy URL with the app shell — for a Play reviewer on a device with the PWA installed. |
+| **Real browser, built page** | `/privacy.html` served from `dist/`: **1 request, zero off-origin, no page errors.** Title, all 8 headings and the `mailto:` link render. The page is self-contained by requirement — a policy claiming "no network calls" must not make any. |
+| Bundle size | 201.1 kB → **204.9 kB** (+3.8 kB for the policy text + in-app screen). |
+
+**⚠️ Two human actions before submit** (neither is code):
+
+1. **Netlify domain unknown to the repo.** `play-data-safety-form.md` carries
+   `https://<SITE>/privacy.html` as a placeholder. Fill in the live domain in **both** places Play
+   asks — store listing *and* Data Safety form — and confirm it loads in a private window.
+2. **The app-name decision** — already tracked in the pre-launch checklist above, and it is now
+   *also* a policy question: the policy names the app **Tinku Math**, and the policy must name the
+   app as the store lists it. Whichever way the CBSE-in-the-name question goes, `APP_NAME` in
+   `src/config/privacyPolicy.js` follows the store name, and `npm run privacy:build` regenerates
+   the page. **Independently arrived at here, then found already recorded** — the checklist row is
+   the better version of it (it carries the Play impersonation-policy risk this one missed).
+
+### ⚠️ Flake observed in passing (NOT introduced here, but CI-relevant)
+
+`components/__tests__/ParentGate.noauth.integration.test.jsx` **failed once in ~10 full-suite
+runs** — on the *cold* run (13.9 s total vs 10.6 s warm), and passed in isolation immediately
+after. It is a single `it` chaining ~20 `waitFor`/`findBy` calls against the default **5 s** vitest
+timeout, so a cold transform/import pass can push it over. **CI always runs cold.** Not touched
+here (it is unrelated to this task and is someone's test to change), but it is a live flake risk on
+the workflow that now gates every merge — a per-test `{ timeout: 15000 }` would close it.
 
 ---
 
@@ -395,7 +461,7 @@ in India**"* — whether it narrows the identifiability duty.
 - **NyayGuru AI-advocate response received** — coherent on design questions, but **drifted on the one question governed by text** (recommended OTP/Google for Rule 10 twice, the second time while quoting text that doesn't support it). Useful for architecture, not for statutory reading. See 2026-08-14 block above.
 - **Analytics removed entirely from MVP** — no Firebase Analytics SDK in the build, zero telemetry (guest or otherwise). Wrapper (T91) reduced to inert no-op seam; call-sites preserved for future reactivation.
   - **DECISIONS 2026-07-16:** MVP ships with NO analytics whatsoever.
-- **T107 (privacy notice)** — reopened 2026-08-14: wording needs the store/hosting-data line (see Now #2); the absolute "we collect no personal data" claim is not used.
+- **T107 (privacy notice)** — reopened 2026-08-14, **closed 2026-08-15**: the store/hosting-data line is in the published policy and the absolute "we collect no personal data" claim is not used. See the "Privacy policy + Play Data Safety" Done block above.
 - **T91 amended** — inert seam pattern, 2026-07-16
 - **T47 / T60** (Firebase instrumentation, auth-state analytics) — moved MVP → post-traction
 - **Weekly WhatsApp/email summary deferred entirely from MVP** — parent dashboard (on-demand, in-app) IS the MVP report. No outbound messaging, no parent contact details collected at all in MVP. Inbound feedback link (parent-initiated WhatsApp) is UNAFFECTED — stays as-is.

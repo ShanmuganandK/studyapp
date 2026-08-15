@@ -5,6 +5,10 @@ import { PRIVACY_NOTICE } from '../config/constants';
  * Presentational only; the copy is the single source of truth in `config/constants`
  * (PRIVACY_NOTICE) so both placements stay identical and are edited in one place.
  *
+ * This is the SHORT reassurance. The full policy lives in `config/privacyPolicy.js` and is
+ * rendered by `PrivacyPolicy.jsx`; pass `onReadPolicy` to surface the link to it (card variant
+ * only — the footer sits on kid-facing screens and stays a one-liner).
+ *
  * Variants:
  *   'card'   — prominent, calm bordered card for the parent zone / dashboard.
  *   'footer' — subtle muted text for the home (skill-select) screen; reassures a
@@ -13,8 +17,9 @@ import { PRIVACY_NOTICE } from '../config/constants';
  * Do NOT render this on the quiz / gameplay screens (kid-facing).
  *
  * @param {'card'|'footer'} variant
+ * @param {() => void} [onReadPolicy] - opens the full policy; link is omitted when absent
  */
-export default function PrivacyNotice({ variant = 'card' }) {
+export default function PrivacyNotice({ variant = 'card', onReadPolicy }) {
   const { title, body } = PRIVACY_NOTICE;
 
   if (variant === 'footer') {
@@ -29,6 +34,14 @@ export default function PrivacyNotice({ variant = 'card' }) {
     <div className="bg-bg-card rounded-card shadow-card p-4 text-left">
       <p className="text-sm font-bold text-learn-ink">{title}</p>
       <p className="text-sm text-muted mt-1 leading-snug">{body}</p>
+      {onReadPolicy && (
+        <button
+          onClick={onReadPolicy}
+          className="text-sm font-semibold text-primary underline mt-2 hover:text-primary-ink transition-colors"
+        >
+          Read the full privacy policy
+        </button>
+      )}
     </div>
   );
 }
