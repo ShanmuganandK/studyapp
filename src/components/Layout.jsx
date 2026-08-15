@@ -1,4 +1,3 @@
-import React from 'react';
 import { Home, Lock } from 'lucide-react';
 import useOnline from '../hooks/useOnline';
 import tinkuImg from '../assets/mascot/webp/Tinku_Mascot.webp';

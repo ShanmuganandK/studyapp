@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import RecipeQuizScreen from './RecipeQuizScreen';
 import SkillSelectScreen from './SkillSelectScreen';
 import SkillPathScreen from './SkillPathScreen';

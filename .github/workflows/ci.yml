@@ -1,0 +1,51 @@
+name: CI
+
+# Runs on every push and every PR. Before this existed, the guard tests protecting a claim in
+# a PUBLISHED PRIVACY NOTICE (services/__tests__/noFirebaseAuth.test.js — no auth SDK, no
+# Google identity endpoints in the bundle; services/__tests__/analytics.test.js — no analytics
+# SDK) only ran when a human remembered to run them locally.
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22' # matches local dev (v22.23.2)
+          cache: npm
+
+      # `npm ci` (not `install`) so the lockfile is authoritative — a drifting transitive dep
+      # is exactly how the Firebase Auth SDK sat in the bundle unnoticed.
+      - name: Install
+        run: npm ci
+
+      # Standards guard, part 1 — STANDARDS §8 (no-console, empty catch, promise rejection
+      # paths). Scoped to new code; FROZEN legacy is excluded (scripts/frozen-legacy.mjs).
+      - name: Lint
+        run: npm run lint
+
+      # Standards guard, part 2 — design-token discipline (DECISIONS 2026-07-04/07-05).
+      - name: Raw-hex colour guard
+        run: npm run lint:hex
+
+      # The suite that carries the privacy guards.
+      - name: Test
+        run: npm run test:run
+
+      # Build last: the de-Firebase guard's strongest assertion inspects dist/, so a green
+      # build here means that check ran against a REAL bundle, not a stale or absent one.
+      - name: Build
+        run: npm run build
+
+      # Re-run the bundle-level guard now that dist/ definitely exists. On a clean checkout the
+      # earlier test run has no dist/ to inspect and that assertion skips itself; this second
+      # pass is what actually proves the shipped bundle is free of Google identity endpoints.
+      - name: Re-check bundle guards against the built output
+        run: npx vitest run src/services/__tests__/noFirebaseAuth.test.js
