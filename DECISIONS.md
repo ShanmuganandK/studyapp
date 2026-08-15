@@ -182,6 +182,30 @@
   line acknowledging standard store/hosting technical data — **not** the absolute claim "we collect no
   personal data."
 
+  > **AMENDED 2026-08-15 — the app-side claim is now verified, and may be stated flatly.**
+  > When the paragraph above was written, the app-side wording was hedged because nothing had yet
+  > proven what the shipping build actually did. The **network audit of 2026-08-15 closed that**, and it
+  > found the hedge was justified: the bundle was initializing **Firebase Auth on every app start**
+  > (`lib/firebase.js` running `initializeApp()`/`getAuth()` at module scope, behind a static import chain
+  > that the `isFirebaseConfigured` check could not stop), so devices with a persisted legacy Google
+  > session were refreshing tokens to Google at launch.
+  >
+  > That is **fixed**: the `firebase` dependency, `lib/firebase.js` and `firebaseAdapter.js` are gone, and
+  > the auth seam is an inert null-user adapter. Verified three ways — no source file imports firebase;
+  > **zero** Google identity endpoints anywhere in `dist/`; and, loaded in a real browser, the built app
+  > issues **12 requests, all same-origin, zero off-origin**. A standing guard test
+  > (`services/__tests__/noFirebaseAuth.test.js`) now asserts all three, so this cannot silently regress.
+  >
+  > **Net effect on wording.** The app-side half no longer needs hedging and should be stated plainly:
+  > **no accounts, no auth SDK, no analytics SDK, and no network calls originating from the app at all.**
+  > **The store/hosting line STAYS** — Play Console vitals and Netlify request logs are real, are outside
+  > our control, and are not covered by the app-side claim. The absolute "we collect no personal data"
+  > claim remains **rejected**, for that same reason.
+  >
+  > *(Caveat on the guard: it only binds if something runs it. `npm run lint` currently fails and no CI
+  > workflow is committed — TRACKER Now #9. Until that is resolved the guard is a local check, not a
+  > merge gate.)*
+
   **Constraints that bind the day Layer 2 returns** (recorded now so the deferred design starts correct):
   - **Rule 8(3) — one-year retention FLOOR.** Personal data, associated traffic data and processing logs
     must be retained **a minimum of one year** from the date of processing. This cuts against
@@ -207,3 +231,17 @@
   under any reading) and should be closed before any Layer 2 build. Open interpretive question for
   counsel: the Rule 10(1) qualifier *"identifiable **if required in connection with compliance with any law
   for the time being in force in India**"* — whether it narrows the identifiability duty.
+
+- (2026-08-15) **No auth SDK ships in the MVP build (LOCKED).** The `firebase` dependency,
+  `src/lib/firebase.js` and `src/services/firebaseAdapter.js` are removed; the auth seam
+  (`services/authService.js` → `localAdapter`) is an **inert null-user adapter** that never fabricates
+  a user. `AuthProvider` stays in the React tree because it still owns the parent passcode and profile
+  state — only the adapter beneath it changed, so no call-site moved. This is the same seam pattern as
+  the analytics no-op (2026-07-16): when accounts return post-validation, **only the adapter changes**.
+  Prompted by the 2026-08-15 network audit, which found Firebase Auth initializing at every app start
+  (details + verification in the amendment to the 2026-08-14 entry above). Bundle dropped 317.6 kB →
+  201.1 kB as a side effect. **Standing guard:** `services/__tests__/noFirebaseAuth.test.js` asserts the
+  seam is null-user, that no source imports firebase, that the deleted modules stay deleted, that
+  `firebase` is not a dependency, and that no built `dist/` artefact contains a Google identity endpoint.
+  **Do not reintroduce an auth SDK for convenience** — the no-network claim is now published in the
+  privacy notice, not just an internal preference.
