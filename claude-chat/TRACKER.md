@@ -5,6 +5,10 @@
 > **Maintenance rule:** update this in the SAME COMMIT as the work it describes,
 > like ARCHITECTURE.md. Optimized for "what's next," not for exhaustive history —
 > git log holds the detail behind each line.
+>
+> **Claims rule (added 2026-08-15):** no line in a Done section without a committed
+> artifact behind it. Three claims were checked on 2026-08-15 and three were false
+> (CI wiring, questionnaire v2, the 296 test count). See "Open questions / to trace".
 
 _Last synced: 2026-08-15_
 
@@ -33,14 +37,64 @@ as a "game" was considered and rejected (see DECISIONS).
 |---|---|---|---|
 | 1 | **Network audit of shipping build** | ✅ **Done 2026-08-15** | Found 1 blocker (startup Firebase Auth init), now fixed — see the audit block below. Everything else clean. |
 | 1b | **De-Firebase the MVP build** | ✅ **Done 2026-08-15** | Blocker from #1 closed. Firebase dep dropped, `lib/firebase.js` + `firebaseAdapter.js` deleted, `localAdapter` rewritten as an inert null-user seam, guard test added. **The app now makes zero off-origin requests at runtime (verified in a real browser).** |
-| 2 | **Privacy policy + Play Data Safety form** | ⏳ **Next — now unblocked** | Play requires a policy for every app regardless of collection. Notice wording per DECISIONS 2026-08-14 — no absolute "we collect no personal data" claim; keep the store/hosting technical-data line. **The app-side claim can now be stated flatly** (no accounts, no auth SDK, no network calls from `src/`) — see the amended DECISIONS 2026-08-14 residual-obligations paragraph. |
+| 2 | **Privacy policy + Play Data Safety form** | ⏳ **Next — now unblocked** | Play requires a policy for every app regardless of collection. Notice wording per DECISIONS 2026-08-14 — no absolute "we collect no personal data" claim; keep the store/hosting technical-data line. **The app-side claim can now be stated flatly** (no accounts, no auth SDK, no network calls from `src/`) — see the amended DECISIONS 2026-08-14 residual-obligations paragraph. Contact for queries/complaints: **shanmuganand.kanniappan@gmail.com** (interim — see pre-launch checklist). Needs BOTH a public URL and an in-app link. |
 | 2a | **CI wiring / standards guard** | ✅ **Done 2026-08-15** | Was a false claim (see the corrected Done entry below). Now real: `eslint.config.js` (ESLint 9 flat), `scripts/check-raw-hex.mjs`, `scripts/frozen-legacy.mjs`, `.github/workflows/ci.yml`. **Proven red on a real Actions run**, not trusted green. |
 | 3 | **Progress export/import** | ⏳ Next | Parent-zone download/restore of progress as local JSON. Replaces cloud backup for MVP; built on the existing `progressStore` seam. Zero server, zero personal data. **v1 item, not a nice-to-have** — device-local PWA progress is fragile (clear-data / new phone / uninstall). |
-| 4 | Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. |
+| 4 | Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. **ADD a new step (2026-08-15): verify the Netlify published deploy SHA matches `master` BEFORE walking anything** — see "Deploy verification" below. |
 | 5 | Screen 3-B verdict (journey path vs. cards) | ⏳ Pending | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. Kid-testing is the gate. |
 | 6 | Session composer build | ⏳ Queued | Spec settled (below). Unaffected by the legal re-scope — pure local engine work. |
 | 7 | Remaining ~29 recipes | ⏳ Background | Curriculum breadth. Fully unblocked. |
 | 8 | **Designed-for-Families programme rules** | ⏳ Read before submit | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. |
+| 9 | **Welcome / onboarding screen — TRACE, then decide** | ❓ **Unresolved** | Recalled as built ("two pages — a welcome page and one other"), but **there is no `Welcome.jsx` in `src/components`** and nothing in `ThemeManager` renders one. First view on launch is `SkillPathScreen`. Three possibilities, in order of likelihood: (a) it's `ProfileSetup.jsx` / `ProfileSelector.jsx` under a different mental name — both exist, **both currently unrendered**; (b) it was built on a branch that was never merged; (c) it was never committed — a fourth claim-without-artifact. **Action: `git log --diff-filter=A --name-only | grep -i -E 'welcome|onboard|intro|splash'` and check unmerged branches, before rebuilding anything.** Then decide whether MVP even wants a welcome screen — a no-account app arguably shouldn't gate a child behind one. |
+
+## Deploy verification (standing step — added 2026-08-15)
+
+A cache/deploy scare on 2026-08-15 cost real confidence: the live app appeared to be
+missing the parent zone and Screen 3-B, and looked months old. **Nothing was wrong** —
+the code was on `master` and correctly wired; it was a local PWA cache.
+
+The lesson is that **a stale service-worker cache and a genuinely stale published deploy
+produce identical symptoms**, and only one of them is harmless. So:
+
+1. **Before trusting anything you see on Netlify**, open the URL in a **private/incognito
+   window**. That bypasses the service worker entirely and splits the problem in half in
+   ~30 seconds — correct there means it is cache, not deploy.
+2. **After every deploy**, confirm the Netlify **Published** deploy's commit SHA matches
+   `master` HEAD. This failure mode is silent by design: Netlify keeps serving the last
+   *successful* build indefinitely, so a build that has been failing for weeks looks exactly
+   like a cache problem.
+3. Clearing a stale PWA on a phone: uninstall from home screen → clear site data for the
+   domain → revisit. On desktop: DevTools → Application → Service Workers → Unregister,
+   then Clear site data, then hard reload.
+
+Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of section A.
+
+## Pre-launch checklist (blocks Play submission — added 2026-08-15)
+
+> None of these are code. All of them gate the store listing, and none were tracked
+> anywhere until now.
+
+| Item | Status | Note |
+|---|---|---|
+| ⚠️ **App name decision + "CBSE" in the name** | ❗ **Open — decide early** | The PWA manifest says **`CBSE Math Kids`** / short name `Math Kids` / *"Fun math learning for CBSE students"*, but every doc calls the product **Tinku Math**. That inconsistency needs resolving regardless. **Separately and more importantly:** CBSE is a statutory board, and putting "CBSE" in the *app name* risks reading as official affiliation or endorsement, which Play's impersonation policy prohibits. Describing the app as *CBSE/NCERT-**aligned*** in the description is a different and much safer claim. **Check this before building store assets** — a name change after asset creation wastes the assets. |
+| Developer / publisher name | ⏳ Open | Own name vs. a trade name. Appears on the store listing and in the privacy policy. Interim contact is the personal Gmail; decide whether that ships. |
+| Privacy policy public URL | ⏳ With #2 | Play requires a reachable link in the listing. Host on Netlify (e.g. `/privacy`) and link it in-app too (Designed for Families expects in-app reachability). |
+| Play Data Safety form | ⏳ With #2 | Expected answer: **no data collected, no data shared**. Verify against the live form — it is Google's UI and it changes. |
+| Designed for Families enrolment | ⏳ #8 | We target under-13s, so we are in it. Content + ads rules, independent of DPDP. |
+| Store listing assets | ⏳ Not started | Icon, feature graphic, screenshots, short + full description. Blocked on the name decision above. |
+| Play Console account | ❓ Unknown | DECISIONS says individual account under UAE identity, payouts to UAE bank. **Is it actually created and verified?** Google identity verification for individual developers takes time — start it early even though MVP takes no money. |
+| Content rating questionnaire | ⏳ Not started | Standard Play step. |
+
+## Open questions / to trace (added 2026-08-15)
+
+| Item | Why it's here |
+|---|---|
+| **Done-sweep: verify every Done claim has an artifact** | Three claims were checked on 2026-08-15 and **three were false** — CI wiring, questionnaire v2, and the 296 test count. That is a bad hit rate from a small sample, and this project's whole method (audit → decide → build → test) assumes the tracker is honest. **~1 hour: for each Done line, does the artifact exist in the repo?** Do this before kid-testing, not after. |
+| **Welcome screen** | See Now #9. Same class of problem — possibly a fourth false claim. |
+| **Questionnaire v2 not committed** | v2 exists as a chat draft only; the repo has v1 with A4 annotated in place. Either commit v2 or knowingly send v1. No action needed until the DPDP consult is un-deferred, but it must not be forgotten at that moment. |
+| **Gazette PDF verification** | The Rule 10 / Fourth Schedule reading is confirmed across three reproductions incl. a law-firm full text, but **not against G.S.R. 846(E) itself**. Sufficient for the current decision (safe under any reading); close before any Layer 2 build. |
+| **Dead code after de-Firebase** | `Login.jsx` is rendered nowhere and its auth backend is gone. `ProfileSelector.jsx` is also unrendered. Decide: delete, or leave as frozen legacy pending T109? Leaving unrendered components that reference a removed capability is how the next audit gets confused. |
+| **Passcode re-homing** | Known and deferred: passcode lives under `math_kids_settings_anon` via the auth context. Needs proper re-homing **whenever** T109 happens. Recorded so it is not rediscovered as a bug. |
 
 ## Out of MVP scope (by decision, not blocked)
 
@@ -186,6 +240,19 @@ existed in git history to restore, and the false claim was rewritten to describe
 shipped. Details in the corrected "Standards guard" entry below. The one deliberate narrowing:
 the guard is scoped to **new code**, because every pre-existing violation lives in FROZEN legacy
 that the migration rule forbids editing.
+
+### 📌 Third finding (2026-08-15, no code impact) — a cache scare, and what it taught
+
+The live Netlify app appeared to have lost the parent zone and Screen 3-B and looked months old,
+immediately after a session that removed a dependency and deleted files. **Nothing was wrong:**
+`master` had every file, and `ThemeManager` wired `SkillPathScreen` as the default home with
+`ParentDashboard` behind the gate. It was a local PWA cache.
+
+Recorded because the *diagnosis* is reusable: **"did we lose code" and "am I looking at the code"
+are different questions with different tests**, and the cheap one — an incognito window — answers
+the second in 30 seconds and mostly settles the first for free. A stale service worker and a
+genuinely stale published deploy look identical from the outside. See "Deploy verification" above,
+now a standing checklist step.
 
 ---
 
@@ -364,6 +431,7 @@ in India**"* — whether it narrows the identifiability duty.
 - Does the kid follow Tinku's pointer, or route around it?
 - Does a backward (review) suggestion visibly deflate motivation?
 - Does progress loss (cleared data / new device) actually happen in practice, and do parents notice? — informs whether export/import is sufficient
+- Does a child launching straight into the skill path (no welcome/onboarding) know what to do? — informs Now #9
 - (existing items carried from prior log — see git history / prior Drive export for full list predating this file)
 
 ## Parked Ideas (carried over, one line each)
@@ -382,4 +450,5 @@ Dated entries relevant to this tracker's recent changes: 2026-07-05 (color rule)
 2026-07-16 (mute behavior; NO analytics in MVP; NO outbound messaging in MVP),
 **2026-08-14 (device-local MVP: no child personal data, no accounts, no payment;
 Layer 2 deferred; positioning unchanged; Rule 10 / Fourth Schedule source basis
-and the constraints that bind when Layer 2 returns).**
+and the constraints that bind when Layer 2 returns)**, 2026-08-15 (no auth SDK in
+the MVP build).
