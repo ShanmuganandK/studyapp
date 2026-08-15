@@ -202,9 +202,12 @@
   > our control, and are not covered by the app-side claim. The absolute "we collect no personal data"
   > claim remains **rejected**, for that same reason.
   >
-  > *(Caveat on the guard: it only binds if something runs it. `npm run lint` currently fails and no CI
-  > workflow is committed — TRACKER Now #9. Until that is resolved the guard is a local check, not a
-  > merge gate.)*
+  > *(Caveat on the guard, resolved 2026-08-15: a guard only binds if something runs it. When this
+  > amendment was first written `npm run lint` failed and no CI workflow was committed, so the guard
+  > was a local check only. **`.github/workflows/ci.yml` now runs lint + the raw-hex guard + the full
+  > test suite + build on every push and PR**, and re-runs the bundle assertion after the build so it
+  > inspects a real `dist/`. The workflow was verified to actually go red on an injected violation,
+  > not assumed green.)*
 
   **Constraints that bind the day Layer 2 returns** (recorded now so the deferred design starts correct):
   - **Rule 8(3) — one-year retention FLOOR.** Personal data, associated traffic data and processing logs
