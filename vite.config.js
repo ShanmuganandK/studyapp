@@ -18,7 +18,15 @@ export default defineConfig({
         // them from the precache meant an offline first load fell back to system fonts,
         // losing the Baloo 2 / Nunito type identity exactly when connectivity is worst.
         // Confirmed still open by the 2026-08-15 network audit.
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
+        //
+        // Scoped to the LATIN subsets on purpose: PRECACHED SUBSETS TRACK RENDERED SCRIPTS.
+        // Fontsource ships each family split by unicode-range (latin, latin-ext, cyrillic,
+        // vietnamese, devanagari), and the browser only FETCHES the ranges a page actually
+        // uses — but precaching is indiscriminate, so an unscoped `woff2` glob downloads all
+        // nine on install (~316 kB) to render ~72 kB of Latin. We render no Devanagari,
+        // Cyrillic or Vietnamese today. Revisit this line if UI localisation ships — the
+        // subsets precached must then follow the scripts actually rendered.
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}', '**/*-latin-wght-normal-*.woff2'],
       },
       manifest: {
         name: 'CBSE Math Kids',
