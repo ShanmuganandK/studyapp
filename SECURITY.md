@@ -1,21 +1,19 @@
 # Security Policy
 
-## Supported Versions
+## Reporting a vulnerability
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+Email shanmuganand.kanniappan@gmail.com with a description of the
+issue and steps to reproduce. You'll get an acknowledgement within
+7 days. Please don't open a public issue for security reports.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+## Scope
 
-## Reporting a Vulnerability
+Tinku Math is a client-side PWA. It has no backend, no accounts,
+and no server-side data: a child's progress lives in the browser's
+local storage on their own device and is never transmitted to us.
+Reports about the app's own code, its build pipeline, or its
+dependencies are in scope.
 
-Use this section to tell people how to report a vulnerability.
+## Supported versions
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+Only the latest deployed version is supported.
