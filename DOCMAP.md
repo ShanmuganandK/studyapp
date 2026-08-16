@@ -31,6 +31,24 @@ file with no rule is how five diverging trackers happened.
 may have unpushed local work, and writing status that describes a state the remote isn't in
 creates exactly the drift this map exists to prevent.
 
+### Who writes THIS file (added 2026-08-16)
+
+The first version of this map didn't say, which was an omission — Claude Code hit it immediately
+and asked rather than assuming. **DOCMAP has two layers and they have different owners:**
+
+| Layer | Examples | Writes |
+|---|---|---|
+| **Facts** — a file's path, existence, and what it literally contains | Rows added/removed/repointed when files are created, deleted or `git mv`d; correcting a description after reading the file | **Code**, in the **same commit** as the filesystem change — exactly like `ARCHITECTURE.md` |
+| **Judgments** — classification and policy | Whether a doc is *live* vs *historical* vs *out of scope*; who may write a file; the ownership rule; the four-question test below | **Chat** |
+
+The reason for the split: an inventory that lags reality is worse than no inventory, and only the
+agent moving the files can keep it current. But "this spec is out of MVP scope" is a product
+call, not a filesystem fact.
+
+**In practice, if you moved it or read it, update the row. If you're deciding what a document
+*means* to the project, that's Chat's.** When it's genuinely unclear, do what Code did here —
+ask, and the rule gets sharper.
+
 ---
 
 ## Always read — start of every session
@@ -57,7 +75,7 @@ creates exactly the drift this map exists to prevent.
 | `misconceptions-reference.md` | Canonical source for misconception tags + distractor rules (~68 rows). **When a recipe and this doc disagree, the doc wins.** | Live — pending one-time teacher review |
 | `claude-chat/specs/skill-map-spec.md` | Skill map: prerequisites, curriculum ceilings, ordering (T61). | Live |
 | `TEACHER-REVIEW.md` | Running list of items needing a primary-maths teacher's eye (T95). | Live, accumulating |
-| `SECURITY.md` | ⚠️ **NOT a security policy — unfilled GitHub template.** Still contains the placeholder prose ("Use this section to tell people…") and an invented support table for versions 5.1.x / 4.0.x, which this project has never had (it is at 0.0.0). It is public on GitHub and currently tells a reporter nothing. **Either fill it in with a real disclosure route (the contact address in the privacy policy is the obvious one) or delete it** — an empty template is worse than no file, because it looks answered. | ❗ Placeholder |
+| `SECURITY.md` | ⚠️ **NOT a security policy — unfilled GitHub template.** Still contains the placeholder prose ("Use this section to tell people…") and an invented support table for versions 5.1.x / 4.0.x, which this project has never had (it is at 0.0.0). It is public on GitHub and currently tells a reporter nothing. **Either fill it in with a real disclosure route (the contact address in the privacy policy is the obvious one) or delete it** — an empty template is worse than no file, because it looks answered. **Chat's recommendation is DELETE:** no backend, no accounts, no user data leaving the device, no dependents, and the privacy policy already publishes a contact address. Awaiting the human's call; whoever resolves it updates this row in the same commit. | ❗ Placeholder |
 
 ## Design and UI
 
@@ -123,7 +141,8 @@ Read only if the revisit trigger fires (see `DECISIONS.md` 2026-08-14). Describe
 | Where | What |
 |---|---|
 | Google Drive | `ARCHIVE (do not edit) — Tinku_Math_Tracker` — the original workbook, superseded 2026-08-15. Everything of value was moved into `TASK-INDEX.md` and `TRACKER.md`. Kept only as a 30-day safety net. |
-| Google Drive | Strategy material used by the human + Claude Chat: roadmap decision gates, kid-test evidence log, research briefs A–J, work split, parked ideas. **Claude Code cannot read Drive and does not need to.** |
+| Google Drive | `Tinku Math — Strategy` — roadmap decision gates, kid-test evidence, research briefs A–J, work split, parked ideas, open strategic questions. **Claude Code cannot read Drive and does not need to.** |
+| Google Drive | `PROJECT-CONTEXT.md` — founder working style + a signpost to everything above. Rewritten 2026-08-16 as a pointer, not a duplicate; it went stale by trying to be tracker, decisions log and architecture map at once. |
 
 ---
 
