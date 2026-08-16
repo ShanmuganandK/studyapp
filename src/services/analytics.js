@@ -13,7 +13,7 @@
 
 /**
  * Log a behavioural analytics event. Currently a deliberate no-op (see file header).
- * @param {string} name - snake_case event name (analytics-plan.md is the source of truth)
+ * @param {string} name - snake_case event name (claude-chat/archive/analytics-plan.md is the source of truth)
  * @param {object} [params] - low-cardinality, non-PII properties
  */
 // eslint-disable-next-line no-unused-vars

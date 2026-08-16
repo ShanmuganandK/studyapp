@@ -1,6 +1,6 @@
 # UI Overhaul — Screen-by-Screen Plan
 
-**How to run this:** One screen per task/branch, in this order (kid-impact first). Each screen: build → phone-test → commit → next. Every screen follows `ui-overhaul-design-direction.md` (read it each task). RESKIN ONLY — no logic changes. Tokens created in Screen 1, reused after.
+**How to run this:** One screen per task/branch, in this order (kid-impact first). Each screen: build → phone-test → commit → next. Every screen follows `../specs/ui-overhaul-design-direction.md` (read it each task). RESKIN ONLY — no logic changes. Tokens created in Screen 1, reused after.
 
 **Order (by kid-impact):**
 1. Quiz screen (where kids live)
@@ -96,7 +96,7 @@
 - **Then:** India testing happens on THIS — the real, attractive product. Kid feedback tunes tokens/dials, not structure.
 
 ## Standing reminders for every screen task
-- Read `ui-overhaul-design-direction.md` + STANDARDS §5/§8 + docs/responsive.md first.
+- Read `../specs/ui-overhaul-design-direction.md` + STANDARDS §5/§8 + docs/responsive.md first.
 - Reskin only; logic untouched; tests must stay green.
 - Tokens, not raw values; primitives when repeated 3+.
 - Phone-test before commit; small phone (360/320) included.

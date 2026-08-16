@@ -1,5 +1,5 @@
 /**
- * Skill-map validity tests (skill-map-spec.md).
+ * Skill-map validity tests (claude-chat/specs/skill-map-spec.md).
  *
  * The graph must be sound — a broken prereq, a cycle, a duplicate order, or a `status:'ready'`
  * skill with no recipe would silently break the session composer. Plus light unit coverage of

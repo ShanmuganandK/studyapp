@@ -2,7 +2,7 @@
 
 The running list of curriculum/pedagogy items that need a **human** primary-math teacher to
 review **before launch**. `misconceptions-reference.md` is the canonical tag source, but parts
-of it were reconstructed or revised by LLMs (see `llm-review.md`) — a teacher must confirm them.
+of it were reconstructed or revised by LLMs (see `claude-chat/archive/llm-review.md`) — a teacher must confirm them.
 
 > How to use: a teacher works through the open items, records the decision, and we then update
 > `misconceptions-reference.md` (the source of truth) and any affected recipe + the validator's
@@ -38,7 +38,7 @@ Legend: ☐ open · ☑ signed off
   (place-value/skip-count errors at this range). Then we add them to the doc and build the recipe.
 
 ### ☐ 3. Cross-LLM review changes still need human sign-off
-The Review #1 changes in `llm-review.md` were made by a **second LLM, not a teacher**. Each
+The Review #1 changes in `claude-chat/archive/llm-review.md` were made by a **second LLM, not a teacher**. Each
 needs human confirmation before launch:
 - **Collision guards** added to palindrome/zero-prone rules (`digit-subtraction-isolation`,
   `reverse-period-reading`, `multiplication-by-zero-identity`) + the global "no distractor equals
@@ -64,5 +64,5 @@ _(none yet)_
 
 ## References
 - `misconceptions-reference.md` — canonical tag source (review status noted at top).
-- `llm-review.md` — the cross-LLM review log this list draws from.
+- `claude-chat/archive/llm-review.md` — the cross-LLM review log this list draws from.
 - `DECISIONS.md` — "misconceptions-reference.md is canonical" decision.

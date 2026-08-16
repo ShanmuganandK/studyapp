@@ -7,8 +7,15 @@
 > **You do not need to read most of these.** `CLAUDE.md` tells you the four to always read.
 > Come here when you need detail on a specific area, or before creating a new document.
 >
-> ⚠️ Entries marked **[verify]** were catalogued from filename plus tracker context rather than
-> read end-to-end. Correct them when you next touch the file.
+> **Layout (2026-08-16).** Root holds only what is read often or read first. Everything else moved
+> under `claude-chat/`, split by whether it still describes intended work:
+> **`claude-chat/specs/`** = live — read before working in that area.
+> **`claude-chat/archive/`** = shipped or out of scope — read for the *reasoning*, never as a
+> to-do list. Moved with `git mv`, so `git log --follow` still works on every one.
+>
+> ✅ The four **[verify]** entries were read end-to-end on 2026-08-16 and corrected. Two were
+> wrong: `SECURITY.md` is unfilled GitHub boilerplate, not a policy, and `llm-review.md` was filed
+> under "deferred" when it is a completed review whose findings are already applied.
 
 ---
 
@@ -48,42 +55,53 @@ creates exactly the drift this map exists to prevent.
 |---|---|---|
 | `RECIPE_TEMPLATE.md` | **The recipe contract.** Every recipe conforms to it. Protect it. | Live |
 | `misconceptions-reference.md` | Canonical source for misconception tags + distractor rules (~68 rows). **When a recipe and this doc disagree, the doc wins.** | Live — pending one-time teacher review |
-| `skill-map-spec.md` | Skill map: prerequisites, curriculum ceilings, ordering (T61). | Live |
+| `claude-chat/specs/skill-map-spec.md` | Skill map: prerequisites, curriculum ceilings, ordering (T61). | Live |
 | `TEACHER-REVIEW.md` | Running list of items needing a primary-maths teacher's eye (T95). | Live, accumulating |
-| `SECURITY.md` | Security policy / disclosure. **[verify]** | Live |
+| `SECURITY.md` | ⚠️ **NOT a security policy — unfilled GitHub template.** Still contains the placeholder prose ("Use this section to tell people…") and an invented support table for versions 5.1.x / 4.0.x, which this project has never had (it is at 0.0.0). It is public on GitHub and currently tells a reporter nothing. **Either fill it in with a real disclosure route (the contact address in the privacy policy is the obvious one) or delete it** — an empty template is worse than no file, because it looks answered. | ❗ Placeholder |
 
 ## Design and UI
 
 | File | What it is | Status |
 |---|---|---|
-| `ui-overhaul-design-direction.md` | The Wonder visual language — tokens, colour semantics, type. Locked decisions live in `DECISIONS.md`; this is the fuller reasoning (T110). | Live — read before any UI work |
-| `ui-overhaul-screen-plan.md` | Per-screen plan for the overhaul (T111–T115). | Historical — all five screens shipped |
+| `claude-chat/specs/ui-overhaul-design-direction.md` | The Wonder visual language — tokens, colour semantics, type. Locked decisions live in `DECISIONS.md`; this is the fuller reasoning (T110). | Live — read before any UI work |
+| `claude-chat/archive/ui-overhaul-screen-plan.md` | Per-screen plan for the overhaul (T111–T115). | Historical — all five screens shipped |
 | `docs-responsive.md` | Responsive rules, test widths (360/320), motion + `prefers-reduced-motion`. | Live |
-| `docs-images.md` | Image/asset handling conventions. **[verify]** | Live |
+| `docs-images.md` | The image-asset recipe, referenced from STANDARDS §5. **Resize to display-size × 3 FIRST, then WebP at Q85–90** — resolution is the bigger saving, not format (the 6 Tinku poses went 3.5 MB → 193 KB this way). Also the loading discipline for frequently-shown art: preload all variants, reserve the container size so layout never shifts, cross-fade on opacity only. | Live |
 
 ## Feature specs — written by Chat, consumed by Code
 
-These describe intended behaviour. Several describe work that has **already shipped** — read them
-for the *reasoning*, never as a to-do list. `TRACKER.md` says what is actually built.
+These describe intended behaviour. `TRACKER.md` says what is actually built.
+
+**Live — in `claude-chat/specs/`:**
 
 | File | Covers | Status |
 |---|---|---|
-| `spec-mastery-spaced-rep.md` | Mastery + spaced repetition (T63) | Shipped |
-| `spec-practice-composer.md` | Session composer, frontier-first, embedded reviews (T64) | **Spec settled, NOT built** — TRACKER Now |
-| `spec-parent-dashboard-v1.md` | Parent dashboard v1 (T4) | Shipped, reskinned in T114 |
-| `spec-wire-engine-to-screen.md` | Wiring the engine to the quiz screen (T89) | Shipped |
-| `spec-wire-mastery-persistence.md` | Persisting mastery state | Shipped |
-| `task-standards-alignment.md` | The one-time STANDARDS §8 cleanup pass. **[verify]** | Historical — completed |
+| `claude-chat/specs/spec-practice-composer.md` | Session composer, frontier-first, embedded reviews (T64) | **Spec settled, NOT built** — TRACKER Now |
 
-## Deferred — describes work that is out of MVP scope
+**Shipped — in `claude-chat/archive/`.** Read for the *reasoning*, never as a to-do list:
 
-Read these only if the revisit trigger fires (see `DECISIONS.md` 2026-08-14). They describe a
-tier that is **deliberately not being built**, so do not treat them as a backlog.
+| File | Covers | Status |
+|---|---|---|
+| `claude-chat/archive/spec-mastery-spaced-rep.md` | Mastery + spaced repetition (T63) | Shipped |
+| `claude-chat/archive/spec-parent-dashboard-v1.md` | Parent dashboard v1 (T4) | Shipped, reskinned in T114 |
+| `claude-chat/archive/spec-wire-engine-to-screen.md` | Wiring the engine to the quiz screen (T89) | Shipped |
+| `claude-chat/archive/spec-wire-mastery-persistence.md` | Persisting mastery state | Shipped |
+| `claude-chat/archive/task-standards-alignment.md` | The one-time STANDARDS §8 cleanup pass — a **bounded** scope list, not a refactor brief: it names exactly which new folders were cleaned (`recipes/`, `engine/`, `hooks/`, new `services/`, new `components/`, `config/`) and which FROZEN paths were explicitly out. That in/out split is still the shape the ESLint guard enforces today. | Historical — completed |
+
+## Out of MVP scope
+
+Read only if the revisit trigger fires (see `DECISIONS.md` 2026-08-14). Describes a tier that is
+**deliberately not being built**, so not a backlog.
 
 | File | Covers |
 |---|---|
-| `analytics-plan.md` | Analytics event schema (T92). Analytics is out of MVP entirely — DECISIONS 2026-07-16. |
-| `llm-review.md` | Cross-LLM review of the misconceptions set (T93). **[verify]** |
+| `claude-chat/archive/analytics-plan.md` | Analytics event schema (T92). Analytics is out of MVP entirely — DECISIONS 2026-07-16. |
+
+## Completed reviews
+
+| File | What it is |
+|---|---|
+| `claude-chat/archive/llm-review.md` | **Corrected 2026-08-16 — this was filed under "deferred", which was wrong.** It is a completed cross-LLM review log of `misconceptions-reference.md` (T93), and its findings are **already applied to that doc**: four distractor rules could collide with the correct answer (`|a-b|` for 8−3, `swapDigits(44)`, `reverseDigits(353)`, `0×0`), each got a skip condition, and a global no-collision rule was added. Nothing here is pending. Kept as the trace of what changed and why — `TEACHER-REVIEW.md` draws on it, because these were an LLM's calls and a teacher must still confirm them. |
 
 ## Legal and compliance
 
@@ -116,8 +134,10 @@ Ask, in order:
 1. **Is it status?** → It goes in `TRACKER.md`. Do not create a file.
 2. **Is it a decision?** → It goes in `DECISIONS.md` as a dated entry. Do not create a file.
 3. **Is it a description of the code as it is now?** → `ARCHITECTURE.md`.
-4. **Is it a spec for work not yet built?** → A new `spec-*.md`, **and add a row to this map in
-   the same commit.**
+4. **Is it a spec for work not yet built?** → A new `claude-chat/specs/spec-*.md`, **and add a row
+   to this map in the same commit.** When that work ships, `git mv` it to `claude-chat/archive/`
+   and move its row — the file stops being a plan and becomes a record of reasoning.
 
 Seventeen loose markdown files at repo root is how this project got here. A file nobody can
-place is worse than no file.
+place is worse than no file. **Root is now reserved** for what is read often or read first;
+if a new document is not in that class, it belongs under `claude-chat/`.

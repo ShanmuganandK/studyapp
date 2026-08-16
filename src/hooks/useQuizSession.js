@@ -1,11 +1,11 @@
 /**
- * useQuizSession — React orchestration of one playable session (spec-wire-engine-to-screen.md).
+ * useQuizSession — React orchestration of one playable session (claude-chat/archive/spec-wire-engine-to-screen.md).
  *
  * The remediation ladder ("never punish", DECISIONS) is implemented as PURE exported functions
  * (`initSession`, `applyAnswer`, `advance`) so the teaching logic is unit-testable without React
  * or a DOM. The hook is a thin wrapper that holds state, times the session, and fires analytics.
  *
- * Mastery wiring (spec-wire-mastery-persistence.md):
+ * Mastery wiring (claude-chat/archive/spec-wire-mastery-persistence.md):
  *   - Session START: loads the skill's saved state via progressStore; uses nextWorkingDifficulty
  *     so the child resumes at their adapted level, not always difficulty 1.
  *   - Session END: builds a sessionResult (clock read HERE, not inside the pure engine), calls

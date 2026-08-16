@@ -1,5 +1,5 @@
 /**
- * sessionLite — a minimal session builder for the first playable loop (spec-wire-engine-to-screen.md).
+ * sessionLite — a minimal session builder for the first playable loop (claude-chat/archive/spec-wire-engine-to-screen.md).
  *
  * NOT the full session composer (that's later: mastery, spaced-rep, warm-up/frontier/review).
  * This just picks a `ready` skill and generates a short, difficulty-ramped question set so a

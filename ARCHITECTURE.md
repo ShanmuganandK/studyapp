@@ -22,7 +22,9 @@ proven behind a flag, then deleted. See **Migration strategy** below.
 | `src/lib/`          | **FROZEN.** Legacy Firebase init (`firebase.js`).                       |
 | `src/utils/`        | **FROZEN.** Legacy question path (generators, factory) + `masteryEngine.js`. |
 | `src/data/`         | **FROZEN.** Legacy stored questions/syllabus (`questions*`, JSON banks). |
-| repo root docs      | `CLAUDE.md`, `DECISIONS.md`, `STANDARDS.md`, `RECIPE_TEMPLATE.md`.      |
+| repo root docs      | `CLAUDE.md`, `DOCMAP.md`, `DECISIONS.md`, `STANDARDS.md`, `RECIPE_TEMPLATE.md`. See `DOCMAP.md` for what every document is and who may write it. |
+| `claude-chat/specs/` | Live specs + design direction (composer, skill map, Wonder visual language). Read before working in that area. |
+| `claude-chat/archive/` | Specs for work already shipped, and plans for work out of MVP scope. Read for the *reasoning*, never as a to-do list. |
 
 ---
 
@@ -84,7 +86,7 @@ only the contract output, never recipe internals.
 
 ### Skill map (`src/recipes/skillMap.js`) — curriculum backbone
 
-Pure data + helpers (no UI/Firebase) defining the Grades 1–2 learning path (`skill-map-spec.md`).
+Pure data + helpers (no UI/Firebase) defining the Grades 1–2 learning path (`claude-chat/specs/skill-map-spec.md`).
 The session composer reads it + a child's mastery to decide what to teach; the recipe factory
 reads it to know which recipes to build.
 
@@ -620,7 +622,7 @@ extensible open taxonomy (`mcq`, `count-objects`, `compare` shipping; `text-inpu
 index-aligned with `options`, correct slot `null`, wrong slots kebab-case tags.
 
 ### The skill-map entry
-Defined in `skill-map-spec.md`, implemented in `src/recipes/skillMap.js`. `SKILLS[skillId] =
+Defined in `claude-chat/specs/skill-map-spec.md`, implemented in `src/recipes/skillMap.js`. `SKILLS[skillId] =
 { id, name, grade, strand, order, maxDifficulty, prereqs:string[], recipe, status }` where
 `status ∈ {'ready','planned'}`. The graph is a DAG (prereqs point backward); `order` is unique
 per grade. `maxDifficulty` mirrors the powering recipe's ceiling.

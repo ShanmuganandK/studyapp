@@ -11,7 +11,7 @@
 **Notation:** for a question with operands `a`, `b`, correct answer `ans`. `tens(n)`/`ones(n)` = digit extraction. `swapDigits(n)` = swap tens/ones of a 2-digit number.
 
 > Source: distilled from *Early Childhood Mathematics Misconception Index (CBSE/NCERT)*, 68 misconceptions across 17 skills. Math formulae lost in doc conversion were reconstructed from the intact prose descriptions.
-> **Review status:** (1) cross-LLM review done — collision guards added (palindrome/zero), `exponentiation-confusion` removed in favour of `skip-count-misstep`, 3 place-value hints rewritten to conceptual "houses/bundles" language, fractions + shape-orientation gaps added (parked). See `llm-review.md`. (2) **Human primary-math teacher review still pending** before launch — see `TEACHER-REVIEW.md` for the running list of items needing sign-off (incl. `regroup-ignored` rule, `g1.num.21-99` tags/format).
+> **Review status:** (1) cross-LLM review done — collision guards added (palindrome/zero), `exponentiation-confusion` removed in favour of `skip-count-misstep`, 3 place-value hints rewritten to conceptual "houses/bundles" language, fractions + shape-orientation gaps added (parked). See `claude-chat/archive/llm-review.md`. (2) **Human primary-math teacher review still pending** before launch — see `TEACHER-REVIEW.md` for the running list of items needing sign-off (incl. `regroup-ignored` rule, `g1.num.21-99` tags/format).
 
 ---
 

@@ -1,6 +1,6 @@
 # docs/responsive.md — Fit-One-Viewport & Responsive Sizing (detailed reference)
 
-> Read alongside `ui-overhaul-design-direction.md` and STANDARDS §5. Read when building or fixing screen layouts. STANDARDS holds the principle (core interaction fits one viewport; scroll is a fallback); this holds the technique.
+> Read alongside `claude-chat/specs/ui-overhaul-design-direction.md` and STANDARDS §5. Read when building or fixing screen layouts. STANDARDS holds the principle (core interaction fits one viewport; scroll is a fallback); this holds the technique.
 
 ## The principle (restated)
 The essential interaction of a screen — for the quiz, the **question + its answer options** — must fit ONE viewport on a standard phone, no scroll, by default. Decorative elements yield space first. Scroll is a fallback for exceptional content only, and never hides the primary action.

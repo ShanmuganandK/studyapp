@@ -1,5 +1,5 @@
 /**
- * Skill map — the curriculum backbone for Grades 1–2 (see skill-map-spec.md).
+ * Skill map — the curriculum backbone for Grades 1–2 (see claude-chat/specs/skill-map-spec.md).
  *
  * Pure data + small helpers, no UI/Firebase. Every skill is an atomic unit with a difficulty
  * ceiling, prerequisites, and the recipe that powers it. The session composer reads this map
@@ -114,7 +114,7 @@ export function prereqsMet(id, masteryMap) {
  * Skills whose prereqs are met and which are not yet mastered, sorted by grade then order.
  * NOTE: this is curriculum unlocking only — it does NOT filter by `status`. Callers that
  * actually serve content (session composer / UI) must additionally require `status:'ready'`,
- * since a `planned` skill has no recipe yet (skill-map-spec.md).
+ * since a `planned` skill has no recipe yet (claude-chat/specs/skill-map-spec.md).
  */
 export function unlockedSkills(masteryMap) {
   return Object.values(SKILLS)
