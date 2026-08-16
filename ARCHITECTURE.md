@@ -16,7 +16,7 @@ proven behind a flag, then deleted. See **Migration strategy** below.
 | `src/engine/`       | **NEW** (scaffold). Pure core logic: mastery, spaced-rep, composer, remediation. |
 | `src/hooks/`        | **NEW** (scaffold). React orchestration: session flow, mastery updates. |
 | `src/services/`     | **NEW** SDK boundary (auth/firestore/billing) — but currently also holds **FROZEN** legacy popup-first auth (`authService.js`, `firebaseAdapter.js`, `localAdapter.js`). |
-| `src/config/`       | **NEW.** Config modules — `constants.js` (app-wide constants, e.g. `FEEDBACK_WHATSAPP_NUMBER`, `PRIVACY_NOTICE`), `privacyPolicy.js` (**the published privacy policy, as data** — see below), `flags.js` (migration feature flags), `masteryConfig.js` (mastery + spaced-rep tunables), `composerConfig.js` (composer tunables). |
+| `src/config/`       | **NEW.** Config modules — `brand.js` (**the product name, single source** — see below), `constants.js` (app-wide constants, e.g. `FEEDBACK_WHATSAPP_NUMBER`, `PRIVACY_NOTICE`), `privacyPolicy.js` (**the published privacy policy, as data** — see below), `flags.js` (migration feature flags), `masteryConfig.js` (mastery + spaced-rep tunables), `composerConfig.js` (composer tunables). |
 | `src/components/`   | Presentational React UI (screens, modules, dashboard). The migration bridge. The child-reachable flow is now entirely new (skill-select → recipe quiz); legacy screens stay on disk but FROZEN/unreachable (see **App flow & screens**). |
 | `src/contexts/`     | React contexts (e.g. `AuthContext`). Legacy until auth is rebuilt.     |
 | `src/lib/`          | **FROZEN.** Legacy Firebase init (`firebase.js`).                       |
@@ -498,6 +498,29 @@ verified parental consent** — ONLY this file changes; call-sites stay identica
 `__tests__/analytics.test.js` asserts the API is callable, emits nothing, and that no source file
 imports the Analytics SDK (so it can't enter the bundle).
 
+### Brand (`src/config/brand.js`) — the product name, derived not repeated
+
+`PRODUCT_NAME` / `SHORT_NAME` / `DESCRIPTION`. Five surfaces used to hold five separate literals and
+they drifted (manifest `CBSE Math Kids`, launcher `Math Kids`, title `CBSE Math Kids App`, policy
+`Tinku Math`) — and **a privacy policy naming a different app than the store listing is a Play
+review flag**. Every live surface now DERIVES from this module:
+
+- `vite.config.js` — manifest `name`/`short_name`/`description`, plus a `transformIndexHtml` hook
+  substituting `%PRODUCT_NAME%` into the `index.html` `<title>` (Vite's built-in HTML interpolation
+  only reaches `%VITE_*%` env vars, hence the hook). Applies in dev and build.
+- `src/config/privacyPolicy.js` — `APP_NAME` re-exports `PRODUCT_NAME`.
+
+Keep it dependency-free plain JS: `vite.config.js` imports it at config-load time under Node.
+**Derivation beats detection** — these cannot drift by construction. `config/__tests__/brand.test.js`
+guards the rest: the derived surfaces still derive (nobody hardcoded a literal back in), the
+non-derivable ones agree (`package.json`, `README.md`), the launcher 12-char limit holds, "CBSE"
+stays out of the name and in the description, and no retired name survives on any live surface. Its
+exclusion list (historical `documents/`, the status docs that must quote the old names, and the two
+self-referential files) is explicit and commented — never a silent skip.
+
+The **Play listing title** deliberately lives nowhere in the codebase — ASO copy, entered by hand.
+See DECISIONS 2026-08-16.
+
 ### Privacy policy (`src/config/privacyPolicy.js`) — one text, two surfaces
 
 The policy must exist at a **public URL** (Play requires a linkable policy in the store listing,
@@ -529,8 +552,11 @@ texts with separate homes; the card links to the policy.
 **Guards.** `src/config/__tests__/privacyPolicy.test.js` asserts the committed HTML is byte-identical
 to the generator output (drift = red CI, via the `privacy:check` step that runs *before* the build,
 since the build would regenerate and mask it), that the page references no external host and runs no
-script, and that the DECISIONS 2026-08-14 wording constraints hold — store/hosting section present,
-absolute "we collect no personal data" claim absent, unshipped export/backup not promised.
+script, and that the wording constraints hold — store/hosting section present, absolute "we collect
+no personal data" claim absent, unshipped export/backup not promised, **no legal conclusion about
+parental consent** (DECISIONS 2026-08-16 — measured facts are ours to publish, what a law requires
+is not), and the `OPERATOR_LINE` state asserted in both directions (blank → policy names nobody and
+the `TODO(operator)` survives; set → the line reaches both surfaces).
 `src/components/__tests__/PrivacyPolicy.test.jsx` asserts the in-app route is actually reachable.
 
 **Play Data Safety answers** live in `claude-chat/play-data-safety-form.md`, with the factual basis

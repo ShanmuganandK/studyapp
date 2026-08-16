@@ -231,7 +231,7 @@ because the names still need resolving, not because they are queued.
 ### Mascot & Brand
 | ID | Task |
 |---|---|
-| T9 | Repo hygiene (CBSC→CBSE, LICENSE, private) |
+| T9 | Repo hygiene (CBSC→CBSE, LICENSE, private) — **scope includes the Netlify site name**, `shan-studyapp-CBSC.netlify.app`, where the typo still lives and is public |
 | T41a | Mascot v0 (Tinku) — 6 poses |
 | T41b | Mascot full expression set |
 | T42 | Character-driven feedback layer |

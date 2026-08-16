@@ -132,9 +132,13 @@ We target under-13s, so the programme applies. This task settles the **policy** 
 - Content rating questionnaire itself.
 - App content compliance (the DFF content policy) and the store-listing assets.
 - The external-link rule as it applies to the WhatsApp feedback link (§3).
-- **App name mismatch:** the PWA manifest still says `CBSE Math Kids` / `Math Kids`
-  (`vite.config.js`), while the policy, the dashboard and this document all say **Tinku Math**.
-  Pick one before the listing is created — the policy must name the app as the store lists it.
+- ~~**App name mismatch**~~ — **RESOLVED 2026-08-16.** `PRODUCT_NAME` is **Tinku Math** across
+  manifest, launcher, title, `package.json`, README and the policy, derived from
+  `src/config/brand.js` and guarded. **Play listing title: `Tinku Math: Maths for Kids`** (26/30).
+  "CBSE" is out of the name (impersonation risk) and kept in the description. DECISIONS 2026-08-16.
+- **Target age band is still undeclared.** The policy no longer states an age at all — deliberately,
+  so it cannot contradict the Console declaration. Grades 1–3 maps to Play's **"Ages 6–8"** bucket;
+  declare it in the content-rating step and it stands alone as the single statement of the band.
 
 ---
 
@@ -148,7 +152,13 @@ We target under-13s, so the programme applies. This task settles the **policy** 
       navigation fallback is not serving the app shell instead of the policy
       (`navigateFallbackDenylist` in `vite.config.js`).
 - [ ] `Last updated` in `src/config/privacyPolicy.js` matches the date actually published.
-- [ ] App name in the manifest matches the name in the policy and the listing (§4).
+- [x] App name in the manifest matches the name in the policy and the listing (§4) — done and
+      guarded 2026-08-16. Enter `Tinku Math: Maths for Kids` as the listing title.
+- [ ] **`OPERATOR_LINE` is still blank** — the policy names no operator. Decide own name vs. trade
+      name (it must match the Play developer name), set it in `src/config/privacyPolicy.js`, run
+      `npm run privacy:build`, and redeploy **before** submitting.
+- [ ] Declare the target age band (**Ages 6–8** for Grades 1–3). The policy states no age, so
+      Console is the only place it is asserted.
 - [ ] Re-read §0 against the build being submitted. **If anything in §0 is no longer true, stop
       and re-answer this form.**
 

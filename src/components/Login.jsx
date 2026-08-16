@@ -26,7 +26,7 @@ const Login = () => {
                     <div className="w-20 h-20 bg-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce">
                         <span className="text-4xl">🎓</span>
                     </div>
-                    <h1 className="text-3xl font-bold mb-2">Math Kids</h1>
+                    <h1 className="text-3xl font-bold mb-2">Tinku Math</h1>
                     <p className="text-indigo-200">Fun Learning Adventure</p>
                 </div>
 

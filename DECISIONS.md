@@ -286,3 +286,66 @@
   `navigateFallbackDenylist: [/^\/privacy\.html$/]`; without it the service worker's navigation
   fallback serves the app shell to anyone opening the policy link on a device with the PWA installed —
   i.e. exactly the Play reviewer we need it to work for.
+
+- (2026-08-16) **`PRODUCT_NAME` is "Tinku Math", derived not repeated; Play title is brand-first (LOCKED).**
+  Five surfaces held five literals and had drifted: PWA manifest `CBSE Math Kids`, launcher
+  `Math Kids`, page title `CBSE Math Kids App`, `package.json` `cbse-math-kids-app`, privacy policy
+  `Tinku Math`. **A privacy policy naming a different app than the store listing is a Play review
+  flag**, so this stopped being cosmetic the moment the policy was published.
+
+  **The name now lives once**, in `src/config/brand.js`, and every live surface DERIVES from it:
+  `vite.config.js` takes the manifest `name`/`short_name`/`description` from it and substitutes
+  `%PRODUCT_NAME%` into the `index.html` `<title>` via a `transformIndexHtml` hook;
+  `config/privacyPolicy.js` re-exports it as `APP_NAME`. Derivation beats detection — these cannot
+  drift by construction. `config/__tests__/brand.test.js` covers what can only be checked
+  (`package.json`, `README.md`) and sweeps every live surface for the retired names.
+
+  **`SHORT_NAME` = "Tinku Math"** (10 chars, under Android's ~12-char launcher limit — no
+  abbreviation needed). If the name ever grows, pick a real short form rather than letting the
+  launcher truncate blindly; the guard asserts the limit.
+
+  **Play listing title = `Tinku Math: Maths for Kids`** (26/30). **It deliberately lives NOWHERE in
+  the codebase** — it is ASO copy entered by hand in Play Console and changes on its own schedule,
+  whereas `PRODUCT_NAME` is the app's identity. Recorded here and in the TRACKER pre-launch
+  checklist only.
+
+  **Rule locked with it: brand first, keyword second.** "CBSE" must NOT appear in the NAME — CBSE is
+  a statutory board and a name implying affiliation or endorsement risks Play's impersonation
+  policy. Describing the app as CBSE-**aligned** in the DESCRIPTION is an ordinary descriptive claim
+  and is retained. The guard asserts both halves: no CBSE in `PRODUCT_NAME`/`SHORT_NAME`, CBSE
+  present in `DESCRIPTION`.
+
+  **Scope note:** dead `Login.jsx` was renamed too (it is unrendered, but a guard with a hole in it
+  invites the string back). `documents/*.md` were left alone — historical planning records;
+  rewriting them would falsify what was true when written. The guard's exclusion list is explicit
+  and commented, never a silent skip (same principle as `scripts/frozen-legacy.mjs`).
+
+- (2026-08-16) **The privacy policy publishes no legal conclusions, and no age band (LOCKED).**
+  The `children` section previously read *"Because we process no personal data about children, no
+  parental consent is required for the app to work."* The first clause is a **measured fact** about
+  the build. The second is a **legal conclusion** on a question **no lawyer has answered for us** —
+  it is open in `questionnaire-lawyer-dpdp.md` Section B and that consult is deferred (DECISIONS
+  2026-08-14). In a children's-app policy that is a misrepresentation risk if it is wrong, and it
+  buys nothing: the factual claim already does all the reassurance work.
+
+  Now reads: *"Tinku Math is designed for children and their parents. We do not collect any personal
+  data about your child, so there is nothing for us to store, share, or sell."*
+
+  **Guarded.** `config/__tests__/privacyPolicy.test.js` fails on "no parental consent is required"
+  and its obvious paraphrases. **It may only return alongside a DECISIONS entry recording a HUMAN
+  legal opinion that says so. Deleting the assertion is not that entry.** This is the same standing
+  pattern as the unshipped-export guard.
+
+  **The age range is gone entirely.** It read "aged roughly 5–9", which matched nothing: the repo's
+  own claims already disagreed (DECISIONS said 5–8, the composer spec 5–7), Play's target-age
+  buckets are fixed and are declared in Console, and no band has been declared yet. A second copy in
+  the policy could only drift out of step with the Console declaration, so **the band lives in Play
+  Console only**. Grades 1–3 maps to Play's "Ages 6–8" bucket when that declaration is made.
+
+  **`OPERATOR_LINE` is deliberately still blank.** The policy says "we" throughout and names nobody,
+  which is a transparency gap Play and DPDP both expect closed — but the operator name must match
+  the Play developer name, and that (own name vs. trade name) is an open pre-launch decision.
+  `privacyPolicy.js` carries a `TODO(operator)` and the guard asserts **both directions**: while
+  blank, the policy must name no operator AND the TODO must survive, so the reminder cannot be
+  quietly deleted; once set, the line must appear on both published surfaces. **This must be closed
+  before submission.**

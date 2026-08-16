@@ -23,10 +23,36 @@
  *
  * Claims are limited to what is TRUE TODAY (same rule as PRIVACY_NOTICE in `constants.js`).
  * Do not describe a feature that has not shipped — see the export/import note below.
+ *
+ * The same rule bars publishing LEGAL CONCLUSIONS we have not obtained. Measured facts about the
+ * build are ours to state; whether a law requires something is not. See the `children` section.
  */
 
-/** Display name used in the policy prose and the generated page title. */
-export const APP_NAME = 'Tinku Math';
+// Explicit .js extension: `scripts/build-privacy-page.mjs` imports this module under plain Node
+// ESM, which does not do extensionless resolution. Vite handles the explicit form fine.
+import { PRODUCT_NAME } from './brand.js';
+
+/**
+ * Display name used in the policy prose and the generated page title. Derived from `brand.js`,
+ * never re-typed: the policy must name the app as the store lists it, and a second literal here
+ * is exactly how that guarantee was lost before.
+ */
+export const APP_NAME = PRODUCT_NAME;
+
+/**
+ * Who "we" is, e.g. 'operated by <name>, based in the UAE'. Rendered as a sentence in the contact
+ * section when set; the policy names no operator while it is empty.
+ *
+ * TODO(operator): still blank. Play and DPDP transparency both expect an identifiable party, and
+ * a policy that says "we" throughout without ever saying who names nobody. This is gated on the
+ * pre-launch checklist row "Developer / publisher name" (own name vs. a trade name) — whatever is
+ * chosen here MUST match the Play developer name on the listing.
+ *
+ * The brand guard's counterpart in `__tests__/privacyPolicy.test.js` asserts both directions: while
+ * this is empty the policy must name no operator AND this TODO marker must survive, so the reminder
+ * cannot be quietly deleted; once it is set, the line must actually appear on both surfaces.
+ */
+export const OPERATOR_LINE = '';
 
 /** Shown to the reader and re-published on every change. Update when the text changes. */
 export const LAST_UPDATED = '15 August 2026';
@@ -95,15 +121,27 @@ export const SECTIONS = [
   {
     id: 'children',
     heading: 'Children',
+    // This section used to end: "Because we process no personal data about children, no parental
+    // consent is required for the app to work." The first clause is a measured fact about the
+    // build. The second is a LEGAL CONCLUSION on a question no lawyer has answered for us — it is
+    // open in `questionnaire-lawyer-dpdp.md` Section B, and that consult is deferred (DECISIONS
+    // 2026-08-14). Publishing it in a children's-app policy is a misrepresentation risk if it is
+    // wrong, and it buys nothing: the factual claim already does all the reassurance work.
+    //
+    // No age range either. The age band is declared in Play Console, and a second copy here could
+    // only drift out of step with it. DECISIONS 2026-08-16.
     paragraphs: [
-      `${APP_NAME} is designed for children aged roughly 5–9 and their parents. Because we ` +
-        'process no personal data about children, no parental consent is required for the app to work.',
+      `${APP_NAME} is designed for children and their parents. We do not collect any personal ` +
+        'data about your child, so there is nothing for us to store, share, or sell.',
     ],
   },
   {
     id: 'contact',
     heading: 'Questions or complaints',
     paragraphs: [
+      // Operator identity leads the contact section when set — a reader asking "who do I complain
+      // to?" should find the party and the address together. Absent while OPERATOR_LINE is blank.
+      ...(OPERATOR_LINE ? [`${APP_NAME} is ${OPERATOR_LINE}.`] : []),
       `${CONTACT_EMAIL} — we aim to respond within 30 days.`,
     ],
   },

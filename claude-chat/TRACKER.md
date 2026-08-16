@@ -37,7 +37,7 @@ as a "game" was considered and rejected (see DECISIONS).
 |---|---|---|---|
 | 1 | **Network audit of shipping build** | ✅ **Done 2026-08-15** | Found 1 blocker (startup Firebase Auth init), now fixed — see the audit block below. Everything else clean. |
 | 1b | **De-Firebase the MVP build** | ✅ **Done 2026-08-15** | Blocker from #1 closed. Firebase dep dropped, `lib/firebase.js` + `firebaseAdapter.js` deleted, `localAdapter` rewritten as an inert null-user seam, guard test added. **The app now makes zero off-origin requests at runtime (verified in a real browser).** |
-| 2 | **Privacy policy + Play Data Safety form** | ✅ **Done 2026-08-15** — 2 human actions left | Both surfaces shipped: public page at **`/privacy.html`** and in-app via parent zone → "Read the full privacy policy", rendering from ONE source module and guarded against drift. Data Safety answers written verbatim in `play-data-safety-form.md`. Wording per DECISIONS 2026-08-14 + its 2026-08-15 amendment — app-side claim flat, store/hosting line kept, absolute claim not used. Contact for queries/complaints: **shanmuganand.kanniappan@gmail.com** (interim — see pre-launch checklist). **Still needs the human:** the live Netlify domain (nothing in the repo knows it) and the app-name decision — both in the pre-launch checklist below. Detail in the Done block. |
+| 2 | **Privacy policy + Play Data Safety form** | ✅ **Done 2026-08-16** — 1 human action left | Both surfaces shipped: public page at **`/privacy.html`** and in-app via parent zone → "Read the full privacy policy", rendering from ONE source module and guarded against drift. Data Safety answers written verbatim in `play-data-safety-form.md`. **Corrected 2026-08-16:** the published legal conclusion ("no parental consent is required") and the age range are **removed and guarded** — see DECISIONS 2026-08-16. App name unified, so the policy now names the app the store will list. **Only remaining blocker: the live Netlify domain** (see the URL row below and the pre-launch checklist). `OPERATOR_LINE` is blank-and-guarded — must be closed before submission. |
 | 2a | **CI wiring / standards guard** | ✅ **Done 2026-08-15** | Was a false claim (see the corrected Done entry below). Now real: `eslint.config.js` (ESLint 9 flat), `scripts/check-raw-hex.mjs`, `scripts/frozen-legacy.mjs`, `.github/workflows/ci.yml`. **Proven red on a real Actions run**, not trusted green. |
 | 3 | **Progress export/import** | ⏳ **Next** | Parent-zone download/restore of progress as local JSON. Replaces cloud backup for MVP; built on the existing `progressStore` seam. Zero server, zero personal data. **v1 item, not a nice-to-have** — device-local PWA progress is fragile (clear-data / new phone / uninstall). **Now also owes the policy a sentence:** the approved draft's *"You can save a backup copy from the Parent Zone at any time"* was deliberately left OUT because the feature does not exist. Restore it in `src/config/privacyPolicy.js`, and delete the matching guard assertion, in the SAME commit that ships export. |
 | 4 | Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. **ADD a new step (2026-08-15): verify the Netlify published deploy SHA matches `master` BEFORE walking anything** — see "Deploy verification" below. |
@@ -45,6 +45,7 @@ as a "game" was considered and rejected (see DECISIONS).
 | 6 | Session composer build | ⏳ Queued | Spec settled (below). Unaffected by the legal re-scope — pure local engine work. |
 | 7 | Remaining ~29 recipes | ⏳ Background | Curriculum breadth. Fully unblocked. |
 | 8 | **Designed-for-Families programme rules** | ⏳ Read before submit — **privacy half now done** | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. The **policy** obligations are closed by #2 (policy exists, is linked, is reachable in-app, no ads, no collection). **Still open:** target-age declaration, content rating questionnaire, content policy, store-listing assets, and the external-link rule as it applies to the parent-zone WhatsApp link — enumerated in `play-data-safety-form.md` §4. |
+| 9a | **ParentGate integration test flakes on cold runs** | ⏳ **Next — CI trust** | `components/__tests__/ParentGate.noauth.integration.test.jsx` failed **once in ~10** full-suite runs, then passed 9/9 and passed in isolation. **Diagnosis:** it failed on the *cold* run (13.9 s; transform 2.07 s, import 6.32 s) and passed warm (~10.6 s). It is a single `it` chaining ~20 sequential `waitFor`/`findBy` calls against vitest's default **5 s** per-test timeout, so a cold pass tips it over. **CI always runs cold — this is likelier to fire in CI than locally**, the worst possible distribution. **Why it is queued and not filed under "nice to have":** every guard in this repo is worth exactly what a red run means. Two sessions went into making that true (standards guard proven red, the bundle assertion that silently skipped itself, the policy drift guard). A test that fails 1-in-10 for no reason teaches everyone to re-run instead of read — at which point the guards are decorative. **Cheap fix:** per-test `{ timeout: 15000 }`. **Better fix:** split the one giant `it` into staged tests (set → verify → forgot-reset → remove) so a failure names the stage. Kept out of the 2026-08-16 commit deliberately — test-infra changes riding inside a rename commit are what make a future red run ambiguous to bisect. |
 | 9 | **Welcome / onboarding screen — TRACE, then decide** | ❓ **Unresolved** | Recalled as built ("two pages — a welcome page and one other"), but **there is no `Welcome.jsx` in `src/components`** and nothing in `ThemeManager` renders one. First view on launch is `SkillPathScreen`. Three possibilities, in order of likelihood: (a) it's `ProfileSetup.jsx` / `ProfileSelector.jsx` under a different mental name — both exist, **both currently unrendered**; (b) it was built on a branch that was never merged; (c) it was never committed — a fourth claim-without-artifact. **Action: `git log --diff-filter=A --name-only | grep -i -E 'welcome|onboard|intro|splash'` and check unmerged branches, before rebuilding anything.** Then decide whether MVP even wants a welcome screen — a no-account app arguably shouldn't gate a child behind one. |
 
 ## Deploy verification (standing step — added 2026-08-15)
@@ -76,8 +77,9 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 
 | Item | Status | Note |
 |---|---|---|
-| ⚠️ **App name decision + "CBSE" in the name** | ❗ **Open — decide early** | The PWA manifest says **`CBSE Math Kids`** / short name `Math Kids` / *"Fun math learning for CBSE students"*, but every doc calls the product **Tinku Math**. That inconsistency needs resolving regardless. **Separately and more importantly:** CBSE is a statutory board, and putting "CBSE" in the *app name* risks reading as official affiliation or endorsement, which Play's impersonation policy prohibits. Describing the app as *CBSE/NCERT-**aligned*** in the description is a different and much safer claim. **Check this before building store assets** — a name change after asset creation wastes the assets. |
-| Developer / publisher name | ⏳ Open | Own name vs. a trade name. Appears on the store listing and in the privacy policy. Interim contact is the personal Gmail; decide whether that ships. |
+| ✅ **App name decision + "CBSE" in the name** | ✅ **Resolved 2026-08-16** | **`PRODUCT_NAME` = "Tinku Math"** everywhere — manifest, launcher, page title, `package.json`, README, privacy policy. **Play listing title = `Tinku Math: Maths for Kids`** (26/30 chars); it lives **nowhere in the codebase** by design (ASO copy, entered by hand, changes on its own schedule). **Rule locked: brand first, keyword second.** "CBSE" is out of the *name* — statutory board, impersonation risk, exactly as flagged — and kept in the *description* (`CBSE-aligned maths practice for Grades 1-3`), which is ordinary descriptive use. The name is now defined once in `src/config/brand.js` and **derived** by every surface, so they cannot drift apart; `config/__tests__/brand.test.js` guards what can only be checked. **Store assets are unblocked.** DECISIONS 2026-08-16. |
+| Developer / publisher name | ⏳ **Open — now guarded** | Own name vs. a trade name. Appears on the store listing and in the privacy policy. Interim contact is the personal Gmail; decide whether that ships. **The policy currently names NO operator** — it says "we" throughout, which is a transparency gap Play and DPDP both expect closed. `OPERATOR_LINE` in `src/config/privacyPolicy.js` is blank with a `TODO(operator)`, and the guard asserts **both directions**: while blank the policy must name nobody AND the TODO must survive; once set, the line must reach both surfaces. Whatever is chosen **must match the Play developer name**. Fill it, then `npm run privacy:build`. |
+| ⚠️ **Netlify site name contains the `CBSC` typo** | ❗ **Open — decide, do not rush** | The site is **`shan-studyapp-CBSC.netlify.app`**, so the typo T9 was opened to fix in June now sits in the **public URL — the very URL that goes into the Play listing as the privacy-policy link**. **Good news: the hostname is hardcoded NOWHERE.** `grep -rniE "shan-studyapp\|netlify\.app"` returns zero hits across the working tree, and `git log --all -S "netlify.app"` shows it was never committed — every repo reference is the generic word "Netlify". **So a rename touches no code. It changes the ORIGIN, and that is where the damage is:** ① **all child progress is destroyed** — `progressStore` (`tinku:v1:skills`) and the parent passcode (`math_kids_settings_anon`) are `localStorage`, which is origin-scoped, and **export/import (#3) does not exist yet**, so there is no recovery path; ② **installed PWAs rot silently** — the offline-first service worker keeps serving the cached shell from a hostname that no longer resolves to you, so testers' apps appear to work while never updating again (the cache-vs-deploy ambiguity in its worst form: no error, just permanent staleness); ③ the old subdomain **returns to Netlify's pool**, so it is not yours to redirect from; ④ every already-shared link, WhatsApp share and QR code breaks. A **custom domain** crosses the same origin boundary (a redirect does not carry `localStorage`), plus DNS + cert, plus updating the policy URL in **both** Play fields if already submitted. **Not at risk:** the Capacitor/Play build — it loads bundled assets locally, so the web origin is irrelevant to the Android app. **Cheapest sequencing if you do it: ship #3 first, have testers export, then rename.** |
 | Privacy policy public URL | 🔶 **Code done (#2) — needs the domain** | Page ships at **`/privacy.html`** (generated, precached, offline-reachable) and is linked in-app from the parent zone. **Nothing in the repo knows the live Netlify domain**, so `play-data-safety-form.md` carries `https://<SITE>/privacy.html` as a placeholder. Fill it into **both** places Play asks — store listing *and* Data Safety form — and confirm it loads in a **private window** (per Deploy verification above: incognito is also what proves it is the deploy, not your cache). |
 | Play Data Safety form | 🔶 **Answers drafted (#2) — needs entering** | `claude-chat/play-data-safety-form.md` holds the verbatim wizard answers, the factual basis for each, and a pre-submission checklist. Answer is **no data collected, no data shared**. Still verify against the live form — it is Google's UI and it changes. ⚠️ **The declaration is a claim about the BUILD:** if any future build adds a network call, an SDK or an account, re-answer it *before* that build ships. |
 | Designed for Families enrolment | ⏳ #8 | We target under-13s, so we are in it. Content + ads rules, independent of DPDP. |
@@ -175,14 +177,53 @@ logs because a parent deserves the whole picture. **Do not "reconcile" them** in
 1. **Netlify domain unknown to the repo.** `play-data-safety-form.md` carries
    `https://<SITE>/privacy.html` as a placeholder. Fill in the live domain in **both** places Play
    asks — store listing *and* Data Safety form — and confirm it loads in a private window.
-2. **The app-name decision** — already tracked in the pre-launch checklist above, and it is now
-   *also* a policy question: the policy names the app **Tinku Math**, and the policy must name the
-   app as the store lists it. Whichever way the CBSE-in-the-name question goes, `APP_NAME` in
-   `src/config/privacyPolicy.js` follows the store name, and `npm run privacy:build` regenerates
-   the page. **Independently arrived at here, then found already recorded** — the checklist row is
-   the better version of it (it carries the Play impersonation-policy risk this one missed).
+2. ~~**The app-name decision**~~ — **RESOLVED 2026-08-16**, see the amendment below and the
+   pre-launch checklist row.
 
-### ⚠️ Flake observed in passing (NOT introduced here, but CI-relevant)
+## Done — Policy corrections + app-name unification (2026-08-16)
+
+Two defects in the policy shipped two days earlier, plus the name mismatch that made it name an app
+the store would not list.
+
+**① The policy published a legal conclusion nobody qualified had reached.** The `children` section
+ended *"...no parental consent is required for the app to work."* The first clause was a measured
+fact about the build; that one was an **opinion on an open DPDP question** —
+`questionnaire-lawyer-dpdp.md` Section B, consult deferred (DECISIONS 2026-08-14). In a
+children's-app policy that is a misrepresentation risk if wrong, and it bought nothing: the factual
+claim already did the reassurance work. Removed, and **guarded** — the phrase and its paraphrases
+now fail the suite, and may only return alongside a DECISIONS entry recording a **human** legal
+opinion. **The age range went too** ("aged roughly 5–9" matched nothing: DECISIONS said 5–8, the
+composer spec 5–7, and Play's fixed buckets are declared in Console). The band lives in Play Console
+only, so the two can never disagree. Grades 1–3 → Play's "Ages 6–8" when that is declared.
+
+**② `OPERATOR_LINE` added, deliberately blank and guarded.** The policy says "we" throughout and
+names nobody. The operator must match the Play developer name, which is still an open pre-launch
+decision — so rather than guess, `TODO(operator)` is asserted in **both directions**: while blank
+the policy must name no operator AND the TODO must survive; once set it must reach both surfaces.
+
+**③ One name, derived not repeated.** Five surfaces held five literals. `src/config/brand.js` is now
+the single source; `vite.config.js` derives the manifest and substitutes `%PRODUCT_NAME%` into the
+`index.html` `<title>`; `privacyPolicy.js` re-exports it as `APP_NAME`. **Derivation beats
+detection** — those cannot drift by construction. `config/__tests__/brand.test.js` covers the rest.
+`PLAY_TITLE` = `Tinku Math: Maths for Kids` (26/30), recorded in docs only — never in code.
+
+**Verification**
+
+| Check | Result |
+|---|---|
+| Tests | **344 green** (+16), 1 skipped. Baseline 328. |
+| Lint / raw-hex / `privacy:check` | Clean — 0 errors (3 pre-existing warnings, unchanged). |
+| **Guards proven RED**, one injection at a time | ① restoring "no parental consent is required" → policy guard fails; ② deleting the `TODO(operator)` while blank → operator guard fails; ③ hardcoding `name: 'CBSE Math Kids'` back into `vite.config.js` → brand guard fails on **both** the structural assertion and the retired-name sweep; ④ hand-editing `public/privacy.html` → `privacy:check` exit 1. All reverted, all green after. |
+| Built output | `dist/manifest.webmanifest` → `Tinku Math` / `Tinku Math` / `CBSE-aligned maths practice for Grades 1-3`; `dist/index.html` `<title>Tinku Math</title>`. **Zero** retired-name matches in either. |
+| **Real browser, built output** | `/privacy.html`: new children section renders, **no** "parental consent", **no** age claim, **1 request, zero off-origin**. App shell: title reads **Tinku Math**, 12 requests, **zero off-origin**, no page errors. |
+| Live-surface grep | `CBSE Math Kids` / `CBSC` return **nothing** outside the guard and `brand.js` itself (both must name them to do their job — exclusion is explicit and commented, never silent). |
+
+**Left alone on purpose:** `documents/*.md` (historical planning records — rewriting them would
+falsify what was true when written; they also carry stale `f:/AI Programming/CBSC App/` Windows
+paths, its own cleanup) and the deletion question for dead `Login.jsx` (its *string* was renamed so
+the guard has no hole, but whether the file lives is still open under "Dead code after de-Firebase").
+
+### ⚠️ Flake observed in passing (NOT introduced here, but CI-relevant) — now tracked as Now #9a
 
 `components/__tests__/ParentGate.noauth.integration.test.jsx` **failed once in ~10 full-suite
 runs** — on the *cold* run (13.9 s total vs 10.6 s warm), and passed in isolation immediately
@@ -190,6 +231,10 @@ after. It is a single `it` chaining ~20 `waitFor`/`findBy` calls against the def
 timeout, so a cold transform/import pass can push it over. **CI always runs cold.** Not touched
 here (it is unrelated to this task and is someone's test to change), but it is a live flake risk on
 the workflow that now gates every merge — a per-test `{ timeout: 15000 }` would close it.
+
+**Promoted 2026-08-16 to Now #9a**, with the full diagnosis. It was wrong to leave this as a
+footnote: every guard in this repo is worth exactly what a red run means, and a 1-in-10 flake
+teaches people to re-run instead of read.
 
 ---
 

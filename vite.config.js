@@ -2,10 +2,28 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// The product name is defined ONCE (src/config/brand.js) and derived everywhere. Do not re-type
+// a name literal in this file — the manifest and the index.html <title> below are two of the
+// surfaces that drifted apart before. See brand.js and config/__tests__/brand.test.js.
+import { PRODUCT_NAME, SHORT_NAME, DESCRIPTION } from './src/config/brand.js'
+
+/**
+ * Substitutes %PRODUCT_NAME% in index.html, so the pre-hydration <title> derives from brand.js
+ * like every other surface. Vite's built-in HTML interpolation only reaches `%VITE_*%` env vars,
+ * which is why this needs a hook. Applies in dev and in build.
+ */
+const productNameHtml = {
+  name: 'product-name-html',
+  transformIndexHtml(html) {
+    return html.replaceAll('%PRODUCT_NAME%', PRODUCT_NAME)
+  },
+}
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    productNameHtml,
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
@@ -37,9 +55,9 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/privacy\.html$/],
       },
       manifest: {
-        name: 'CBSE Math Kids',
-        short_name: 'Math Kids',
-        description: 'Fun math learning for CBSE students',
+        name: PRODUCT_NAME,
+        short_name: SHORT_NAME,
+        description: DESCRIPTION,
         theme_color: '#ffffff',
         icons: [
           {

@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { PRIVACY_POLICY, SECTIONS, linkifyEmailParts } from '../privacyPolicy';
+import { PRIVACY_POLICY, SECTIONS, OPERATOR_LINE, linkifyEmailParts } from '../privacyPolicy';
 import { renderPrivacyHtml } from '../../../scripts/build-privacy-page.mjs';
 
 /**
@@ -97,6 +97,19 @@ describe('privacy policy — DECISIONS 2026-08-14 wording constraints', () => {
     expect(allText.toLowerCase()).not.toContain('we do not collect any data');
   });
 
+  it('publishes no legal conclusion about parental consent', () => {
+    // The policy once read "...no parental consent is required for the app to work." That is a
+    // LEGAL CONCLUSION on a question no lawyer has answered for us — open in
+    // `questionnaire-lawyer-dpdp.md` Section B, consult deferred (DECISIONS 2026-08-14). Measured
+    // facts about the build are ours to publish; what a law requires is not.
+    //
+    // This may only return alongside a DECISIONS entry recording a HUMAN legal opinion that says
+    // so. Deleting this assertion is not that entry.
+    expect(allText.toLowerCase()).not.toContain('no parental consent is required');
+    expect(allText.toLowerCase()).not.toContain('parental consent is not required');
+    expect(allText.toLowerCase()).not.toContain('no parental consent is needed');
+  });
+
   it('does not promise the unshipped progress export', () => {
     // TRACKER "Now" #3. Delete this assertion in the same commit that ships export/import and
     // restores the backup sentence — not before.
@@ -107,6 +120,41 @@ describe('privacy policy — DECISIONS 2026-08-14 wording constraints', () => {
     expect(allText).toMatch(/no sign-up and no accounts/);
     expect(allText).toMatch(/advertising, analytics, tracking/);
   });
+});
+
+describe('privacy policy — operator identity', () => {
+  /**
+   * Asserted in BOTH directions so this test never has to be edited when the value is filled in:
+   * while OPERATOR_LINE is blank the policy must name nobody and the TODO must survive; the moment
+   * it is set, the line must actually reach both published surfaces.
+   *
+   * The blank case is the dangerous one. "We" throughout a policy with no named party is a
+   * transparency gap Play and DPDP both expect closed, and it is invisible — nothing breaks, no
+   * reviewer comment appears until submission. So the reminder itself is guarded.
+   */
+  const source = readFileSync(join(REPO_ROOT, 'src', 'config', 'privacyPolicy.js'), 'utf8');
+
+  if (OPERATOR_LINE) {
+    it('renders the operator line in the policy sections', () => {
+      const allText = SECTIONS.flatMap((s) => s.paragraphs).join(' ');
+      expect(allText).toContain(OPERATOR_LINE);
+    });
+
+    it('renders the operator line on the hosted page', () => {
+      expect(page).toContain(OPERATOR_LINE);
+    });
+  } else {
+    it('names no operator while OPERATOR_LINE is blank', () => {
+      const allText = SECTIONS.flatMap((s) => s.paragraphs).join(' ').toLowerCase();
+      expect(allText).not.toContain('operated by');
+    });
+
+    it('keeps the TODO so the gap cannot be quietly forgotten', () => {
+      // Deleting the reminder without supplying a value fails here. Gated on the pre-launch
+      // checklist row "Developer / publisher name"; must match the Play developer name.
+      expect(source).toContain('TODO(operator)');
+    });
+  }
 });
 
 describe('linkifyEmailParts', () => {

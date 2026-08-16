@@ -1,6 +1,11 @@
-# CBSE Math Kids App 🎓
+# Tinku Math 🎓
 
-A gamified, interactive math learning application designed for CBSE Grade 1 and Grade 2 students. Built with React, Vite, and Tailwind CSS.
+A gamified, interactive maths learning application for Grades 1–3, aligned with the NCERT/CBSE
+curriculum. Built with React, Vite, and Tailwind CSS.
+
+> **Naming:** the product is **Tinku Math** everywhere — app, manifest, page title, privacy policy.
+> The name is defined once in [`src/config/brand.js`](src/config/brand.js) and derived by every
+> surface; see DECISIONS 2026-08-16 for why "CBSE" belongs in the description and not in the name.
 
 > **Test commit**: Google Drive MCP + Git MCP integration verified on 2026-08-13T16:00Z. This comment confirms both connectors are working end-to-end: Google Drive reads, Git read-write, and atomic commits are functional.
 
