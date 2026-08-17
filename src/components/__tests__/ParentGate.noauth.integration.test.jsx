@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { useState } from 'react';
 import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
 import { AuthProvider, useAuth } from '../../contexts/AuthContext';
@@ -15,6 +15,11 @@ vi.mock('../Mascot', () => ({ default: () => null }));
  * in user (the anonymous case; Firebase user is null, everything keyed under 'anon'). Nothing is
  * mocked except the mascot image. If the passcode ops silently no-op without an account (the
  * original bug), these persistence assertions fail.
+ *
+ * Staged as 4 sequential `it`s sharing one continuous render (TRACKER Now #9a): the original
+ * single `it` chained ~20 waitFor/findBy calls against vitest's 5s per-test timeout, which flaked
+ * on cold CI runs (transform+import alone cost ~8s). Splitting gives each stage its own 5s budget
+ * and names the failing stage instead of failing an opaque 20-step test.
  */
 
 const SETTINGS_KEY = 'math_kids_settings_anon';
@@ -54,37 +59,45 @@ function MiniApp() {
 const typePin = (pin) => { for (const d of pin) fireEvent.click(screen.getByRole('button', { name: d })); };
 
 describe('parent passcode lifecycle with NO auth session (integration)', () => {
-  beforeEach(() => localStorage.clear());
-  afterEach(() => { cleanup(); vi.restoreAllMocks(); });
+  let firstHash;
 
-  it('set → verify → forgot-reset → remove all persist/validate under "anon" (no signed-in user)', async () => {
+  // One continuous render across all 4 stages — this is the same session a parent would drive
+  // through the gate/dashboard, just split into named checkpoints. Do not clear localStorage or
+  // unmount between stages; each stage depends on the previous stage's persisted state.
+  beforeAll(async () => {
+    localStorage.clear();
     render(<AuthProvider><MiniApp /></AuthProvider>);
     await waitFor(() => expect(screen.getByText('nav-parent')).toBeTruthy());
+  });
 
+  afterAll(() => { cleanup(); vi.restoreAllMocks(); });
+
+  it('stage 1 (set): a passcode persists even with no signed-in user', async () => {
     // No passcode yet → entering the parent zone is ungated, lands on the dashboard.
     fireEvent.click(screen.getByText('nav-parent'));
     expect(await screen.findByRole('button', { name: /Set Parent Passcode/ })).toBeTruthy();
 
-    // SET a passcode — must persist even with no account.
     fireEvent.click(screen.getByRole('button', { name: /Set Parent Passcode/ }));
     expect(await screen.findByText('Set a Passcode')).toBeTruthy();
     typePin('1234');
     expect(await screen.findByText('Confirm Passcode')).toBeTruthy();
     typePin('1234');
     await waitFor(() => expect(passHash()).toBeTruthy());
-    const firstHash = passHash();
+    firstHash = passHash();
     // Dashboard now recognises the code.
     expect(await screen.findByRole('button', { name: /Change Passcode/ })).toBeTruthy();
+  });
 
-    // VERIFY — wrong rejected, correct accepted (the check actually works now).
+  it('stage 2 (verify): wrong PIN rejected, correct PIN accepted', async () => {
     fireEvent.click(screen.getByText('nav-parent'));
     expect(await screen.findByText('For Parents Only')).toBeTruthy();
     typePin('9999');
     expect(await screen.findByText(/Incorrect PIN/)).toBeTruthy();
     typePin('1234');
     await waitFor(() => expect(screen.queryByText('For Parents Only')).toBeNull());
+  });
 
-    // FORGOT → adult challenge → reset → set a NEW code (all with no user).
+  it('stage 3 (forgot-reset): adult challenge resets to a new code; old code stops working', async () => {
     vi.spyOn(Math, 'random').mockReturnValue(0); // → 10 × 2 = 20
     fireEvent.click(screen.getByText('nav-parent'));
     fireEvent.click(await screen.findByRole('button', { name: /Forgot passcode/ }));
@@ -99,15 +112,16 @@ describe('parent passcode lifecycle with NO auth session (integration)', () => {
     expect(passHash()).not.toBe(firstHash); // code actually changed on the device
     vi.restoreAllMocks();
 
-    // Old PIN no longer verifies.
+    // Old PIN no longer verifies; new one does.
     fireEvent.click(screen.getByText('nav-parent'));
     expect(await screen.findByText('For Parents Only')).toBeTruthy();
     typePin('1234');
     expect(await screen.findByText(/Incorrect PIN/)).toBeTruthy();
     typePin('5678');
     await waitFor(() => expect(screen.queryByText('For Parents Only')).toBeNull());
+  });
 
-    // REMOVE — clears the stored code (inline confirm), zone becomes ungated again.
+  it('stage 4 (remove): clears the stored code; zone becomes ungated again', async () => {
     fireEvent.click(screen.getByRole('button', { name: /Remove passcode/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Remove passcode' })); // confirm
     await waitFor(() => expect(passHash()).toBeNull());
