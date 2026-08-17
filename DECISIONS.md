@@ -349,3 +349,45 @@
   blank, the policy must name no operator AND the TODO must survive, so the reminder cannot be
   quietly deleted; once set, the line must appear on both published surfaces. **This must be closed
   before submission.**
+
+- (2026-08-17) **Progress export/import: one file, progress only, REPLACE not merge (LOCKED).**
+  DECISIONS 2026-08-14 settled that data loss is solved in code rather than in a disclaimer, and
+  named parent-zone export/import as the answer. This entry fixes that feature's **shape** before it
+  is built, so the load-bearing choices are made deliberately instead of at the keyboard.
+  **This is a decision, not a status claim** — `claude-chat/TRACKER.md` records what is actually built.
+
+  **What travels: the `tinku:v1:skills` payload, and nothing else.** The parent passcode
+  (`math_kids_settings_anon`) is **not** progress and must never enter the file. It is a
+  Families-Policy deterrent (2026-07-14), and a backup a parent is encouraged to email themselves or
+  drop into cloud storage must not double as a credential file — that would buy nothing and add a
+  category of risk this MVP otherwise does not have. Nothing else in `localStorage` travels.
+
+  **The file carries behaviour only, and must stay that way.** Skill states are keyed by `skillId`
+  and hold levels, dates, counts and misconception tags — the same property that keeps
+  `progressStore` clear of DPDP s.9. **Guarded**, so a later change cannot quietly widen the
+  envelope: the exported shape is asserted against an allowlist, not merely reviewed once.
+
+  **The envelope is versioned and refusable.** A backup opened by a future build must be either
+  understood or rejected with a clear message — never *partially* understood. Version 1 is the
+  current shape.
+
+  **Import REPLACES; it does not merge.** Reconciling two histories per skill — `level`, `lastSeen`,
+  `nextReview`, `reviewInterval`, misconception counts — is silent-wrong-state territory, and a
+  wrong merge is invisible to a parent: it surfaces weeks later as a spaced-repetition schedule
+  nobody can explain. This feature's entire value is trust, so it does the predictable thing and
+  says so, behind a two-step confirm stating plainly that progress on this device will be replaced.
+  **Validate fully, then write once** — a half-applied import is the one outcome worse than a refused
+  one. Unknown `skillId`s are ignored and counted, never fatal: the skill map grows, and an old
+  backup must stay restorable.
+
+  **Delivery is web-standard** (`Blob` + `<a download>`, `<input type="file">`), because the PWA is
+  the delivery vehicle today. **The Capacitor wrap is a known gap, deliberately not built for** —
+  recorded in `ARCHITECTURE.md` and revisited when the Play build is real, rather than pre-solved
+  against a wrapper that does not yet exist.
+
+  **Policy coupling.** The sentence *"You can save a backup copy from the Parent Zone at any time"*
+  was omitted on 2026-08-15 because the feature did not exist. It returns in the **same commit** that
+  ships export — and the guard that forbade it is **flipped to assert the opposite, not deleted**. A
+  deleted guard is a hole; the both-directions pattern already used for `OPERATOR_LINE` is the
+  standing form. `public/privacy.html` is regenerated in that same commit, or `privacy:check` goes
+  red on byte identity.
