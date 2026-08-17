@@ -363,6 +363,8 @@ Key: `'tinku:v1:skills'`, shape: `{ version: 1, skills: { [skillId]: skillState 
 - `loadAllSkillStates() → { [skillId]: skillState }` — used by SkillSelectScreen on mount
 - `loadSkillState(skillId) → skillState | null` — used by `useQuizSession` on session start
 - `saveSkillState(skillId, skillState)` — used by `useQuizSession` on session complete
+- `replaceAllSkillStates(skills)` — atomic full replace (one write, no read-merge), used by
+  progress import (below). Trusts its input; validation happens at the import boundary, not here.
 
 **Error handling:** all three functions catch storage failures (quota, disabled), log a dev
 warning, and degrade gracefully — the child can still play, progress just won't persist that
@@ -378,6 +380,54 @@ task lands, `progressStore` is the only file that changes.
 **`recentParams` note:** persisted as part of skill state (passed through `applyResult`
 unchanged) but currently always `[]` — neither `buildLiteSession` nor `applyResult` populates
 it. Cross-session repeat-avoidance is a future nicety.
+
+### Progress backup (`src/services/progressBackup.js` + `src/hooks/useProgressBackup.js`) — local export/import
+
+Parent-zone export/import of progress as a local JSON file (TRACKER "Now" #3, shape locked in
+DECISIONS 2026-08-17). Zero server, zero account — built entirely on the `progressStore` seam
+above. Behind the parent gate, in `ParentDashboard`.
+
+- **`progressBackup.js`** — PURE (no DOM, no storage, no React), mirrors `mastery.js`/
+  `composer.js`. Like `composer.js` taking `skillMap` as a parameter instead of importing it,
+  this module takes `knownSkillIds` as a parameter rather than importing `recipes/skillMap.js`.
+  - `buildExportEnvelope(skills, now)` → `{ format, version, exportedAt, skills }`. Does NOT
+    re-validate `skills` — its only caller, `progressStore.loadAllSkillStates()`, is already
+    the shape's ownership boundary.
+  - `exportFilename(date)` → `tinku-math-progress-YYYY-MM-DD.json`, LOCAL calendar date (not
+    UTC — a human-facing filename, unlike `mastery.js`'s UTC dates which serve determinism).
+  - `parseImportPayload(rawJsonString, knownSkillIds)` → validates fully before returning
+    anything usable. Bad JSON / wrong `format` / unsupported `version` / any structurally
+    malformed skill entry (wrong/extra keys, wrong types, `skillId` not matching its own map
+    key) → `{ valid: false, error }`, the WHOLE import refused — never partially applied.
+    Entries that pass structural validation but whose `skillId` isn't in `knownSkillIds` (the
+    curriculum grows over time) are dropped and counted in `ignoredSkillCount`, never fatal.
+  - **`SKILL_STATE_KEYS`** is the allowlist a skill-state entry must match exactly — the guard
+    against the envelope silently widening to carry anything beyond behaviour data. A test
+    (`__tests__/progressBackup.test.js`) asserts this allowlist matches `emptySkillState()`'s
+    real keys, so drift in `mastery.js`'s shape fails loudly instead of silently exporting an
+    unreviewed new field.
+- **`useProgressBackup.js`** — the orchestration hook (ParentDashboard stays presentational,
+  same role `useQuizSession` plays for the session flow). `exportProgress()` builds the
+  envelope, wraps it in a `Blob`, and triggers a `<a download>` click (object URL created then
+  revoked). `stageImportFile(file)` reads `file.text()`, validates via `parseImportPayload`,
+  and holds the result as `pendingImport` for a two-step confirm; `confirmImport()` only then
+  calls `replaceAllSkillStates`. Error-code → user-facing sentence mapping lives here (the pure
+  module stays copy-free; the component stays presentational).
+- **What travels: `tinku:v1:skills` only.** The parent passcode (`math_kids_settings_anon`,
+  owned by `AuthContext`/`localAdapter`, a different storage key entirely) physically cannot
+  appear in an export — `loadAllSkillStates()` only ever reads the skills key. Guarded three
+  ways: the allowlist-drift test above, an import-side test feeding `parseImportPayload` a
+  passcode-shaped entry (must be refused), and a `ParentDashboard` test that seeds both a real
+  skill state and the passcode key, exports, and asserts the resulting file contains the
+  former and not the latter.
+- **Import REPLACES, never merges** — `replaceAllSkillStates` writes a fresh store with no
+  prior read, so a skill absent from the imported file is genuinely gone, not carried over.
+  Behind a two-step confirm in `ParentDashboard` stating this plainly.
+- **Capacitor gap, deliberately not built for (DECISIONS 2026-08-17):** delivery is
+  `Blob`/`<a download>`/`<input type="file">`, which work in the PWA today but have no
+  Capacitor equivalent. When the Android wrap ships, this needs a Capacitor
+  Filesystem/Share-plugin implementation behind the same hook API — not pre-solved against a
+  wrapper that doesn't exist yet.
 
 ### `useOnline` hook (`src/hooks/useOnline.js`)
 

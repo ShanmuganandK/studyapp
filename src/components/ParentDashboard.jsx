@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Lock, MessageCircle } from 'lucide-react';
+import { Lock, MessageCircle, Download, Upload } from 'lucide-react';
 import Mascot from './Mascot';
 import MasteryPips from './MasteryPips';
 import { loadAllSkillStates } from '../services/progressStore';
 import { progressSummary } from '../engine/progressSummary';
 import { MASTERY } from '../config/masteryConfig';
 import { feedbackWhatsAppUrl } from '../config/constants';
+import useProgressBackup from '../hooks/useProgressBackup';
 import PrivacyNotice from './PrivacyNotice';
 import PrivacyPolicy from './PrivacyPolicy';
 
@@ -87,6 +88,16 @@ export default function ParentDashboard({ onSetPasscode, onRemovePasscode, hasPa
 
   // Inline "Remove passcode?" confirm — avoids an accidental one-tap removal of the gate.
   const [confirmRemove, setConfirmRemove] = useState(false);
+
+  const {
+    hasProgress,
+    exportProgress,
+    pendingImport,
+    importError,
+    stageImportFile,
+    confirmImport,
+    cancelImport,
+  } = useProgressBackup();
 
   // Full policy swaps in over the dashboard rather than routing or opening a browser tab:
   // Designed-for-Families wants it reachable in-app, and in the Capacitor wrap an external
@@ -237,6 +248,75 @@ export default function ParentDashboard({ onSetPasscode, onRemovePasscode, hasPa
               </button>
             )
           )}
+
+          {/* Progress backup — export/import as a local JSON file (TRACKER "Now" #3). Zero
+              server, zero account: REPLACE-not-merge import behind a two-step confirm. */}
+          <div className="space-y-2">
+            <p className="text-xs font-semibold text-muted uppercase tracking-wide">
+              Progress backup
+            </p>
+
+            {pendingImport ? (
+              <div className="bg-learn-soft rounded-card p-3 space-y-2">
+                <p className="text-sm text-ink">
+                  This will replace all progress on this device with the backup (
+                  {pendingImport.skillCount} skill{pendingImport.skillCount === 1 ? '' : 's'}
+                  {pendingImport.ignoredSkillCount > 0
+                    ? `, ${pendingImport.ignoredSkillCount} skipped — not in this app version`
+                    : ''}
+                  ). This can't be undone.
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={confirmImport}
+                    className="flex-1 bg-primary text-white rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+                  >
+                    Replace progress
+                  </button>
+                  <button
+                    onClick={cancelImport}
+                    className="flex-1 border border-primary-soft text-muted rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={exportProgress}
+                  disabled={!hasProgress}
+                  className="w-full border border-primary-soft text-ink rounded-button font-semibold py-2.5 text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+                >
+                  <Download size={16} />
+                  Export progress
+                </button>
+                {!hasProgress && (
+                  <p className="text-xs text-muted text-center">
+                    Play a few questions first — there'll be something to save!
+                  </p>
+                )}
+
+                <label className="w-full border border-primary-soft text-ink rounded-button font-semibold py-2.5 text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform cursor-pointer">
+                  <Upload size={16} />
+                  Import backup
+                  <input
+                    type="file"
+                    accept="application/json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = ''; // allow re-selecting the same filename later
+                      if (file) stageImportFile(file);
+                    }}
+                  />
+                </label>
+                {importError && (
+                  <p className="text-xs text-encourage-ink text-center">{importError}</p>
+                )}
+              </>
+            )}
+          </div>
 
           <a
             href={feedbackWhatsAppUrl()}

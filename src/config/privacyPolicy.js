@@ -98,14 +98,13 @@ export const SECTIONS = [
   {
     id: 'on-device',
     heading: 'Progress stays on your device',
-    // TODO (TRACKER "Now" #3 — progress export/import): when the parent-zone export ships,
-    // append the second sentence of the approved draft here:
-    //   'You can save a backup copy from the Parent Zone at any time.'
-    // It is deliberately ABSENT today because the feature does not exist yet, and this file
+    // The backup sentence shipped in the same commit as parent-zone export/import (TRACKER
+    // "Now" #3, DECISIONS 2026-08-17) — restored here, not before, per the rule that this file
     // may only claim what is true now.
     paragraphs: [
       'Because progress is stored on your device, clearing your browser data, uninstalling, ' +
-        'or switching devices will erase it.',
+        'or switching devices will erase it. You can save a backup copy from the Parent Zone ' +
+        'at any time.',
     ],
   },
   {

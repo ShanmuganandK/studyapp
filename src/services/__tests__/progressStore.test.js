@@ -162,6 +162,37 @@ describe('progressStore', () => {
     });
   });
 
+  // ── replaceAllSkillStates ─────────────────────────────────────────────────
+
+  describe('replaceAllSkillStates', () => {
+    it('a subsequent load returns exactly what was replaced in', async () => {
+      const { loadAllSkillStates, replaceAllSkillStates } = await import('../progressStore.js');
+      const skills = { [SKILL_ID]: freshState(SKILL_ID), [OTHER_ID]: freshState(OTHER_ID) };
+      replaceAllSkillStates(skills);
+      expect(loadAllSkillStates()).toEqual(skills);
+    });
+
+    it('REPLACES rather than merges — a skill absent from the new set is gone, not kept', async () => {
+      const { loadAllSkillStates, saveSkillState, replaceAllSkillStates } = await import(
+        '../progressStore.js'
+      );
+      saveSkillState(SKILL_ID, { ...freshState(SKILL_ID), level: 4 });
+      saveSkillState(OTHER_ID, { ...freshState(OTHER_ID), level: 2 });
+
+      replaceAllSkillStates({ [OTHER_ID]: freshState(OTHER_ID) });
+
+      const all = loadAllSkillStates();
+      expect(all[SKILL_ID]).toBeUndefined();
+      expect(all[OTHER_ID]).toEqual(freshState(OTHER_ID));
+    });
+
+    it('does not throw when localStorage.setItem throws (quota exceeded etc.)', async () => {
+      storage.setItem = () => { throw new DOMException('QuotaExceededError'); };
+      const { replaceAllSkillStates } = await import('../progressStore.js');
+      expect(() => replaceAllSkillStates({ [SKILL_ID]: freshState() })).not.toThrow();
+    });
+  });
+
   // ── Schema versioning ─────────────────────────────────────────────────────
 
   describe('schema versioning', () => {

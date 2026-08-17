@@ -75,3 +75,15 @@ export function saveSkillState(skillId, skillState) {
   store.skills[skillId] = skillState;
   writeStore(store);
 }
+
+/**
+ * Replace the ENTIRE stored skills map in one write — REPLACE semantics, never merge. Used by
+ * progress import (TRACKER "Now" #3): the caller has already fully validated the incoming data
+ * (`services/progressBackup.js`), so this function trusts its input, the same posture as the
+ * three exports above. A single `writeStore` call with no prior read makes this a genuine full
+ * replace, not a merge.
+ * @param {{ [skillId: string]: SkillState }} skills
+ */
+export function replaceAllSkillStates(skills) {
+  writeStore({ version: SCHEMA_VERSION, skills });
+}

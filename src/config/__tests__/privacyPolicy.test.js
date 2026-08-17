@@ -110,10 +110,11 @@ describe('privacy policy — DECISIONS 2026-08-14 wording constraints', () => {
     expect(allText.toLowerCase()).not.toContain('no parental consent is needed');
   });
 
-  it('does not promise the unshipped progress export', () => {
-    // TRACKER "Now" #3. Delete this assertion in the same commit that ships export/import and
-    // restores the backup sentence — not before.
-    expect(allText.toLowerCase()).not.toContain('backup');
+  it('now promises the shipped progress export/backup (TRACKER "Now" #3, DECISIONS 2026-08-17)', () => {
+    // This assertion is the inverse of what shipped before export/import existed — flipped,
+    // not deleted, in the same commit as the feature. A deleted guard is a hole; the
+    // both-directions pattern below (OPERATOR_LINE) is the standing form.
+    expect(allText.toLowerCase()).toContain('backup');
   });
 
   it('states the app-side claim flatly (no accounts, no tracking)', () => {
