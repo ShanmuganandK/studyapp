@@ -16,6 +16,15 @@
 > ✅ The four **[verify]** entries were read end-to-end on 2026-08-16 and corrected. Two were
 > wrong: `SECURITY.md` is unfilled GitHub boilerplate, not a policy, and `llm-review.md` was filed
 > under "deferred" when it is a completed review whose findings are already applied.
+>
+> ⚠️ **A fifth, different-shaped correction (2026-08-18):** `spec-practice-composer.md` was listed
+> here as **"Spec settled, NOT built"** while `src/engine/composer.js` had been shipped, tested (47
+> cases) and wired into `SkillSelectScreen` since **2026-06-28** — confirmed by reading the actual
+> files, not by trusting either doc. This is the *opposite* failure from the four above (a doc
+> claiming something is unbuilt when it's shipped, not the reverse), and neither the claims rule nor
+> this map's own re-read caught it, because both check whether *Done* claims have artifacts — nothing
+> was checking whether *queued* items had quietly already shipped. Moved to `archive/` below. Worth
+> remembering as its own category the next full doc sweep should check for.
 
 ---
 
@@ -90,11 +99,8 @@ ask, and the rule gets sharper.
 
 These describe intended behaviour. `TRACKER.md` says what is actually built.
 
-**Live — in `claude-chat/specs/`:**
-
-| File | Covers | Status |
-|---|---|---|
-| `claude-chat/specs/spec-practice-composer.md` | Session composer, frontier-first, embedded reviews (T64) | **Spec settled, NOT built** — TRACKER Now |
+**Live — in `claude-chat/specs/`:** none currently. The last entry here (`spec-practice-composer.md`)
+moved to archive 2026-08-18 — see below.
 
 **Shipped — in `claude-chat/archive/`.** Read for the *reasoning*, never as a to-do list:
 
@@ -104,6 +110,7 @@ These describe intended behaviour. `TRACKER.md` says what is actually built.
 | `claude-chat/archive/spec-parent-dashboard-v1.md` | Parent dashboard v1 (T4) | Shipped, reskinned in T114 |
 | `claude-chat/archive/spec-wire-engine-to-screen.md` | Wiring the engine to the quiz screen (T89) | Shipped |
 | `claude-chat/archive/spec-wire-mastery-persistence.md` | Persisting mastery state | Shipped |
+| `claude-chat/archive/spec-practice-composer.md` | Session composer, frontier-first, embedded reviews (T64) | **Corrected 2026-08-18 — this was filed under "Spec settled, NOT built" when it had already shipped.** `src/engine/composer.js` + `src/config/composerConfig.js` + 47 tests landed **2026-06-28** (commit `7bd17dc`), and `SkillSelectScreen` has called `recommendNext` ever since (amber/sky card border, "Tinku suggests!" / "↻ Review time!" label). The one thing the spec describes that is genuinely NOT built: embedding due-reviews as in-session warm-up questions — the shipped version recommends ONE skill per session (review-first priority), it does not blend a review question set into a frontier session. If that distinction ever matters, it's a small follow-up, not a rebuild. |
 | `claude-chat/archive/task-standards-alignment.md` | The one-time STANDARDS §8 cleanup pass — a **bounded** scope list, not a refactor brief: it names exactly which new folders were cleaned (`recipes/`, `engine/`, `hooks/`, new `services/`, new `components/`, `config/`) and which FROZEN paths were explicitly out. That in/out split is still the shape the ESLint guard enforces today. | Historical — completed |
 
 ## Out of MVP scope
