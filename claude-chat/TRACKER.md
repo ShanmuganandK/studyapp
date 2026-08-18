@@ -10,7 +10,7 @@
 > artifact behind it. Three claims were checked on 2026-08-15 and three were false
 > (CI wiring, questionnaire v2, the 296 test count). See "Open questions / to trace".
 
-_Last synced: 2026-08-17_
+_Last synced: 2026-08-18_
 
 ---
 
@@ -42,7 +42,7 @@ as a "game" was considered and rejected (see DECISIONS).
 | 3 | **Progress export/import** | ✅ **Done 2026-08-17** | Shipped exactly the shape locked in DECISIONS 2026-08-17: one file (`tinku-math-progress-YYYY-MM-DD.json`), versioned/refusable envelope (`{format, version, exportedAt, skills}`), REPLACE-not-merge import behind a two-step confirm, validate-fully-then-write-once, unknown `skillId`s ignored+counted (never fatal), envelope guarded against an allowlist. **New files:** `src/services/progressBackup.js` (pure build/parse/validate — no DOM/storage, mirrors `mastery.js`/`composer.js` purity, takes `knownSkillIds` as a param rather than importing the curriculum, same decoupling as `composer.js` + `skillMap`), `src/hooks/useProgressBackup.js` (orchestration; ParentDashboard stays presentational). **`progressStore.js`** gained `replaceAllSkillStates(skills)` — one write, no prior read, genuine replace. **UI**: Export/Import in `ParentDashboard`'s settings footer, following the existing `confirmRemove` inline-confirm idiom; empty-progress state is a disabled Export button with a hint (my call — an empty-but-"valid" file is a footgun against later accidentally restoring nothing over real progress). **Policy, same commit:** the backup sentence is restored in `src/config/privacyPolicy.js`, the `does not promise the unshipped progress export` guard in `privacyPolicy.test.js` is FLIPPED (not deleted) to assert the opposite, `public/privacy.html` regenerated via `npm run privacy:build`. **Unblocks** the Netlify-rename row below (its "no recovery path" clause is now false). |
 | 4 | Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. **ADD a new step (2026-08-15): verify the Netlify published deploy SHA matches `master` BEFORE walking anything** — see "Deploy verification" below. |
 | 5 | Screen 3-B verdict (journey path vs. cards) | ⏳ Pending | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. Kid-testing is the gate. |
-| 6 | Session composer build | ⏳ Queued | Spec settled (below). Unaffected by the legal re-scope — pure local engine work. |
+| 6 | ~~Session composer build~~ | ✅ **Corrected 2026-08-18 — already Done, since 2026-06-28** | This row read "Queued — spec settled" for at least the whole 2026-08-15 → 2026-08-18 window. It was wrong: `src/engine/composer.js`, `src/config/composerConfig.js` and 47 tests shipped 2026-06-28 (`7bd17dc`), and `SkillSelectScreen` has rendered the "Tinku suggests!" / "↻ Review time!" card highlight from `recommendNext` ever since. Found by reading the actual files, not either doc — see the full correction below and in `DOCMAP.md`. **Two real gaps remain**, correctly distinguished from what shipped: in-session review-embedding (warm-up questions inside a frontier session) and `FRONTIER_PICK: 'momentum'` were never built — both are kid-test-gated design calls, not currently scheduled, same class as #5 and #9. |
 | 7 | Remaining ~29 recipes | ⏳ Background | Curriculum breadth. Fully unblocked. |
 | 8 | **Designed-for-Families programme rules** | ⏳ Read before submit — **privacy half now done** | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. The **policy** obligations are closed by #2 (policy exists, is linked, is reachable in-app, no ads, no collection). **Still open:** target-age declaration, content rating questionnaire, content policy, store-listing assets, and the external-link rule as it applies to the parent-zone WhatsApp link — enumerated in `play-data-safety-form.md` §4. |
 | 9a | **ParentGate integration test flakes on cold runs** | ✅ **Done 2026-08-17** | Taken ahead of #3 as sequenced above. Applied the "better fix" from the diagnosis below: split the single giant `it` (chaining ~20 sequential `waitFor`/`findBy` calls against vitest's default 5 s per-test timeout) into 4 staged tests — set → verify → forgot-reset → remove — sharing one continuous render via `beforeAll`/`afterAll` instead of per-test `render`/`cleanup`. Each stage now gets its own 5 s budget, and a future failure names the stage instead of an opaque 20-step test. Own commit, not folded into #3. Full run: **347 green + 1 skipped** (344 baseline + 3 new stages), lint clean (0 errors, same 3 pre-existing warnings). Original diagnosis preserved below. |
@@ -91,7 +91,7 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 
 | Item | Why it's here |
 |---|---|
-| **Done-sweep: verify every Done claim has an artifact** | Three claims were checked on 2026-08-15 and **three were false** — CI wiring, questionnaire v2, and the 296 test count. That is a bad hit rate from a small sample, and this project's whole method (audit → decide → build → test) assumes the tracker is honest. **~1 hour: for each Done line, does the artifact exist in the repo?** Do this before kid-testing, not after. |
+| **Done-sweep: verify every Done claim has an artifact — AND every queued claim ISN'T secretly done** | Originally scoped one direction only. Three Done claims were checked on 2026-08-15 and **three were false** — CI wiring, questionnaire v2, the 296 test count. That direction is still open (**~1 hour: for each Done line, does the artifact exist?** — do before kid-testing). **Widened 2026-08-18** after the mirror case surfaced unprompted: Now #6 (session composer) sat marked "Queued — not built" while `src/engine/composer.js` had shipped, tested and been wired into the UI for **seven weeks**. The claims rule was built to catch the first shape and does not catch the second — a queued/spec-settled item is worth a `grep`/`git log` check against the paths its own spec names, same as a Done line is worth an artifact check. Both sweeps belong in the same pass. |
 | **Welcome screen** | **Traced 2026-08-18 — see Now #9.** `ProfileSetup.jsx`/`ProfileSelector.jsx` confirmed as the recalled screens, not a false claim. Whether to build/revive anything is a separate, still-open product decision. |
 | **Questionnaire v2 not committed** | v2 exists as a chat draft only; the repo has v1 with A4 annotated in place. Either commit v2 or knowingly send v1. No action needed until the DPDP consult is un-deferred, but it must not be forgotten at that moment. |
 | **Gazette PDF verification** | The Rule 10 / Fourth Schedule reading is confirmed across three reproductions incl. a law-firm full text, but **not against G.S.R. 846(E) itself**. Sufficient for the current decision (safe under any reading); close before any Layer 2 build. |
@@ -126,6 +126,65 @@ Layer 2) and a paid-unlock-without-accounts path.
 | **India day-count log** | ⏳ Start now | Track days-in-India from now, independent of when the CA replies. |
 | Kid-testing in India | ⏳ Planned | Signal source for the 3-B verdict, FRONTIER_PICK validation, and the revisit trigger above. |
 | Teacher review of `misconceptions-reference.md` | ⏳ Pending | ~68 rows, one-time, arrange in India. Unblocks richer dashboard insight. |
+
+---
+
+## Done — Practice composer (shipped 2026-06-28; tracker corrected 2026-08-18)
+
+**This was NOT a 2026-08-18 build.** It is a status correction: Now #6 and `DOCMAP.md` both said
+this was queued/spec-settled-not-built, and both were wrong. Recorded here in full, in the same
+place every other shipped feature gets a Done block, so the record is complete going forward —
+not because the work happened today.
+
+**What shipped, 2026-06-28 (`7bd17dc`, same day as the mastery engine in `88ff481` and the parent
+dashboard in `5f96c62`):**
+
+| Piece | What it is |
+|---|---|
+| `src/engine/composer.js` | Pure recommender. `recommendNext(skillStates, skillMap, today, config)` walks the fixed priority chain — due-review → frontier → new-unlock → all-caught-up — exactly as specced. `getReviewsDue`, `getFrontierSkills`, `isPrereqsMet` also shipped, all pure, `today` always injected. Only `status:'ready'` skills are ever candidates; a missing prereq state counts as locked. |
+| `src/config/composerConfig.js` | `PREFER_MOST_OVERDUE_REVIEW` (bool) + `FRONTIER_PICK` (`'lowest_level'` \| `'skillmap_order'`) — confirmed by reading the file directly, 2026-08-18. **No `'momentum'` option exists** — see the still-open gap below. |
+| `src/engine/__tests__/composer.test.js` | 47 tests per the shipping commit's own message — full priority chain, prereq gating, tiebreaks, planned-skill exclusion, determinism. (Not re-run by this correction; cited from the commit, not independently verified today.) |
+| `src/components/SkillSelectScreen.jsx` | Calls `recommendNext` in the same lazy `useState` initialiser that loads skill states (one storage read), passes `isSuggested`/`isReviewSuggested` booleans to `SkillCard`. Amber/sky card border + "Tinku suggests!" / "↻ Review time!" label — confirmed by reading the component directly, 2026-08-18. `all_caught_up` and a `null` skillId correctly produce no highlight. |
+
+**Design principle honored:** single-skill focused sessions (locked in the spec) — the shipped
+composer recommends ONE skill, never blends multiple skills into one session. That's a design
+decision, not a shortfall.
+
+**Two real gaps against the spec — correctly still open, not shipped:**
+
+1. **In-session review embedding.** The spec's "how the UI uses it later" section imagined due
+   reviews appearing as 2–3 warm-up questions *inside* a frontier session. What shipped instead:
+   review-first priority at the *recommendation* level — if anything is due, the whole session IS
+   the review. Blending reviews into a different skill's session was never built.
+2. **`FRONTIER_PICK: 'momentum'`.** Config only supports `'lowest_level'` / `'skillmap_order'`
+   today. `'momentum'` (most-recently-played unmastered skill, per the composer/suggestion-
+   direction rationale below) does not exist in code.
+
+Both are **kid-test-gated design calls**, same class as the Screen 3-B verdict (#5) and the
+welcome-screen decision (#9) — not scheduled, not forgotten, waiting on the same India trip.
+
+**Verification note:** this correction is based on reading `composer.js`, `composerConfig.js`,
+`composer.test.js`'s existence, and `SkillSelectScreen.jsx` directly, plus the git history for
+`src/engine/composer.js` and `src/config/masteryConfig.js`. It does **not** include a fresh
+`npm run test:run` — that re-verification is a small, cheap follow-up for whoever next has the
+repo open, not urgent (the code and its own commit's test count are the artifact; nothing here
+depends on re-running it today).
+
+---
+
+## Done — Composer / Suggestion Direction (design rationale — see correction above for build status)
+
+- Frontier-first suggestion — review is NEVER the headline CTA. **Shipped** — see the Done block above.
+- Due reviews embed as 2–3 warm-up questions at session start. **Still NOT built** — genuine gap,
+  kid-test-gated, see the Done block above. (This bullet previously read "(composer, not yet
+  built)", which conflated this one still-open piece with the composer as a whole — corrected.)
+- New `FRONTIER_PICK: 'momentum'` config option — most-recently-played unmastered skill until
+  mastered, then curriculum order, prereqs gate. **Still NOT built** — confirmed absent from
+  `composerConfig.js`, 2026-08-18. Current production default `'lowest_level'` stays as fallback.
+- Rationale: kids don't persist through backward-pointing suggestions; forward motion must be the
+  visible default; retention happens invisibly inside sessions.
+- Validate against real kid behavior (follow Tinku's pointer, or route around him?) before building
+  either remaining piece — the India trip is that validation.
 
 ---
 
@@ -523,14 +582,6 @@ in India**"* — whether it narrows the identifiability duty.
   - **DECISIONS:** mute is session-scoped by design, sound defaults ON each app start (restart-heavy kid usage) — not a bug
   - **T99 candidates captured** (below)
 
-## Done — Composer / Suggestion Direction (spec settled, not yet built)
-
-- Frontier-first suggestion — review is NEVER the headline CTA
-- Due reviews embed as 2–3 warm-up questions at session start (composer, not yet built)
-- New `FRONTIER_PICK: 'momentum'` config option — most-recently-played unmastered skill until mastered, then curriculum order, prereqs gate. Current production default `'lowest_level'` stays as fallback.
-- Rationale: kids don't persist through backward-pointing suggestions; forward motion must be the visible default; retention happens invisibly inside sessions
-- Validate against real kid behavior (follow Tinku's pointer, or route around him?) before building
-
 ## Done — Legal / MVP Scope Cuts (2026-07-16 — the first simplification)
 
 - **Legal pack created:** `questionnaire-lawyer-dpdp.md`, `questionnaire-ca-tax-uae-india.md`, `dpdp-lawyer-conversation-guide.md` — all reflect Indian-citizen/UAE-resident (NRI) founder profile
@@ -608,3 +659,7 @@ and the constraints that bind when Layer 2 returns)**, 2026-08-15 (no auth SDK i
 the MVP build), 2026-08-16 (`PRODUCT_NAME` derived not repeated; no legal
 conclusions or age band in the policy), **2026-08-17 (progress export/import:
 progress only, versioned envelope, REPLACE not merge — the shape behind Now #3)**.
+
+Note: the 2026-08-18 corrections above (Now #6, the composer Done blocks, DOCMAP's
+spec-practice-composer.md row) are status corrections, not new decisions — nothing
+was added to `DECISIONS.md` for them.
