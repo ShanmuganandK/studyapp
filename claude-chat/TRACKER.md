@@ -46,7 +46,7 @@ as a "game" was considered and rejected (see DECISIONS).
 | 7 | Remaining ~29 recipes | ⏳ Background | Curriculum breadth. Fully unblocked. |
 | 8 | **Designed-for-Families programme rules** | ⏳ Read before submit — **privacy half now done** | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. The **policy** obligations are closed by #2 (policy exists, is linked, is reachable in-app, no ads, no collection). **Still open:** target-age declaration, content rating questionnaire, content policy, store-listing assets, and the external-link rule as it applies to the parent-zone WhatsApp link — enumerated in `play-data-safety-form.md` §4. |
 | 9a | **ParentGate integration test flakes on cold runs** | ✅ **Done 2026-08-17** | Taken ahead of #3 as sequenced above. Applied the "better fix" from the diagnosis below: split the single giant `it` (chaining ~20 sequential `waitFor`/`findBy` calls against vitest's default 5 s per-test timeout) into 4 staged tests — set → verify → forgot-reset → remove — sharing one continuous render via `beforeAll`/`afterAll` instead of per-test `render`/`cleanup`. Each stage now gets its own 5 s budget, and a future failure names the stage instead of an opaque 20-step test. Own commit, not folded into #3. Full run: **347 green + 1 skipped** (344 baseline + 3 new stages), lint clean (0 errors, same 3 pre-existing warnings). Original diagnosis preserved below. |
-| 9 | **Welcome / onboarding screen — TRACE, then decide** | ❓ **Unresolved** | Recalled as built ("two pages — a welcome page and one other"), but **there is no `Welcome.jsx` in `src/components`** and nothing in `ThemeManager` renders one. First view on launch is `SkillPathScreen`. Three possibilities, in order of likelihood: (a) it's `ProfileSetup.jsx` / `ProfileSelector.jsx` under a different mental name — both exist, **both currently unrendered**; (b) it was built on a branch that was never merged; (c) it was never committed — a fourth claim-without-artifact. **Action: `git log --diff-filter=A --name-only | grep -i -E 'welcome|onboard|intro|splash'` and check unmerged branches, before rebuilding anything.** Then decide whether MVP even wants a welcome screen — a no-account app arguably shouldn't gate a child behind one. |
+| 9 | **Welcome / onboarding screen — TRACE, then decide** | 🔎 **Traced 2026-08-18 — decision still open** | **Confirmed (a): `ProfileSetup.jsx` is the recalled "welcome page"** — pixel/line match against `documents/screenshots/01_welcome_screen.png` (committed 2026-06-18). **`ProfileSelector.jsx` is "the one other"** — a multi-child "Who is playing?" picker from the old anonymous→Google account model. Both genuinely unrendered (zero references in `src/`) and both additionally **inert**: `localAdapter`'s `onAuthStateChanged` always resolves `null` since the 2026-08-15 de-Firebase rewrite, so `profiles` never leaves `[]` and `addProfile` is a silent no-op if ever rendered. Already documented, not lost — `TASK-INDEX.md` T110 and `ProfileSetup.jsx`'s own docblock both say "quarantined." (b)/(c) ruled out: `git log --diff-filter=A --all` + both stale local branches checked, no unique unmerged commits. **Not a fifth false claim.** **Decision not yet made** — see the reference captured in Parked Ideas below; revisit against real kid-test signal (Kid-Test Log already asks "does a child launching straight into the skill path know what to do?"), not from a desk. |
 
 ## Deploy verification (standing step — added 2026-08-15)
 
@@ -92,7 +92,7 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 | Item | Why it's here |
 |---|---|
 | **Done-sweep: verify every Done claim has an artifact** | Three claims were checked on 2026-08-15 and **three were false** — CI wiring, questionnaire v2, and the 296 test count. That is a bad hit rate from a small sample, and this project's whole method (audit → decide → build → test) assumes the tracker is honest. **~1 hour: for each Done line, does the artifact exist in the repo?** Do this before kid-testing, not after. |
-| **Welcome screen** | See Now #9. Same class of problem — possibly a fourth false claim. |
+| **Welcome screen** | **Traced 2026-08-18 — see Now #9.** `ProfileSetup.jsx`/`ProfileSelector.jsx` confirmed as the recalled screens, not a false claim. Whether to build/revive anything is a separate, still-open product decision. |
 | **Questionnaire v2 not committed** | v2 exists as a chat draft only; the repo has v1 with A4 annotated in place. Either commit v2 or knowingly send v1. No action needed until the DPDP consult is un-deferred, but it must not be forgotten at that moment. |
 | **Gazette PDF verification** | The Rule 10 / Fourth Schedule reading is confirmed across three reproductions incl. a law-firm full text, but **not against G.S.R. 846(E) itself**. Sufficient for the current decision (safe under any reading); close before any Layer 2 build. |
 | **Dead code after de-Firebase** | `Login.jsx` is rendered nowhere and its auth backend is gone. `ProfileSelector.jsx` is also unrendered. Decide: delete, or leave as frozen legacy pending T109? Leaving unrendered components that reference a removed capability is how the next audit gets confused. |
@@ -578,6 +578,18 @@ in India**"* — whether it narrows the identifiability duty.
 
 ## Parked Ideas (carried over, one line each)
 
+- **Onboarding-tone reference (Stitch-style mockup, found online, 2026-08-18)** — a 3-screen toddler
+  activity-app flow (welcome hero → name/age/avatar profile creation → tiled activity home). Tone
+  only, revisit only if Now #9's kid-test signal calls for building an onboarding beat at all — not
+  decided, not scheduled. **Sizing constraint if it ever gets built:** cap at 2 screens, not 3 — a
+  child/parent won't sustain a third tap before reaching the actual app. **Corrections needed if
+  ever drawn from (not exhaustive — too early to fix the list; re-audit against DECISIONS at time
+  of use):** multi-character cast → Tinku is the ONLY mascot; age gate reads 2–5 yrs → this is
+  Grades 1–3, ages ~6–8; generic activity tiles (art/puzzles/stories/music) → no analogue in a
+  recipe/skill-map product; name + avatar + implied multi-child profiles → the deferred Layer 2
+  account model, and a name field is exactly the kind of thing MVP scope (DECISIONS 2026-08-14)
+  exists to avoid collecting at all. The image itself lives in chat history, not this repo — pull
+  it back into DECISIONS/specs if and when this is actually picked up.
 - KG band content
 - Client-side-encrypted cloud backup (blob we cannot decrypt) — open question whether that still counts as processing child personal data; ask at the revisit trigger
 - Using a registered Consent Manager as an outsourced verification path (we cannot BE one — First Schedule Part A — but using one is a separate question)
