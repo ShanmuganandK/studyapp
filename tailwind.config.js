@@ -43,6 +43,7 @@ export default {
             boxShadow: {
                 button: 'var(--shadow-button)',
                 card: 'var(--shadow-card)',
+                nav: 'var(--shadow-nav)',
             },
             fontSize: {
                 question: 'var(--text-question)',

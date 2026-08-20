@@ -47,7 +47,7 @@ const Layout = ({ children, currentView, onNavigate, scrollLocked = false }) => 
         </div>
 
         {/* Bottom Navigation */}
-        <div className="flex-shrink-0 h-20 bg-bg-card border-t border-primary-soft flex items-center justify-around px-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.04)]">
+        <div className="flex-shrink-0 h-20 bg-bg-card border-t border-primary-soft flex items-center justify-around px-4 shadow-nav">
           <NavItem
             icon={<Home size={22} strokeWidth={2.5} />}
             label="Home"

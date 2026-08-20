@@ -97,6 +97,7 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 | **Gazette PDF verification** | The Rule 10 / Fourth Schedule reading is confirmed across three reproductions incl. a law-firm full text, but **not against G.S.R. 846(E) itself**. Sufficient for the current decision (safe under any reading); close before any Layer 2 build. |
 | **Dead code after de-Firebase** | `Login.jsx` is rendered nowhere and its auth backend is gone. `ProfileSelector.jsx` is also unrendered. Decide: delete, or leave as frozen legacy pending T109? Leaving unrendered components that reference a removed capability is how the next audit gets confused. |
 | **Passcode re-homing** | Known and deferred: passcode lives under `math_kids_settings_anon` via the auth context. Needs proper re-homing **whenever** T109 happens. Recorded so it is not rediscovered as a bug. |
+| **`ThemeManager.jsx` naming trap** (design-system audit, 2026-08-20) | It manages *views* (`skills`/`quiz`/`parent`), not colour themes, and applies no theme class anywhere today. When a real band switch lands, the obvious place to wire it is a file already named `ThemeManager` doing something unrelated — flagged, not fixed (widely referenced, separate diff). Decide: rename `ThemeManager` → something view-specific (e.g. `ViewManager`) and let a real `ThemeManager` be born correctly-named later, or accept the collision and document it loudly at the call site when band-switching is actually built. |
 
 ## Out of MVP scope (by decision, not blocked)
 
@@ -126,6 +127,93 @@ Layer 2) and a paid-unlock-without-accounts path.
 | **India day-count log** | ⏳ Start now | Track days-in-India from now, independent of when the CA replies. |
 | Kid-testing in India | ⏳ Planned | Signal source for the 3-B verdict, FRONTIER_PICK validation, and the revisit trigger above. |
 | Teacher review of `misconceptions-reference.md` | ⏳ Pending | ~68 rows, one-time, arrange in India. Unblocks richer dashboard insight. |
+
+---
+
+## Done — Design-system portability audit + hardening (2026-08-20)
+
+Foundation work, not a feature: proved (and fixed) whether a future band re-skin can actually be
+a token change. **Not a build** — no theme switcher, no dark mode, no Explorer content shipped.
+
+**Audit (before any fix) swept `src/` excluding `scripts/frozen-legacy.mjs`'s frozen paths:**
+- **The known leak, confirmed:** `index.css`'s effect layer (`--shadow-button`, `--shadow-card`,
+  `.tinku-ground`, `.count-glyph`, `.kid-num-3d`) hardcoded Wonder indigo/ink as `rgba()`
+  literals — 5 rules, ~9 calls. Plus one more outside `index.css`: `Layout.jsx`'s bottom-nav
+  shadow was an inline Tailwind arbitrary-value `rgba(0,0,0,0.04)`.
+- **One raw hex outside a token definition:** `.kid-tile-idle`'s gradient endpoint `#eef2ff` —
+  verified (not assumed) that it is NOT reproducible as `--color-primary` at any single alpha
+  over white (the three channels solve to inconsistent alphas).
+- **No inline `style={{}}` carries colour/shadow/gradient anywhere in `src/`.** `Confetti.jsx`
+  was already fully token-based — a clean pre-existing example, not part of the fix.
+- **Non-effect-layer non-token classes found and left alone, by decision:** `text-white`
+  (6 files, foreground-on-brand-button text), `Layout.jsx`'s desktop phone-bezel/notch chrome
+  (`indigo-950`/`indigo-900`), `ParentGateModal.jsx`'s modal scrim (`bg-black/50`) — none of
+  these are the shadow/gradient leak that was the actual ask; tokenizing them would have
+  expanded this task's diff and the token vocabulary beyond what was asked. Documented as
+  narrow, reasoned exceptions rather than fixed or silently ignored (see Guard below).
+  `SkillCard.test.jsx`'s `.text-amber-500` is a negative test assertion, not a leak — false
+  positive, no action.
+
+**Fix — the effect layer now derives colour, it doesn't repeat it.** `--color-primary`,
+`--color-primary-ink` and `--color-ink` each carry TWO co-declared forms: the hex literal
+components consume, and a bare RGB channel triple (`--color-primary-rgb`, etc.) the effect
+layer alpha-blends via `rgba(var(...), alpha)`. **An earlier version tried to make the triple
+the ONLY source and derive the hex form via `rgb(var())`** to avoid duplication — proven wrong
+in Step 3 below and reverted: per the CSS custom-properties spec, `var()` is substituted once at
+the element where a property is *declared*, and descendants inherit the already-computed
+result — so a scoped override of the triple never reached the derived hex token. The two forms
+are now kept in sync by a new test, `src/__tests__/designTokens.test.js`, not by convention.
+`.kid-tile-idle`'s `#eef2ff` became its own token, `--color-primary-tint` (not derivable, so not
+folded into the triple scheme). `Layout.jsx`'s inline shadow became `--shadow-nav`.
+**Verified value-preserving:** built-app screenshots before/after, byte-identical on 3 of 4
+representative screens once `prefers-reduced-motion` removed animation-phase jitter as a
+confound (the 4th differs only because the counting recipe randomizes its question each
+session — confirmed unrelated to styling by direct inspection).
+
+**Step 3 — proved the swap once, then reverted.** A throwaway `.theme-stress-test-dark` class
+(colour custom properties only) applied to `#root`, built, and driven with Playwright against
+the real `dist/` output.
+- **What re-themed correctly:** Home (`SkillPathScreen`), the quiz question screen (including
+  the now-fixed effect layer — shadows, mascot ground, tile gradient, count-glyph shadow), and
+  the Parent Dashboard — all colour, no component touched.
+- **What did NOT re-theme, found and diagnosed:**
+  1. The `rgb(var())`-derivation bug above (initially discovered here, then fixed and
+     re-verified in the same pass).
+  2. **The Parent Gate modal never re-themed at all**, even after the fix — because
+     `ParentGateModal.jsx` renders via `createPortal(..., document.body)` (DECISIONS 2026-07-14,
+     the viewport-pinning fix), so its DOM node is a *sibling* of `#root`, not a descendant, and
+     never inherits `#root`'s scoped custom properties. Confirmed via DOM inspection
+     (`document.getElementById('root').contains(modal)` → `false`, `parentElement` → `BODY`).
+     **A real band-switch mechanism needs the theme class on `document.body` (or `<html>`), not
+     `#root` alone**, or every portalled surface stays locked to Wonder forever.
+- Throwaway theme fully reverted (`index.css` block + `index.html` class) — `git diff` clean on
+  both before the guard work started.
+
+**Guard, widened (`scripts/check-raw-hex.mjs`, previously hex-only):** now also catches
+`rgba()`/`rgb()`/`hsla()`/`hsl()` **literal** calls (a `var()`-based call like
+`rgba(var(--color-primary-rgb), 0.2)` is correctly NOT flagged — that's the effect layer doing
+its job) and non-token Tailwind colour utility classes in `.js`/`.jsx`. **`src/index.css` is no
+longer exempted wholesale** — only its `:root { }` token-definition blocks are (there are two:
+a small font-family block and the real token block), so the effect layer is linted like any
+component now, which is the actual fix for how the original leak went uncaught. The
+non-effect-layer findings from the audit (`text-white`, the phone-bezel chrome, the scrim) are
+now explicit, per-site, reasoned exceptions in `scripts/frozen-legacy.mjs`'s
+`COLOR_CLASS_EXCEPTIONS` — not a whole-file exemption, so a *different* violation in the same
+file still fails.
+
+**Flagged, not fixed — human decision needed:** `ThemeManager.jsx` manages views
+(`skills`/`quiz`/`parent`), not colour themes, and applies no theme class anywhere. The obvious
+place to wire a real band switch later is a file already named `ThemeManager` doing something
+unrelated — see "Open questions" below.
+
+**Verification**
+
+| Check | Result |
+|---|---|
+| Tests | **377 green** (+3: `designTokens.test.js`), 1 skipped. Baseline 374. |
+| Lint / `lint:hex` / `privacy:check` | Clean — 0 errors (3 pre-existing warnings, unchanged); widened guard passes on the real codebase. |
+| Guards proven RED, one injection at a time, then reverted | ① `designTokens.test.js`: mismatched `--color-primary-rgb` against its hex pair → fails; ② `check-raw-hex.mjs`: literal `rgba()` inline in a component → fails; ③ `check-raw-hex.mjs`: `text-red-500` (not in the exceptions list) in a component → fails; ④ `check-raw-hex.mjs`: a literal colour added back into an effect-layer rule in `index.css` → fails. All four reverted, all green after. |
+| Real browser, built app | Step 2's before/after screenshots (reduced-motion) byte-identical on Home/Parent Dashboard/Parent Gate; Step 3's stress-test screenshots + `getComputedStyle`/DOM diagnostics captured the two real findings above before revert. |
 
 ---
 

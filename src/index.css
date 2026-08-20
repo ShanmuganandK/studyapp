@@ -24,10 +24,30 @@
   --color-bg: #f0f9ff;              /* airy sky — screen background */
   --color-bg-card: #ffffff;        /* cards, option tiles (idle), trays */
 
-  /* Color — brand / structure */
+  /* Color — brand / structure. `primary` and `primary-ink` each carry TWO co-declared forms:
+     the hex literal (consumed directly by Tailwind/components) and an RGB channel triple
+     (consumed by the effect layer's rgba() calls below, which need bare channel numbers, not a
+     hex string). These are NOT derived one-from-the-other — an earlier version of this file
+     tried `--color-primary: rgb(var(--color-primary-rgb))` to make the triple the only source
+     of truth, but that does NOT work for scoped band overrides: per the CSS custom-properties
+     spec, a property's value is substituted (var() resolved) ONCE at the element where it is
+     DECLARED, and descendants inherit that already-computed value — not a live formula. Since
+     --color-primary is declared on :root, overriding --color-primary-rgb inside a scoped class
+     (e.g. a future `.theme-explorer`) does NOT flow into --color-primary for that scope; it
+     stays stuck at the :root value. Verified empirically (Step 3 of the design-system audit)
+     before reverting to this two-property form. A future band override MUST set BOTH the hex
+     literal AND the -rgb triple for each colour below — kept in numeric sync by a guard test
+     (`config/__tests__/... ` — see the test file for exact location) so they cannot drift. */
   --color-primary: #4f46e5;        /* indigo — structure, primary buttons, option text */
+  --color-primary-rgb: 79, 70, 229; /* = --color-primary, channel form for rgba() in the effect layer */
   --color-primary-soft: #e0e7ff;   /* soft indigo — borders / tints / fills */
   --color-primary-ink: #3730a3;    /* deep indigo — question & heading text on light */
+  --color-primary-ink-rgb: 55, 48, 163; /* = --color-primary-ink, channel form */
+  /* A light primary-hue TINT for `.kid-tile-idle`'s gradient endpoint below. NOT derivable from
+     --color-primary-rgb via alpha-blend (the channels solve to inconsistent alphas over a white
+     base — verified, not assumed) — it is a genuinely distinct hue, so it stays its own literal.
+     A band override that wants the tile gradient to shift must set this directly. */
+  --color-primary-tint: #eef2ff;
 
   /* Color — reward (LOCKED: amber = achievement/reward ONLY) */
   --color-accent: #fbbf24;
@@ -55,8 +75,10 @@
      Any future "needs attention / revisit" state inherits this token, never amber. */
   --color-review: #14b8a6;
 
-  /* Color — text */
+  /* Color — text. `ink` carries the same two co-declared forms as primary/primary-ink above,
+     same reason (the effect layer alpha-blends it for depth shadows on light surfaces). */
   --color-ink: #1e293b;            /* slate-800 — primary body/heading text */
+  --color-ink-rgb: 30, 41, 59;     /* = --color-ink, channel form */
   --color-muted: #64748b;          /* slate-500 — secondary/muted text */
 
   /* Radius — soft & rounded everywhere */
@@ -65,9 +87,16 @@
 
   /* Shadow — soft, pressable; STATIC only (never animated in a loop — STANDARDS §5).
      Button = a LAYERED soft "pillow": an inset top highlight + close + far drop shadows so the
-     tile reads raised and tactile (kid-app depth cue). */
-  --shadow-button: inset 0 2px 2px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(30, 41, 59, 0.06), 0 10px 20px -6px rgba(79, 70, 229, 0.20), 0 5px 10px -3px rgba(30, 41, 59, 0.10);
-  --shadow-card: 0 10px 26px -10px rgba(79, 70, 229, 0.22);
+     tile reads raised and tactile (kid-app depth cue). Channel colours come from the -rgb
+     triples above so a band override re-themes the shadow tint, not just the flat colour.
+     The white inset highlight stays a literal — it is a light-source glint, not a brand hue,
+     the same "theme-independent" reasoning as a modal scrim (deliberate, not an oversight). */
+  --shadow-button: inset 0 2px 2px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(var(--color-ink-rgb), 0.06), 0 10px 20px -6px rgba(var(--color-primary-rgb), 0.20), 0 5px 10px -3px rgba(var(--color-ink-rgb), 0.10);
+  --shadow-card: 0 10px 26px -10px rgba(var(--color-primary-rgb), 0.22);
+  /* Bottom nav's top-edge shadow (Layout.jsx) — was an inline Tailwind arbitrary value embedded
+     in the component; promoted here so no component carries a raw colour literal. Neutral black,
+     left as a literal for the same reason as the white highlight above. */
+  --shadow-nav: 0 -4px 6px -1px rgba(0, 0, 0, 0.04);
 
   /* Fluid type (clamp — docs/responsive.md). Kid-facing = big & round; parent-facing = normal. */
   --text-question: clamp(3rem, 9vh, 4.75rem);
@@ -81,22 +110,22 @@
    while he breathes/floats above it. Purely decorative; colour lives here (token layer),
    not in the component, so components stay token-only. */
 .tinku-ground {
-  background: radial-gradient(ellipse at center, rgba(79, 70, 229, 0.16), rgba(79, 70, 229, 0) 72%);
+  background: radial-gradient(ellipse at center, rgba(var(--color-primary-rgb), 0.16), rgba(var(--color-primary-rgb), 0) 72%);
 }
 
 /* Option-tile surface — a subtle top-lit gradient that, together with --shadow-button's layered
    soft shadow, gives the answer tiles a raised, tactile "pillow" feel (Stitch "Polished" variant
    cue, adapted to the Wonder palette). */
-.kid-tile-idle { background-image: linear-gradient(180deg, var(--color-bg-card) 0%, #eef2ff 100%); }
+.kid-tile-idle { background-image: linear-gradient(180deg, var(--color-bg-card) 0%, var(--color-primary-tint) 100%); }
 
 /* Count-objects imagery — the things a child counts (🍎/🌸/…) get a soft drop-shadow so they
    sit ELEVATED off the tray, like a real object on a table (Stitch "Polished" cue). Static
    filter, low-end-Android safe. */
-.count-glyph { filter: drop-shadow(0 3px 2px rgba(30, 41, 59, 0.28)); }
+.count-glyph { filter: drop-shadow(0 3px 2px rgba(var(--color-ink-rgb), 0.28)); }
 
 /* Kid-facing big numbers/equation — a soft depth shadow that adds a "3D pop" while staying
    crisply readable for early readers (no hard extrusion). Static text-shadow. */
-.kid-num-3d { text-shadow: 0 3px 5px rgba(55, 48, 163, 0.22); }
+.kid-num-3d { text-shadow: 0 3px 5px rgba(var(--color-primary-ink-rgb), 0.22); }
 
 /* Parent gate error feedback — transform-only shake, GPU-safe. Runs once on wrong PIN.
    Applied to the modal wrapper so the whole card nudges, not individual elements. */

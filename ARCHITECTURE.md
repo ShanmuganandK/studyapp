@@ -110,17 +110,51 @@ The visual overhaul (RESKIN only — zero logic change) flows from **named desig
 future kid-feedback tuning is a token change, not a screen hunt.
 
 - **Tokens** live as CSS custom properties in **`src/index.css`** (`:root` = Wonder-band
-  defaults; the Explorer band, Phase 2, will override the SAME properties under a
-  `.theme-explorer` scope — no component changes needed). **`tailwind.config.js`** exposes them
-  as utilities so components use named tokens, never raw hex. Groups: colour
+  defaults; a future band overrides the SAME properties under a scoped class — no component
+  changes needed). **`tailwind.config.js`** exposes them as utilities so components use named
+  tokens, never raw hex. Groups: colour
   (`bg`, `bg-card`, `primary`/`-soft`/`-ink`, `accent`, `success`/`-soft`, `encourage`/`-soft`/`-ink`,
-  `learn`/`-soft`/`-ink`, `review`, `ink`, `muted`), `rounded-{button,card}`, `shadow-{button,card}`, fluid
+  `learn`/`-soft`/`-ink`, `review`, `ink`, `muted`), `rounded-{button,card}`, `shadow-{button,card,nav}`, fluid
   `text-{question,option,title,prompt,body}` (clamp), and **type families** `font-body` (`--font-body`)
   / `font-display` (`--font-display`). **Locked meanings:** `accent`(amber)=reward ONLY;
   `encourage`(soft coral)=wrong answers (never red/amber); `learn`(sky)=hints/learning;
   `review`(teal, added Screen 3)=review-due only ("come back to this" — NOT amber; kept distinct
   from `learn`/suggests; DECISIONS 2026-07-05). Any future "needs attention/revisit" state inherits
   `review`.
+  **The token layer, proven (design-system audit, TRACKER 2026-08-20):** the band-override claim
+  above was written but never exercised until this audit built a throwaway dark palette, applied
+  it to `#root`, and checked the built app in a real browser. Two real findings came out of it:
+  - **`primary`, `primary-ink` and `ink` are declared TWICE**, deliberately: once as the plain
+    hex token components consume directly, and once as a bare RGB channel triple
+    (`--color-primary-rgb: 79, 70, 229`, etc.) that the effect layer alpha-blends via
+    `rgba(var(--color-primary-rgb), 0.2)`. An earlier version tried to make the triple the ONLY
+    source and *derive* the hex form via `rgb(var(--color-primary-rgb))`, to avoid the
+    duplication — that does **not** work for scoped overrides. Per the CSS custom-properties
+    spec, a property's `var()` references are substituted once, at the element where the
+    property is *declared* (`:root`), and descendants inherit that already-computed result, not
+    a live formula — so overriding the `-rgb` triple inside a scoped class left the derived hex
+    token stuck at the Wonder value (confirmed via `getComputedStyle` before reverting to the
+    two-property form). **A band override must set BOTH forms of each paired colour.** The two
+    forms are kept in numeric sync by `src/__tests__/designTokens.test.js`, not by convention.
+  - **The Parent Gate modal does not re-theme via a `#root`-scoped class**, because
+    `ParentGateModal.jsx` renders via `createPortal(..., document.body)` (see below) — its DOM
+    node is a sibling of `#root`, not a descendant, so it never inherits `#root`'s custom
+    properties. A real band-switch mechanism needs the theme class on `document.body` (or
+    `<html>`), not `#root` alone, or every portalled surface stays locked to Wonder.
+  - Everything else re-themed correctly on the first try: all five effect-layer rules below
+    (once tokenized — they used to hardcode Wonder indigo as literals, the actual leak this
+    audit fixed), all screen-level colour, `Confetti.jsx` (already token-based, not part of the
+    fix). Non-token `text-white`/scrim/device-bezel usages were audited and left as documented,
+    reasoned exceptions in `scripts/frozen-legacy.mjs`'s `COLOR_CLASS_EXCEPTIONS` — see
+    `scripts/check-raw-hex.mjs`, widened in the same audit to catch `rgba()`/`hsl()` literals and
+    non-token Tailwind colour classes (previously hex-only, and previously exempted
+    `src/index.css` wholesale — now scoped to just its `:root` token-definition blocks, which is
+    how the effect-layer leak went uncaught for as long as it did).
+  - **Known naming trap, flagged not fixed:** `ThemeManager.jsx` manages *views*
+    (`skills`/`quiz`/`parent`), not colour themes, and applies no theme class anywhere. When a
+    real band switch lands, the obvious place to wire it is a file already named `ThemeManager`
+    that does something unrelated. Left alone this task (widely referenced); the human is
+    recording a decision on it.
 - **Fonts (self-hosted, no CDN — low-end-Android safe):** **Nunito** (body/parent, the default
   `font-sans`) + **Baloo 2** (kid-facing display — big numbers/equations/titles/option tiles),
   via **Fontsource** variable packages imported in `src/main.jsx` (`font-display: swap`, bundled
@@ -130,7 +164,13 @@ future kid-feedback tuning is a token change, not a screen hunt.
 - **Depth utilities** (`index.css`): `.kid-tile-idle` (top-lit gradient for the raised "pillow"
   answer tiles, paired with the layered `--shadow-button`), `.count-glyph` (drop-shadow so
   counted objects sit elevated), `.kid-num-3d` (soft depth shadow on big numbers/equations),
-  `.tinku-ground` (mascot ground ellipse). All static (no animated shadow/filter).
+  `.tinku-ground` (mascot ground ellipse). All static (no animated shadow/filter). All four
+  consume colour exclusively via `var()`/`rgba(var())` — the token-portability audit's fix —
+  except `.kid-tile-idle`'s gradient endpoint, which uses its own `--color-primary-tint` token
+  (a light primary-hue tint that isn't mechanically derivable from `--color-primary` via
+  alpha-blend over white — verified, not assumed — so a band override sets it directly if it
+  wants the tile gradient to shift). `Layout.jsx`'s bottom-nav shadow was the one other leak
+  found outside `index.css`: an inline Tailwind arbitrary-value `rgba()`, now `--shadow-nav`.
 - **Quiz micro-motion** (also `index.css`, all GPU-safe transform/opacity, reduced-motion off):
   `animate-q-enter` (question slide/fade-in, keyed on questionNumber), `animate-opt-in` (option
   stagger), `animate-correct-pop`, `animate-encourage-nudge` (gentle, not a harsh shake),
