@@ -741,3 +741,11 @@ land.
   `useQuizSession` and asserts hint-bubble render invariants (never stacks, always clears on
   correct / next question), guarding the keyed-remount fix. This is the render-test layer CLAUDE.md
   calls for; logic still lives in the pure node-env suites.
+- **`scripts/visual-snapshot.mjs`** — ON-DEMAND, manual, NOT wired into CI. Screenshots a fixed
+  set of representative screens against a real built app (Playwright + `vite preview`) and
+  byte-compares two labelled captures — the reusable form of the ad-hoc workflow the
+  2026-08-20 design-system audit used to prove a colour-token refactor was visually invisible.
+  `npm run visual:capture <label>` / `visual:diff <a> <b>` / `visual:list`. Output lives in
+  `.visual-snapshots/` (gitignored — not committed). Not useful until there's a second thing to
+  compare against (e.g. a real Explorer-band build); see the script's own header for why it's
+  deliberately kept out of CI.

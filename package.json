@@ -12,7 +12,10 @@
     "privacy:check": "node scripts/build-privacy-page.mjs --check",
     "preview": "vite preview",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "visual:capture": "node scripts/visual-snapshot.mjs capture",
+    "visual:diff": "node scripts/visual-snapshot.mjs diff",
+    "visual:list": "node scripts/visual-snapshot.mjs list"
   },
   "dependencies": {
     "@fontsource-variable/baloo-2": "^5.2.7",
