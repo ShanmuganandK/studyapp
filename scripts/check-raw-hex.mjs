@@ -22,11 +22,12 @@
  *               (references tokens via var() only, nothing to catch); the documented
  *               `COLOR_CLASS_EXCEPTIONS` (one exact class per site, with a reason — NOT a
  *               whole-file exemption, so a different violation in the same file still fails);
- *               and, in `src/index.css` ONLY, lines inside the first `:root { }` block — that
- *               is where tokens are DEFINED, so a literal there is the point, not a leak.
- *               Everything else in index.css (the effect layer: shadows, gradients, filters)
- *               is now checked like any component — a literal there is exactly the bug class
- *               this guard exists to catch.
+ *               and, in `src/index.css` ONLY, lines inside a TOKEN-DEFINITION block — the
+ *               `:root { }` blocks and the `.theme-<slug> { }` palette blocks (test-panel
+ *               themes, TRACKER #10) that scoped-override the same tokens — that is where tokens
+ *               are DEFINED, so a literal there is the point, not a leak. Everything else in
+ *               index.css (the effect layer: shadows, gradients, filters) is checked like any
+ *               component — a literal there is exactly the bug class this guard exists to catch.
  *   - does NOT check: named CSS colours other than white/black (e.g. 'firebrick'). If those
  *               start appearing, widen this deliberately rather than assuming they were covered.
  *
@@ -99,17 +100,20 @@ function walk(dir) {
 }
 
 /**
- * For src/index.css only: which line numbers (0-indexed) fall inside a `:root { }` block —
- * the token-definition blocks, the one place a colour literal is supposed to live. The file
- * has TWO (a small font-family block, then the design-tokens block below it) — track every
- * one, not just the first, via a brace-depth count from each `:root {` to its matching `}`.
+ * For src/index.css only: which line numbers (0-indexed) fall inside a TOKEN-DEFINITION block —
+ * the one place a colour literal is supposed to live. That means the `:root { }` blocks (Wonder
+ * defaults — a font-family block, then the design-tokens block) AND the `.theme-<slug> { }`
+ * palette blocks that SCOPED-override the same tokens for the parent test panel (TRACKER #10):
+ * a hex there is the token being defined, not a leak. Track every block, not just the first, via
+ * a brace-depth count from each opener to its matching `}`. Everything OUTSIDE these blocks (the
+ * effect layer — shadows, gradients, filters) is still checked like any component.
  */
-function computeRootBlockLines(lines) {
+function computeTokenBlockLines(lines) {
   const inside = new Set();
   let depth = 0;
   let tracking = false;
   lines.forEach((line, i) => {
-    if (!tracking && /:root\s*\{/.test(line)) tracking = true;
+    if (!tracking && /(?::root|\.theme-[\w-]+)\s*\{/.test(line)) tracking = true;
     if (tracking) {
       inside.add(i);
       for (const ch of line) {
@@ -136,11 +140,11 @@ for (const file of walk(SRC_DIR)) {
   if (isFrozen(rel) || isAllowed(rel)) continue;
 
   const lines = readFileSync(file, 'utf8').split('\n');
-  const rootBlockLines = rel === INDEX_CSS_REL ? computeRootBlockLines(lines) : null;
+  const tokenBlockLines = rel === INDEX_CSS_REL ? computeTokenBlockLines(lines) : null;
   const isJsLike = /\.(js|jsx)$/.test(rel);
 
   lines.forEach((line, i) => {
-    const exemptLine = rootBlockLines?.has(i) ?? false;
+    const exemptLine = tokenBlockLines?.has(i) ?? false;
     if (!exemptLine) {
       for (const match of line.matchAll(HEX_RE)) {
         violations.push({ file: rel, line: i + 1, value: match[0], text: line.trim(), kind: 'hex' });

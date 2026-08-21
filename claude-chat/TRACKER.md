@@ -38,7 +38,7 @@ on this trip.** Anything that does not serve that waits.
 
 | Rank | Item | Why this rank |
 |---|---|---|
-| **P0** | **#10 — Parent test panel** (theme picker + grade selector + portal theme fix) | **Hard blocker on everything else.** Grade is a parent-set profile property, `ProfileSetup.jsx` is quarantined/unrendered, and `ThemeManager` hardcodes `DEFAULT_GRADE = 1` — so **there is currently no way to set a grade at all**, and no way to switch themes. Without this, Grade 2 content can't be exercised even after it exists, and themes can't be shown to a child. |
+| **P0** | **#10 — Parent test panel** ✅ **Done 2026-08-21** (theme picker + grade selector + portal theme fix) | **Was the hard blocker on everything else — now closed.** Grade is settable via the parent zone, themes are switchable, and the portalled parent gate re-themes. Grade 2 content (#11) and Grade 3 curriculum (#12) can now be exercised end-to-end the moment they exist. |
 | **P1** | **#11 — Grade-2 arithmetic content batch** | The cheap half of #7. ~12 skills of real Grade 2 depth from ~6 new recipe modules, all reusing EXISTING question formats — no new art, no new interaction types. This is what makes a Grade 2 child's session non-trivial. |
 | **P2** | **#5 / #9 / composer gaps — observe, don't build** | 3-B verdict, welcome-screen decision, `FRONTIER_PICK:'momentum'`, in-session review embedding. All four are already kid-test-gated. The trip IS the gate. Watch, take notes, decide after. |
 | **P3** | **#12 — Grade 3 curriculum spec** | Can't be built without it (see #12 — Grade 3 does not exist in the skill map). Spec is Chat's to write; it does not block this trip's testing, which can run on G1 + G2. |
@@ -59,7 +59,7 @@ on this trip.** Anything that does not serve that waits.
 | 4 | Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. **ADD a new step (2026-08-15): verify the Netlify published deploy SHA matches `master` BEFORE walking anything** — see "Deploy verification" below. |
 | 5 | Screen 3-B verdict (journey path vs. cards) | ⏳ **P2 — observe on this trip** | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. Kid-testing is the gate — it is happening now. |
 | 6 | ~~Session composer build~~ | ✅ **Corrected 2026-08-18 — already Done, since 2026-06-28** | This row read "Queued — spec settled" for at least the whole 2026-08-15 → 2026-08-18 window. It was wrong: `src/engine/composer.js`, `src/config/composerConfig.js` and 47 tests shipped 2026-06-28 (`7bd17dc`), and `SkillSelectScreen` has rendered the "Tinku suggests!" / "↻ Review time!" card highlight from `recommendNext` ever since. Found by reading the actual files, not either doc — see the full correction below and in `DOCMAP.md`. **Two real gaps remain**, correctly distinguished from what shipped: in-session review-embedding (warm-up questions inside a frontier session) and `FRONTIER_PICK: 'momentum'` were never built — both are kid-test-gated design calls, **P2, observe on this trip**. |
-| **10** | **⭐ Parent test panel — theme + grade control** | 🔨 **P0 — ASSIGNED 2026-08-21** | **The blocker on all trip testing.** Parent-zone-only controls (deliberately NOT kid-facing — a kid-facing picker is an unnecessary deviation from the learning loop, and this is a test instrument, not a feature). Three parts: ① **theme selector** applying one of the candidate palettes; ② **grade selector** (1/2/3) — needed because grade is a parent-set profile property, `ProfileSetup.jsx` is quarantined, and `ThemeManager` hardcodes `DEFAULT_GRADE = 1`, so **no grade can be set today by any means**; ③ **the portal theme fix** from the design-system audit — `ParentGateModal` renders via `createPortal(document.body)` and is a SIBLING of `#root`, so a theme class on `#root` never reaches it (proven 2026-08-20). The theme class must sit on `document.body` or `<html>`. Preference storage must NOT go in `progressStore` (skills-only, allowlist-guarded, and the backup envelope actively rejects non-skill entries) — its own key, and it must NOT travel in an export. |
+| **10** | **⭐ Parent test panel — theme + grade control** | ✅ **P0 — Done 2026-08-21** | **The blocker on all trip testing — closed.** Parent-zone-only controls (deliberately NOT kid-facing). Shipped all three parts: ① theme selector (3 candidate palettes); ② grade selector (1/2/3), feeding `ThemeManager`'s `grade` in place of the hardcoded `DEFAULT_GRADE`; ③ the portal theme fix — the theme class now applies to `document.body`, so the portalled `ParentGateModal` re-themes (verified in a real browser). Preference storage is its own key (`tinku:v1:testSettings`), never `progressStore`, never travels in an export (verified). See the "Done — Parent test panel" block below for the full verification. |
 | **11** | **⭐ Grade-2 arithmetic content batch** | ⏳ **P1 — next after #10** | The cheap, high-value half of #7: skills that reuse EXISTING question formats, needing no new interaction types and no new art. `g1.add.within10`, `g1.num.21-99`, `g2.num.3digit`, `g2.num.compare999`, `g2.place.hundreds`, `addition2d` ×2, `subtraction2d` ×2, `mulIntro`, `mulTable` ×3. **~12 skills from ~6 new recipe modules** (several skills share one parameterised recipe) plus 3 range extensions to recipes that already exist. Every distractor must draw from `misconceptions-reference.md` (canonical — doc wins on conflict). |
 | 7 | ~~Remaining ~29 recipes~~ **→ split; see #11 and the correction below** | ⏳ **P4 for the remainder** | **Corrected 2026-08-21 — "~29 recipes" was misleading in both directions.** ① It is **29 planned *skills*, not 29 recipe files** — several share one parameterised recipe (`mulTable` covers tables 2/5/10; `addition2d` covers carry + no-carry), so it is **~21 new recipe modules**, three of which are just range extensions to existing recipes. ② But it is **also bigger than it sounds**: roughly half need **question formats that do not exist** — shapes, spatial, sorting, patterns, pictographs, clock-reading, coin recognition fit none of `mcq`/`count-objects`/`compare`/`text-input`, and need new interaction types AND visual assets. `misconceptions-reference.md` (~68 rows, still pending teacher review) almost certainly does not cover shapes/time/money distractors yet. **The arithmetic half is split out as #11 (P1). This row now covers only the non-arithmetic remainder — P4, deliberately after the trip.** |
 | 8 | **Designed-for-Families programme rules** | ⏳ **P5** — read before submit; privacy half done | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. The **policy** obligations are closed by #2 (policy exists, is linked, is reachable in-app, no ads, no collection). **Still open:** target-age declaration, content rating questionnaire, content policy, store-listing assets, and the external-link rule as it applies to the parent-zone WhatsApp link — enumerated in `play-data-safety-form.md` §4. |
@@ -116,7 +116,7 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 | **Gazette PDF verification** | The Rule 10 / Fourth Schedule reading is confirmed across three reproductions incl. a law-firm full text, but **not against G.S.R. 846(E) itself**. Sufficient for the current decision (safe under any reading); close before any Layer 2 build. |
 | **Dead code after de-Firebase** | `Login.jsx` is rendered nowhere and its auth backend is gone. `ProfileSelector.jsx` is also unrendered. Decide: delete, or leave as frozen legacy pending T109? Leaving unrendered components that reference a removed capability is how the next audit gets confused. |
 | **Passcode re-homing** | Known and deferred: passcode lives under `math_kids_settings_anon` via the auth context. Needs proper re-homing **whenever** T109 happens. Recorded so it is not rediscovered as a bug. |
-| **`ThemeManager.jsx` naming trap** (design-system audit, 2026-08-20) | It manages *views* (`skills`/`quiz`/`parent`), not colour themes, and applies no theme class anywhere today. When a real band switch lands, the obvious place to wire it is a file already named `ThemeManager` doing something unrelated — flagged, not fixed (widely referenced, separate diff). Decide: rename `ThemeManager` → something view-specific (e.g. `ViewManager`) and let a real `ThemeManager` be born correctly-named later, or accept the collision and document it loudly at the call site when band-switching is actually built. ⚠️ **Now #10 makes this live** — it is the first thing to actually apply a theme class. Decide at that point rather than deferring again. |
+| **`ThemeManager.jsx` naming trap** (design-system audit, 2026-08-20; **now LIVE — #10 shipped 2026-08-21**) | It manages *views* (`skills`/`quiz`/`parent`), not colour themes. Flagged on 2026-08-20 as "the obvious place to wire a real band switch, doing something unrelated" — anticipated to go live the moment #10 landed, and it has: `ThemeManager` now calls `useTestSettings` and IS the mount point that activates theming (the theme-class logic itself lives in the hook, not here — STANDARDS §2). **Left un-renamed in #10 per instruction** (widely referenced, separate diff). Decide: rename `ThemeManager` → something view-specific (e.g. `ViewManager`) and let a real `ThemeManager` be born correctly-named later, or accept the collision and document it loudly at the call site. |
 
 ## Out of MVP scope (by decision, not blocked)
 
@@ -167,6 +167,54 @@ Every palette must also declare the `-rgb` channel triples for `primary`, `prima
 kept in sync with their hex pair by `src/__tests__/designTokens.test.js` (design-system audit,
 2026-08-20). Full candidate values are in the chat handoff for #10; **Deep Sea (dark) is the one
 worth testing first** — dark exercises every inverted slot and is where a leak would surface.
+
+---
+
+## Done — Parent test panel: theme + grade control (2026-08-21)
+
+Closes Now #10. A parent-zone **TEST INSTRUMENT** for kid-testing on a real device — 3 candidate
+themes + a Grade 1/2/3 selector, behind the existing gate. **Nothing kid-facing:** no
+kid-reachable theme picker (a DECISIONS-level call the human is recording separately). Three parts
+shipped: theme selector, grade selector, and the portal-theming fix the 2026-08-20 audit flagged.
+
+**Note on the #10/#11/#12 numbering:** the branch this was built on was cut from a local `master`
+that predated `3e03cc1` (2026-08-21, same day) — the commit that actually added the PRIORITY ORDER
+block and rows #10/#11/#12. Work proceeded against the task brief's own description of #10 (which
+matched exactly) without that context; the mismatch was caught and reconciled via `git rebase
+origin/master` before this was pushed, folding this Done block under the pre-existing #10 row
+instead of duplicating it.
+
+| Piece | What it is |
+|---|---|
+| `src/services/testSettings.js` | **New, storage seam** (mirrors `progressStore.js`). Own key **`tinku:v1:testSettings`** = `{ version, theme, grade }`, normalised on load/save. **Deliberately NOT in `progressStore`** (skills-only, allowlist-guarded) and NOT the passcode key — so it **cannot ride in a progress export** (export reads only the skills key). Exports `THEME_SLUGS`/`GRADES`. |
+| `src/hooks/useTestSettings.js` | **New.** React state + the ONE side-effect that APPLIES a theme: a `theme-<slug>` class on **`document.body`** (`wonder` = no class). Body-level is the Part ③ fix — the portalled `ParentGateModal` is a `#root` sibling, so a `#root` class never reached it. Theme LOGIC lives here, not in `ThemeManager`. |
+| `src/index.css` | **3 palettes** as `.theme-<slug>` blocks (colour custom props only): `sunset`, `bubblegum`, `deepsea` (dark). Human-supplied values; each obeys the two binding rules (primary ≠ feedback colour; fixed amber/green/coral/sky/teal grammar) and declares paired hex + `-rgb` in sync. |
+| `src/components/TestPanel.jsx` | **New, presentational.** Theme swatches (preview each palette by scoping token utilities in `.theme-<slug>` — no raw hex) + Grade 1/2/3 control. Rendered in `ParentDashboard`'s footer. |
+| `ThemeManager.jsx` / `SkillPathScreen.jsx` / `SkillSelectScreen.jsx` | `ThemeManager` calls `useTestSettings`, feeds `grade = currentProfile?.grade ?? testGrade ?? DEFAULT_GRADE`, passes theme/grade + setters to the dashboard. Both Home screens take a `grade` prop and filter via shared **`readySkills(grade)`** (built-in fallback-to-all, so Grade 3 is never an empty void). |
+| `scripts/check-raw-hex.mjs` | Token-block exemption **widened** from `:root` to also cover `.theme-<slug>` token-definition blocks (effect-layer leaks outside them still caught). |
+
+**What Grade 3 produces today (answer to the task's question):** Home screens now filter by grade
+via `readySkills(grade)`; all `ready` skills are Grade 1, so Grade 3 falls back to the full Grade-1
+set — **no crash, no empty void, visibly identical to Grade 1** until Grade 2/3 recipes land (#11/#12).
+Grade becomes a real end-to-end instrument the moment that content exists.
+
+**Naming decision (reported, not acted on):** theme-application logic lives in the correctly-named
+`useTestSettings` hook; `ThemeManager` (which manages *views*) only calls it. The name collision is
+now **live** (it's the mount point that activates theming). **Left un-renamed per instruction** —
+rename decision open in "Open questions".
+
+**Verification**
+
+| Check | Result |
+|---|---|
+| Tests | **402 green** (+25: designTokens palette pairs +9, testSettings 9, useTestSettings 4, TestPanel 3), 1 skipped. Baseline 377/1. |
+| Lint / `lint:hex` / `privacy:check` | Clean — 0 errors (same 3 pre-existing warnings); hex guard clean; privacy byte-identical. |
+| Guards proven RED then reverted | ① `designTokens.test.js`: mismatched `.theme-sunset`'s `--color-primary-rgb` → the sunset pairing test fails → reverted. ② `check-raw-hex.mjs` (widened): raw `#123456` injected into the `.count-glyph` effect-layer rule → flagged → reverted (proves the palette-block exemption did NOT over-exempt). |
+| **Real browser, built app** (`vite preview` + Playwright, 11 checks) | Clean boot: no `<body>` theme class. Switch to Deep Sea → `<body>` gets `theme-deepsea`, dashboard bg = `#0f2740`. **PART ③ PROVEN:** the gate modal is a `document.body` sibling (`#root.contains(modal)` = false) and its `primary-ink` heading follows the palette (`#dbe7ff`), i.e. the portal re-themes. Grade 3 Home renders ready skills (fallback, not empty). Export produces `{format,version,exportedAt,skills}` with the skill payload and **zero** theme/grade/preference data. |
+
+**Scope fences honoured:** no kid-facing UI, no new recipes/skills (#11), no Grade 3 curriculum
+(#12), no Netlify/origin change, legacy frozen paths untouched, `ProfileSetup`/`ProfileSelector`
+NOT revived. DECISIONS.md not written (human records the themes-are-a-test-instrument entry).
 
 ---
 

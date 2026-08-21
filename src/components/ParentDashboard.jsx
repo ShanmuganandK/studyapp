@@ -9,6 +9,7 @@ import { feedbackWhatsAppUrl } from '../config/constants';
 import useProgressBackup from '../hooks/useProgressBackup';
 import PrivacyNotice from './PrivacyNotice';
 import PrivacyPolicy from './PrivacyPolicy';
+import TestPanel from './TestPanel';
 
 // ─── Local helpers ────────────────────────────────────────────────────────────
 
@@ -74,8 +75,21 @@ function SectionLabel({ children }) {
  * @param {() => void}  onRemovePasscode - clears the stored passcode (zone then opens ungated)
  * @param {boolean}     hasPasscode      - whether a passcode is already set
  * @param {string|null} userEmail        - logged-in email, or null
+ * @param {string}      theme            - active test-panel theme slug
+ * @param {(s)=>void}   onThemeChange    - set the test-panel theme
+ * @param {number}      grade            - active test-panel grade (1–3)
+ * @param {(n)=>void}   onGradeChange    - set the test-panel grade
  */
-export default function ParentDashboard({ onSetPasscode, onRemovePasscode, hasPasscode, userEmail }) {
+export default function ParentDashboard({
+  onSetPasscode,
+  onRemovePasscode,
+  hasPasscode,
+  userEmail,
+  theme,
+  onThemeChange,
+  grade,
+  onGradeChange,
+}) {
   // Single storage read on mount; remounts when navigating back from child view.
   const [summary] = useState(() => {
     const skillStates = loadAllSkillStates();
@@ -317,6 +331,14 @@ export default function ParentDashboard({ onSetPasscode, onRemovePasscode, hasPa
               </>
             )}
           </div>
+
+          {/* Parent test panel (theme + grade) — a TEST INSTRUMENT, not kid-facing (TRACKER #10). */}
+          <TestPanel
+            theme={theme}
+            onThemeChange={onThemeChange}
+            grade={grade}
+            onGradeChange={onGradeChange}
+          />
 
           <a
             href={feedbackWhatsAppUrl()}

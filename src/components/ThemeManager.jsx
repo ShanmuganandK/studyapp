@@ -6,6 +6,7 @@ import Layout from './Layout';
 import ParentGateModal from './ParentGateModal';
 import ParentDashboard from './ParentDashboard';
 import { useAuth } from '../contexts/AuthContext';
+import useTestSettings from '../hooks/useTestSettings';
 
 // EXPERIMENT (screen-3b): SkillPathScreen is the current default Home (kid-test in progress).
 // `?home=cards` switches to the card-list variant (SkillSelectScreen) for A/B comparison —
@@ -26,7 +27,16 @@ const DEFAULT_GRADE = 1;
 
 export default function ThemeManager() {
   const { user, currentProfile, parentSettings, clearPasscode } = useAuth();
-  const grade = currentProfile?.grade ?? DEFAULT_GRADE;
+
+  // Parent test panel (TRACKER #10): theme + grade, behind the gate. useTestSettings also owns
+  // the side-effect that applies the theme class to <body> (so the portalled parent gate re-themes
+  // — see the hook). NOTE the name: THIS file manages VIEWS, not colour themes; theming logic lives
+  // in the hook, not here. The name collision is now live — flagged for a later rename decision.
+  const { theme, grade: testGrade, setTheme, setGrade } = useTestSettings();
+
+  // A real parent profile (deferred) wins if it ever returns; else the test-panel grade; else 1.
+  // currentProfile is always null on the current build, so testGrade is the effective grade today.
+  const grade = currentProfile?.grade ?? testGrade ?? DEFAULT_GRADE;
 
   // The only child-reachable path: skill-selection → quiz → session-end (inside the quiz).
   const [currentView, setCurrentView] = useState('skills');
@@ -81,9 +91,9 @@ export default function ThemeManager() {
 
       {currentView === 'skills' &&
         (USE_CARD_HOME ? (
-          <SkillSelectScreen onSelectSkill={handleSelectSkill} />
+          <SkillSelectScreen grade={grade} onSelectSkill={handleSelectSkill} />
         ) : (
-          <SkillPathScreen onSelectSkill={handleSelectSkill} />
+          <SkillPathScreen grade={grade} onSelectSkill={handleSelectSkill} />
         ))}
 
       {currentView === 'quiz' && activeSkillId && (
@@ -96,6 +106,10 @@ export default function ThemeManager() {
           onRemovePasscode={clearPasscode}
           hasPasscode={!!parentSettings?.passcodeHash}
           userEmail={user?.email ?? null}
+          theme={theme}
+          onThemeChange={setTheme}
+          grade={testGrade}
+          onGradeChange={setGrade}
         />
       )}
     </Layout>

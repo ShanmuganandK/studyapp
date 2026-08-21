@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SKILLS } from '../recipes/skillMap';
+import { readySkills } from '../engine/sessionLite';
 import { loadAllSkillStates } from '../services/progressStore';
 import { isDueForReview } from '../engine/mastery';
 import { recommendNext } from '../engine/composer';
@@ -27,7 +28,7 @@ import SkillCard from './SkillCard';
  * review-due (isDueForReview) stay in the engine and are consumed here, then passed to SkillCard
  * as plain booleans (SkillCard never calls the engine).
  */
-export default function SkillSelectScreen({ onSelectSkill }) {
+export default function SkillSelectScreen({ grade = 1, onSelectSkill }) {
   // today is derived once at mount and closed over by the lazy useState initialiser so
   // both the recommendation and the per-card isDueForReview check use the same date.
   // (The component remounts after every quiz session — ThemeManager conditional render —
@@ -40,9 +41,10 @@ export default function SkillSelectScreen({ onSelectSkill }) {
     return { allStates: states, recommendation: recommendNext(states, SKILLS, today) };
   });
 
-  const skills = Object.values(SKILLS)
-    .filter((s) => s.status === 'ready')
-    .sort((a, b) => a.order - b.order);
+  // Grade filter via the shared readySkills() — parent test-panel grade (TRACKER #10). It has a
+  // built-in fallback to ALL ready skills when a grade has none yet (e.g. Grade 3 today), so the
+  // Home is never an empty void. Single source of truth — don't re-implement the filter here.
+  const skills = readySkills(grade).sort((a, b) => a.order - b.order);
 
   return (
     <div className="flex flex-col items-center min-h-full bg-bg px-6 py-8 text-center">

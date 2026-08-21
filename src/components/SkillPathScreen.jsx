@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { SKILLS } from '../recipes/skillMap';
+import { readySkills } from '../engine/sessionLite';
 import { loadAllSkillStates } from '../services/progressStore';
 import { isDueForReview } from '../engine/mastery';
 import { MASTERY } from '../config/masteryConfig';
@@ -45,7 +46,7 @@ function buildSpine(count) {
   return d;
 }
 
-export default function SkillPathScreen({ onSelectSkill }) {
+export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
   // IDENTICAL to SkillSelectScreen (copied, not refactored — see file header). Thin delegation to
   // the pure engine; no new calls or logic in this experiment.
   const [{ allStates, recommendation }] = useState(() => {
@@ -55,9 +56,9 @@ export default function SkillPathScreen({ onSelectSkill }) {
   });
   const today = new Date().toISOString().slice(0, 10);
 
-  const skills = Object.values(SKILLS)
-    .filter((s) => s.status === 'ready')
-    .sort((a, b) => a.order - b.order);
+  // Grade filter via the shared readySkills() — parent test-panel grade (TRACKER #10), with its
+  // built-in fallback to all ready skills so a grade with none yet (Grade 3 today) is never empty.
+  const skills = readySkills(grade).sort((a, b) => a.order - b.order);
 
   const spine = buildSpine(skills.length);
   const pathHeight = skills.length * ROW_H;

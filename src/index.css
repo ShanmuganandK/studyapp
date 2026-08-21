@@ -106,6 +106,66 @@
   --text-body: clamp(0.95rem, 3.4vw, 1.1rem);
 }
 
+/* ─── Parent test-panel palettes (TRACKER Now #10) ───────────────────────────────────────
+   Candidate themes for kid-testing, applied by useTestSettings.js as a `.theme-<slug>` class on
+   <body> (body-level, so the portalled ParentGateModal re-themes too). A TEST INSTRUMENT, not a
+   shipped feature — there is no kid-reachable theme picker (DECISIONS-level call).
+
+   Each block overrides COLOUR custom properties ONLY. Two rules bind every palette:
+   - `primary` must not collide with a feedback colour (no green/coral/teal primary).
+   - The semantic grammar is FIXED (DECISIONS 2026-07-04 / 07-05): amber=reward, green=correct,
+     coral=wrong, sky=hint, teal=review-due. Themes change the world, not the meaning.
+   Paired tokens (--color-primary / -ink / --color-ink) carry BOTH the hex literal AND the -rgb
+   channel triple, kept in sync — the effect layer's alpha-blended shadows need the channel form
+   under a scoped override (see the note above --color-primary; guarded by designTokens.test.js).
+   `theme-deepsea` inverts the -ink/-soft slots — that is what those slots are for on a dark band,
+   not a violation. (Palette values supplied by the human; not machine-derived.) */
+
+/* SUNSET SANDS — warm, cosy, late-afternoon */
+.theme-sunset {
+  --color-bg: #fff7ed; --color-bg-card: #ffffff;
+  --color-primary: #9d3d8f; --color-primary-rgb: 157, 61, 143;
+  --color-primary-soft: #fae8f5;
+  --color-primary-ink: #6b2461; --color-primary-ink-rgb: 107, 36, 97;
+  --color-accent: #f59e0b; --color-accent-soft: #fef3c7;
+  --color-success: #16a34a; --color-success-soft: #dcfce7;
+  --color-encourage: #fb9a7d; --color-encourage-soft: #ffede6; --color-encourage-ink: #c2410c;
+  --color-learn: #7dd3fc; --color-learn-soft: #e0f2fe; --color-learn-ink: #0369a1;
+  --color-review: #0d9488;
+  --color-ink: #44313d; --color-ink-rgb: 68, 49, 61;
+  --color-muted: #8a7280;
+}
+
+/* BUBBLEGUM — soft, sweet, high kid-appeal */
+.theme-bubblegum {
+  --color-bg: #fdf4ff; --color-bg-card: #ffffff;
+  --color-primary: #7e22ce; --color-primary-rgb: 126, 34, 206;
+  --color-primary-soft: #f3e8ff;
+  --color-primary-ink: #581c87; --color-primary-ink-rgb: 88, 28, 135;
+  --color-accent: #fbbf24; --color-accent-soft: #fef3c7;
+  --color-success: #22c55e; --color-success-soft: #dcfce7;
+  --color-encourage: #fb9a7d; --color-encourage-soft: #ffede6; --color-encourage-ink: #c2410c;
+  --color-learn: #7dd3fc; --color-learn-soft: #e0f2fe; --color-learn-ink: #0369a1;
+  --color-review: #14b8a6;
+  --color-ink: #3b2f4a; --color-ink-rgb: 59, 47, 74;
+  --color-muted: #7c6f8a;
+}
+
+/* DEEP SEA — the dark stress test. Note the inverted -ink slots. */
+.theme-deepsea {
+  --color-bg: #0f2740; --color-bg-card: #1c3d5c;
+  --color-primary: #93b4ff; --color-primary-rgb: 147, 180, 255;
+  --color-primary-soft: #2b4f74;
+  --color-primary-ink: #dbe7ff; --color-primary-ink-rgb: 219, 231, 255;
+  --color-accent: #fcd34d; --color-accent-soft: #4a3f1c;
+  --color-success: #4ade80; --color-success-soft: #1c4532;
+  --color-encourage: #fca98f; --color-encourage-soft: #4d2a1e; --color-encourage-ink: #ffd9c9;
+  --color-learn: #7dd3fc; --color-learn-soft: #14384d; --color-learn-ink: #bae6fd;
+  --color-review: #2dd4bf;
+  --color-ink: #e8eef6; --color-ink-rgb: 232, 238, 246;
+  --color-muted: #9bb0c6;
+}
+
 /* Tinku's soft ground shadow — a decorative ellipse that grounds the mascot "in the world"
    while he breathes/floats above it. Purely decorative; colour lives here (token layer),
    not in the component, so components stay token-only. */

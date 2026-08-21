@@ -141,6 +141,8 @@ future kid-feedback tuning is a token change, not a screen hunt.
     node is a sibling of `#root`, not a descendant, so it never inherits `#root`'s custom
     properties. A real band-switch mechanism needs the theme class on `document.body` (or
     `<html>`), not `#root` alone, or every portalled surface stays locked to Wonder.
+    **RESOLVED (TRACKER #10):** `useTestSettings` (the parent test panel) applies the theme class
+    to `document.body`, so the portalled gate modal now re-themes — verified in a real browser.
   - Everything else re-themed correctly on the first try: all five effect-layer rules below
     (once tokenized — they used to hardcode Wonder indigo as literals, the actual leak this
     audit fixed), all screen-level colour, `Confetti.jsx` (already token-based, not part of the
@@ -150,11 +152,11 @@ future kid-feedback tuning is a token change, not a screen hunt.
     non-token Tailwind colour classes (previously hex-only, and previously exempted
     `src/index.css` wholesale — now scoped to just its `:root` token-definition blocks, which is
     how the effect-layer leak went uncaught for as long as it did).
-  - **Known naming trap, flagged not fixed:** `ThemeManager.jsx` manages *views*
-    (`skills`/`quiz`/`parent`), not colour themes, and applies no theme class anywhere. When a
-    real band switch lands, the obvious place to wire it is a file already named `ThemeManager`
-    that does something unrelated. Left alone this task (widely referenced); the human is
-    recording a decision on it.
+  - **Known naming trap, NOW LIVE (flagged, not renamed):** `ThemeManager.jsx` manages *views*
+    (`skills`/`quiz`/`parent`), not colour themes. As of TRACKER #10 it is the mount point that
+    *activates* theming (it calls `useTestSettings`, which owns the actual theme-class logic), so
+    the name collision is no longer hypothetical. Left un-renamed this task (widely referenced,
+    per instruction); rename decision open in TRACKER "Open questions".
 - **Fonts (self-hosted, no CDN — low-end-Android safe):** **Nunito** (body/parent, the default
   `font-sans`) + **Baloo 2** (kid-facing display — big numbers/equations/titles/option tiles),
   via **Fontsource** variable packages imported in `src/main.jsx` (`font-display: swap`, bundled
@@ -251,13 +253,20 @@ entry → SkillPathScreen (default) or SkillSelectScreen (?home=cards) → Recip
 ```
 
 - **`ThemeManager.jsx`** — app root under `AuthProvider`. Holds the view state and routes
-  `skills` (default) → `quiz` → gated `parent`. Grade is `currentProfile?.grade ?? 1`
-  (`DEFAULT_GRADE`); a profile-less/anonymous child lands cleanly on the skill screen. The
-  `skills` view renders `SkillPathScreen` by default (kid-test in progress — Screen 3-B);
+  `skills` (default) → `quiz` → gated `parent`. Grade is
+  `currentProfile?.grade ?? testGrade ?? DEFAULT_GRADE` — the deferred parent profile wins if it
+  ever returns, else the parent test-panel grade (`useTestSettings`, below), else 1. Also calls
+  `useTestSettings()` (the hook that APPLIES the theme class to `<body>`) and passes theme/grade +
+  setters to `ParentDashboard`. **Naming trap now LIVE:** this file manages *views*, not colour
+  themes, yet it is now the mount point that activates theming — the theme LOGIC lives in the hook,
+  not here, but the name collision is real (rename decision open — see TRACKER "Open questions").
+  The `skills` view renders `SkillPathScreen` by default (kid-test in progress — Screen 3-B);
   `?home=cards` switches to `SkillSelectScreen` for A/B comparison. No legacy screens imported.
-- **`SkillSelectScreen.jsx`** — the home / only entry into practice. Reads `SKILLS` from the
-  skill map, filters `status:'ready'`, sorts by `order`, renders one tappable card per skill
-  (friendly `name`). `onSelectSkill(skillId)` → quiz.
+- **`SkillSelectScreen.jsx`** — the home / only entry into practice. Takes a `grade` prop and
+  lists skills via `readySkills(grade)` (shared `sessionLite.js` helper — status:'ready' for that
+  grade, with built-in fallback to ALL ready skills so a grade with none yet, e.g. Grade 3, is
+  never an empty void), sorted by `order`, one tappable card per skill. `onSelectSkill(skillId)` →
+  quiz.
 - **`RecipeQuizScreen.jsx`** — thin seam: takes the chosen `skillId` + `grade` and renders
   `SessionPlayer` (which owns remediation/scoring/session-end via `useQuizSession`). Skill
   choosing moved out to `SkillSelectScreen`.
@@ -468,6 +477,38 @@ above. Behind the parent gate, in `ParentDashboard`.
   Capacitor equivalent. When the Android wrap ships, this needs a Capacitor
   Filesystem/Share-plugin implementation behind the same hook API — not pre-solved against a
   wrapper that doesn't exist yet.
+
+### Test settings — parent test panel (`src/services/testSettings.js` + `src/hooks/useTestSettings.js` + `src/components/TestPanel.jsx`)
+
+A parent-zone **TEST INSTRUMENT** (TRACKER #10) — theme + grade controls for kid-testing on a real
+device. **Not a shipped feature, nothing kid-facing:** there is deliberately no kid-reachable theme
+picker (DECISIONS-level call). Lives behind the parent gate inside `ParentDashboard`.
+
+- **`testSettings.js`** — the storage seam (mirrors `progressStore.js`: own key, try/catch,
+  `logger.warn`, graceful defaults). Key **`tinku:v1:testSettings`**, shape
+  `{ version, theme, grade }`. **Deliberately separate from `progressStore`** (`tinku:v1:skills`):
+  that store is skills-only + allowlist-guarded, and export reads only the skills key — so these
+  preferences **cannot ride in a progress export** (verified in-browser: exported file carries the
+  skill payload and zero theme/grade data). Exports `THEME_SLUGS`
+  (`wonder`/`sunset`/`bubblegum`/`deepsea`) + `GRADES` (1–3); values are normalised on load/save so
+  an out-of-range input is never stored.
+- **`useTestSettings.js`** — React state over the seam, and the ONE side-effect that **applies a
+  theme**: a `theme-<slug>` class on **`document.body`** (`wonder` = no class, the `:root` default).
+  Body-level is load-bearing — `ParentGateModal` renders via `createPortal(document.body)`, a
+  sibling of `#root`, so a `#root`-scoped class never reaches it (the 2026-08-20 audit finding).
+  Body scope re-themes every surface, portalled ones included (proven in a real browser: the gate
+  modal's `primary-ink` follows the active palette). Logic-in-hook keeps `ThemeManager` from owning
+  theme code (STANDARDS §2). Single app-level instance (mounted by `ThemeManager`).
+- **The palettes** live as `.theme-<slug>` blocks in `src/index.css` (colour custom properties only;
+  each declares the paired hex + `-rgb` forms in sync, guarded by `__tests__/designTokens.test.js`,
+  now extended to check every palette block). `scripts/check-raw-hex.mjs`'s token-block exemption was
+  widened from `:root` to also cover `.theme-<slug>` token-definition blocks (effect-layer leaks
+  outside those blocks are still caught — proven red).
+- **`TestPanel.jsx`** — presentational: theme swatches (each previews its real palette by wrapping
+  token utilities in the `.theme-<slug>` class — no raw hex) + a Grade 1/2/3 segmented control.
+  Calls `setTheme`/`setGrade` from props; state lives in the hook. Grade 3 is offered and safe
+  (fallback set). Tests: `services/__tests__/testSettings.test.js`, `hooks/__tests__/useTestSettings.test.js`
+  (body-class application), `components/__tests__/TestPanel.test.jsx`.
 
 ### `useOnline` hook (`src/hooks/useOnline.js`)
 
@@ -686,7 +727,8 @@ replace production; production stays the default.
   node). **Currently the DEFAULT Home on master** (kid-test in progress); `SkillSelectScreen` is
   reachable via **`?home=cards`** for A/B comparison — same production build, no deploy needed.
   **Data flow is identical to `SkillSelectScreen`** (copied `loadAllSkillStates` + `recommendNext` +
-  per-node `isDueForReview`; no new engine calls/logic). Ring/label derivation now uses the **shared
+  per-node `isDueForReview`; no new engine calls/logic) — including the `grade` prop + `readySkills(grade)`
+  filter (test-panel grade). Ring/label derivation now uses the **shared
   `getSkillVisual` grammar** (`skillStateVisual.jsx`) — identical to `SkillCard`, so the two views
   can't drift (fixed the amber-while-due bug, 2026-07-15); only `PathPips` stays duplicated from
   `MasteryPips` (de-dup deferred until the kid-test decision, §0.2). Tokens only; review-due = `review`
