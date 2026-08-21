@@ -10,7 +10,7 @@
 > artifact behind it. Three claims were checked on 2026-08-15 and three were false
 > (CI wiring, questionnaire v2, the 296 test count). See "Open questions / to trace".
 
-_Last synced: 2026-08-18_
+_Last synced: 2026-08-21_
 
 ---
 
@@ -31,6 +31,22 @@ as a "game" was considered and rejected (see DECISIONS).
 
 ---
 
+## 🔥 PRIORITY ORDER (set 2026-08-21 — founder is IN INDIA, kid-testing now)
+
+Everything below is ordered against ONE goal: **get real signal from real children
+on this trip.** Anything that does not serve that waits.
+
+| Rank | Item | Why this rank |
+|---|---|---|
+| **P0** | **#10 — Parent test panel** (theme picker + grade selector + portal theme fix) | **Hard blocker on everything else.** Grade is a parent-set profile property, `ProfileSetup.jsx` is quarantined/unrendered, and `ThemeManager` hardcodes `DEFAULT_GRADE = 1` — so **there is currently no way to set a grade at all**, and no way to switch themes. Without this, Grade 2 content can't be exercised even after it exists, and themes can't be shown to a child. |
+| **P1** | **#11 — Grade-2 arithmetic content batch** | The cheap half of #7. ~12 skills of real Grade 2 depth from ~6 new recipe modules, all reusing EXISTING question formats — no new art, no new interaction types. This is what makes a Grade 2 child's session non-trivial. |
+| **P2** | **#5 / #9 / composer gaps — observe, don't build** | 3-B verdict, welcome-screen decision, `FRONTIER_PICK:'momentum'`, in-session review embedding. All four are already kid-test-gated. The trip IS the gate. Watch, take notes, decide after. |
+| **P3** | **#12 — Grade 3 curriculum spec** | Can't be built without it (see #12 — Grade 3 does not exist in the skill map). Spec is Chat's to write; it does not block this trip's testing, which can run on G1 + G2. |
+| **P4** | **#7 remainder — non-arithmetic recipes** | Shapes, spatial, patterns, sorting, time, money, data. Each needs a question format that does not exist yet plus visual assets. Real work, not fill-in. Deliberately AFTER the trip. |
+| **P5** | Pre-launch checklist (operator name, Netlify domain, Data Safety entry, store assets, content rating) | Gates submission, not testing. Nothing here changes what a child sees this week. |
+
+---
+
 ## Now — build queue
 
 | # | Item | Status | Detail |
@@ -41,12 +57,15 @@ as a "game" was considered and rejected (see DECISIONS).
 | 2a | **CI wiring / standards guard** | ✅ **Done 2026-08-15** | Was a false claim (see the corrected Done entry below). Now real: `eslint.config.js` (ESLint 9 flat), `scripts/check-raw-hex.mjs`, `scripts/frozen-legacy.mjs`, `.github/workflows/ci.yml`. **Proven red on a real Actions run**, not trusted green. |
 | 3 | **Progress export/import** | ✅ **Done 2026-08-17** | Shipped exactly the shape locked in DECISIONS 2026-08-17: one file (`tinku-math-progress-YYYY-MM-DD.json`), versioned/refusable envelope (`{format, version, exportedAt, skills}`), REPLACE-not-merge import behind a two-step confirm, validate-fully-then-write-once, unknown `skillId`s ignored+counted (never fatal), envelope guarded against an allowlist. **New files:** `src/services/progressBackup.js` (pure build/parse/validate — no DOM/storage, mirrors `mastery.js`/`composer.js` purity, takes `knownSkillIds` as a param rather than importing the curriculum, same decoupling as `composer.js` + `skillMap`), `src/hooks/useProgressBackup.js` (orchestration; ParentDashboard stays presentational). **`progressStore.js`** gained `replaceAllSkillStates(skills)` — one write, no prior read, genuine replace. **UI**: Export/Import in `ParentDashboard`'s settings footer, following the existing `confirmRemove` inline-confirm idiom; empty-progress state is a disabled Export button with a hint (my call — an empty-but-"valid" file is a footgun against later accidentally restoring nothing over real progress). **Policy, same commit:** the backup sentence is restored in `src/config/privacyPolicy.js`, the `does not promise the unshipped progress export` guard in `privacyPolicy.test.js` is FLIPPED (not deleted) to assert the opposite, `public/privacy.html` regenerated via `npm run privacy:build`. **Unblocks** the Netlify-rename row below (its "no recovery path" clause is now false). |
 | 4 | Phone regression checklist (A–L) | 🔶 In progress | Manual walk on real device + DevTools. Sections A/B/C need RE-WALK (skill-state grammar changed). See `phoneregressionchecklist.pdf`. **ADD a new step (2026-08-15): verify the Netlify published deploy SHA matches `master` BEFORE walking anything** — see "Deploy verification" below. |
-| 5 | Screen 3-B verdict (journey path vs. cards) | ⏳ Pending | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. Kid-testing is the gate. |
-| 6 | ~~Session composer build~~ | ✅ **Corrected 2026-08-18 — already Done, since 2026-06-28** | This row read "Queued — spec settled" for at least the whole 2026-08-15 → 2026-08-18 window. It was wrong: `src/engine/composer.js`, `src/config/composerConfig.js` and 47 tests shipped 2026-06-28 (`7bd17dc`), and `SkillSelectScreen` has rendered the "Tinku suggests!" / "↻ Review time!" card highlight from `recommendNext` ever since. Found by reading the actual files, not either doc — see the full correction below and in `DOCMAP.md`. **Two real gaps remain**, correctly distinguished from what shipped: in-session review-embedding (warm-up questions inside a frontier session) and `FRONTIER_PICK: 'momentum'` were never built — both are kid-test-gated design calls, not currently scheduled, same class as #5 and #9. |
-| 7 | Remaining ~29 recipes | ⏳ Background | Curriculum breadth. Fully unblocked. |
-| 8 | **Designed-for-Families programme rules** | ⏳ Read before submit — **privacy half now done** | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. The **policy** obligations are closed by #2 (policy exists, is linked, is reachable in-app, no ads, no collection). **Still open:** target-age declaration, content rating questionnaire, content policy, store-listing assets, and the external-link rule as it applies to the parent-zone WhatsApp link — enumerated in `play-data-safety-form.md` §4. |
+| 5 | Screen 3-B verdict (journey path vs. cards) | ⏳ **P2 — observe on this trip** | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. Kid-testing is the gate — it is happening now. |
+| 6 | ~~Session composer build~~ | ✅ **Corrected 2026-08-18 — already Done, since 2026-06-28** | This row read "Queued — spec settled" for at least the whole 2026-08-15 → 2026-08-18 window. It was wrong: `src/engine/composer.js`, `src/config/composerConfig.js` and 47 tests shipped 2026-06-28 (`7bd17dc`), and `SkillSelectScreen` has rendered the "Tinku suggests!" / "↻ Review time!" card highlight from `recommendNext` ever since. Found by reading the actual files, not either doc — see the full correction below and in `DOCMAP.md`. **Two real gaps remain**, correctly distinguished from what shipped: in-session review-embedding (warm-up questions inside a frontier session) and `FRONTIER_PICK: 'momentum'` were never built — both are kid-test-gated design calls, **P2, observe on this trip**. |
+| **10** | **⭐ Parent test panel — theme + grade control** | 🔨 **P0 — ASSIGNED 2026-08-21** | **The blocker on all trip testing.** Parent-zone-only controls (deliberately NOT kid-facing — a kid-facing picker is an unnecessary deviation from the learning loop, and this is a test instrument, not a feature). Three parts: ① **theme selector** applying one of the candidate palettes; ② **grade selector** (1/2/3) — needed because grade is a parent-set profile property, `ProfileSetup.jsx` is quarantined, and `ThemeManager` hardcodes `DEFAULT_GRADE = 1`, so **no grade can be set today by any means**; ③ **the portal theme fix** from the design-system audit — `ParentGateModal` renders via `createPortal(document.body)` and is a SIBLING of `#root`, so a theme class on `#root` never reaches it (proven 2026-08-20). The theme class must sit on `document.body` or `<html>`. Preference storage must NOT go in `progressStore` (skills-only, allowlist-guarded, and the backup envelope actively rejects non-skill entries) — its own key, and it must NOT travel in an export. |
+| **11** | **⭐ Grade-2 arithmetic content batch** | ⏳ **P1 — next after #10** | The cheap, high-value half of #7: skills that reuse EXISTING question formats, needing no new interaction types and no new art. `g1.add.within10`, `g1.num.21-99`, `g2.num.3digit`, `g2.num.compare999`, `g2.place.hundreds`, `addition2d` ×2, `subtraction2d` ×2, `mulIntro`, `mulTable` ×3. **~12 skills from ~6 new recipe modules** (several skills share one parameterised recipe) plus 3 range extensions to recipes that already exist. Every distractor must draw from `misconceptions-reference.md` (canonical — doc wins on conflict). |
+| 7 | ~~Remaining ~29 recipes~~ **→ split; see #11 and the correction below** | ⏳ **P4 for the remainder** | **Corrected 2026-08-21 — "~29 recipes" was misleading in both directions.** ① It is **29 planned *skills*, not 29 recipe files** — several share one parameterised recipe (`mulTable` covers tables 2/5/10; `addition2d` covers carry + no-carry), so it is **~21 new recipe modules**, three of which are just range extensions to existing recipes. ② But it is **also bigger than it sounds**: roughly half need **question formats that do not exist** — shapes, spatial, sorting, patterns, pictographs, clock-reading, coin recognition fit none of `mcq`/`count-objects`/`compare`/`text-input`, and need new interaction types AND visual assets. `misconceptions-reference.md` (~68 rows, still pending teacher review) almost certainly does not cover shapes/time/money distractors yet. **The arithmetic half is split out as #11 (P1). This row now covers only the non-arithmetic remainder — P4, deliberately after the trip.** |
+| 8 | **Designed-for-Families programme rules** | ⏳ **P5** — read before submit; privacy half done | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. The **policy** obligations are closed by #2 (policy exists, is linked, is reachable in-app, no ads, no collection). **Still open:** target-age declaration, content rating questionnaire, content policy, store-listing assets, and the external-link rule as it applies to the parent-zone WhatsApp link — enumerated in `play-data-safety-form.md` §4. |
 | 9a | **ParentGate integration test flakes on cold runs** | ✅ **Done 2026-08-17** | Taken ahead of #3 as sequenced above. Applied the "better fix" from the diagnosis below: split the single giant `it` (chaining ~20 sequential `waitFor`/`findBy` calls against vitest's default 5 s per-test timeout) into 4 staged tests — set → verify → forgot-reset → remove — sharing one continuous render via `beforeAll`/`afterAll` instead of per-test `render`/`cleanup`. Each stage now gets its own 5 s budget, and a future failure names the stage instead of an opaque 20-step test. Own commit, not folded into #3. Full run: **347 green + 1 skipped** (344 baseline + 3 new stages), lint clean (0 errors, same 3 pre-existing warnings). Original diagnosis preserved below. |
-| 9 | **Welcome / onboarding screen — TRACE, then decide** | 🔎 **Traced 2026-08-18 — decision still open** | **Confirmed (a): `ProfileSetup.jsx` is the recalled "welcome page"** — pixel/line match against `documents/screenshots/01_welcome_screen.png` (committed 2026-06-18). **`ProfileSelector.jsx` is "the one other"** — a multi-child "Who is playing?" picker from the old anonymous→Google account model. Both genuinely unrendered (zero references in `src/`) and both additionally **inert**: `localAdapter`'s `onAuthStateChanged` always resolves `null` since the 2026-08-15 de-Firebase rewrite, so `profiles` never leaves `[]` and `addProfile` is a silent no-op if ever rendered. Already documented, not lost — `TASK-INDEX.md` T110 and `ProfileSetup.jsx`'s own docblock both say "quarantined." (b)/(c) ruled out: `git log --diff-filter=A --all` + both stale local branches checked, no unique unmerged commits. **Not a fifth false claim.** **Decision not yet made** — see the reference captured in Parked Ideas below; revisit against real kid-test signal (Kid-Test Log already asks "does a child launching straight into the skill path know what to do?"), not from a desk. |
+| 9 | **Welcome / onboarding screen — TRACE, then decide** | 🔎 **Traced 2026-08-18 — P2, observe on this trip** | **Confirmed (a): `ProfileSetup.jsx` is the recalled "welcome page"** — pixel/line match against `documents/screenshots/01_welcome_screen.png` (committed 2026-06-18). **`ProfileSelector.jsx` is "the one other"** — a multi-child "Who is playing?" picker from the old anonymous→Google account model. Both genuinely unrendered (zero references in `src/`) and both additionally **inert**: `localAdapter`'s `onAuthStateChanged` always resolves `null` since the 2026-08-15 de-Firebase rewrite, so `profiles` never leaves `[]` and `addProfile` is a silent no-op if ever rendered. Already documented, not lost — `TASK-INDEX.md` T110 and `ProfileSetup.jsx`'s own docblock both say "quarantined." (b)/(c) ruled out: `git log --diff-filter=A --all` + both stale local branches checked, no unique unmerged commits. **Not a fifth false claim.** **Decision not yet made** — Kid-Test Log already asks "does a child launching straight into the skill path know what to do?" Answer it on the trip. **Note:** #10's grade selector deliberately does NOT revive `ProfileSetup` — it is a parent-zone test control, which keeps this decision genuinely open rather than settling it by accident. |
+| **12** | **⭐ Grade 3 curriculum — DOES NOT EXIST** | 📋 **P3 — spec needed before any code (Chat writes it)** | **Found 2026-08-21 by reading `skillMap.js` directly.** Its own header says *"the curriculum backbone for **Grades 1–2**."* 35 skills: **19 Grade 1, 16 Grade 2, ZERO Grade 3.** Not planned-but-unbuilt — absent. So "full board for Grades 1–3" is not a recipe-writing task; Grade 3 needs curriculum work FIRST: skills, strands, prereqs, difficulty ceilings, ordering, extending `claude-chat/specs/skill-map-spec.md`. **Does not block this trip** — testing can run on G1 + G2 (once #11 lands). ⚠️ Note the store description already says *"CBSE-aligned maths practice for Grades 1-3"* and `PLAY_TITLE`/positioning assume Grades 1–3 — so this must close before launch even though it does not block testing. |
 
 ## Deploy verification (standing step — added 2026-08-15)
 
@@ -73,13 +92,13 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 ## Pre-launch checklist (blocks Play submission — added 2026-08-15)
 
 > None of these are code. All of them gate the store listing, and none were tracked
-> anywhere until now.
+> anywhere until now. **All P5 as of 2026-08-21** — they gate submission, not testing.
 
 | Item | Status | Note |
 |---|---|---|
-| ✅ **App name decision + "CBSE" in the name** | ✅ **Resolved 2026-08-16** | **`PRODUCT_NAME` = "Tinku Math"** everywhere — manifest, launcher, page title, `package.json`, README, privacy policy. **Play listing title = `Tinku Math: Maths for Kids`** (26/30 chars); it lives **nowhere in the codebase** by design (ASO copy, entered by hand, changes on its own schedule). **Rule locked: brand first, keyword second.** "CBSE" is out of the *name* — statutory board, impersonation risk, exactly as flagged — and kept in the *description* (`CBSE-aligned maths practice for Grades 1-3`), which is ordinary descriptive use. The name is now defined once in `src/config/brand.js` and **derived** by every surface, so they cannot drift apart; `config/__tests__/brand.test.js` guards what can only be checked. **Store assets are unblocked.** DECISIONS 2026-08-16. |
+| ✅ **App name decision + "CBSE" in the name** | ✅ **Resolved 2026-08-16** | **`PRODUCT_NAME` = "Tinku Math"** everywhere — manifest, launcher, page title, `package.json`, README, privacy policy. **Play listing title = `Tinku Math: Maths for Kids`** (26/30 chars); it lives **nowhere in the codebase** by design (ASO copy, entered by hand, changes on its own schedule). **Rule locked: brand first, keyword second.** "CBSE" is out of the *name* — statutory board, impersonation risk, exactly as flagged — and kept in the *description* (`CBSE-aligned maths practice for Grades 1-3`), which is ordinary descriptive use. The name is now defined once in `src/config/brand.js` and **derived** by every surface, so they cannot drift apart; `config/__tests__/brand.test.js` guards what can only be checked. **Store assets are unblocked.** DECISIONS 2026-08-16. ⚠️ **2026-08-21:** the description's "Grades 1-3" claim is not yet true of the curriculum — see Now #12. |
 | Developer / publisher name | ⏳ **Open — now guarded** | Own name vs. a trade name. Appears on the store listing and in the privacy policy. Interim contact is the personal Gmail; decide whether that ships. **The policy currently names NO operator** — it says "we" throughout, which is a transparency gap Play and DPDP both expect closed. `OPERATOR_LINE` in `src/config/privacyPolicy.js` is blank with a `TODO(operator)`, and the guard asserts **both directions**: while blank the policy must name nobody AND the TODO must survive; once set, the line must reach both surfaces. Whatever is chosen **must match the Play developer name**. Fill it, then `npm run privacy:build`. |
-| ⚠️ **Netlify site name contains the `CBSC` typo** | ❗ **Open — decide, do not rush** | The site is **`shan-studyapp-CBSC.netlify.app`**, so the typo T9 was opened to fix in June now sits in the **public URL — the very URL that goes into the Play listing as the privacy-policy link**. **Good news: the hostname is hardcoded NOWHERE.** `grep -rniE "shan-studyapp\|netlify\.app"` returns zero hits across the working tree, and `git log --all -S "netlify.app"` shows it was never committed — every repo reference is the generic word "Netlify". **So a rename touches no code. It changes the ORIGIN, and that is where the damage is:** ① **all child progress is destroyed** — `progressStore` (`tinku:v1:skills`) and the parent passcode (`math_kids_settings_anon`) are `localStorage`, which is origin-scoped, but **export/import (#3) now ships — testers can export before any origin change**, so the "no recovery path" risk is closed (a parent/tester must actually export first — the app doesn't do it for them); ② **installed PWAs rot silently** — the offline-first service worker keeps serving the cached shell from a hostname that no longer resolves to you, so testers' apps appear to work while never updating again (the cache-vs-deploy ambiguity in its worst form: no error, just permanent staleness); ③ the old subdomain **returns to Netlify's pool**, so it is not yours to redirect from; ④ every already-shared link, WhatsApp share and QR code breaks. A **custom domain** crosses the same origin boundary (a redirect does not carry `localStorage`), plus DNS + cert, plus updating the policy URL in **both** Play fields if already submitted. **Not at risk:** the Capacitor/Play build — it loads bundled assets locally, so the web origin is irrelevant to the Android app. **Cheapest sequencing if you do it: ship #3 first, have testers export, then rename.** |
+| ⚠️ **Netlify site name contains the `CBSC` typo** | ❗ **Open — decide, do not rush** | The site is **`shan-studyapp-CBSC.netlify.app`**, so the typo T9 was opened to fix in June now sits in the **public URL — the very URL that goes into the Play listing as the privacy-policy link**. **Good news: the hostname is hardcoded NOWHERE.** `grep -rniE "shan-studyapp\|netlify\.app"` returns zero hits across the working tree, and `git log --all -S "netlify.app"` shows it was never committed — every repo reference is the generic word "Netlify". **So a rename touches no code. It changes the ORIGIN, and that is where the damage is:** ① **all child progress is destroyed** — `progressStore` (`tinku:v1:skills`) and the parent passcode (`math_kids_settings_anon`) are `localStorage`, which is origin-scoped, but **export/import (#3) now ships — testers can export before any origin change**, so the "no recovery path" risk is closed (a parent/tester must actually export first — the app doesn't do it for them); ② **installed PWAs rot silently** — the offline-first service worker keeps serving the cached shell from a hostname that no longer resolves to you, so testers' apps appear to work while never updating again (the cache-vs-deploy ambiguity in its worst form: no error, just permanent staleness); ③ the old subdomain **returns to Netlify's pool**, so it is not yours to redirect from; ④ every already-shared link, WhatsApp share and QR code breaks. A **custom domain** crosses the same origin boundary (a redirect does not carry `localStorage`), plus DNS + cert, plus updating the policy URL in **both** Play fields if already submitted. **Not at risk:** the Capacitor/Play build — it loads bundled assets locally, so the web origin is irrelevant to the Android app. ⚠️ **DO NOT rename mid-trip** — an origin change during active kid-testing destroys every tester's progress and silently rots their installed PWA. After the trip. |
 | Privacy policy public URL | 🔶 **Code done (#2) — needs the domain** | Page ships at **`/privacy.html`** (generated, precached, offline-reachable) and is linked in-app from the parent zone. **Nothing in the repo knows the live Netlify domain**, so `play-data-safety-form.md` carries `https://<SITE>/privacy.html` as a placeholder. Fill it into **both** places Play asks — store listing *and* Data Safety form — and confirm it loads in a **private window** (per Deploy verification above: incognito is also what proves it is the deploy, not your cache). |
 | Play Data Safety form | 🔶 **Answers drafted (#2) — needs entering** | `claude-chat/play-data-safety-form.md` holds the verbatim wizard answers, the factual basis for each, and a pre-submission checklist. Answer is **no data collected, no data shared**. Still verify against the live form — it is Google's UI and it changes. ⚠️ **The declaration is a claim about the BUILD:** if any future build adds a network call, an SDK or an account, re-answer it *before* that build ships. |
 | Designed for Families enrolment | ⏳ #8 | We target under-13s, so we are in it. Content + ads rules, independent of DPDP. |
@@ -91,13 +110,13 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 
 | Item | Why it's here |
 |---|---|
-| **Done-sweep: verify every Done claim has an artifact — AND every queued claim ISN'T secretly done** | Originally scoped one direction only. Three Done claims were checked on 2026-08-15 and **three were false** — CI wiring, questionnaire v2, the 296 test count. That direction is still open (**~1 hour: for each Done line, does the artifact exist?** — do before kid-testing). **Widened 2026-08-18** after the mirror case surfaced unprompted: Now #6 (session composer) sat marked "Queued — not built" while `src/engine/composer.js` had shipped, tested and been wired into the UI for **seven weeks**. The claims rule was built to catch the first shape and does not catch the second — a queued/spec-settled item is worth a `grep`/`git log` check against the paths its own spec names, same as a Done line is worth an artifact check. Both sweeps belong in the same pass. |
-| **Welcome screen** | **Traced 2026-08-18 — see Now #9.** `ProfileSetup.jsx`/`ProfileSelector.jsx` confirmed as the recalled screens, not a false claim. Whether to build/revive anything is a separate, still-open product decision. |
+| **Done-sweep: verify every Done claim has an artifact — AND every queued claim ISN'T secretly done** | Originally scoped one direction only. Three Done claims were checked on 2026-08-15 and **three were false** — CI wiring, questionnaire v2, the 296 test count. That direction is still open (**~1 hour: for each Done line, does the artifact exist?** — do before kid-testing). **Widened 2026-08-18** after the mirror case surfaced unprompted: Now #6 (session composer) sat marked "Queued — not built" while `src/engine/composer.js` had shipped, tested and been wired into the UI for **seven weeks**. The claims rule was built to catch the first shape and does not catch the second — a queued/spec-settled item is worth a `grep`/`git log` check against the paths its own spec names, same as a Done line is worth an artifact check. Both sweeps belong in the same pass. **Third instance, 2026-08-21:** "Remaining ~29 recipes" was neither a lie nor accurate — it was an unexamined shorthand that hid both a smaller file count and a much larger format/asset cost, and hid entirely that Grade 3 doesn't exist. **A queue row that has never been opened is worth re-reading against the code before it is scheduled, not when it is started.** |
+| **Welcome screen** | **Traced 2026-08-18 — see Now #9.** `ProfileSetup.jsx`/`ProfileSelector.jsx` confirmed as the recalled screens, not a false claim. Whether to build/revive anything is a separate, still-open product decision — deliberately NOT settled by #10's parent-zone grade control. |
 | **Questionnaire v2 not committed** | v2 exists as a chat draft only; the repo has v1 with A4 annotated in place. Either commit v2 or knowingly send v1. No action needed until the DPDP consult is un-deferred, but it must not be forgotten at that moment. |
 | **Gazette PDF verification** | The Rule 10 / Fourth Schedule reading is confirmed across three reproductions incl. a law-firm full text, but **not against G.S.R. 846(E) itself**. Sufficient for the current decision (safe under any reading); close before any Layer 2 build. |
 | **Dead code after de-Firebase** | `Login.jsx` is rendered nowhere and its auth backend is gone. `ProfileSelector.jsx` is also unrendered. Decide: delete, or leave as frozen legacy pending T109? Leaving unrendered components that reference a removed capability is how the next audit gets confused. |
 | **Passcode re-homing** | Known and deferred: passcode lives under `math_kids_settings_anon` via the auth context. Needs proper re-homing **whenever** T109 happens. Recorded so it is not rediscovered as a bug. |
-| **`ThemeManager.jsx` naming trap** (design-system audit, 2026-08-20) | It manages *views* (`skills`/`quiz`/`parent`), not colour themes, and applies no theme class anywhere today. When a real band switch lands, the obvious place to wire it is a file already named `ThemeManager` doing something unrelated — flagged, not fixed (widely referenced, separate diff). Decide: rename `ThemeManager` → something view-specific (e.g. `ViewManager`) and let a real `ThemeManager` be born correctly-named later, or accept the collision and document it loudly at the call site when band-switching is actually built. |
+| **`ThemeManager.jsx` naming trap** (design-system audit, 2026-08-20) | It manages *views* (`skills`/`quiz`/`parent`), not colour themes, and applies no theme class anywhere today. When a real band switch lands, the obvious place to wire it is a file already named `ThemeManager` doing something unrelated — flagged, not fixed (widely referenced, separate diff). Decide: rename `ThemeManager` → something view-specific (e.g. `ViewManager`) and let a real `ThemeManager` be born correctly-named later, or accept the collision and document it loudly at the call site when band-switching is actually built. ⚠️ **Now #10 makes this live** — it is the first thing to actually apply a theme class. Decide at that point rather than deferring again. |
 
 ## Out of MVP scope (by decision, not blocked)
 
@@ -114,6 +133,7 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 | Weekly parent summary (WhatsApp/email) | Deferred past MVP entirely — DECISIONS 2026-07-16. |
 | DPDP lawyer consult | Deferred to the revisit trigger. Questionnaire + findings preserved below. |
 | KG band expansion | Wonder band stable + kid-test signal. |
+| **Kid-facing theme picker** | **Decided 2026-08-21 (founder call): NOT built.** A theme chooser reachable by a child is an unnecessary deviation from the learning loop and competes with the one-loud-CTA rule. Themes are a **test instrument** in the parent zone (#10). Whether a kid-facing picker ever ships is a post-trip question, gated on whether theme variety visibly moves engagement at all. |
 
 **Revisit trigger:** real retention signal, or unprompted willingness to pay.
 Then engage the DPDP lawyer + CA and choose between the token-VPC path (full
@@ -123,10 +143,30 @@ Layer 2) and a paid-unlock-without-accounts path.
 
 | Item | Status | Detail |
 |---|---|---|
-| **CA / tax questionnaire — SEND** | ⏳ Still live | `claude-chat/questionnaire-ca-tax-uae-india.md`. **Not** deferred with the DPDP consult. Section D1 (India day-count before UAE income is at risk of Indian residence taxation) is time-sensitive ahead of the India kid-testing trip. |
-| **India day-count log** | ⏳ Start now | Track days-in-India from now, independent of when the CA replies. |
-| Kid-testing in India | ⏳ Planned | Signal source for the 3-B verdict, FRONTIER_PICK validation, and the revisit trigger above. |
-| Teacher review of `misconceptions-reference.md` | ⏳ Pending | ~68 rows, one-time, arrange in India. Unblocks richer dashboard insight. |
+| **CA / tax questionnaire — SEND** | ⏳ Still live | `claude-chat/questionnaire-ca-tax-uae-india.md`. **Not** deferred with the DPDP consult. Section D1 (India day-count before UAE income is at risk of Indian residence taxation) is time-sensitive — **founder is now IN India, so the clock is running.** |
+| **India day-count log** | ⏳ **Start now — arrival ~2026-08-21** | Track days-in-India from arrival, independent of when the CA replies. |
+| Kid-testing in India | 🔥 **ACTIVE** | Signal source for the 3-B verdict (#5), the welcome-screen decision (#9), FRONTIER_PICK/review-embedding (#6 gaps), theme reaction (#10), and the revisit trigger above. See the Kid-Test Log watch-list. |
+| Teacher review of `misconceptions-reference.md` | ⏳ Pending — **arrange while in India** | ~68 rows, one-time. Unblocks richer dashboard insight AND is a prerequisite for the non-arithmetic recipes (#7 remainder), whose distractor rules for shapes/time/money almost certainly are not in the doc yet. |
+
+---
+
+## Candidate theme palettes (drafted 2026-08-21, for Now #10)
+
+Three candidates, as token overrides. **Not decided** — these exist to be tried on real children
+and kept, changed or dropped on that evidence.
+
+**Two rules constrain every palette, and are not negotiable:**
+1. **Primary may not collide with a feedback colour.** No green primary (reads as *correct*), no
+   coral (*wrong*), no teal (*review-due*). Safe hues: indigo/violet/purple/plum/navy.
+2. **The semantic grammar is fixed** (DECISIONS 2026-07-04 / 2026-07-05): amber = reward ONLY,
+   green = correct, coral = wrong, sky = hint/learning, teal = review-due. **Themes change the
+   world, not the meaning.** A dark theme must invert the `-ink`/`-soft` slots to stay readable —
+   that is exactly what those slots are for.
+
+Every palette must also declare the `-rgb` channel triples for `primary`, `primary-ink` and `ink`,
+kept in sync with their hex pair by `src/__tests__/designTokens.test.js` (design-system audit,
+2026-08-20). Full candidate values are in the chat handoff for #10; **Deep Sea (dark) is the one
+worth testing first** — dark exercises every inverted slot and is where a leak would surface.
 
 ---
 
@@ -186,6 +226,7 @@ the real `dist/` output.
      (`document.getElementById('root').contains(modal)` → `false`, `parentElement` → `BODY`).
      **A real band-switch mechanism needs the theme class on `document.body` (or `<html>`), not
      `#root` alone**, or every portalled surface stays locked to Wonder forever.
+     **→ This is now Now #10's part ③.**
 - Throwaway theme fully reverted (`index.css` block + `index.html` class) — `git diff` clean on
   both before the guard work started.
 
@@ -249,7 +290,7 @@ decision, not a shortfall.
    direction rationale below) does not exist in code.
 
 Both are **kid-test-gated design calls**, same class as the Screen 3-B verdict (#5) and the
-welcome-screen decision (#9) — not scheduled, not forgotten, waiting on the same India trip.
+welcome-screen decision (#9) — P2, observe on the current trip.
 
 **Verification note:** this correction is based on reading `composer.js`, `composerConfig.js`,
 `composer.test.js`'s existence, and `SkillSelectScreen.jsx` directly, plus the git history for
@@ -661,6 +702,7 @@ in India**"* — whether it narrows the identifiability duty.
 - **Parent gate v1.1** — portal-to-`document.body` fix (modal was resolving `position:fixed` against a transform-animated ancestor, off-viewport when scrolled); passcode lifecycle added (change/remove in parent zone; forgot→runtime adult-arithmetic challenge, never stored); decoupled passcode from legacy auth (validation was silently no-op'ing when logged out — pre-dated the reskin). 282 tests.
   - **DECISIONS:** gate = deterrent model, not a security boundary
   - **Note (was for T109, now deferred):** legacy auth never actually implemented anonymous-first despite README claim; passcode storage needs proper re-homing **whenever** the auth rebuild happens; README corrected
+  - ⚠️ **2026-08-20:** this portal fix is exactly why the gate modal does not inherit a theme scope on `#root` — see the design-system audit and Now #10 part ③.
 - **Skill-state visual grammar unified** — shared `skillStateVisual.jsx` helper, both Home views (path + cards) now derive ring/label/pips identically by construction. Fixed the amber-while-due violation (a review-due node was wearing the achievement color). One loud CTA per screen; due-not-suggested = muted teal cue on neutral ring, never amber. Cross-view identity test added. 296 tests.
   - **DECISIONS 2026-07-15:** grammar locked as above
 
@@ -709,10 +751,16 @@ in India**"* — whether it narrows the identifiability duty.
 
 ## Kid-Test Log — Watch-list
 
-- Does the kid follow Tinku's pointer, or route around it?
-- Does a backward (review) suggestion visibly deflate motivation?
+**Live now (founder in India, 2026-08-21).** These are the questions the trip exists to answer;
+four Now rows are gated on them and should NOT be built until they are.
+
+- Does the kid follow Tinku's pointer, or route around it? — **informs `FRONTIER_PICK:'momentum'` (#6 gap)**
+- Does a backward (review) suggestion visibly deflate motivation? — **informs in-session review embedding (#6 gap)**
+- Journey path (default) vs card list (`?home=cards`) — which does a child navigate more confidently? — **informs #5**
+- Does a child launching straight into the skill path (no welcome/onboarding) know what to do? — **informs #9**
+- **NEW (#10):** does a theme change get noticed or reacted to at all? Does a child ask for a different one, or ask to keep one? **Watch for indifference as a real result** — if theme variety moves nothing, the kid-facing picker stays unbuilt and this is a cheap answer, not a failure.
+- **NEW (#11):** is Grade 2 content pitched right, or too hard/easy? Does a Grade 2/3 child find the Grade 1 material insulting?
 - Does progress loss (cleared data / new device) actually happen in practice, and do parents notice? — informs whether export/import is sufficient
-- Does a child launching straight into the skill path (no welcome/onboarding) know what to do? — informs Now #9
 - (existing items carried from prior log — see git history / prior Drive export for full list predating this file)
 
 ## Parked Ideas (carried over, one line each)
@@ -729,6 +777,11 @@ in India**"* — whether it narrows the identifiability duty.
   account model, and a name field is exactly the kind of thing MVP scope (DECISIONS 2026-08-14)
   exists to avoid collecting at all. The image itself lives in chat history, not this repo — pull
   it back into DECISIONS/specs if and when this is actually picked up.
+- **Kid-facing theme picker** — deliberately NOT in MVP (see "Out of MVP scope"). Revisit only if the
+  trip shows theme variety actually moves engagement.
+- **More Screen 3-B path variations** (raised 2026-08-21) — additional journey-path layouts to A/B
+  alongside the current one. Parked, not scheduled: #5's verdict on path-vs-cards should land first,
+  since more variations of a shape that loses to card-list would be wasted work.
 - KG band content
 - Client-side-encrypted cloud backup (blob we cannot decrypt) — open question whether that still counts as processing child personal data; ask at the revisit trigger
 - Using a registered Consent Manager as an outsourced verification path (we cannot BE one — First Schedule Part A — but using one is a separate question)
@@ -748,6 +801,9 @@ the MVP build), 2026-08-16 (`PRODUCT_NAME` derived not repeated; no legal
 conclusions or age band in the policy), **2026-08-17 (progress export/import:
 progress only, versioned envelope, REPLACE not merge — the shape behind Now #3)**.
 
-Note: the 2026-08-18 corrections above (Now #6, the composer Done blocks, DOCMAP's
-spec-practice-composer.md row) are status corrections, not new decisions — nothing
-was added to `DECISIONS.md` for them.
+Note: the 2026-08-18 corrections (Now #6, the composer Done blocks, DOCMAP's
+spec-practice-composer.md row) and the 2026-08-21 ones (Now #7 split, Now #12 /
+Grade 3 absent) are status corrections, not new decisions — nothing was added to
+`DECISIONS.md` for them. **One genuine decision from 2026-08-21 is recorded in
+"Out of MVP scope" and still needs a DECISIONS entry when #10 lands: themes are a
+parent-zone test instrument, not a kid-facing feature.**
