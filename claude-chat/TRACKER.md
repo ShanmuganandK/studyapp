@@ -10,7 +10,7 @@
 > artifact behind it. Three claims were checked on 2026-08-15 and three were false
 > (CI wiring, questionnaire v2, the 296 test count). See "Open questions / to trace".
 
-_Last synced: 2026-08-21_
+_Last synced: 2026-08-22_
 
 ---
 
@@ -39,7 +39,7 @@ on this trip.** Anything that does not serve that waits.
 | Rank | Item | Why this rank |
 |---|---|---|
 | **P0** | **#10 — Parent test panel** ✅ **Done 2026-08-21** (theme picker + grade selector + portal theme fix) | **Was the hard blocker on everything else — now closed.** Grade is settable via the parent zone, themes are switchable, and the portalled parent gate re-themes. Grade 2 content (#11) and Grade 3 curriculum (#12) can now be exercised end-to-end the moment they exist. |
-| **P1** | **#11 — Grade-2 arithmetic content batch** | The cheap half of #7. ~12 skills of real Grade 2 depth from ~6 new recipe modules, all reusing EXISTING question formats — no new art, no new interaction types. This is what makes a Grade 2 child's session non-trivial. |
+| **P1** | **#11 — Grade-2 arithmetic content batch** ✅ **Done 2026-08-22** | 11 skills across 7 recipe modules, all reusing EXISTING question formats — no new art, no new interaction types. Grade 2 now has a real, non-trivial session. |
 | **P2** | **#5 / #9 / composer gaps — observe, don't build** | 3-B verdict, welcome-screen decision, `FRONTIER_PICK:'momentum'`, in-session review embedding. All four are already kid-test-gated. The trip IS the gate. Watch, take notes, decide after. |
 | **P3** | **#12 — Grade 3 curriculum spec** | Can't be built without it (see #12 — Grade 3 does not exist in the skill map). Spec is Chat's to write; it does not block this trip's testing, which can run on G1 + G2. |
 | **P4** | **#7 remainder — non-arithmetic recipes** | Shapes, spatial, patterns, sorting, time, money, data. Each needs a question format that does not exist yet plus visual assets. Real work, not fill-in. Deliberately AFTER the trip. |
@@ -60,7 +60,7 @@ on this trip.** Anything that does not serve that waits.
 | 5 | Screen 3-B verdict (journey path vs. cards) | ⏳ **P2 — observe on this trip** | Judge on current (post-grammar-fix) build. Path is live on master; card view at `?home=cards`. Kid-testing is the gate — it is happening now. |
 | 6 | ~~Session composer build~~ | ✅ **Corrected 2026-08-18 — already Done, since 2026-06-28** | This row read "Queued — spec settled" for at least the whole 2026-08-15 → 2026-08-18 window. It was wrong: `src/engine/composer.js`, `src/config/composerConfig.js` and 47 tests shipped 2026-06-28 (`7bd17dc`), and `SkillSelectScreen` has rendered the "Tinku suggests!" / "↻ Review time!" card highlight from `recommendNext` ever since. Found by reading the actual files, not either doc — see the full correction below and in `DOCMAP.md`. **Two real gaps remain**, correctly distinguished from what shipped: in-session review-embedding (warm-up questions inside a frontier session) and `FRONTIER_PICK: 'momentum'` were never built — both are kid-test-gated design calls, **P2, observe on this trip**. |
 | **10** | **⭐ Parent test panel — theme + grade control** | ✅ **P0 — Done 2026-08-21** | **The blocker on all trip testing — closed.** Parent-zone-only controls (deliberately NOT kid-facing). Shipped all three parts: ① theme selector (3 candidate palettes); ② grade selector (1/2/3), feeding `ThemeManager`'s `grade` in place of the hardcoded `DEFAULT_GRADE`; ③ the portal theme fix — the theme class now applies to `document.body`, so the portalled `ParentGateModal` re-themes (verified in a real browser). Preference storage is its own key (`tinku:v1:testSettings`), never `progressStore`, never travels in an export (verified). See the "Done — Parent test panel" block below for the full verification. |
-| **11** | **⭐ Grade-2 arithmetic content batch** | ⏳ **P1 — next after #10** | The cheap, high-value half of #7: skills that reuse EXISTING question formats, needing no new interaction types and no new art. `g1.add.within10`, `g1.num.21-99`, `g2.num.3digit`, `g2.num.compare999`, `g2.place.hundreds`, `addition2d` ×2, `subtraction2d` ×2, `mulIntro`, `mulTable` ×3. **~12 skills from ~6 new recipe modules** (several skills share one parameterised recipe) plus 3 range extensions to recipes that already exist. Every distractor must draw from `misconceptions-reference.md` (canonical — doc wins on conflict). |
+| **11** | **⭐ Grade-2 arithmetic content batch** | ✅ **P1 — Done 2026-08-22** | 11 skills shipped: `g1.add.within10`, `g2.num.compare999` (range extensions to `addition.js`/`compareNumbers.js`), `g2.add.2d-nocarry`, `g2.add.2d-carry`, `g2.sub.2d-noborrow`, `g2.sub.2d-borrow`, `g2.mul.intro`, `g2.mul.table2`, `g2.mul.table5`, `g2.mul.table10`, `g2.num.3digit` (5 new recipe modules). **`g1.num.21-99` and `g2.place.hundreds` deliberately NOT built** — no misconception table exists for either; see the Done block below. See "Done — Grade-2 arithmetic content batch" below for the full breakdown. |
 | 7 | ~~Remaining ~29 recipes~~ **→ split; see #11 and the correction below** | ⏳ **P4 for the remainder** | **Corrected 2026-08-21 — "~29 recipes" was misleading in both directions.** ① It is **29 planned *skills*, not 29 recipe files** — several share one parameterised recipe (`mulTable` covers tables 2/5/10; `addition2d` covers carry + no-carry), so it is **~21 new recipe modules**, three of which are just range extensions to existing recipes. ② But it is **also bigger than it sounds**: roughly half need **question formats that do not exist** — shapes, spatial, sorting, patterns, pictographs, clock-reading, coin recognition fit none of `mcq`/`count-objects`/`compare`/`text-input`, and need new interaction types AND visual assets. `misconceptions-reference.md` (~68 rows, still pending teacher review) almost certainly does not cover shapes/time/money distractors yet. **The arithmetic half is split out as #11 (P1). This row now covers only the non-arithmetic remainder — P4, deliberately after the trip.** |
 | 8 | **Designed-for-Families programme rules** | ⏳ **P5** — read before submit; privacy half done | We target under-13s, so we are in it. Content + ads rules are independent of DPDP. The **policy** obligations are closed by #2 (policy exists, is linked, is reachable in-app, no ads, no collection). **Still open:** target-age declaration, content rating questionnaire, content policy, store-listing assets, and the external-link rule as it applies to the parent-zone WhatsApp link — enumerated in `play-data-safety-form.md` §4. |
 | 9a | **ParentGate integration test flakes on cold runs** | ✅ **Done 2026-08-17** | Taken ahead of #3 as sequenced above. Applied the "better fix" from the diagnosis below: split the single giant `it` (chaining ~20 sequential `waitFor`/`findBy` calls against vitest's default 5 s per-test timeout) into 4 staged tests — set → verify → forgot-reset → remove — sharing one continuous render via `beforeAll`/`afterAll` instead of per-test `render`/`cleanup`. Each stage now gets its own 5 s budget, and a future failure names the stage instead of an opaque 20-step test. Own commit, not folded into #3. Full run: **347 green + 1 skipped** (344 baseline + 3 new stages), lint clean (0 errors, same 3 pre-existing warnings). Original diagnosis preserved below. |
@@ -167,6 +167,78 @@ Every palette must also declare the `-rgb` channel triples for `primary`, `prima
 kept in sync with their hex pair by `src/__tests__/designTokens.test.js` (design-system audit,
 2026-08-20). Full candidate values are in the chat handoff for #10; **Deep Sea (dark) is the one
 worth testing first** — dark exercises every inverted slot and is where a leak would surface.
+
+---
+
+## Done — Grade-2 arithmetic content batch (2026-08-22)
+
+Closes Now #11 (P1). 11 skills shipped across 7 recipe modules — 2 range extensions to existing
+Grade-1 reference recipes, plus 5 new modules. Every distractor draws its tag + rule from
+`misconceptions-reference.md` verbatim (doc wins on conflict); no new question formats, no new
+art, no new interaction types — every skill is `mcq` or `compare`, reusing formats that already
+shipped.
+
+| Module | Skills served | What's new |
+|---|---|---|
+| `addition.js` | `g1.add.within20` (unchanged), **`g1.add.within10`** | Converted to `skillIds`. Trap A: `crossing-ten-misstep`/`add-tens-to-ones` gated to within20 only — the within-10 misconceptions table has no such tags, and a sum of exactly 10 doesn't "cross" ten per the doc's own condition. |
+| `compareNumbers.js` | `g1.num.compare20` (unchanged), **`g2.num.compare999`** | Trap B: the existing "shared ones digit / shared leading digit" pair-construction (so `=` always stays misconception-explainable) generalised via two range-parameterised helpers rather than forked, extending cleanly to a 999 range. |
+| `addition2d.js` (new) | `g2.add.2d-nocarry`, `g2.add.2d-carry` | Rejection-sampled operand pairs make the ones column STRUCTURALLY carry-free or carry-required — asserted by a dedicated test, not a comment. |
+| `subtraction2d.js` (new) | `g2.sub.2d-noborrow`, `g2.sub.2d-borrow` | Same structural pattern as `addition2d.js` for borrow/no-borrow. Entirely disjoint tag sets per the doc's two separate tables. |
+| `mulIntro.js` (new) | `g2.mul.intro` | "Groups of" repeated-addition intro, 2 difficulty rungs only. Found and fixed a real collision while sample-verifying: `multiplication-as-addition` (a+b) and `multiplication-by-zero-identity` (the other factor) compute the identical number whenever one factor is 0 — the generic dedup was always picking the addition tag, so zero-identity never actually surfaced despite being coded. `generate()` now picks whichever tag applies instead of relying on insertion order. |
+| `mulTable.js` (new) | `g2.mul.table2`, `g2.mul.table5`, `g2.mul.table10` | Fixed table value × multiplier; ceiling is on the multiplier, not the product. Same class of collision as `mulIntro.js` (T+m collapses to the identity-case value when m is 0 or 1) fixed the same way. |
+| `counting3digit.js` (new) | `g2.num.3digit` | Format `mcq`, not `count-objects` (doesn't scale to hundreds). Question text spells out the place-value decomposition ("H hundreds, T tens and O ones make ?") so `correctAnswer` is independently re-derivable from the digits in the text, per RECIPE_TEMPLATE's guidance. |
+
+**Registration (every point in the checklist):** all 11 skills flipped `planned` → `ready` in
+`skillMap.js` with display fields (`displayName`/`subtitle`/`icon`); every module registered in
+`sessionLite.js`'s `RECIPES`. `KIND_BY_RECIPE` gained `addition2d: 'add'` (commutative) and
+`subtraction2d: 'sub'` (ordered), but **`mulIntro`, `mulTable` and `counting3digit` are
+deliberately absent** (commented why at the call site): multiplication isn't commutative
+pedagogically for a "groups of" skill (3×5 ≠ 5×3 to a child learning the concept — collapsing
+them would defeat the doc's own `count-factor-swap` misconception), and `counting3digit` is
+`mcq` not `count-objects`, so the `'count'` repeat-avoidance kind would read a `render.count`
+that doesn't exist on its questions. The validator's `expectedAnswerFor` gained new branches and
+its `compare` check was generalised from a hardcoded `g1.num.compare20` string match to any
+compare-format skill via `render.left`/`render.right`.
+
+**Out of scope — deliberately, not an oversight:**
+
+| Skill | Why it's out |
+|---|---|
+| `g1.num.21-99` | `misconceptions-reference.md`'s own review-status note names it as tags/format pending. No tag table exists, and `count-objects` doesn't survive the range. |
+| `g2.place.hundreds` | No misconception table exists anywhere in the doc. Same blocker. |
+| `g1.place.tens-ones` | Doc-backed, but its own prereq is `g1.num.21-99`, so building it alone unlocks nothing. Travels with the bridge decision above. |
+
+**Composer-suggestion consequence (recorded, not fixed — the skill map's prereq graph is
+curriculum, changing it is the human's call):** `g2.add.2d-nocarry`, `g2.sub.2d-noborrow` and
+`g2.num.3digit` all list `g1.place.tens-ones` as a prereq, which stays `planned` forever until
+that bridge is built. Since `prereqsMet` treats a missing prereq state as locked, **`recommendNext`
+will never suggest these three skills**, and — because their own dependents (`g2.add.2d-carry`,
+`g2.sub.2d-borrow`, `g2.num.compare999`) require THEM to reach mastery first via the composer's
+own suggestion chain — those three are practically unreachable by suggestion too, unless a parent
+or child taps the card directly and plays it to mastery manually (which readySkills() permits:
+prereqs gate suggestion, never rendering). **`g2.mul.intro` → `g2.mul.table2/5/10` is the one
+Grade-2 line that unlocks cleanly** (hangs off the already-ready `g1.add.within20`), so it is
+what `recommendNext` will actually walk a Grade-2 child through today. **All 11 skills still
+render on Home and play correctly when tapped** on both Home views — `readySkills()` filters on
+`status` and `grade` only, never on prereqs. This is the intended trip behaviour (a parent can
+manually explore every Grade-2 skill during kid-testing), not a bug, and matches the exact
+pattern already logged for Now #10's Grade-3 fallback.
+
+**Verification**
+
+| Check | Result |
+|---|---|
+| Tests | **416 green** (+14: 2 new `describe.each` skill-table rows' worth of validator coverage across the 7 modules, plus 4 new structural-guarantee tests), 1 skipped. Baseline **402 + 1 skipped**. |
+| Validator coverage | Confirmed running 100× per difficulty **per served skill** — 11 skills, not 7 modules (`skillIds ?? [skillId]` normalisation in the shared validator already does this). |
+| Lint / `lint:hex` / `privacy:check` | Clean — 0 errors (3 pre-existing warnings, unchanged); hex guard clean; privacy byte-identical. |
+| **Guards proven RED then reverted**, one injection at a time | ① off-doc tag injected into `addition2d.js` (`forgot-carry` → `forgot-carry-oops-injected`) → canonical-tag guard failed with the exact off-doc-tag message → reverted. ② `g2.sub.2d-noborrow`'s d1 cap bumped 39→60 in `subtraction2d.js` → ceiling guard failed (`expected 57 to be less than or equal to 39`) → reverted. ③ `counting3digit.js`'s palindrome guard removed AND the generic dedup's answer-protection seed cleared → no-duplicate-options assertion failed (`expected 3 to be 4`) → both reverted. `git diff` confirmed clean after each. |
+| No-carry/no-borrow structural claim | Asserted as a **test** (`structuralConstraints.test.js`), not a comment: 200 runs per difficulty confirm `g2.add.2d-nocarry`/`g2.sub.2d-noborrow` never require a carry/borrow, and their carry/borrow counterparts always do. |
+| **Real browser, built app** (`npm run build` + `vite preview` + Playwright) | Set Grade 2 via the parent test panel → confirmed all 10 Grade-2 skills render on **both** Home views (Journey Path default + `?home=cards`) → played one 2-digit addition session (`Two-Digit Adds`, 8/8 correct, real carry/no-carry questions incl. `31+6=37`) and one multiplication session (`Table of 2`, 8/8 correct, including a real `2×0=?` zero-identity question) end to end, both reaching the celebration screen → **zero console errors, zero off-origin requests** across the whole walk. Also found and fixed a stale `TestPanel.jsx` copy ("Grades 2–3 have no skills yet") that this batch made false — corrected to name only Grade 3. |
+
+**Scope fences honoured:** no new question formats (`mcq`/`compare` only), no new art/interaction
+types, frozen legacy paths untouched, no prereq edges changed, `g1.num.21-99`/`g2.place.hundreds`
+not built (no misconception table exists for either), no `DECISIONS.md` entry (nothing here was a
+product decision).
 
 ---
 
