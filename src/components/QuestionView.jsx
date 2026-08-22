@@ -78,10 +78,21 @@ export default function QuestionView({ question, blankFill = null }) {
     );
   }
 
-  // mcq — fluid size (text-question token) so the equation scales up on tall phones and down
-  // on short ones.
+  // mcq — fluid size. Compact equations ("27 + 1 = ?") use the large `text-question` token so
+  // they scale up on tall phones and down on short ones. Longer sentence-style prompts (e.g.
+  // counting3digit.js's place-value decomposition, "1 hundred, 3 tens and 0 ones make ?") would
+  // overflow the fit-one-viewport layout at that size — cutting off the tail of the question,
+  // the exact bug this length check exists to prevent — so they fall back to `text-prompt`,
+  // the same fluid token already used for the compare/count-objects sentence prompts above.
+  const MAX_COMPACT_LENGTH = 20; // every equation-style mcq recipe stays well under this; every
+  // sentence-style one (currently only counting3digit.js) is comfortably over it.
+  const isLongPrompt = question.questionText.length > MAX_COMPACT_LENGTH;
   return (
-    <p className="kid-num-3d font-display text-question font-extrabold text-primary-ink text-center tracking-wide">
+    <p
+      className={`kid-num-3d font-display font-extrabold text-primary-ink text-center tracking-wide ${
+        isLongPrompt ? 'text-prompt' : 'text-question'
+      }`}
+    >
       {question.questionText}
     </p>
   );
