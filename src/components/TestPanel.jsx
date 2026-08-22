@@ -95,7 +95,7 @@ export default function TestPanel({ theme, onThemeChange, grade, onGradeChange }
           })}
         </div>
         <p className="text-xs text-muted">
-          Grades 2–3 have no skills yet — selecting them is safe and shows the Grade 1 skills for now.
+          Grade 3 has no skills yet — selecting it is safe and shows the Grade 1 skills for now.
         </p>
       </div>
     </div>
