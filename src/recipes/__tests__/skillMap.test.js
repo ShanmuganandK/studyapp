@@ -103,6 +103,7 @@ describe('skill map — graph validity', () => {
   it('marks exactly the built foundational skills ready', () => {
     const ready = allSkills.filter((s) => s.status === 'ready').map((s) => s.id).sort();
     expect(ready).toEqual([
+      'g1.add.within10',
       'g1.add.within20',
       'g1.count.1-20',
       'g1.count.1-9',

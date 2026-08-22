@@ -62,10 +62,12 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
 - **`_rng.js`** — seedable deterministic RNG. `makeRng(seed)` → `{ int, pick, shuffle, next }`
   (mulberry32 + FNV-1a string-seed hash). All recipe randomness goes through this so output
   is reproducible and testable.
-- **`addition.js`** — reference recipe, `skillId: g1.add.within20`, sums capped 5/10/20 by
+- **`addition.js`** — reference recipe, **multi-skill** (`skillIds: g1.add.within10,
+  g1.add.within20`), sums capped 3/6/10 (within10) or 5/10/20 (within20, unchanged) by
   difficulty. Distractors (canonical tags, see `misconceptions-reference.md`):
-  `crossing-ten-misstep`, `add-tens-to-ones`, `operator-mixup`, `off-by-one`, `random-slip`.
-  Format `mcq`.
+  `crossing-ten-misstep` and `add-tens-to-ones` are **within20 only** (gated on `skillId` — the
+  within-10 table has no such tag and a sum of exactly 10 doesn't "cross" 10); `operator-mixup`,
+  `off-by-one`, `random-slip` serve both. Format `mcq`.
 - **`counting.js`** — **multi-skill** (`skillIds: g1.count.1-9, g1.count.1-20`), count
   objects, ranges per skill. Distractors: `double-count-object`, `skip-count-sequence`,
   `count-from-zero`, `random-slip`. Format `count-objects` (carries a `render: { glyph, count }`
@@ -92,11 +94,11 @@ reads it to know which recipes to build.
 
 - **`SKILLS`** — object keyed by `skillId`; each entry
   `{ id, name, grade, strand, order, maxDifficulty, prereqs[], recipe, status }`.
-  `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). Six skills are
-  `ready` today — `g1.count.1-9`, `g1.count.1-20`, `g1.num.compare20`, `g1.add.within20`,
-  `g1.sub.within10`, `g1.sub.within20` (these are exactly what `SkillSelectScreen` lists);
-  all others `planned`. Several skills share one parameterised recipe (e.g. `counting`,
-  `addition`, `addition2d`).
+  `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). Seven skills are
+  `ready` today — `g1.count.1-9`, `g1.count.1-20`, `g1.num.compare20`, `g1.add.within10`,
+  `g1.add.within20`, `g1.sub.within10`, `g1.sub.within20` (these are exactly what
+  `SkillSelectScreen` lists); all others `planned`. Several skills share one parameterised recipe
+  (e.g. `counting`, `addition`, `addition2d`).
 - **Helpers** — `getSkill` (throws on unknown), `prereqsMet(id, masteryMap)`,
   `unlockedSkills(masteryMap)`, `frontierSkill(masteryMap, grade)`, `nextSkills(id)`.
   Unlock = prereqs at mastery ≥ `MASTERY_THRESHOLD` (3). These are status-agnostic graph

@@ -9,9 +9,10 @@
  * `status`:
  *   - 'ready'   = a validated recipe file exists for this skill's range.
  *   - 'planned' = recipe still to be built (the map stays complete but honest).
- * Ready today (recipe files exist): addition (g1.add.within20), counting (g1.count.1-9,
- * g1.count.1-20), subtraction (g1.sub.within10, g1.sub.within20), and compareNumbers
- * (g1.num.compare20). Everything else is planned until the recipe factory fills it in.
+ * Ready today (recipe files exist): addition (g1.add.within10, g1.add.within20), counting
+ * (g1.count.1-9, g1.count.1-20), subtraction (g1.sub.within10, g1.sub.within20), and
+ * compareNumbers (g1.num.compare20). Everything else is planned until the recipe factory
+ * fills it in.
  *
  * Recipe reuse — several skills share one parameterised recipe (the factory builds ONE recipe
  * that handles the range, not a file per skill):
@@ -57,7 +58,8 @@ const ALL_SKILLS = [
   skill('g1.num.compare20', 'Compare numbers up to 20 (>, <, =)', 1, 'numbers', 32, 3, ['g1.count.1-20'], 'compareNumbers', 'ready',
     { displayName: 'Big or Small?', subtitle: 'Compare numbers (>, <, =)', icon: '⚖️' }),
   skill('g1.num.ordinal', 'Ordinal numbers (1st–10th)', 1, 'numbers', 33, 2, ['g1.count.1-9'], 'ordinal', 'planned'),
-  skill('g1.add.within10', 'Addition within 10', 1, 'addition', 40, 3, ['g1.count.1-9'], 'addition', 'planned'),
+  skill('g1.add.within10', 'Addition within 10', 1, 'addition', 40, 3, ['g1.count.1-9'], 'addition', 'ready',
+    { displayName: 'Add a Little', subtitle: 'Addition within 10', icon: '➕' }),
   skill('g1.add.within20', 'Addition within 20', 1, 'addition', 41, 3, ['g1.add.within10'], 'addition', 'ready',
     { displayName: 'Add it Up!', subtitle: 'Addition within 20', icon: '➕' }),
   skill('g1.sub.within10', 'Subtraction within 10', 1, 'subtraction', 50, 3, ['g1.count.1-9'], 'subtraction', 'ready',

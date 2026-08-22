@@ -1,30 +1,45 @@
 /**
- * Recipe: addition within 20 (Grade 1).
+ * Recipe: addition (Grade 1). Multi-skill — serves two ranges from one parameterised recipe
+ * (per the skill map's recipe-reuse note):
+ *   - g1.add.within10  (sums capped 3/6/10)
+ *   - g1.add.within20  (sums capped 5/10/20 — the original, unchanged, reference recipe)
  *
  * One recipe = infinite questions. Conforms to the contract in RECIPE_TEMPLATE.md.
- * Difficulty is capped at the curriculum ceiling (sums to 5 / 10 / 20); a harder range
- * would be a DIFFERENT skill, not difficulty 4 here.
+ * Difficulty is capped at the curriculum ceiling per skill; a harder range would be a
+ * DIFFERENT skill, not difficulty 4 here.
  *
  * Distractors deliberately encode known misconceptions so the remediation ladder can give
  * targeted hints and the parent dashboard can explain WHY a child struggles. Tags + rules
  * are canonical per misconceptions-reference.md ("Addition within 20"/"within 10") — the
  * source of truth:
  *   - crossing-ten-misstep : added the ones but dropped the carried ten   (sum - 10, when
- *                            the ones digits actually carry: ones(a)+ones(b) >= 10)
+ *                            the ones digits actually carry: ones(a)+ones(b) >= 10).
+ *                            **within20 ONLY** — the within-10 table has no such tag, and a
+ *                            sum of exactly 10 doesn't "cross" 10 per the doc's condition, so
+ *                            this branch is gated on skillId.
  *   - add-tens-to-ones     : for teen + single digit, added the single digit onto the tens
- *                            place instead of the ones   ((tens+c)*10 + ones; 13+6 -> 73)
+ *                            place instead of the ones   ((tens+c)*10 + ones; 13+6 -> 73).
+ *                            **within20 ONLY** — unreachable under a sum of 10 anyway (no
+ *                            teen operand fits), but gated on skillId for the same reason.
  *   - operator-mixup       : subtracted instead of adding   (|a - b|)
  *   - off-by-one           : miscounted the final hop by one   (sum +/- 1)
  *   - random-slip          : doc-sanctioned nearby-value fill
  *
- * (forgot-carry is the doc's Grade-2 two-digit-carry tag; this Grade-1 skill uses
- * crossing-ten-misstep. identity-error-zero needs a 0 operand, which we never generate.)
+ * (forgot-carry is the doc's Grade-2 two-digit-carry tag, not this skill's. identity-error-zero
+ * needs a 0 operand, which neither range ever generates — both draw operands from 1+, so the
+ * within-10 tag set is exactly operator-mixup / off-by-one / random-slip.)
  */
 
 const OPTION_COUNT = 4;
 
-// Curriculum ceiling per rung: easy/medium/hard cap the largest possible sum.
-const SUM_CAP = { 1: 5, 2: 10, 3: 20 };
+// Per-skill curriculum ceiling: largest possible sum, per difficulty rung.
+// g1.add.within20's caps are the pre-existing, unchanged values (shipped behaviour).
+const SUM_CAP = {
+  'g1.add.within10': { 1: 3, 2: 6, 3: 10 },
+  'g1.add.within20': { 1: 5, 2: 10, 3: 20 },
+};
+const SKILL_IDS = ['g1.add.within10', 'g1.add.within20'];
+const DEFAULT_SKILL = 'g1.add.within20';
 
 const ones = (n) => n % 10;
 const tens = (n) => Math.floor(n / 10);
@@ -42,11 +57,11 @@ function teenPlusSingle(a, b) {
 }
 
 const recipe = {
-  skillId: 'g1.add.within20',
+  skillIds: SKILL_IDS,
   maxDifficulty: 3,
 
-  generate(difficulty, rng) {
-    const cap = SUM_CAP[difficulty];
+  generate(difficulty, rng, skillId = DEFAULT_SKILL) {
+    const cap = (SUM_CAP[skillId] ?? SUM_CAP[DEFAULT_SKILL])[difficulty];
     const a = rng.int(1, cap - 1);
     const b = rng.int(1, cap - a); // guarantees a + b <= cap
     const sum = a + b;
@@ -55,17 +70,20 @@ const recipe = {
     // most-specific first so random-slip is only ever a fallback.
     const candidates = [];
 
-    // crossing-ten-misstep: dropped the carried ten — only when the ones actually carry.
-    if (ones(a) + ones(b) >= 10) {
-      candidates.push({ value: sum - 10, tag: 'crossing-ten-misstep' });
-    }
+    // crossing-ten-misstep / add-tens-to-ones: within20 only (Trap A — see file header).
+    if (skillId === 'g1.add.within20') {
+      // crossing-ten-misstep: dropped the carried ten — only when the ones actually carry.
+      if (ones(a) + ones(b) >= 10) {
+        candidates.push({ value: sum - 10, tag: 'crossing-ten-misstep' });
+      }
 
-    // add-tens-to-ones: for teen + single digit, the single digit was added onto the tens
-    // place of the teen instead of its ones (12 + 5 -> 62).
-    const teenSingle = teenPlusSingle(a, b);
-    if (teenSingle) {
-      const { teen, c } = teenSingle;
-      candidates.push({ value: (tens(teen) + c) * 10 + ones(teen), tag: 'add-tens-to-ones' });
+      // add-tens-to-ones: for teen + single digit, the single digit was added onto the tens
+      // place of the teen instead of its ones (12 + 5 -> 62).
+      const teenSingle = teenPlusSingle(a, b);
+      if (teenSingle) {
+        const { teen, c } = teenSingle;
+        candidates.push({ value: (tens(teen) + c) * 10 + ones(teen), tag: 'add-tens-to-ones' });
+      }
     }
 
     // operator-mixup: subtracted the addends instead of adding them.

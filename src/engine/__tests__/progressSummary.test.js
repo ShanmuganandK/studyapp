@@ -3,11 +3,12 @@ import { progressSummary, formatRelativeDate } from '../progressSummary.js';
 import { emptySkillState } from '../mastery.js';
 import { MASTERY } from '../../config/masteryConfig.js';
 
-// All 6 ready skill IDs (reflects skillMap.js `status:'ready'` set)
+// All 7 ready skill IDs (reflects skillMap.js `status:'ready'` set)
 const READY_IDS = [
   'g1.count.1-9',
   'g1.count.1-20',
   'g1.num.compare20',
+  'g1.add.within10',
   'g1.add.within20',
   'g1.sub.within10',
   'g1.sub.within20',

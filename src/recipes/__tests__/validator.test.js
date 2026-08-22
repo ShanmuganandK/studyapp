@@ -30,6 +30,7 @@ const OPERATORS = new Set(['>', '<', '=']);
 const COUNTING_TAGS = ['double-count-object', 'skip-count-sequence', 'count-from-zero', 'random-slip'];
 const SUBTRACTION_TAGS = ['operator-mixup', 'tens-ignored', 'smaller-from-larger-force', 'off-by-one', 'random-slip'];
 const CANONICAL_TAGS = {
+  'g1.add.within10': new Set(['operator-mixup', 'off-by-one', 'random-slip']),
   'g1.add.within20': new Set(['crossing-ten-misstep', 'add-tens-to-ones', 'operator-mixup', 'off-by-one', 'random-slip']),
   'g1.count.1-9': new Set(COUNTING_TAGS),
   'g1.count.1-20': new Set(COUNTING_TAGS),
@@ -145,6 +146,7 @@ function validateRecipe(recipe) {
 // 5. Difficulty respects the ceiling. `value(q)` extracts the magnitude that must stay capped
 //    (the answer for add/count, the minuend for subtraction, the larger operand for compare).
 const CEILINGS = {
+  'g1.add.within10': { caps: { 1: 3, 2: 6, 3: 10 }, value: (q) => q.correctAnswer },
   'g1.add.within20': { caps: { 1: 5, 2: 10, 3: 20 }, value: (q) => q.correctAnswer },
   'g1.count.1-9': { caps: { 1: 3, 2: 6, 3: 9 }, value: (q) => q.correctAnswer },
   'g1.count.1-20': { caps: { 1: 5, 2: 10, 3: 20 }, value: (q) => q.correctAnswer },
@@ -167,7 +169,7 @@ function validateCeiling(recipe) {
 }
 
 describe.each([
-  ['addition (g1.add.within20)', additionRecipe],
+  ['addition (g1.add.within10, within20)', additionRecipe],
   ['counting (g1.count.1-9, 1-20)', countingRecipe],
   ['subtraction (g1.sub.within10, within20)', subtractionRecipe],
   ['compareNumbers (g1.num.compare20)', compareRecipe],
