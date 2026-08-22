@@ -76,7 +76,8 @@ const ALL_SKILLS = [
   // ── Grade 2 ───────────────────────────────────────────────────────────────────────────
   skill('g2.num.3digit', 'Numbers up to 999 (read, write, place value)', 2, 'numbers', 100, 3, ['g1.place.tens-ones'], 'counting3digit', 'planned'),
   skill('g2.place.hundreds', 'Hundreds, tens, ones', 2, 'placevalue', 101, 3, ['g2.num.3digit'], 'placeValue3', 'planned'),
-  skill('g2.num.compare999', 'Compare/order numbers to 999', 2, 'numbers', 102, 3, ['g2.num.3digit'], 'compareNumbers', 'planned'),
+  skill('g2.num.compare999', 'Compare/order numbers to 999', 2, 'numbers', 102, 3, ['g2.num.3digit'], 'compareNumbers', 'ready',
+    { displayName: 'Which is Bigger?', subtitle: 'Compare numbers to 999', icon: '⚖️' }),
   skill('g2.add.2d-nocarry', '2-digit addition, no carry', 2, 'addition', 110, 3, ['g1.add.within20', 'g1.place.tens-ones'], 'addition2d', 'planned'),
   skill('g2.add.2d-carry', '2-digit addition with carry', 2, 'addition', 111, 3, ['g2.add.2d-nocarry'], 'addition2d', 'planned'),
   skill('g2.sub.2d-noborrow', '2-digit subtraction, no borrow', 2, 'subtraction', 120, 3, ['g1.sub.within20', 'g1.place.tens-ones'], 'subtraction2d', 'planned'),

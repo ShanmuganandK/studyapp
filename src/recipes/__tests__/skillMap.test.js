@@ -110,6 +110,7 @@ describe('skill map — graph validity', () => {
       'g1.num.compare20',
       'g1.sub.within10',
       'g1.sub.within20',
+      'g2.num.compare999',
     ]);
   });
 });

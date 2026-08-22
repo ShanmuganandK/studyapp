@@ -19,8 +19,10 @@ vi.mock('../../services/progressStore', () => ({
 // Mascot preloads webp assets — irrelevant to structure; stub it.
 vi.mock('../Mascot', () => ({ default: () => null }));
 
+// SkillPathScreen defaults to grade 1 (no grade prop passed below), so this must match the
+// same grade filter the component applies via readySkills(1) — not every ready skill overall.
 const readySkills = Object.values(SKILLS)
-  .filter((s) => s.status === 'ready')
+  .filter((s) => s.status === 'ready' && s.grade === 1)
   .sort((a, b) => a.order - b.order);
 
 describe('SkillPathScreen', () => {

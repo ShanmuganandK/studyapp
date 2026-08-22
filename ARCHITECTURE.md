@@ -75,9 +75,12 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
 - **`subtraction.js`** — **multi-skill** (`skillIds: g1.sub.within10, g1.sub.within20`),
   `a - b`. Distractors: `operator-mixup`, `tens-ignored`, `smaller-from-larger-force`,
   `off-by-one`, `random-slip`. Format `mcq`.
-- **`compareNumbers.js`** — `skillId: g1.num.compare20`. Pick the sign for `a ? b`. Distractors:
-  `alligator-confusion`, `ones-digit-bias`, `digit-length-bias`. Format `compare` (3 operator
-  options + `render: { left, right }`).
+- **`compareNumbers.js`** — **multi-skill** (`skillIds: g1.num.compare20, g2.num.compare999`).
+  Pick the sign for `a ? b`; larger-operand ceilings 19/19/19 (g1, unchanged) or 99/499/999 (g2)
+  by difficulty. Distractors: `alligator-confusion`, `ones-digit-bias`, `digit-length-bias` —
+  every pair is constructed so `=` is misconception-explainable (shared ones digit or shared
+  leading digit), generalised via two range-parameterised helpers so both skills share the same
+  construction. Format `compare` (3 operator options + `render: { left, right }`).
 - **`__tests__/validator.test.js`** — the shared validator (STANDARDS §3). For each recipe and
   each skill it serves (`skillIds ?? [skillId]`), runs `generate` 100× per difficulty and
   asserts the full contract; branches on `format` (numeric vs `compare`). Every recipe must
@@ -94,11 +97,11 @@ reads it to know which recipes to build.
 
 - **`SKILLS`** — object keyed by `skillId`; each entry
   `{ id, name, grade, strand, order, maxDifficulty, prereqs[], recipe, status }`.
-  `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). Seven skills are
+  `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). Eight skills are
   `ready` today — `g1.count.1-9`, `g1.count.1-20`, `g1.num.compare20`, `g1.add.within10`,
-  `g1.add.within20`, `g1.sub.within10`, `g1.sub.within20` (these are exactly what
-  `SkillSelectScreen` lists); all others `planned`. Several skills share one parameterised recipe
-  (e.g. `counting`, `addition`, `addition2d`).
+  `g1.add.within20`, `g1.sub.within10`, `g1.sub.within20`, `g2.num.compare999` (these are exactly
+  what `SkillSelectScreen` lists); all others `planned`. Several skills share one parameterised
+  recipe (e.g. `counting`, `addition`, `addition2d`).
 - **Helpers** — `getSkill` (throws on unknown), `prereqsMet(id, masteryMap)`,
   `unlockedSkills(masteryMap)`, `frontierSkill(masteryMap, grade)`, `nextSkills(id)`.
   Unlock = prereqs at mastery ≥ `MASTERY_THRESHOLD` (3). These are status-agnostic graph

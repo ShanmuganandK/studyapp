@@ -37,6 +37,7 @@ const CANONICAL_TAGS = {
   'g1.sub.within10': new Set(SUBTRACTION_TAGS),
   'g1.sub.within20': new Set(SUBTRACTION_TAGS),
   'g1.num.compare20': new Set(['alligator-confusion', 'ones-digit-bias', 'digit-length-bias']),
+  'g2.num.compare999': new Set(['alligator-confusion', 'ones-digit-bias', 'digit-length-bias']),
 };
 
 const numbersIn = (text) => text.match(/\d+/g).map(Number);
@@ -57,7 +58,7 @@ function expectedAnswerFor(skillId, q) {
   if (skillId.startsWith('g1.count')) {
     return q.render.count; // the set drawn for the child has exactly `correctAnswer` objects
   }
-  if (skillId === 'g1.num.compare20') {
+  if (skillId.startsWith('g1.num.compare') || skillId.startsWith('g2.num.compare')) {
     const { left, right } = q.render;
     return left > right ? '>' : left < right ? '<' : '=';
   }
@@ -153,6 +154,7 @@ const CEILINGS = {
   'g1.sub.within10': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => numbersIn(q.questionText)[0] },
   'g1.sub.within20': { caps: { 1: 10, 2: 15, 3: 20 }, value: (q) => numbersIn(q.questionText)[0] },
   'g1.num.compare20': { caps: { 1: 20, 2: 20, 3: 20 }, value: (q) => Math.max(q.render.left, q.render.right) },
+  'g2.num.compare999': { caps: { 1: 99, 2: 499, 3: 999 }, value: (q) => Math.max(q.render.left, q.render.right) },
 };
 
 function validateCeiling(recipe) {
@@ -172,7 +174,7 @@ describe.each([
   ['addition (g1.add.within10, within20)', additionRecipe],
   ['counting (g1.count.1-9, 1-20)', countingRecipe],
   ['subtraction (g1.sub.within10, within20)', subtractionRecipe],
-  ['compareNumbers (g1.num.compare20)', compareRecipe],
+  ['compareNumbers (g1.num.compare20, g2.num.compare999)', compareRecipe],
 ])('recipe contract: %s', (_name, recipe) => {
   it('conforms to the recipe contract across all difficulties and skills', () => {
     validateRecipe(recipe);
