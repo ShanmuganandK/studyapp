@@ -14,10 +14,11 @@ import addition from '../recipes/addition';
 import counting from '../recipes/counting';
 import subtraction from '../recipes/subtraction';
 import compareNumbers from '../recipes/compareNumbers';
+import addition2d from '../recipes/addition2d';
 
 // Recipe registry keyed by the skill map's `recipe` field. Only the ready recipes are needed
 // (planned skills are never selected). Add entries here as the factory builds more.
-const RECIPES = { addition, counting, subtraction, compareNumbers };
+const RECIPES = { addition, counting, subtraction, compareNumbers, addition2d };
 
 const DEFAULT_LENGTH = 8;
 
@@ -35,6 +36,7 @@ const KIND_BY_RECIPE = {
   subtraction: 'sub', // ordered: 5−1 ≠ 1−5
   compareNumbers: 'compare', // commutative on the pair: 15?5 ≡ 5?15
   counting: 'count', // identity is the count itself (glyph/word irrelevant)
+  addition2d: 'add', // commutative: 24+5 ≡ 5+24 — signatureOf sorts the operand pair
 };
 
 /**

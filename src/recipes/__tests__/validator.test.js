@@ -20,6 +20,7 @@ import additionRecipe from '../addition';
 import countingRecipe from '../counting';
 import subtractionRecipe from '../subtraction';
 import compareRecipe from '../compareNumbers';
+import addition2dRecipe from '../addition2d';
 
 const RUNS_PER_DIFFICULTY = 100;
 const OPERATORS = new Set(['>', '<', '=']);
@@ -38,6 +39,8 @@ const CANONICAL_TAGS = {
   'g1.sub.within20': new Set(SUBTRACTION_TAGS),
   'g1.num.compare20': new Set(['alligator-confusion', 'ones-digit-bias', 'digit-length-bias']),
   'g2.num.compare999': new Set(['alligator-confusion', 'ones-digit-bias', 'digit-length-bias']),
+  'g2.add.2d-nocarry': new Set(['column-alignment-shift', 'add-across-columns', 'operator-mixup', 'place-value-swap', 'random-slip']),
+  'g2.add.2d-carry': new Set(['forgot-carry', 'write-full-sum-in-column', 'double-carry', 'carry-subtraction-instead', 'random-slip']),
 };
 
 const numbersIn = (text) => text.match(/\d+/g).map(Number);
@@ -47,7 +50,7 @@ const numbersIn = (text) => text.match(/\d+/g).map(Number);
  * not the recipe's own arithmetic.
  */
 function expectedAnswerFor(skillId, q) {
-  if (skillId.startsWith('g1.add')) {
+  if (skillId.includes('.add.')) {
     const [a, b] = numbersIn(q.questionText);
     return a + b;
   }
@@ -155,6 +158,8 @@ const CEILINGS = {
   'g1.sub.within20': { caps: { 1: 10, 2: 15, 3: 20 }, value: (q) => numbersIn(q.questionText)[0] },
   'g1.num.compare20': { caps: { 1: 20, 2: 20, 3: 20 }, value: (q) => Math.max(q.render.left, q.render.right) },
   'g2.num.compare999': { caps: { 1: 99, 2: 499, 3: 999 }, value: (q) => Math.max(q.render.left, q.render.right) },
+  'g2.add.2d-nocarry': { caps: { 1: 39, 2: 69, 3: 99 }, value: (q) => q.correctAnswer },
+  'g2.add.2d-carry': { caps: { 1: 49, 2: 79, 3: 99 }, value: (q) => q.correctAnswer },
 };
 
 function validateCeiling(recipe) {
@@ -175,6 +180,7 @@ describe.each([
   ['counting (g1.count.1-9, 1-20)', countingRecipe],
   ['subtraction (g1.sub.within10, within20)', subtractionRecipe],
   ['compareNumbers (g1.num.compare20, g2.num.compare999)', compareRecipe],
+  ['addition2d (g2.add.2d-nocarry, g2.add.2d-carry)', addition2dRecipe],
 ])('recipe contract: %s', (_name, recipe) => {
   it('conforms to the recipe contract across all difficulties and skills', () => {
     validateRecipe(recipe);
