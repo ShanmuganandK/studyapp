@@ -10,8 +10,11 @@
  *   - 'ready'   = a validated recipe file exists for this skill's range.
  *   - 'planned' = recipe still to be built (the map stays complete but honest).
  * Ready today (recipe files exist): addition (g1.add.within10, g1.add.within20), counting
- * (g1.count.1-9, g1.count.1-20), subtraction (g1.sub.within10, g1.sub.within20), and
- * compareNumbers (g1.num.compare20). Everything else is planned until the recipe factory
+ * (g1.count.1-9, g1.count.1-20), subtraction (g1.sub.within10, g1.sub.within20),
+ * compareNumbers (g1.num.compare20, g2.num.compare999), addition2d (g2.add.2d-nocarry,
+ * g2.add.2d-carry), subtraction2d (g2.sub.2d-noborrow, g2.sub.2d-borrow), mulIntro
+ * (g2.mul.intro), mulTable (g2.mul.table2, g2.mul.table5, g2.mul.table10), and
+ * counting3digit (g2.num.3digit). Everything else is planned until the recipe factory
  * fills it in.
  *
  * Recipe reuse — several skills share one parameterised recipe (the factory builds ONE recipe

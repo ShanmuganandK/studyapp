@@ -132,6 +132,10 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   each skill it serves (`skillIds ?? [skillId]`), runs `generate` 100× per difficulty and
   asserts the full contract; branches on `format` (numeric vs `compare`). Every recipe must
   pass it before merge.
+- **`__tests__/structuralConstraints.test.js`** — asserts `addition2d.js`/`subtraction2d.js`'s
+  carry/borrow guarantee as a TEST, not just a comment: 200 runs per difficulty confirm
+  `g2.add.2d-nocarry`/`g2.sub.2d-noborrow` never require a carry/borrow and their carry/borrow
+  counterparts always do.
 
 **Depends on it:** (future) session composer, quiz engine, mastery tracker — all consume
 only the contract output, never recipe internals.
