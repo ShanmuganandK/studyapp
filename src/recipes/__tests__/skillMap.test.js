@@ -112,6 +112,7 @@ describe('skill map — graph validity', () => {
       'g1.sub.within20',
       'g2.add.2d-carry',
       'g2.add.2d-nocarry',
+      'g2.mul.intro',
       'g2.num.compare999',
       'g2.sub.2d-borrow',
       'g2.sub.2d-noborrow',
