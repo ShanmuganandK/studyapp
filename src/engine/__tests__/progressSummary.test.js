@@ -3,7 +3,7 @@ import { progressSummary, formatRelativeDate } from '../progressSummary.js';
 import { emptySkillState } from '../mastery.js';
 import { MASTERY } from '../../config/masteryConfig.js';
 
-// All 13 ready skill IDs (reflects skillMap.js `status:'ready'` set)
+// All 16 ready skill IDs (reflects skillMap.js `status:'ready'` set)
 const READY_IDS = [
   'g1.count.1-9',
   'g1.count.1-20',
@@ -18,6 +18,9 @@ const READY_IDS = [
   'g2.sub.2d-noborrow',
   'g2.sub.2d-borrow',
   'g2.mul.intro',
+  'g2.mul.table2',
+  'g2.mul.table5',
+  'g2.mul.table10',
 ];
 const TOTAL_READY = READY_IDS.length;
 

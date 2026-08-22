@@ -23,6 +23,7 @@ import compareRecipe from '../compareNumbers';
 import addition2dRecipe from '../addition2d';
 import subtraction2dRecipe from '../subtraction2d';
 import mulIntroRecipe from '../mulIntro';
+import mulTableRecipe from '../mulTable';
 
 const RUNS_PER_DIFFICULTY = 100;
 const OPERATORS = new Set(['>', '<', '=']);
@@ -46,6 +47,9 @@ const CANONICAL_TAGS = {
   'g2.sub.2d-noborrow': new Set(['operator-mixup', 'column-alignment-shift', 'digit-subtraction-isolation', 'ones-subtraction-ignored', 'random-slip']),
   'g2.sub.2d-borrow': new Set(['smaller-from-larger-force', 'borrow-without-reducing-tens', 'regroup-ten-ones-shortchange', 'borrow-from-nowhere', 'random-slip']),
   'g2.mul.intro': new Set(['multiplication-as-addition', 'skip-count-misstep', 'multiplication-by-zero-identity', 'random-slip']),
+  'g2.mul.table2': new Set(['skip-count-misstep', 'add-instead-of-multiply', 'multiplication-by-one-identity', 'zero-identity-error', 'random-slip']),
+  'g2.mul.table5': new Set(['skip-count-misstep', 'add-instead-of-multiply', 'multiplication-by-one-identity', 'zero-identity-error', 'random-slip']),
+  'g2.mul.table10': new Set(['skip-count-misstep', 'add-instead-of-multiply', 'multiplication-by-one-identity', 'zero-identity-error', 'random-slip']),
 };
 
 const numbersIn = (text) => text.match(/\d+/g).map(Number);
@@ -172,6 +176,9 @@ const CEILINGS = {
   'g2.sub.2d-noborrow': { caps: { 1: 39, 2: 69, 3: 99 }, value: (q) => numbersIn(q.questionText)[0] },
   'g2.sub.2d-borrow': { caps: { 1: 49, 2: 79, 3: 99 }, value: (q) => numbersIn(q.questionText)[0] },
   'g2.mul.intro': { caps: { 1: 12, 2: 20 }, value: (q) => q.correctAnswer },
+  'g2.mul.table2': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => numbersIn(q.questionText)[1] },
+  'g2.mul.table5': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => numbersIn(q.questionText)[1] },
+  'g2.mul.table10': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => numbersIn(q.questionText)[1] },
 };
 
 function validateCeiling(recipe) {
@@ -195,6 +202,7 @@ describe.each([
   ['addition2d (g2.add.2d-nocarry, g2.add.2d-carry)', addition2dRecipe],
   ['subtraction2d (g2.sub.2d-noborrow, g2.sub.2d-borrow)', subtraction2dRecipe],
   ['mulIntro (g2.mul.intro)', mulIntroRecipe],
+  ['mulTable (g2.mul.table2, table5, table10)', mulTableRecipe],
 ])('recipe contract: %s', (_name, recipe) => {
   it('conforms to the recipe contract across all difficulties and skills', () => {
     validateRecipe(recipe);

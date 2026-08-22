@@ -17,10 +17,11 @@ import compareNumbers from '../recipes/compareNumbers';
 import addition2d from '../recipes/addition2d';
 import subtraction2d from '../recipes/subtraction2d';
 import mulIntro from '../recipes/mulIntro';
+import mulTable from '../recipes/mulTable';
 
 // Recipe registry keyed by the skill map's `recipe` field. Only the ready recipes are needed
 // (planned skills are never selected). Add entries here as the factory builds more.
-const RECIPES = { addition, counting, subtraction, compareNumbers, addition2d, subtraction2d, mulIntro };
+const RECIPES = { addition, counting, subtraction, compareNumbers, addition2d, subtraction2d, mulIntro, mulTable };
 
 const DEFAULT_LENGTH = 8;
 
@@ -40,11 +41,11 @@ const KIND_BY_RECIPE = {
   counting: 'count', // identity is the count itself (glyph/word irrelevant)
   addition2d: 'add', // commutative: 24+5 ≡ 5+24 — signatureOf sorts the operand pair
   subtraction2d: 'sub', // ordered: 54−23 ≠ 23−54
-  // mulIntro is deliberately ABSENT here (falls through to the 'text' default, ordered on the
-  // full questionText). Multiplication is not commutative pedagogically for a "groups of"
-  // skill: 3×5 (3 groups of 5) and 5×3 (5 groups of 3) mean different things to a child
-  // learning the concept, even though they share a product — collapsing them to one signature
-  // would silently defeat the doc's own count-factor-swap misconception.
+  // mulIntro and mulTable are deliberately ABSENT here (both fall through to the 'text'
+  // default, ordered on the full questionText). Multiplication is not commutative
+  // pedagogically for either skill: 3×5 (3 groups of 5) and 5×3 (5 groups of 3) mean different
+  // things to a child learning the concept, even though they share a product — collapsing them
+  // to one signature would silently defeat the doc's own count-factor-swap misconception.
 };
 
 /**
