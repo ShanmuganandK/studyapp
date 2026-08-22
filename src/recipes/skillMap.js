@@ -74,7 +74,8 @@ const ALL_SKILLS = [
   skill('g1.money.coins', 'Indian coins recognition (₹1, ₹2, ₹5, ₹10)', 1, 'money', 81, 2, ['g1.count.1-20'], 'moneyCoins', 'planned'),
 
   // ── Grade 2 ───────────────────────────────────────────────────────────────────────────
-  skill('g2.num.3digit', 'Numbers up to 999 (read, write, place value)', 2, 'numbers', 100, 3, ['g1.place.tens-ones'], 'counting3digit', 'planned'),
+  skill('g2.num.3digit', 'Numbers up to 999 (read, write, place value)', 2, 'numbers', 100, 3, ['g1.place.tens-ones'], 'counting3digit', 'ready',
+    { displayName: 'Hundreds Club', subtitle: 'Numbers up to 999', icon: '🔢' }),
   skill('g2.place.hundreds', 'Hundreds, tens, ones', 2, 'placevalue', 101, 3, ['g2.num.3digit'], 'placeValue3', 'planned'),
   skill('g2.num.compare999', 'Compare/order numbers to 999', 2, 'numbers', 102, 3, ['g2.num.3digit'], 'compareNumbers', 'ready',
     { displayName: 'Which is Bigger?', subtitle: 'Compare numbers to 999', icon: '⚖️' }),

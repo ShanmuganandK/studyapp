@@ -18,10 +18,13 @@ import addition2d from '../recipes/addition2d';
 import subtraction2d from '../recipes/subtraction2d';
 import mulIntro from '../recipes/mulIntro';
 import mulTable from '../recipes/mulTable';
+import counting3digit from '../recipes/counting3digit';
 
 // Recipe registry keyed by the skill map's `recipe` field. Only the ready recipes are needed
 // (planned skills are never selected). Add entries here as the factory builds more.
-const RECIPES = { addition, counting, subtraction, compareNumbers, addition2d, subtraction2d, mulIntro, mulTable };
+const RECIPES = {
+  addition, counting, subtraction, compareNumbers, addition2d, subtraction2d, mulIntro, mulTable, counting3digit,
+};
 
 const DEFAULT_LENGTH = 8;
 
@@ -46,6 +49,9 @@ const KIND_BY_RECIPE = {
   // pedagogically for either skill: 3×5 (3 groups of 5) and 5×3 (5 groups of 3) mean different
   // things to a child learning the concept, even though they share a product — collapsing them
   // to one signature would silently defeat the doc's own count-factor-swap misconception.
+  // counting3digit is ALSO deliberately absent (falls through to 'text' too): it is `mcq`, not
+  // `count-objects`, so the 'count' kind above would try to read a `render.count` that doesn't
+  // exist on this skill's questions.
 };
 
 /**

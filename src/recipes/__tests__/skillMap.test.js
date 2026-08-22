@@ -116,6 +116,7 @@ describe('skill map — graph validity', () => {
       'g2.mul.table10',
       'g2.mul.table2',
       'g2.mul.table5',
+      'g2.num.3digit',
       'g2.num.compare999',
       'g2.sub.2d-borrow',
       'g2.sub.2d-noborrow',

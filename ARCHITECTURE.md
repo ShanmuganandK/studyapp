@@ -117,6 +117,17 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   distinct from mulIntro.js's near-identical concepts (each skill emits only its own doc
   table's tags). Format `mcq`. **Also deliberately absent from `KIND_BY_RECIPE`**, same
   reasoning as `mulIntro.js`.
+- **`counting3digit.js`** — `skillId: g2.num.3digit`. Format `mcq` (not `count-objects` — drawing
+  dozens of objects doesn't scale to this range). Question text spells out the place-value
+  decomposition ("H hundreds, T tens and O ones make ?") so `correctAnswer` is independently
+  re-derivable from the digits in the text, per RECIPE_TEMPLATE's own guidance for skills that
+  can't carry digits any other way. Ceiling 199/599/999 on the value. A zero tens digit is
+  deliberately drawn ~40% of the time (`ZERO_TENS_CHANCE`) so the two zero-column tags are
+  reachable. Distractors: `expanded-concatenation`, `zero-placeholder-ignored` (both scoped to
+  a zero tens digit, per the doc's own example), `digit-value-blindness` (always),
+  `reverse-period-reading` (palindrome-guarded). **Also deliberately absent from
+  `KIND_BY_RECIPE`** — it's `mcq`, not `count-objects`, so the `'count'` kind would read a
+  `render.count` that doesn't exist on this skill's questions.
 - **`__tests__/validator.test.js`** — the shared validator (STANDARDS §3). For each recipe and
   each skill it serves (`skillIds ?? [skillId]`), runs `generate` 100× per difficulty and
   asserts the full contract; branches on `format` (numeric vs `compare`). Every recipe must
@@ -133,13 +144,13 @@ reads it to know which recipes to build.
 
 - **`SKILLS`** — object keyed by `skillId`; each entry
   `{ id, name, grade, strand, order, maxDifficulty, prereqs[], recipe, status }`.
-  `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). Sixteen skills
+  `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). Seventeen skills
   are `ready` today — `g1.count.1-9`, `g1.count.1-20`, `g1.num.compare20`, `g1.add.within10`,
   `g1.add.within20`, `g1.sub.within10`, `g1.sub.within20`, `g2.num.compare999`,
   `g2.add.2d-nocarry`, `g2.add.2d-carry`, `g2.sub.2d-noborrow`, `g2.sub.2d-borrow`,
-  `g2.mul.intro`, `g2.mul.table2`, `g2.mul.table5`, `g2.mul.table10` (these are exactly what
-  `SkillSelectScreen` lists); all others `planned`. Several skills share one parameterised
-  recipe (e.g. `counting`, `addition`, `addition2d`).
+  `g2.mul.intro`, `g2.mul.table2`, `g2.mul.table5`, `g2.mul.table10`, `g2.num.3digit` (these are
+  exactly what `SkillSelectScreen` lists); all others `planned`. Several skills share one
+  parameterised recipe (e.g. `counting`, `addition`, `addition2d`).
 - **Helpers** — `getSkill` (throws on unknown), `prereqsMet(id, masteryMap)`,
   `unlockedSkills(masteryMap)`, `frontierSkill(masteryMap, grade)`, `nextSkills(id)`.
   Unlock = prereqs at mastery ≥ `MASTERY_THRESHOLD` (3). These are status-agnostic graph

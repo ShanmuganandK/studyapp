@@ -24,6 +24,7 @@ import addition2dRecipe from '../addition2d';
 import subtraction2dRecipe from '../subtraction2d';
 import mulIntroRecipe from '../mulIntro';
 import mulTableRecipe from '../mulTable';
+import counting3digitRecipe from '../counting3digit';
 
 const RUNS_PER_DIFFICULTY = 100;
 const OPERATORS = new Set(['>', '<', '=']);
@@ -50,6 +51,7 @@ const CANONICAL_TAGS = {
   'g2.mul.table2': new Set(['skip-count-misstep', 'add-instead-of-multiply', 'multiplication-by-one-identity', 'zero-identity-error', 'random-slip']),
   'g2.mul.table5': new Set(['skip-count-misstep', 'add-instead-of-multiply', 'multiplication-by-one-identity', 'zero-identity-error', 'random-slip']),
   'g2.mul.table10': new Set(['skip-count-misstep', 'add-instead-of-multiply', 'multiplication-by-one-identity', 'zero-identity-error', 'random-slip']),
+  'g2.num.3digit': new Set(['expanded-concatenation', 'zero-placeholder-ignored', 'digit-value-blindness', 'reverse-period-reading', 'random-slip']),
 };
 
 const numbersIn = (text) => text.match(/\d+/g).map(Number);
@@ -70,6 +72,10 @@ function expectedAnswerFor(skillId, q) {
   if (skillId.includes('.mul.')) {
     const [a, b] = numbersIn(q.questionText);
     return a * b;
+  }
+  if (skillId === 'g2.num.3digit') {
+    const [h, t, o] = numbersIn(q.questionText);
+    return h * 100 + t * 10 + o;
   }
   if (skillId.startsWith('g1.count')) {
     return q.render.count; // the set drawn for the child has exactly `correctAnswer` objects
@@ -179,6 +185,7 @@ const CEILINGS = {
   'g2.mul.table2': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => numbersIn(q.questionText)[1] },
   'g2.mul.table5': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => numbersIn(q.questionText)[1] },
   'g2.mul.table10': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => numbersIn(q.questionText)[1] },
+  'g2.num.3digit': { caps: { 1: 199, 2: 599, 3: 999 }, value: (q) => q.correctAnswer },
 };
 
 function validateCeiling(recipe) {
@@ -203,6 +210,7 @@ describe.each([
   ['subtraction2d (g2.sub.2d-noborrow, g2.sub.2d-borrow)', subtraction2dRecipe],
   ['mulIntro (g2.mul.intro)', mulIntroRecipe],
   ['mulTable (g2.mul.table2, table5, table10)', mulTableRecipe],
+  ['counting3digit (g2.num.3digit)', counting3digitRecipe],
 ])('recipe contract: %s', (_name, recipe) => {
   it('conforms to the recipe contract across all difficulties and skills', () => {
     validateRecipe(recipe);
