@@ -113,6 +113,8 @@ describe('skill map — graph validity', () => {
       'g2.add.2d-carry',
       'g2.add.2d-nocarry',
       'g2.num.compare999',
+      'g2.sub.2d-borrow',
+      'g2.sub.2d-noborrow',
     ]);
   });
 });
