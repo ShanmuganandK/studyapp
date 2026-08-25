@@ -30,7 +30,20 @@
  * (Both skills' condition is always true by construction — carry-required/carry-free is exactly
  * what buildOperands guarantees — so every question offers 3-4 real tagged candidates before any
  * random-slip fallback fires.)
+ *
+ * Distractor SELECTION (not the tag rules above) goes through the shared `selectDistractors`
+ * (`_plausibility.js`): at most one of the four options may be eliminable without arithmetic.
+ * Both branches here had TWO structurally-implausible candidates competing for one slot — found
+ * in the kid-test plausibility audit at ~99-100% of no-carry questions:
+ *   no-carry: `add-across-columns` tops out at 9+9+9+9=36, always, far below the 69/99 sum caps;
+ *             `operator-mixup` (`|a-b|`) collapses below max(a,b) whenever a and b differ.
+ *   carry:    `write-full-sum-in-column` (a 3+ digit concatenation) is always digit-length-off;
+ *             `forgot-carry` (sum-10) is ALSO frequently magnitude-implausible whenever one
+ *             operand is small relative to the other — an audit finding that contradicted the
+ *             "carry branch is mostly fine" expectation this fix was scoped against.
  */
+
+import { selectDistractors } from './_plausibility';
 
 const OPTION_COUNT = 4;
 const MAX_ATTEMPTS = 30;
@@ -93,13 +106,12 @@ const recipe = {
       }
     }
 
-    // random-slip: safe nearby fillers, only used if the above collide or fall short.
-    candidates.push({ value: sum + 1, tag: 'random-slip' });
-    candidates.push({ value: sum - 1, tag: 'random-slip' });
-    candidates.push({ value: sum + 2, tag: 'random-slip' });
-    candidates.push({ value: sum - 2, tag: 'random-slip' });
-
-    const distractors = pickDistinctDistractors(candidates, sum, rng);
+    const distractors = selectDistractors({
+      candidates,
+      kind: 'add',
+      context: { a, b, answer: sum },
+      count: OPTION_COUNT - 1,
+    });
 
     // Shuffle the {value, tag} pairs together so misconceptions stay index-aligned with options.
     const optionPairs = rng.shuffle([{ value: sum, tag: null }, ...distractors]);
@@ -113,29 +125,5 @@ const recipe = {
     };
   },
 };
-
-/**
- * Choose OPTION_COUNT-1 distinct, non-negative distractors (never equal to the answer).
- * Falls back to nearby slips if candidates collide, so we always return a full option set.
- */
-function pickDistinctDistractors(candidates, answer, rng) {
-  const used = new Set([answer]);
-  const chosen = [];
-  for (const c of candidates) {
-    if (chosen.length === OPTION_COUNT - 1) break;
-    if (c.value < 0 || used.has(c.value)) continue;
-    used.add(c.value);
-    chosen.push(c);
-  }
-  let offset = 1;
-  while (chosen.length < OPTION_COUNT - 1) {
-    const value = answer + offset;
-    offset = offset > 0 ? -offset : -offset + 1; // walk +1,-1,+2,-2,...
-    if (value < 0 || used.has(value)) continue;
-    used.add(value);
-    chosen.push({ value, tag: 'random-slip' });
-  }
-  return chosen;
-}
 
 export default recipe;

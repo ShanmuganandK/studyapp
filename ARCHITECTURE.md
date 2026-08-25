@@ -99,7 +99,11 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   asserted by a dedicated test, not just a comment. Distractors: no-carry —
   `column-alignment-shift`, `add-across-columns`, `operator-mixup`, `place-value-swap` (guarded
   against palindrome sums); carry — `forgot-carry`, `write-full-sum-in-column`, `double-carry`,
-  `carry-subtraction-instead`. Format `mcq`.
+  `carry-subtraction-instead`. Format `mcq`. **Selection goes through `_plausibility.js`** — the
+  no-carry branch had two structurally-implausible candidates (`add-across-columns` tops out at
+  36, always; `operator-mixup` collapses below `max(a,b)` whenever a,b differ) competing for one
+  slot at ~99–100% of questions; the carry branch similarly (`write-full-sum-in-column` always,
+  `forgot-carry` frequently).
 - **`subtraction2d.js`** — **multi-skill** (`skillIds: g2.sub.2d-noborrow, g2.sub.2d-borrow`),
   minuend capped 39/69/99 (no-borrow) or 49/79/99 (borrow). Same `buildOperands`
   rejection-sampling pattern as `addition2d.js` — structurally borrow-free or borrow-required,
