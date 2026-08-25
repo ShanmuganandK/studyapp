@@ -10,7 +10,7 @@
 > artifact behind it. Three claims were checked on 2026-08-15 and three were false
 > (CI wiring, questionnaire v2, the 296 test count). See "Open questions / to trace".
 
-_Last synced: 2026-08-22_
+_Last synced: 2026-08-25_
 
 ---
 
@@ -167,6 +167,115 @@ Every palette must also declare the `-rgb` channel triples for `primary`, `prima
 kept in sync with their hex pair by `src/__tests__/designTokens.test.js` (design-system audit,
 2026-08-20). Full candidate values are in the chat handoff for #10; **Deep Sea (dark) is the one
 worth testing first** — dark exercises every inverted slot and is where a leak would surface.
+
+---
+
+## Done — Distractor plausibility fix (2026-08-25)
+
+Phase 2 of the kid-test audit at `eab63e5` (screenshots showed `g2.add.2d-nocarry` questions
+answerable by elimination alone). Selection-order fix only — **no tag rule changed**, per the
+task's own framing: the doc's misconception formulas stay exactly as written; what changed is
+which of a recipe's already-built candidates get spent as option slots.
+
+**New rule** (`src/recipes/_plausibility.js`): a distractor is implausible if it violates a
+monotonic fact about the operation (sum < max(addends); difference > minuend; product < max
+factor when both ≥2) or a magnitude ratio (< answer/2 or > answer×2). **At most ONE implausible
+distractor per question** — `operator-mixup` and its analogues stay in the pool (they catch a
+real misconception a child without number sense yet can't eliminate by magnitude); they just
+can't share a question with a second implausible option.
+
+**Scope — 7 recipe modules, 9 skill groups**, in commit order: `counting3digit.js` (worst case,
+alone), `addition2d.js`, `subtraction2d.js`, `addition.js` + `subtraction.js` (the Grade-1
+reference recipes — explicitly brought into scope on the human's call: the product is built for
+the average learner, and these are what future skills get copied from), `mulIntro.js` +
+`mulTable.js`. Not touched: `compareNumbers.js` (non-numeric options, N/A) and `counting.js`
+(confirmed falls out under the ratio rule for its originally-flagged concern — see below).
+
+**Before/after** (% of questions with 2+ implausible distractors, worst difficulty rung shown;
+500-run audit, same method as the phase-1 report):
+
+| Skill | Before | After |
+|---|---|---|
+| `g2.num.3digit` | 44.8–52.2% (44–49% were **all three** implausible) | 0% |
+| `g2.add.2d-nocarry` | 96–100% | 0% |
+| `g2.add.2d-carry` | 40.2–64.2% | 0% |
+| `g2.sub.2d-noborrow` | 51.6–81.0% | 0%* |
+| `g2.sub.2d-borrow` | 36.0–59.6% | 0%* |
+| `g1.add.within10` / `within20` | 0–53.0% | 0% |
+| `g1.sub.within10` / `within20` | 1.0–44.6% | 0%* |
+| `g2.mul.intro` | 11.8–24.8% | 0%* |
+| `g2.mul.table2/5/10` | 8.0–20.6% | 0%* |
+
+\* **Not literally 0% — see the degenerate-answer finding below.** These are 0% among questions
+whose answer is ≥2; every skill marked `*` still has SOME residual, but it is 100% explained by
+`correctAnswer` being 0 or 1, not a selection-order gap.
+
+**A real conflict surfaced and was escalated, not resolved silently.** Running the new validator
+guard unconditionally (§below) proved that "≤1 implausible" is **mathematically impossible**
+when the correct answer is 0 or 1: the ratio rule's bounds admit at most one alternative integer
+in that range (answer=0 → zero valid alternatives; answer=1 → exactly one, value `2`). This
+directly conflicted with two explicit requirements (uniform guard, no exceptions vs. green
+suite). Stopped and asked rather than guessing — **human's call: add a principled,
+answer-magnitude carve-out** (`MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY = 2`, exported from
+`_plausibility.js` with the proof inline), not a per-skill exemption. `g1.sub.within10`
+specifically has this residual on the **majority** of its content at d1 (65%), because its
+ceiling (minuend ≤5) makes a zero/near-zero answer common, not rare — flagged prominently, not
+patched, since narrowing that ceiling changes WHAT gets asked, a different-shaped fix.
+
+**Two canonical tags are now structurally unreachable — found via the tag-survival check, not
+anticipated by the task brief. Reported, not fixed (a selection-priority question, arguably
+either a code or doc conversation — flagged for the human either way):**
+- `g2.add.2d-nocarry`: `operator-mixup` never surfaces. Both it and `add-across-columns` are
+  ALWAYS implausible (add-across-columns tops out at 36, always; operator-mixup collapses below
+  max(a,b) whenever a≠b) — `add-across-columns` is listed first in the recipe's candidate order,
+  so it permanently wins the one implausible slot.
+- `g2.num.3digit`: `zero-placeholder-ignored` never surfaces, for the identical reason —
+  `expanded-concatenation` is listed first and is also always implausible whenever `t===0`
+  (both fire under the same condition).
+
+Neither is a "doc gap" (the tags are correct per `misconceptions-reference.md`) — it's that two
+equally-valid distractors can't both be shown under the new one-implausible cap, and the
+recipe's array order happens to always pick the same one. A random tiebreak between tied
+implausible candidates would fix this without touching a tag rule, but that's a further code
+change beyond what was asked here — reported for a decision, not applied.
+
+**`counting.js` (untouched, out of scope) — task's own prediction partially confirmed, partially
+not, reported as instructed.** The specific concern the task named (digit-length false positives,
+e.g. answer=9 vs distractor=10) IS resolved — confirmed 0% of that class remains. But `counting.js`
+carries the SAME answer≤1 residual as every touched skill (177/500 = 35.4% at `g1.count.1-9` d1,
+100% explained by `correctAnswer <= 1`) — not what "should fall out" predicted, though it's the
+identical, already-explained edge case, not a new one.
+
+**Registration / verification**
+
+| Check | Result |
+|---|---|
+| Tests | **427 green** (+9: one "at most one implausible" test per recipe module), 1 skipped. Baseline 416 (post text-cutoff-fix commit `8931b7a`). |
+| Guard proven red, then restored | `addition2d.js` temporarily reverted to naive first-N candidate selection (the pre-fix behaviour) → guard failed with the exact expected message (3 implausible on a no-carry question) → restored, `git diff` clean. |
+| Tag survival | Every canonical tag confirmed surfacing across 500-run samples, EXCEPT the two structural-priority cases above (reported, not silently passed). |
+| Lint / `lint:hex` / `privacy:check` | Clean — 0 errors (3 pre-existing warnings, unchanged). |
+| **Real browser, built app**, 412×915 viewport | Played `Two-Digit Adds` (g2.add.2d-nocarry, Grade 2) and `Add it Up!` (g1.add.within20, Grade 1) sessions to completion — both reached the celebration screen. **Zero console errors, zero off-origin requests.** |
+| **Storage / migration** | **No skill-state shape changed anywhere.** This is a content-generation change only (which candidates a recipe offers as options) — no `progressStore`/`mastery.js` field touched, no localStorage key touched. **No migration needed; no tester mid-session loses progress.** |
+
+**What this does NOT fix — recorded so it isn't mistaken for done.** `random-slip` usage rises
+(most visibly on 2-digit no-carry addition, where `place-value-swap` is the only reliably-plausible
+tagged candidate) — expected, not a regression. **Observed accuracy will likely drop, possibly
+sharply, especially on `g2.add.2d-nocarry`** — the measurement becoming honest, not the app
+getting harder. `masteryConfig.js`/`STRONG_RATIO` were **not** retuned, even though promotion may
+now look stalled on the previously-easiest-to-guess skills. **This fix does not address difficulty
+PACING** — `applyResult` (`src/engine/mastery.js`) still advances both `level` and `difficulty` off
+the same `isStrong` boolean in one step, with no consolidation/settling period; that is the
+separate, still-open question logged at `eab63e5`'s Kid-Test Log entry, untouched here.
+
+**Open doc gap (repeated from phase 1, still not filled — teacher review, not this task):**
+2-digit-no-carry addition has only one near-tagged candidate (`place-value-swap`) once
+`add-across-columns`/`operator-mixup` are capped to one implausible slot between them. "Added the
+tens but ignored the ones" (34+24→54) remains a plausible real misconception with no doc entry.
+
+**Scope fences honoured:** no tag formula changed, no recipe ceiling changed, no
+`masteryConfig.js`/`STRONG_RATIO` change, frozen paths untouched, no `DECISIONS.md` entry (the
+human is the one deciding the plausibility rule and the average-learner principle, per the task
+brief).
 
 ---
 

@@ -73,7 +73,11 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   remain short), then a nearby-value walk, itself capped the same way. A tiny minority of very
   small answers (0, 1) have no integer satisfying the ratio rule at all — the cap is relaxed only
   as an absolute last resort so the option set is never short, and this is a reported, known edge
-  case, not a bug. First consumer: `counting3digit.js`.
+  case, not a bug. Also exports `MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY` (2) — the validator's
+  plausibility guard skips questions below it, since the rule proves no selection order can
+  satisfy the cap there. Consumers: `addition.js`, `subtraction.js`, `addition2d.js`,
+  `subtraction2d.js`, `mulIntro.js`, `mulTable.js`, `counting3digit.js` — every numeric-option
+  recipe except `counting.js` (out of scope) and `compareNumbers.js` (non-numeric options, N/A).
 - **`addition.js`** — reference recipe, **multi-skill** (`skillIds: g1.add.within10,
   g1.add.within20`), sums capped 3/6/10 (within10) or 5/10/20 (within20, unchanged) by
   difficulty. Distractors (canonical tags, see `misconceptions-reference.md`):
@@ -112,7 +116,10 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   no-carry branch had two structurally-implausible candidates (`add-across-columns` tops out at
   36, always; `operator-mixup` collapses below `max(a,b)` whenever a,b differ) competing for one
   slot at ~99–100% of questions; the carry branch similarly (`write-full-sum-in-column` always,
-  `forgot-carry` frequently).
+  `forgot-carry` frequently). **Known consequence, reported not fixed:** since both no-carry
+  candidates are ALWAYS implausible and `add-across-columns` is listed first, it always wins the
+  one-implausible slot — `operator-mixup` is now structurally unreachable for this skill (a
+  selection-priority finding, not a tag-rule bug; see TRACKER.md 2026-08-25).
 - **`subtraction2d.js`** — **multi-skill** (`skillIds: g2.sub.2d-noborrow, g2.sub.2d-borrow`),
   minuend capped 39/69/99 (no-borrow) or 49/79/99 (borrow). Same `buildOperands`
   rejection-sampling pattern as `addition2d.js` — structurally borrow-free or borrow-required,
@@ -155,14 +162,18 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   decomposition ("H hundreds, T tens and O ones make ?") so `correctAnswer` is independently
   re-derivable from the digits in the text, per RECIPE_TEMPLATE's own guidance for skills that
   can't carry digits any other way. Ceiling 199/599/999 on the value. A zero tens digit is
-  deliberately drawn ~40% of the time (`ZERO_TENS_CHANCE`) so the two zero-column tags are
-  reachable. Distractors: `expanded-concatenation`, `zero-placeholder-ignored` (both scoped to
-  a zero tens digit, per the doc's own example), `digit-value-blindness` (always),
-  `reverse-period-reading` (palindrome-guarded). **Selection goes through `_plausibility.js`'s
-  `selectDistractors`** — this recipe was the worst case in the kid-test plausibility audit
-  (44–49% of questions fully determined by elimination): the three implausible candidates were
-  listed before `reverse-period-reading` (the one usually-plausible one), which the shared
-  selector no longer lets happen. **Also deliberately absent from
+  deliberately drawn ~40% of the time (`ZERO_TENS_CHANCE`) — **note this no longer keeps
+  `zero-placeholder-ignored` reachable, see below.** Distractors: `expanded-concatenation`,
+  `zero-placeholder-ignored` (both scoped to a zero tens digit, per the doc's own example),
+  `digit-value-blindness` (always), `reverse-period-reading` (palindrome-guarded). **Selection
+  goes through `_plausibility.js`'s `selectDistractors`** — this recipe was the worst case in the
+  kid-test plausibility audit (44–49% of questions fully determined by elimination): the three
+  implausible candidates were listed before `reverse-period-reading` (the one usually-plausible
+  one), which the shared selector no longer lets happen. **New known consequence, reported not
+  fixed:** `expanded-concatenation` and `zero-placeholder-ignored` are BOTH always implausible
+  when `t===0`, and `expanded-concatenation` is listed first, so it always wins the one
+  implausible slot — `zero-placeholder-ignored` is now structurally unreachable (see TRACKER.md
+  2026-08-25). **Also deliberately absent from
   `KIND_BY_RECIPE`** — it's `mcq`, not `count-objects`, so the `'count'` kind would read a
   `render.count` that doesn't exist on this skill's questions.
 - **`__tests__/validator.test.js`** — the shared validator (STANDARDS §3). For each recipe and
