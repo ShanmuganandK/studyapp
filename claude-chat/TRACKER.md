@@ -117,6 +117,7 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 | **Dead code after de-Firebase** | `Login.jsx` is rendered nowhere and its auth backend is gone. `ProfileSelector.jsx` is also unrendered. Decide: delete, or leave as frozen legacy pending T109? Leaving unrendered components that reference a removed capability is how the next audit gets confused. |
 | **Passcode re-homing** | Known and deferred: passcode lives under `math_kids_settings_anon` via the auth context. Needs proper re-homing **whenever** T109 happens. Recorded so it is not rediscovered as a bug. |
 | **`ThemeManager.jsx` naming trap** (design-system audit, 2026-08-20; **now LIVE — #10 shipped 2026-08-21**) | It manages *views* (`skills`/`quiz`/`parent`), not colour themes. Flagged on 2026-08-20 as "the obvious place to wire a real band switch, doing something unrelated" — anticipated to go live the moment #10 landed, and it has: `ThemeManager` now calls `useTestSettings` and IS the mount point that activates theming (the theme-class logic itself lives in the hook, not here — STANDARDS §2). **Left un-renamed in #10 per instruction** (widely referenced, separate diff). Decide: rename `ThemeManager` → something view-specific (e.g. `ViewManager`) and let a real `ThemeManager` be born correctly-named later, or accept the collision and document it loudly at the call site. |
+| **Remediation ladder: DECISIONS.md describes three steps, the build has two** (found 2026-08-26, verified against the code, not a new decision) | The Learning engine section (2026-07-04 era) specs wrong#1 = targeted hint, wrong#2 = visual walkthrough + retry easier, wrong#3 = park the skill + a guaranteed-win question so a session never ends on failure. `useQuizSession.js` ships only wrong#1 (targeted hint) and wrong#2 (reveal the correct option, auto-advance after `ADVANCE_DELAY_MS`, 1200ms) — no visual walkthrough, no easier retry, no park, no guaranteed-win question. The hook's own docblock says so: `(TODO: full "guaranteed-win last question" deferred per spec.)`. **The decision stands and is not being changed here** — this is a gap between a locked decision and what shipped, the same shape as the 2026-08-15 claims-rule finding, not a new product call. |
 
 ## Out of MVP scope (by decision, not blocked)
 
@@ -1053,21 +1054,23 @@ Layer 2 deferred; positioning unchanged; Rule 10 / Fourth Schedule source basis
 and the constraints that bind when Layer 2 returns)**, 2026-08-15 (no auth SDK in
 the MVP build), 2026-08-16 (`PRODUCT_NAME` derived not repeated; no legal
 conclusions or age band in the policy), **2026-08-17 (progress export/import:
-progress only, versioned envelope, REPLACE not merge — the shape behind Now #3)**.
+progress only, versioned envelope, REPLACE not merge — the shape behind Now #3)**,
+**2026-08-21 (themes are a parent-zone test instrument, not a kid-facing feature)**,
+**2026-08-25 (the average-learner design principle; distractor plausibility — at
+most one implausible option per question, amended same day with the absolute
+tolerance floor and the random tiebreak)**.
 
 Note: the 2026-08-18 corrections (Now #6, the composer Done blocks, DOCMAP's
-spec-practice-composer.md row) and the 2026-08-21 ones (Now #7 split, Now #12 /
+spec-practice-composer.md row) and the 2026-08-21 status ones (Now #7 split, Now #12 /
 Grade 3 absent) are status corrections, not new decisions — nothing was added to
-`DECISIONS.md` for them. **Three genuine decisions are now owed a `DECISIONS.md` entry,
-none written yet — the human is drafting all three:**
-1. Themes are a parent-zone test instrument, not a kid-facing feature (2026-08-21, recorded
-   in "Out of MVP scope," needs the entry when #10 lands).
-2. **The distractor-plausibility rule itself** (2026-08-25/26): at most one implausible
-   distractor per question, defined as a monotonic-fact violation OR a magnitude-ratio
-   violation, overridden by an absolute-tolerance floor (±3) at small answers. Implemented in
-   `src/recipes/_plausibility.js`; product framing not yet recorded.
-3. **The average-learner design principle** (2026-08-25): the product is built for the
-   average learner, not the strong one — guessable options inflate scores, inflated scores
-   drive premature difficulty promotion, and the children most harmed are the ones the app
-   exists for. This is why the Grade-1 reference recipes were brought into the plausibility
-   fix's scope rather than deferred. Not yet recorded as a standing principle.
+`DECISIONS.md` for them. **The three decisions previously logged here as owed are now
+recorded** (`DECISIONS.md` Change log, 2026-08-21 and 2026-08-25 entries):
+1. Themes are a parent-zone test instrument, not a kid-facing feature.
+2. **The average-learner design principle** — the product is built for the average
+   learner, not the strong one; a tiebreaker for pacing/difficulty/promotion decisions,
+   worked example: why the Grade-1 reference recipes were brought into the plausibility
+   fix's scope rather than deferred.
+3. **The distractor-plausibility rule** — at most one implausible distractor per
+   question, defined as a monotonic-fact violation OR a magnitude-ratio violation,
+   overridden by an absolute-tolerance floor (±3) at small answers, with ties among
+   implausible candidates broken at random. Implemented in `src/recipes/_plausibility.js`.

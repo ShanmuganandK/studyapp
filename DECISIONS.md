@@ -391,3 +391,140 @@
   deleted guard is a hole; the both-directions pattern already used for `OPERATOR_LINE` is the
   standing form. `public/privacy.html` is regenerated in that same commit, or `privacy:check` goes
   red on byte identity.
+
+- (2026-08-21) **Themes are a parent-zone TEST INSTRUMENT, not a kid-facing feature (LOCKED).**
+  Now #10 shipped a three-palette theme selector and a Grade 1/2/3 control inside the parent zone,
+  behind the existing gate. **Neither is reachable by a child, and the theme picker specifically
+  must not become so without a new entry here.**
+
+  **Why not kid-facing.** A theme chooser a child can reach is a second call to action competing
+  with the one the screen exists for — which violates the one-loud-CTA rule locked on 2026-07-15 —
+  and it invites a child to spend a session decorating instead of practising. The palettes exist to
+  answer a research question on a real device, not to be a feature.
+
+  **What the instrument is for.** Whether colour variety moves a child's engagement *at all*. The
+  Kid-Test Log carries the watch item, and **indifference is a real result, not a failed test** —
+  if theme variety moves nothing, the kid-facing picker stays unbuilt permanently and this was a
+  cheap answer.
+
+  **Storage is deliberately separate and must stay that way.** Test settings live under their own
+  key (`tinku:v1:testSettings`), never in `progressStore` (skills-only, allowlist-guarded) and
+  never under the passcode key. **A theme preference must never ride in a progress export** — the
+  export envelope carries behaviour only (2026-08-17), and a preference is not progress. Verified
+  at ship: an export from a themed device contains zero theme or grade data.
+
+  **Revisit only on trip evidence.** A kid-facing picker is a post-trip question gated on whether
+  theme variety visibly moves engagement. Absent that evidence, the answer stays no.
+
+- (2026-08-25) **The average learner is the design target, and breaks every tie (LOCKED).**
+  This product exists for the child who *wants* to learn and needs to be carried, not for the
+  strong child who would cope regardless. That is not a sentiment — it is the tiebreaker for every
+  pacing, difficulty and promotion decision, and it points the opposite way to intuition often
+  enough to be worth locking.
+
+  **The asymmetry that decides it.** A strong child absorbs a premature difficulty jump, shrugs and
+  continues. An average child hits a wall, concludes maths is not for them, and puts the phone
+  down. The downside is not symmetric, so **when a pacing choice is genuinely uncertain, take the
+  gentler branch.**
+
+  **What it binds.** ① Anything that inflates a child's apparent score is a *harm*, not a kindness,
+  because inflated scores drive premature promotion and the child who suffers is the target child.
+  ② Difficulty must not advance on a single strong signal without consolidation. ③ Speed is never a
+  score — timing may inform pacing softly, but a countdown or a speed penalty in a Grades 1–3 maths
+  app works against the exact child this product is for.
+
+  **What it does NOT mean.** Not dumbing down, not removing challenge, not capping the strong
+  child. Curriculum ceilings are unchanged; beyond the ceiling is still a different skill.
+
+  **First application, recorded so the principle has a worked example.** The distractor
+  plausibility fix (entry below) was initially scoped to exclude the Grade-1 reference recipes,
+  because children were mid-test on them. That was reversed on this principle: guessable options
+  inflate scores, inflated scores drive premature promotion, and the children harmed are precisely
+  the ones the app is for — so deferring protected nobody.
+
+  **Still open under this principle, deliberately not settled here:** `applyResult`
+  (`src/engine/mastery.js`) advances **both** `level` and `difficulty` off the same `isStrong`
+  boolean in one step, with no requirement to ever repeat a rung. That is the jump this principle
+  argues against, and it needs its own entry once the kid-test trip supplies evidence to tune it.
+
+- (2026-08-25) **Distractor plausibility: at most one implausible option per question (LOCKED).**
+  A kid-test audit found that on `g2.add.2d-nocarry`, **two of the three distractors were routinely
+  eliminable with no arithmetic at all** — using one fact a child already holds ("a sum can't be
+  smaller than either number you added"). A four-way question was an effective coin flip. Measured
+  across the app: 96–100% of questions on that skill, and 44–49% of `g2.num.3digit` questions were
+  answerable by elimination alone with **all three** distractors implausible.
+
+  **This was never a doc-violation.** Every tag rule matched `misconceptions-reference.md` exactly.
+  The doc's rules were calibrated for single-digit work — where 7+8=15 and |7−8|=1 both sit near
+  the answer — and were carried into two- and three-digit ranges without re-checking plausibility.
+  **The canonical tags are correct and unchanged.**
+
+  **The rule, as locked.** A distractor is **implausible** when it is more than
+  `PLAUSIBLE_ABSOLUTE_TOLERANCE` (3) away from the correct answer **and** either violates a
+  monotonic fact about the operation (sum < max addend; difference > minuend; product < max factor
+  when both factors ≥ 2) or falls outside a magnitude ratio band (< answer/2 or > answer × 2).
+  **At most ONE implausible distractor may appear in any question.**
+
+  **Why one and not zero.** `operator-mixup` and its analogues are implausible on effectively every
+  question *by construction* — |a−b| < max(a,b) whenever the addends differ, and a+b always exceeds
+  the minuend. That does not make them bad distractors: they catch the child who read `+` as `−`,
+  and **that** child is not eliminating options by magnitude, because they do not yet hold the
+  heuristic reliably. **Do not "fix" a plausibility failure by stripping an implausible tag** — cap
+  it at one, and make everything beside it plausible.
+
+  **This is a SELECTION rule, not a tag rule.** `src/recipes/_plausibility.js` never computes a
+  distractor's value; it only decides which of a recipe's already-built candidates are worth an
+  option slot. **The doc still wins on what every tag computes.**
+
+  > **AMENDED the same day — absolute tolerance floor, and the tag-starvation fix.**
+  > Two defects surfaced in the first implementation's own verification and are folded into the
+  > rule above rather than left as follow-ups.
+  >
+  > **① The ratio rule measured the wrong thing at small answers.** It was calibrated for
+  > well-separated magnitudes (13 against 58) and misfired below about answer = 6: `3 − 3 = 0`
+  > flagged 1, 2 and 3 as all implausible, but **no child eliminates "1" as a wrong answer to
+  > 3 − 3** — it is genuinely tempting. `g1.sub.within10` showed a residual on up to 64% of its
+  > easiest content purely as an artifact of this. **The tolerance floor overrides BOTH the
+  > monotonic and the ratio rule, deliberately** — for `66 + 1 = 67`, `operator-mixup` produces 65,
+  > which fails the monotonic test but is two away from the answer and is exactly the option that
+  > catches the wrong-operation child. It stays inert where it should: `34 + 24 = 58` against a
+  > distractor of 10 is 48 away and correctly implausible.
+  >
+  > The floor **removed an entire class of exception.** An earlier answer-magnitude carve-out
+  > (`MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY`), the validator's skip for answers below it, and a
+  > last-resort branch that could quietly exceed the one-implausible cap are all deleted. **The
+  > guard now runs unconditionally on every generated question, with no skips** — which matters
+  > because the skipped zone was a large share of `g1.sub.within10`'s real content, i.e. both
+  > flagged as broken and permanently unguardable.
+  >
+  > **② Fixed array order was starving canonical tags.** Selection always took the *first*
+  > implausible candidate, so whichever tag a recipe listed first won the single implausible slot
+  > on **every question forever**, and every other always-implausible tag became unreachable. Found
+  > live on two: `operator-mixup` (`g2.add.2d-nocarry`) and `zero-placeholder-ignored`
+  > (`g2.num.3digit`). Selection now breaks ties **at random** using the recipe's own seeded RNG —
+  > both tags are back at ~49% and ~14% frequency, and determinism per seed is asserted per recipe
+  > module. **This is a general mechanism, not two special cases:** any future recipe with more
+  > than one always-implausible candidate would have hit it.
+
+  **Guarded, not merely reviewed once.** The shared validator asserts ≤ 1 implausible distractor on
+  every question of every skill with a plausibility kind, uniformly and with no pinned per-skill
+  exceptions. Proven red before being trusted green.
+
+  **Two things this deliberately does NOT do.**
+  ① **It does not address difficulty pacing.** `applyResult` still couples `level` and `difficulty`
+  to one `isStrong` boolean. `masteryConfig.js` and `STRONG_RATIO` were **not** retuned, even
+  though promotion may now look stalled on the previously-easiest-to-guess skills.
+  ② **It does not fix generation ranges.** `3 − 3 = 0` is legitimate Grade-1 content; the rule
+  handles small answers rather than dodging them. **Do not narrow a ceiling to avoid an awkward
+  answer** — that changes *what gets asked*, which is a curriculum decision, not a selection one.
+
+  **Expect measured accuracy to fall, and do not treat it as a regression.** Children were being
+  promoted partly on elimination. Honest options mean honest — and lower — scores, and slower,
+  correct promotion. That is the correction landing.
+
+  **Open doc gap, owed to the pending teacher review.** Once `add-across-columns` and
+  `operator-mixup` are capped to one slot between them, 2-digit no-carry addition has only one
+  reliably-plausible tagged candidate (`place-value-swap`), so `random-slip` carries more weight
+  than is ideal. *"Added the tens but ignored the ones"* (34 + 24 → 54) is a real misconception with
+  **no entry in `misconceptions-reference.md`**. It was correctly not invented in code. **This is
+  now the top item for the teacher review.**
