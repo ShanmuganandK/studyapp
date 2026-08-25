@@ -10,7 +10,7 @@
 > artifact behind it. Three claims were checked on 2026-08-15 and three were false
 > (CI wiring, questionnaire v2, the 296 test count). See "Open questions / to trace".
 
-_Last synced: 2026-08-25_
+_Last synced: 2026-08-26_
 
 ---
 
@@ -170,107 +170,132 @@ worth testing first** — dark exercises every inverted slot and is where a leak
 
 ---
 
-## Done — Distractor plausibility fix (2026-08-25)
+## Done — Distractor plausibility fix (2026-08-25, amended 2026-08-26)
 
 Phase 2 of the kid-test audit at `eab63e5` (screenshots showed `g2.add.2d-nocarry` questions
-answerable by elimination alone). Selection-order fix only — **no tag rule changed**, per the
-task's own framing: the doc's misconception formulas stay exactly as written; what changed is
-which of a recipe's already-built candidates get spent as option slots.
+answerable by elimination alone), **amended the same day it shipped** after its own report
+surfaced two problems neither the original task nor this one anticipated: the ratio rule
+misfiring at small answers, and a fixed-index tiebreak silently killing canonical tags. This
+entry now describes the finished state, not the mid-point — one piece of work, not two.
+**No tag rule changed anywhere in either pass** — the doc's misconception formulas stay exactly
+as written; what changed is which of a recipe's already-built candidates get spent as option
+slots.
 
-**New rule** (`src/recipes/_plausibility.js`): a distractor is implausible if it violates a
+**Final rule** (`src/recipes/_plausibility.js`): a distractor is implausible if it violates a
 monotonic fact about the operation (sum < max(addends); difference > minuend; product < max
-factor when both ≥2) or a magnitude ratio (< answer/2 or > answer×2). **At most ONE implausible
-distractor per question** — `operator-mixup` and its analogues stay in the pool (they catch a
-real misconception a child without number sense yet can't eliminate by magnitude); they just
-can't share a question with a second implausible option.
+factor when both ≥2) or a magnitude ratio (< answer/2 or > answer×2) — **UNLESS** it's within
+`PLAUSIBLE_ABSOLUTE_TOLERANCE` (3) of the answer, which overrides BOTH checks deliberately (a
+value 2 away from the answer is never eliminable by magnitude reasoning, however large the
+operands are). **At most ONE implausible distractor per question**, chosen **at random** among
+however many are tied for the slot (not always the first in array order) — `operator-mixup` and
+its analogues stay in the pool (they catch a real misconception a child without number sense yet
+can't eliminate by magnitude); they just can't share a question with a second implausible option,
+and no single tag can permanently hog the slot.
 
 **Scope — 7 recipe modules, 9 skill groups**, in commit order: `counting3digit.js` (worst case,
 alone), `addition2d.js`, `subtraction2d.js`, `addition.js` + `subtraction.js` (the Grade-1
-reference recipes — explicitly brought into scope on the human's call: the product is built for
-the average learner, and these are what future skills get copied from), `mulIntro.js` +
+reference recipes — explicitly brought into scope on the human's call, the **average-learner
+principle**: the product is built for the average learner, not the strong one, and these are what
+future skills get copied from — owed a `DECISIONS.md` entry, see below), `mulIntro.js` +
 `mulTable.js`. Not touched: `compareNumbers.js` (non-numeric options, N/A) and `counting.js`
-(confirmed falls out under the ratio rule for its originally-flagged concern — see below).
+(now confirmed fully resolved despite never being edited — see below).
 
-**Before/after** (% of questions with 2+ implausible distractors, worst difficulty rung shown;
-500-run audit, same method as the phase-1 report):
+**Before/after, three points not two** (% of questions with 2+ implausible distractors, worst
+difficulty rung shown; 500-run audit throughout):
 
-| Skill | Before | After |
-|---|---|---|
-| `g2.num.3digit` | 44.8–52.2% (44–49% were **all three** implausible) | 0% |
-| `g2.add.2d-nocarry` | 96–100% | 0% |
-| `g2.add.2d-carry` | 40.2–64.2% | 0% |
-| `g2.sub.2d-noborrow` | 51.6–81.0% | 0%* |
-| `g2.sub.2d-borrow` | 36.0–59.6% | 0%* |
-| `g1.add.within10` / `within20` | 0–53.0% | 0% |
-| `g1.sub.within10` / `within20` | 1.0–44.6% | 0%* |
-| `g2.mul.intro` | 11.8–24.8% | 0%* |
-| `g2.mul.table2/5/10` | 8.0–20.6% | 0%* |
+| Skill | Phase-1 (no fix) | Phase-2 raw (selection-order fix alone) | Final (+ floor & tiebreak) |
+|---|---|---|---|
+| `g2.num.3digit` | 44.8–52.2% (44–49% all-three) | 0%† | **0%** |
+| `g2.add.2d-nocarry` | 96–100% | 0%† | **0%** |
+| `g2.add.2d-carry` | 40.2–64.2% | 0%† | **0%** |
+| `g2.sub.2d-noborrow` | 51.6–81.0% | 3.6–9.2% | **0%** |
+| `g2.sub.2d-borrow` | 36.0–59.6% | 0.8–1.6% | **0%** |
+| `g1.add.within10` / `within20` | 0–53.0% | 0%† | **0%** |
+| `g1.sub.within10` | 1.0–44.6% | **44.2–64.0%** | **0%** |
+| `g1.sub.within20` | (same row) | 31.8–44.8% | **0%** |
+| `g2.mul.intro` | 11.8–24.8% | 14.0–16.4% | **0%** |
+| `g2.mul.table2/5/10` | 8.0–20.6% | 8.6–11.4% | **0%** |
 
-\* **Not literally 0% — see the degenerate-answer finding below.** These are 0% among questions
-whose answer is ≥2; every skill marked `*` still has SOME residual, but it is 100% explained by
-`correctAnswer` being 0 or 1, not a selection-order gap.
+† These three had zero phase-2-raw residual too — their implausible pairs (e.g.
+`add-across-columns`/`operator-mixup`) fire on ordinary 2-digit answers, not specifically on 0/1,
+so the selection-order fix alone was already sufficient for them. **The "Phase-2 raw" column is
+the number the previous version of this table omitted** — it showed only "0%\*" with a footnote,
+which read as a clean win where the raw number for `g1.sub.within10` had actually RISEN to 65%.
+That is precisely what the claims rule exists to catch; corrected here, not just noted.
 
-**A real conflict surfaced and was escalated, not resolved silently.** Running the new validator
-guard unconditionally (§below) proved that "≤1 implausible" is **mathematically impossible**
-when the correct answer is 0 or 1: the ratio rule's bounds admit at most one alternative integer
-in that range (answer=0 → zero valid alternatives; answer=1 → exactly one, value `2`). This
-directly conflicted with two explicit requirements (uniform guard, no exceptions vs. green
-suite). Stopped and asked rather than guessing — **human's call: add a principled,
-answer-magnitude carve-out** (`MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY = 2`, exported from
-`_plausibility.js` with the proof inline), not a per-skill exemption. `g1.sub.within10`
-specifically has this residual on the **majority** of its content at d1 (65%), because its
-ceiling (minuend ≤5) makes a zero/near-zero answer common, not rare — flagged prominently, not
-patched, since narrowing that ceiling changes WHAT gets asked, a different-shaped fix.
+**A real conflict surfaced and was escalated, not resolved silently — since resolved.** Running
+the new validator guard unconditionally proved "≤1 implausible" was mathematically impossible
+when the correct answer was 0 or 1 (ratio bounds admit zero alternatives at 0, exactly one — the
+value `2` — at 1). Stopped and asked rather than guessing; **human's call at the time: a
+principled, answer-magnitude carve-out** (`MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY`). The
+follow-up task then asked whether the underlying ratio rule itself was measuring the wrong thing
+at that range — it was: `3-3=0` calling 1/2/3 all implausible is a real child's tempting wrong
+answer, not elimination-by-magnitude. **The absolute tolerance floor fixes the metric instead of
+carving around it**, and the carve-out is gone: `MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY`, its
+proof block, and the validator's answer<2 skip were all deleted after verifying empirically they
+had nothing left to protect (removing the skip and re-running passed unconditionally; the
+floor's own math proves answers 0 and 1 now admit several plausible alternatives, not one).
+`selectDistractors`'s uncapped last-resort loop is gone too — 76,000 generated questions across
+every skill/difficulty confirmed it unreachable once the floor guarantees `answer ± 1/2/3` are
+always plausible.
 
-**Two canonical tags are now structurally unreachable — found via the tag-survival check, not
-anticipated by the task brief. Reported, not fixed (a selection-priority question, arguably
-either a code or doc conversation — flagged for the human either way):**
-- `g2.add.2d-nocarry`: `operator-mixup` never surfaces. Both it and `add-across-columns` are
-  ALWAYS implausible (add-across-columns tops out at 36, always; operator-mixup collapses below
-  max(a,b) whenever a≠b) — `add-across-columns` is listed first in the recipe's candidate order,
-  so it permanently wins the one implausible slot.
-- `g2.num.3digit`: `zero-placeholder-ignored` never surfaces, for the identical reason —
-  `expanded-concatenation` is listed first and is also always implausible whenever `t===0`
-  (both fire under the same condition).
+**Two canonical tags were structurally unreachable — found via the tag-survival check, now
+revived, and the underlying mechanism generalised rather than special-cased.**
+- `g2.add.2d-nocarry`: `operator-mixup` now surfaces on ~48.8% of questions (976/2000 sample).
+- `g2.num.3digit`: `zero-placeholder-ignored` now surfaces on ~14.1% of questions (282/2000 sample).
 
-Neither is a "doc gap" (the tags are correct per `misconceptions-reference.md`) — it's that two
-equally-valid distractors can't both be shown under the new one-implausible cap, and the
-recipe's array order happens to always pick the same one. A random tiebreak between tied
-implausible candidates would fix this without touching a tag rule, but that's a further code
-change beyond what was asked here — reported for a decision, not applied.
+Both were dying for the same reason: `selectDistractors` always took `implausible[0]` — whichever
+tag was listed first in a recipe's candidate array won the one implausible slot on EVERY question
+forever. This was never going to stay a two-instance problem — it's a rule that silently kills a
+canonical tag in any recipe with two-or-more always-implausible candidates, written into every
+recipe from here forward unless fixed once. `selectDistractors` now threads the recipe's own
+seeded `rng` and draws randomly among tied implausible candidates (only when more than one
+exists, so it doesn't touch the rng stream otherwise). **Full tag sweep, not just the two known
+cases:** every canonical tag across all 9 skill groups now surfaces, confirmed by a 500-run audit
+listing every tag seen per skill. The only tags still absent (`tens-ignored` /
+`smaller-from-larger-force` on `g1.sub.within10`) are a **pre-existing, unrelated** characteristic
+— that skill's minuend ceiling (≤10) never produces a teen minuend, so the teen-only condition
+those tags require is structurally unreachable regardless of selection order; not caused by, or
+fixed by, any part of this work.
 
-**`counting.js` (untouched, out of scope) — task's own prediction partially confirmed, partially
-not, reported as instructed.** The specific concern the task named (digit-length false positives,
-e.g. answer=9 vs distractor=10) IS resolved — confirmed 0% of that class remains. But `counting.js`
-carries the SAME answer≤1 residual as every touched skill (177/500 = 35.4% at `g1.count.1-9` d1,
-100% explained by `correctAnswer <= 1`) — not what "should fall out" predicted, though it's the
-identical, already-explained edge case, not a new one.
+**`counting.js` (still untouched, out of scope) — now fully resolved without a single edit.** The
+specific concern the original task named (digit-length false positives, e.g. answer=9 vs
+distractor=10) was already fixed by the ratio rule alone. Its subsequently-found answer≤1
+residual (35.4% at `g1.count.1-9` d1) is now also gone — the floor lives in the shared
+`isImplausible`/`selectDistractors` that `counting.js` already called, so the fix reached it for
+free.
 
 **Registration / verification**
 
 | Check | Result |
 |---|---|
-| Tests | **427 green** (+9: one "at most one implausible" test per recipe module), 1 skipped. Baseline 416 (post text-cutoff-fix commit `8931b7a`). |
+| Tests | **436 green** (+9 this amendment: one determinism test per recipe module; 427 from the original phase-2 commit), 1 skipped. Baseline 416 (post text-cutoff-fix commit `8931b7a`). |
 | Guard proven red, then restored | `addition2d.js` temporarily reverted to naive first-N candidate selection (the pre-fix behaviour) → guard failed with the exact expected message (3 implausible on a no-carry question) → restored, `git diff` clean. |
-| Tag survival | Every canonical tag confirmed surfacing across 500-run samples, EXCEPT the two structural-priority cases above (reported, not silently passed). |
+| Tag survival + frequency | Every canonical tag across all 9 skill groups confirmed surfacing (500-run audit), with observed frequency reported for the two revived tags above. Only the pre-existing, unrelated `g1.sub.within10` gap remains. |
+| Guard coverage | Runs on **every** generated question now — no skip of any kind survives. |
+| Determinism | Same seed → same question, asserted as a permanent test (`validateDeterminism`) per recipe module — the rng-based tiebreak could have broken this silently; it doesn't. |
 | Lint / `lint:hex` / `privacy:check` | Clean — 0 errors (3 pre-existing warnings, unchanged). |
-| **Real browser, built app**, 412×915 viewport | Played `Two-Digit Adds` (g2.add.2d-nocarry, Grade 2) and `Add it Up!` (g1.add.within20, Grade 1) sessions to completion — both reached the celebration screen. **Zero console errors, zero off-origin requests.** |
-| **Storage / migration** | **No skill-state shape changed anywhere.** This is a content-generation change only (which candidates a recipe offers as options) — no `progressStore`/`mastery.js` field touched, no localStorage key touched. **No migration needed; no tester mid-session loses progress.** |
+| **Real browser, built app**, 412×915 viewport | Original pass: `Two-Digit Adds` (g2.add.2d-nocarry) + `Add it Up!` (g1.add.within20). Amendment pass: `Pop the Balloons!` (g1.sub.within10, the skill most affected) + `Two-Digit Adds` again. All four sessions reached the celebration screen. **Zero console errors, zero off-origin requests**, both passes. |
+| **Storage / migration** | **No skill-state shape changed anywhere, either pass.** Content-generation only — no `progressStore`/`mastery.js` field touched, no localStorage key touched. **No migration needed; no tester mid-session loses progress.** |
 
-**What this does NOT fix — recorded so it isn't mistaken for done.** `random-slip` usage rises
-(most visibly on 2-digit no-carry addition, where `place-value-swap` is the only reliably-plausible
-tagged candidate) — expected, not a regression. **Observed accuracy will likely drop, possibly
-sharply, especially on `g2.add.2d-nocarry`** — the measurement becoming honest, not the app
-getting harder. `masteryConfig.js`/`STRONG_RATIO` were **not** retuned, even though promotion may
-now look stalled on the previously-easiest-to-guess skills. **This fix does not address difficulty
-PACING** — `applyResult` (`src/engine/mastery.js`) still advances both `level` and `difficulty` off
-the same `isStrong` boolean in one step, with no consolidation/settling period; that is the
-separate, still-open question logged at `eab63e5`'s Kid-Test Log entry, untouched here.
+**What this does NOT fix — recorded so it isn't mistaken for done.** `random-slip` usage rose
+after the selection-order fix and stayed elevated after the floor (expected — more candidates
+compete for fewer slots once implausible ones are capped). **Observed accuracy will likely drop,
+possibly sharply, especially on `g2.add.2d-nocarry`** — the measurement becoming honest, not the
+app getting harder. `masteryConfig.js`/`STRONG_RATIO` were **not** retuned, even though promotion
+may now look stalled on the previously-easiest-to-guess skills. **This fix does not address
+difficulty PACING** — `applyResult` (`src/engine/mastery.js`) still advances both `level` and
+`difficulty` off the same `isStrong` boolean in one step, with no consolidation/settling period;
+that is the separate, still-open question logged in the Kid-Test Log's #11 entry, untouched here.
 
 **Open doc gap (repeated from phase 1, still not filled — teacher review, not this task):**
 2-digit-no-carry addition has only one near-tagged candidate (`place-value-swap`) once
 `add-across-columns`/`operator-mixup` are capped to one implausible slot between them. "Added the
 tens but ignored the ones" (34+24→54) remains a plausible real misconception with no doc entry.
+
+**Three decisions are now owed a `DECISIONS.md` entry** (the human is drafting all three; see the
+Decisions Log pointer below for the full list): the themes-as-test-instrument call from #10, the
+distractor-plausibility rule itself, and the average-learner design principle.
 
 **Scope fences honoured:** no tag formula changed, no recipe ceiling changed, no
 `masteryConfig.js`/`STRONG_RATIO` change, frozen paths untouched, no `DECISIONS.md` entry (the
@@ -988,7 +1013,7 @@ four Now rows are gated on them and should NOT be built until they are.
 - Journey path (default) vs card list (`?home=cards`) — which does a child navigate more confidently? — **informs #5**
 - Does a child launching straight into the skill path (no welcome/onboarding) know what to do? — **informs #9**
 - **NEW (#10):** does a theme change get noticed or reacted to at all? Does a child ask for a different one, or ask to keep one? **Watch for indifference as a real result** — if theme variety moves nothing, the kid-facing picker stays unbuilt and this is a cheap answer, not a failure.
-- **NEW (#11):** is Grade 2 content pitched right, or too hard/easy? Does a Grade 2/3 child find the Grade 1 material insulting? **Specific instance found 2026-08-22 (screenshots, not yet a kid-test result):** on `g2.add.2d-nocarry`, one strong session (≥80%) bumps the adaptive difficulty a full rung immediately (`mastery.js`, pre-existing engine), and a session runs at ONE FIXED difficulty throughout — no ramp within the 8 questions. So the session right after a good one jumps straight to the harder ceiling (39→69) with no easing-in, and within that rung the recipe deliberately mixes trivial single-digit-addend questions (`66+1=?`, testing `column-alignment-shift`) with full 2-digit sums (`34+24=?`) — same nominal difficulty, visibly different cognitive load. Content is correct CBSE Grade-2 syllabus (2-digit addition to 99, with/without carry); this is a PACING question, not a scope question. **Decision:** leave as-is until the trip's kid-test signal says otherwise — same gate as the other #11/#5/#9 pacing questions. If it turns out to matter, the options on the table are (a) an in-session difficulty ramp, (b) requiring 2 strong sessions before advancing a rung, (c) tuning down how often the trivial single-digit-addend variant appears.
+- **NEW (#11):** is Grade 2 content pitched right, or too hard/easy? Does a Grade 2/3 child find the Grade 1 material insulting? **Specific instance found 2026-08-22 (screenshots, not yet a kid-test result):** on `g2.add.2d-nocarry`, one strong session (≥80%) bumps the adaptive difficulty a full rung immediately (`mastery.js`, pre-existing engine), and a session runs at ONE FIXED difficulty throughout — no ramp within the 8 questions. So the session right after a good one jumps straight to the harder ceiling (39→69) with no easing-in. **Corrected 2026-08-26 (was wrong):** the within-rung mix of trivial single-digit-addend questions (`66+1=?`, testing `column-alignment-shift`) with full 2-digit sums (`34+24=?`) is NOT deliberate — nothing in `addition2d.js` sets that proportion. `buildOperands` draws `a` uniformly across the full cap range FIRST, then draws `b` from `[1, cap-a]`; when `a` lands near the top of its range, `cap-a` is small, forcing `b` small (often single-digit) — the "trivial-looking" questions are an artifact of that sampling order, not a designed mix ratio. Content is correct CBSE Grade-2 syllabus (2-digit addition to 99, with/without carry); this is a PACING question, not a scope question. **Decision:** leave as-is until the trip's kid-test signal says otherwise — same gate as the other #11/#5/#9 pacing questions. If it turns out to matter, the options on the table are (a) an in-session difficulty ramp, (b) requiring 2 strong sessions before advancing a rung, (c) tuning down how often the trivial single-digit-addend variant appears.
 - Does progress loss (cleared data / new device) actually happen in practice, and do parents notice? — informs whether export/import is sufficient
 - (existing items carried from prior log — see git history / prior Drive export for full list predating this file)
 
@@ -1033,6 +1058,16 @@ progress only, versioned envelope, REPLACE not merge — the shape behind Now #3
 Note: the 2026-08-18 corrections (Now #6, the composer Done blocks, DOCMAP's
 spec-practice-composer.md row) and the 2026-08-21 ones (Now #7 split, Now #12 /
 Grade 3 absent) are status corrections, not new decisions — nothing was added to
-`DECISIONS.md` for them. **One genuine decision from 2026-08-21 is recorded in
-"Out of MVP scope" and still needs a DECISIONS entry when #10 lands: themes are a
-parent-zone test instrument, not a kid-facing feature.**
+`DECISIONS.md` for them. **Three genuine decisions are now owed a `DECISIONS.md` entry,
+none written yet — the human is drafting all three:**
+1. Themes are a parent-zone test instrument, not a kid-facing feature (2026-08-21, recorded
+   in "Out of MVP scope," needs the entry when #10 lands).
+2. **The distractor-plausibility rule itself** (2026-08-25/26): at most one implausible
+   distractor per question, defined as a monotonic-fact violation OR a magnitude-ratio
+   violation, overridden by an absolute-tolerance floor (±3) at small answers. Implemented in
+   `src/recipes/_plausibility.js`; product framing not yet recorded.
+3. **The average-learner design principle** (2026-08-25): the product is built for the
+   average learner, not the strong one — guessable options inflate scores, inflated scores
+   drive premature difficulty promotion, and the children most harmed are the ones the app
+   exists for. This is why the Grade-1 reference recipes were brought into the plausibility
+   fix's scope rather than deferred. Not yet recorded as a standing principle.
