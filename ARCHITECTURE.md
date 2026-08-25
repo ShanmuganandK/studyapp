@@ -168,7 +168,15 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
 - **`__tests__/validator.test.js`** — the shared validator (STANDARDS §3). For each recipe and
   each skill it serves (`skillIds ?? [skillId]`), runs `generate` 100× per difficulty and
   asserts the full contract; branches on `format` (numeric vs `compare`). Every recipe must
-  pass it before merge.
+  pass it before merge. **Plausibility guard** (added for the kid-test fix): asserts at most one
+  implausible distractor per question (`isImplausible` from `_plausibility.js`), for every skill
+  with a `PLAUSIBILITY_KIND` entry (`add`/`sub`/`mul`/`place` — `compare` and `count-objects`
+  have no monotonic rule defined, out of scope). Skips questions whose `correctAnswer <
+  MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY` (2) — a principled, answer-magnitude condition (not a
+  per-skill exemption): below that, `_plausibility.js` proves the ratio rule admits at most one
+  non-answer integer, so "≤1 implausible" is mathematically impossible, not a bug this guard
+  should catch. Proven red on `addition2d.js` (temporarily reverted to naive first-N selection,
+  watched it fail, restored).
 - **`__tests__/structuralConstraints.test.js`** — asserts `addition2d.js`/`subtraction2d.js`'s
   carry/borrow guarantee as a TEST, not just a comment: 200 runs per difficulty confirm
   `g2.add.2d-nocarry`/`g2.sub.2d-noborrow` never require a carry/borrow and their carry/borrow

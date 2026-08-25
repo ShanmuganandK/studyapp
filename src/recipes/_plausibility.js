@@ -25,6 +25,19 @@
  * beside it must be plausible.
  */
 
+/**
+ * Below this answer, "at most one implausible distractor" is mathematically impossible, not a
+ * selection-order failure: the ratio rule (`value < answer/2` or `> answer*2`) admits at most
+ * ONE integer other than the answer itself once `answer <= 1`.
+ *   answer = 0 → bounds are [0, 0]; every positive integer violates `> answer*2`. Zero options.
+ *   answer = 1 → bounds are [0.5, 2]; only the integer 2 satisfies them. One option, for two
+ *                required distractor slots — at least one of the two MUST be implausible.
+ * Consumers that need a hard "no more than one implausible" guarantee (e.g. a test asserting the
+ * rule holds) should skip answers below this threshold rather than fail on them — proven
+ * unreachable by construction, not a gap in the rule.
+ */
+export const MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY = 2;
+
 /** True when `value` is implausible for this question under the rule above. */
 export function isImplausible(kind, context, value) {
   const { a, b, answer } = context;
@@ -57,12 +70,12 @@ const MAX_FALLBACK_ATTEMPTS = 50;
  * then a nearby-value walk from `answer` for any slots still short — itself subject to the
  * same one-implausible cap, so the fallback can't quietly reintroduce a second bad option.
  *
- * Some answers (0, 1, and occasionally other very small values) have NO integer that satisfies
- * the ratio rule at all — every candidate is mathematically implausible. Rather than ever
- * return fewer than `count` distinct, non-negative options (the one invariant every recipe's
- * old private selector already guaranteed), the cap is relaxed only as an absolute last resort
- * once the fallback walk is exhausted. This is a real, reportable edge case — not something to
- * silently hide.
+ * Answers below `MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY` (0 and 1) have NO integer that
+ * satisfies the ratio rule at all — every candidate is mathematically implausible. Rather than
+ * ever return fewer than `count` distinct, non-negative options (the one invariant every
+ * recipe's old private selector already guaranteed), the cap is relaxed only as an absolute
+ * last resort once the fallback walk is exhausted. This is a real, reportable edge case — not
+ * something to silently hide.
  */
 export function selectDistractors({ candidates, kind, context, count }) {
   const used = new Set([context.answer]);

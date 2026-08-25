@@ -16,6 +16,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { makeRng } from '../_rng';
+import { isImplausible, MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY } from '../_plausibility';
 import additionRecipe from '../addition';
 import countingRecipe from '../counting';
 import subtractionRecipe from '../subtraction';
@@ -201,6 +202,62 @@ function validateCeiling(recipe) {
   }
 }
 
+// Distractor-plausibility guard (kid-test audit fix). `kind` per skill, matching _plausibility.js's
+// operation semantics; skills with no entry (compare, count-objects) have no numeric monotonic
+// rule defined and are out of scope for this guard — see ARCHITECTURE.md/TRACKER.md.
+const PLAUSIBILITY_KIND = {
+  'g1.add.within10': 'add',
+  'g1.add.within20': 'add',
+  'g2.add.2d-nocarry': 'add',
+  'g2.add.2d-carry': 'add',
+  'g1.sub.within10': 'sub',
+  'g1.sub.within20': 'sub',
+  'g2.sub.2d-noborrow': 'sub',
+  'g2.sub.2d-borrow': 'sub',
+  'g2.mul.intro': 'mul',
+  'g2.mul.table2': 'mul',
+  'g2.mul.table5': 'mul',
+  'g2.mul.table10': 'mul',
+  'g2.num.3digit': 'place',
+};
+
+function plausibilityContextFor(kind, q) {
+  if (kind === 'place') return { answer: q.correctAnswer };
+  const [a, b] = numbersIn(q.questionText);
+  return { a, b, answer: q.correctAnswer };
+}
+
+function validatePlausibility(recipe) {
+  for (const skillId of skillIdsOf(recipe)) {
+    const kind = PLAUSIBILITY_KIND[skillId];
+    if (!kind) continue; // compare / count-objects: no monotonic rule defined, out of scope
+
+    for (let difficulty = 1; difficulty <= recipe.maxDifficulty; difficulty++) {
+      for (let run = 0; run < RUNS_PER_DIFFICULTY; run++) {
+        const rng = makeRng(`plausibility:${skillId}:${difficulty}:${run}`);
+        const q = recipe.generate(difficulty, rng, skillId);
+
+        // Below MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY the rule itself admits at most one
+        // non-answer integer (proven in _plausibility.js) — "at most one implausible" is
+        // mathematically impossible there, not a selection-order failure this guard should
+        // catch. This is a magnitude condition on the answer, not a per-skill/per-recipe
+        // exemption: it applies identically to any skill that happens to generate such an
+        // answer.
+        if (q.correctAnswer < MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY) continue;
+
+        const context = plausibilityContextFor(kind, q);
+        const implausibleCount = q.options.filter(
+          (opt) => opt !== q.correctAnswer && isImplausible(kind, context, opt),
+        ).length;
+        expect(
+          implausibleCount,
+          `${skillId} d${difficulty} has ${implausibleCount} implausible distractors (max 1): ${q.questionText} -> ${q.correctAnswer}, options=[${q.options}]`,
+        ).toBeLessThanOrEqual(1);
+      }
+    }
+  }
+}
+
 describe.each([
   ['addition (g1.add.within10, within20)', additionRecipe],
   ['counting (g1.count.1-9, 1-20)', countingRecipe],
@@ -218,5 +275,9 @@ describe.each([
 
   it('respects the difficulty ceiling', () => {
     validateCeiling(recipe);
+  });
+
+  it('has at most one implausible distractor per question', () => {
+    validatePlausibility(recipe);
   });
 });
