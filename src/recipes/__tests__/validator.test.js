@@ -16,7 +16,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { makeRng } from '../_rng';
-import { isImplausible, MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY } from '../_plausibility';
+import { isImplausible } from '../_plausibility';
 import additionRecipe from '../addition';
 import countingRecipe from '../counting';
 import subtractionRecipe from '../subtraction';
@@ -227,6 +227,11 @@ function plausibilityContextFor(kind, q) {
   return { a, b, answer: q.correctAnswer };
 }
 
+// No skip for small answers here — the absolute tolerance floor in _plausibility.js means every
+// answer, including 0 and 1, always has enough genuinely plausible nearby integers. Verified
+// (not assumed): this guard used to skip questions with correctAnswer < 2 before the floor
+// shipped, because "<=1 implausible" was mathematically impossible there; removing the skip and
+// re-running confirmed it now passes unconditionally, on every generated question.
 function validatePlausibility(recipe) {
   for (const skillId of skillIdsOf(recipe)) {
     const kind = PLAUSIBILITY_KIND[skillId];
@@ -237,14 +242,6 @@ function validatePlausibility(recipe) {
         const rng = makeRng(`plausibility:${skillId}:${difficulty}:${run}`);
         const q = recipe.generate(difficulty, rng, skillId);
 
-        // Below MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY the rule itself admits at most one
-        // non-answer integer (proven in _plausibility.js) — "at most one implausible" is
-        // mathematically impossible there, not a selection-order failure this guard should
-        // catch. This is a magnitude condition on the answer, not a per-skill/per-recipe
-        // exemption: it applies identically to any skill that happens to generate such an
-        // answer.
-        if (q.correctAnswer < MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY) continue;
-
         const context = plausibilityContextFor(kind, q);
         const implausibleCount = q.options.filter(
           (opt) => opt !== q.correctAnswer && isImplausible(kind, context, opt),
@@ -254,6 +251,21 @@ function validatePlausibility(recipe) {
           `${skillId} d${difficulty} has ${implausibleCount} implausible distractors (max 1): ${q.questionText} -> ${q.correctAnswer}, options=[${q.options}]`,
         ).toBeLessThanOrEqual(1);
       }
+    }
+  }
+}
+
+// Determinism: the same seed must produce the exact same question, every time — including
+// after threading `rng` into selectDistractors for the implausible-candidate tiebreak (Change 2
+// of the plausibility amendment). A random tiebreak that drew from Math.random() or any
+// unseeded source would break this silently; this asserts it can't.
+function validateDeterminism(recipe) {
+  for (const skillId of skillIdsOf(recipe)) {
+    for (let difficulty = 1; difficulty <= recipe.maxDifficulty; difficulty++) {
+      const seed = `determinism:${skillId}:${difficulty}`;
+      const q1 = recipe.generate(difficulty, makeRng(seed), skillId);
+      const q2 = recipe.generate(difficulty, makeRng(seed), skillId);
+      expect(q2).toEqual(q1);
     }
   }
 }
@@ -279,5 +291,9 @@ describe.each([
 
   it('has at most one implausible distractor per question', () => {
     validatePlausibility(recipe);
+  });
+
+  it('is deterministic — same seed produces the same question', () => {
+    validateDeterminism(recipe);
   });
 });

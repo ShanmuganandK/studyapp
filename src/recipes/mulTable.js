@@ -76,6 +76,7 @@ const recipe = {
       kind: 'mul',
       context: { a: table, b: m, answer: product },
       count: OPTION_COUNT - 1,
+      rng,
     });
 
     // Shuffle the {value, tag} pairs together so misconceptions stay index-aligned with options.

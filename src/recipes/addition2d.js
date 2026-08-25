@@ -111,6 +111,7 @@ const recipe = {
       kind: 'add',
       context: { a, b, answer: sum },
       count: OPTION_COUNT - 1,
+      rng,
     });
 
     // Shuffle the {value, tag} pairs together so misconceptions stay index-aligned with options.

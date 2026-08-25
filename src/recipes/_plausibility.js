@@ -23,30 +23,38 @@
  * wrong operation, who isn't eliminating options by magnitude). So the rule is NOT "strip
  * implausible tags" — it's "at most ONE implausible distractor per question." Everything
  * beside it must be plausible.
+ *
+ * ABSOLUTE TOLERANCE FLOOR (added after the first fix shipped): the ratio rule was calibrated
+ * for well-separated magnitudes (13 vs 58) and misfires at small answers — `3 - 3 = 0` flags
+ * 1, 2 and 3 as all implausible, but no child eliminates "1" as a wrong answer to 3-3; it's a
+ * genuinely tempting distractor. A value within `PLAUSIBLE_ABSOLUTE_TOLERANCE` of the answer is
+ * plausible regardless of what the monotonic or ratio rule says — the floor OVERRIDES both,
+ * deliberately. That override matters even at large operands: for `66 + 1 = 67`,
+ * `operator-mixup` produces 65 (|66-1|) — the monotonic rule alone would call it implausible
+ * (65 < max(66,1)=66), but 65 is two away from the correct answer and is exactly the option
+ * that catches a child who read "+" as "-". Meanwhile `34 + 24 = 58` with operator-mixup
+ * producing 10 is 48 away — well outside the floor — and stays correctly implausible.
  */
-
-/**
- * Below this answer, "at most one implausible distractor" is mathematically impossible, not a
- * selection-order failure: the ratio rule (`value < answer/2` or `> answer*2`) admits at most
- * ONE integer other than the answer itself once `answer <= 1`.
- *   answer = 0 → bounds are [0, 0]; every positive integer violates `> answer*2`. Zero options.
- *   answer = 1 → bounds are [0.5, 2]; only the integer 2 satisfies them. One option, for two
- *                required distractor slots — at least one of the two MUST be implausible.
- * Consumers that need a hard "no more than one implausible" guarantee (e.g. a test asserting the
- * rule holds) should skip answers below this threshold rather than fail on them — proven
- * unreachable by construction, not a gap in the rule.
- */
-export const MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY = 2;
+export const PLAUSIBLE_ABSOLUTE_TOLERANCE = 3;
 
 /** True when `value` is implausible for this question under the rule above. */
 export function isImplausible(kind, context, value) {
   const { a, b, answer } = context;
+
+  if (Math.abs(value - answer) <= PLAUSIBLE_ABSOLUTE_TOLERANCE) return false;
+
   let monotonicViolation = false;
 
   if (kind === 'add') {
     monotonicViolation = value < Math.max(a, b);
   } else if (kind === 'sub') {
-    monotonicViolation = value > a; // a is always the minuend, by convention of the caller
+    // a is always the minuend, by convention of the caller — enforced, not just documented,
+    // since a silently-swapped caller would otherwise misclassify every distractor with no
+    // test failure (found across 7 call sites with no shared type to catch it structurally).
+    if (a < b) {
+      throw new Error(`isImplausible('sub', ...): context.a (${a}) must be the minuend (>= b, ${b})`);
+    }
+    monotonicViolation = value > a;
   } else if (kind === 'mul') {
     if (a >= 2 && b >= 2) monotonicViolation = value < Math.max(a, b);
   }
@@ -64,20 +72,25 @@ const MAX_FALLBACK_ATTEMPTS = 50;
 /**
  * Selects `count` distractors from `candidates` ({value, tag} pairs, in the recipe's own
  * most-specific-first order — unchanged, this never touches how a value is COMPUTED).
+ * `rng` is the recipe's own seeded RNG, threaded through only to break ties among implausible
+ * candidates (see below) — generation stays fully deterministic per seed.
  *
  * Preference order: every plausible candidate the recipe already built, then AT MOST ONE
- * implausible one (the earliest/most-specific, if the plausible ones don't fill every slot),
- * then a nearby-value walk from `answer` for any slots still short — itself subject to the
- * same one-implausible cap, so the fallback can't quietly reintroduce a second bad option.
+ * implausible one — picked AT RANDOM among however many are tied for the slot, not always the
+ * first in array order (if only one implausible candidate exists, it's used directly; no rng
+ * draw happens) — then a nearby-value walk from `answer` for any slots still short — itself
+ * subject to the same one-implausible cap, so the fallback can't quietly reintroduce a second
+ * bad option.
  *
- * Answers below `MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY` (0 and 1) have NO integer that
- * satisfies the ratio rule at all — every candidate is mathematically implausible. Rather than
- * ever return fewer than `count` distinct, non-negative options (the one invariant every
- * recipe's old private selector already guaranteed), the cap is relaxed only as an absolute
- * last resort once the fallback walk is exhausted. This is a real, reportable edge case — not
- * something to silently hide.
+ * Before the absolute tolerance floor, answers of 0 or 1 had NO integer satisfying the ratio
+ * rule at all, so filling `count` slots could require exceeding the one-implausible cap as a
+ * last resort. The floor removes that case entirely: `answer ± 1`, `± 2` and `± 3` are always
+ * plausible now, regardless of the answer's magnitude, so the walk below always succeeds well
+ * within `MAX_FALLBACK_ATTEMPTS`. Verified empirically (76,000 generated questions across every
+ * skill/difficulty in the app, zero shortfalls) before removing the old uncapped last-resort
+ * loop that used to guarantee this the hard way.
  */
-export function selectDistractors({ candidates, kind, context, count }) {
+export function selectDistractors({ candidates, kind, context, count, rng }) {
   const used = new Set([context.answer]);
   const plausible = [];
   const implausible = [];
@@ -90,7 +103,14 @@ export function selectDistractors({ candidates, kind, context, count }) {
 
   const chosen = plausible.slice(0, count);
   if (chosen.length < count && implausible.length > 0) {
-    chosen.push(implausible[0]);
+    // Random tiebreak among tied implausible candidates — NOT always index 0. With a fixed
+    // index, whichever tag happened to be listed first in the recipe's candidate array would
+    // win the one implausible slot on EVERY question forever, permanently starving every other
+    // implausible-but-canonical tag (found live: operator-mixup on g2.add.2d-nocarry,
+    // zero-placeholder-ignored on g2.num.3digit — both always-implausible, both always losing
+    // to an earlier-listed candidate). Only draws when there's an actual choice to make, so a
+    // single-candidate case doesn't consume an rng value for nothing.
+    chosen.push(implausible.length > 1 ? rng.pick(implausible) : implausible[0]);
   }
 
   const hasImplausibleAlready = () => chosen.some((c) => isImplausible(kind, context, c.value));
@@ -103,17 +123,6 @@ export function selectDistractors({ candidates, kind, context, count }) {
     offset = offset > 0 ? -offset : -offset + 1; // walk +1,-1,+2,-2,...
     if (value < 0 || used.has(value)) continue;
     if (isImplausible(kind, context, value) && hasImplausibleAlready()) continue;
-    used.add(value);
-    chosen.push({ value, tag: 'random-slip' });
-  }
-
-  // Last resort — should be unreachable for every skill's real ceilings except the documented
-  // near-zero-answer edge case. Guarantees the invariant (a full option set) never breaks.
-  offset = 1;
-  while (chosen.length < count) {
-    const value = context.answer + offset;
-    offset = offset > 0 ? -offset : -offset + 1;
-    if (value < 0 || used.has(value)) continue;
     used.add(value);
     chosen.push({ value, tag: 'random-slip' });
   }

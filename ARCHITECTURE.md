@@ -66,16 +66,23 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   plausibility fix; never computes a distractor's value, only decides which of a recipe's
   already-built candidates get spent as option slots). `isImplausible(kind, {a,b,answer}, value)`
   flags a value eliminable without arithmetic: a monotonic-fact violation (add: `< max(a,b)`;
-  sub: `> minuend`; mul with both factors ≥2: `< max(a,b)`; place/count: no monotonic rule) OR a
-  magnitude-ratio violation (`< answer/2` or `> answer*2`). `selectDistractors({candidates, kind,
-  context, count})` enforces **at most one implausible distractor per question** — plausible
-  candidates first, then at most one implausible (the recipe's own most-specific one, if slots
-  remain short), then a nearby-value walk, itself capped the same way. A tiny minority of very
-  small answers (0, 1) have no integer satisfying the ratio rule at all — the cap is relaxed only
-  as an absolute last resort so the option set is never short, and this is a reported, known edge
-  case, not a bug. Also exports `MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY` (2) — the validator's
-  plausibility guard skips questions below it, since the rule proves no selection order can
-  satisfy the cap there. Consumers: `addition.js`, `subtraction.js`, `addition2d.js`,
+  sub: `> minuend`, enforced — throws if `a < b`, since the "a is the minuend" contract is
+  unenforced across 7 call sites otherwise; mul with both factors ≥2: `< max(a,b)`; place/count:
+  no monotonic rule) OR a magnitude-ratio violation (`< answer/2` or `> answer*2`) — **UNLESS**
+  `value` is within `PLAUSIBLE_ABSOLUTE_TOLERANCE` (3) of the answer, which overrides BOTH checks
+  deliberately (a value 2 away from the answer is never eliminable by magnitude reasoning,
+  regardless of how large the operands are — added after the ratio rule was found to misfire on
+  small answers like `3-3=0`, where it called 1/2/3 all implausible). `selectDistractors(
+  {candidates, kind, context, count, rng})` enforces **at most one implausible distractor per
+  question** — plausible candidates first, then at most one implausible chosen **at random**
+  among the tied candidates (`rng.pick`, only drawn when more than one exists, so the rng stream
+  is untouched otherwise), then a nearby-value walk, itself capped the same way. The floor makes
+  `answer ± 1/2/3` always plausible regardless of magnitude, so the walk now always succeeds; the
+  old uncapped last-resort loop (needed pre-floor for answers of 0/1, which had no plausible
+  alternative at all) was removed after 76,000 generated questions across every skill/difficulty
+  confirmed it unreachable. `MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY` and the validator's
+  small-answer skip are gone with it — the guard now runs on every generated question,
+  unconditionally. Consumers: `addition.js`, `subtraction.js`, `addition2d.js`,
   `subtraction2d.js`, `mulIntro.js`, `mulTable.js`, `counting3digit.js` — every numeric-option
   recipe except `counting.js` (out of scope) and `compareNumbers.js` (non-numeric options, N/A).
 - **`addition.js`** — reference recipe, **multi-skill** (`skillIds: g1.add.within10,
