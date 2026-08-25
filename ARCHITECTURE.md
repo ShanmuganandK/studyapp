@@ -135,7 +135,9 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   `KIND_BY_RECIPE`** (falls through to the ordered `text` default) — multiplication is not
   commutative pedagogically for a "groups of" skill (3×5 ≠ 5×3 to a child learning the concept),
   so collapsing them to one repeat-avoidance signature would defeat the doc's own
-  `count-factor-swap` misconception.
+  `count-factor-swap` misconception. **Selection goes through `_plausibility.js`.** Known,
+  reported (not patched) gap: when the zero-factor branch fires (product=0), the magnitude-ratio
+  rule makes every nonzero distractor implausible — no selection order fixes a zero answer.
 - **`mulTable.js`** — **multi-skill** (`skillIds: g2.mul.table2, g2.mul.table5,
   g2.mul.table10`), fixed table value T (2/5/10) × a multiplier m; ceiling is on the
   MULTIPLIER (5/8/10 by difficulty), not the product. A multiplier of 0 is deliberately drawn
@@ -145,7 +147,9 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   `multiplication-by-one-identity` (m===1), `zero-identity-error` (m===0). Tag strings are
   distinct from mulIntro.js's near-identical concepts (each skill emits only its own doc
   table's tags). Format `mcq`. **Also deliberately absent from `KIND_BY_RECIPE`**, same
-  reasoning as `mulIntro.js`.
+  reasoning as `mulIntro.js`. **Selection goes through `_plausibility.js`; same zero-answer gap
+  as `mulIntro.js`** — 100% of its residual is `m===0` questions, always all-three-implausible
+  when they fire (~8–13% of questions, matching `ZERO_CHANCE`).
 - **`counting3digit.js`** — `skillId: g2.num.3digit`. Format `mcq` (not `count-objects` — drawing
   dozens of objects doesn't scale to this range). Question text spells out the place-value
   decomposition ("H hundreds, T tens and O ones make ?") so `correctAnswer` is independently

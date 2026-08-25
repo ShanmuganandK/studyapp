@@ -25,7 +25,15 @@
  *
  * A multiplier of 0 is deliberately drawn some of the time (ZERO_CHANCE) so zero-identity-error
  * is genuinely reachable, not defined-but-dead content.
+ *
+ * Distractor SELECTION (not the tag rules above) goes through the shared `selectDistractors`
+ * (`_plausibility.js`): at most one of the four options may be eliminable without arithmetic.
+ * Same known, reported (not patched) gap as mulIntro.js: when m=0 (product=0), the
+ * magnitude-ratio rule makes every nonzero distractor implausible — no selection order can
+ * produce 3 plausible options for a zero answer.
  */
+
+import { selectDistractors } from './_plausibility';
 
 const OPTION_COUNT = 4;
 const ZERO_CHANCE = 10; // percent chance the multiplier is deliberately 0
@@ -63,12 +71,12 @@ const recipe = {
     candidates.push({ value: product + table, tag: 'skip-count-misstep' });
     candidates.push({ value: product - table, tag: 'skip-count-misstep' });
 
-    // random-slip: safe nearby fillers, only used if the above collide or fall short.
-    candidates.push({ value: product + 1, tag: 'random-slip' });
-    candidates.push({ value: product - 1, tag: 'random-slip' });
-    candidates.push({ value: product + 2, tag: 'random-slip' });
-
-    const distractors = pickDistinctDistractors(candidates, product, rng);
+    const distractors = selectDistractors({
+      candidates,
+      kind: 'mul',
+      context: { a: table, b: m, answer: product },
+      count: OPTION_COUNT - 1,
+    });
 
     // Shuffle the {value, tag} pairs together so misconceptions stay index-aligned with options.
     const optionPairs = rng.shuffle([{ value: product, tag: null }, ...distractors]);
@@ -82,29 +90,5 @@ const recipe = {
     };
   },
 };
-
-/**
- * Choose OPTION_COUNT-1 distinct, non-negative distractors (never equal to the answer).
- * Falls back to nearby slips if candidates collide, so we always return a full option set.
- */
-function pickDistinctDistractors(candidates, answer, rng) {
-  const used = new Set([answer]);
-  const chosen = [];
-  for (const c of candidates) {
-    if (chosen.length === OPTION_COUNT - 1) break;
-    if (c.value < 0 || used.has(c.value)) continue;
-    used.add(c.value);
-    chosen.push(c);
-  }
-  let offset = 1;
-  while (chosen.length < OPTION_COUNT - 1) {
-    const value = answer + offset;
-    offset = offset > 0 ? -offset : -offset + 1; // walk +1,-1,+2,-2,...
-    if (value < 0 || used.has(value)) continue;
-    used.add(value);
-    chosen.push({ value, tag: 'random-slip' });
-  }
-  return chosen;
-}
 
 export default recipe;

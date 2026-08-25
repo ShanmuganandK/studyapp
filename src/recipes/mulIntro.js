@@ -27,7 +27,16 @@
  * when a factor is 0, multiplication-as-addition otherwise. A zero factor is deliberately
  * generated some of the time (ZERO_FACTOR_CHANCE) so zero-identity — real, doc-listed content —
  * actually gets exercised, not left permanently unreachable.
+ *
+ * Distractor SELECTION (not the tag rules above) goes through the shared `selectDistractors`
+ * (`_plausibility.js`): at most one of the four options may be eliminable without arithmetic.
+ * Known, reported (not patched) gap: when the zero-factor branch fires (product = 0), the
+ * magnitude-ratio rule (`value < answer/2 or > answer*2`) makes EVERY nonzero distractor
+ * implausible — there is no selection order that produces 3 plausible options when the answer
+ * is 0. This is the same degenerate-answer case documented in `_plausibility.js`, not new here.
  */
+
+import { selectDistractors } from './_plausibility';
 
 const OPTION_COUNT = 4;
 const MAX_GROUPS = 5; // "a groups of b" — keeps the repeated-addition count kid-countable
@@ -75,13 +84,12 @@ const recipe = {
       candidates.push({ value: product - a, tag: 'skip-count-misstep' });
     }
 
-    // random-slip: safe nearby fillers, only used if the above collide or fall short.
-    candidates.push({ value: product + 1, tag: 'random-slip' });
-    candidates.push({ value: product - 1, tag: 'random-slip' });
-    candidates.push({ value: product + 2, tag: 'random-slip' });
-    candidates.push({ value: product - 2, tag: 'random-slip' });
-
-    const distractors = pickDistinctDistractors(candidates, product, rng);
+    const distractors = selectDistractors({
+      candidates,
+      kind: 'mul',
+      context: { a, b, answer: product },
+      count: OPTION_COUNT - 1,
+    });
 
     // Shuffle the {value, tag} pairs together so misconceptions stay index-aligned with options.
     const optionPairs = rng.shuffle([{ value: product, tag: null }, ...distractors]);
@@ -95,29 +103,5 @@ const recipe = {
     };
   },
 };
-
-/**
- * Choose OPTION_COUNT-1 distinct, non-negative distractors (never equal to the answer).
- * Falls back to nearby slips if candidates collide, so we always return a full option set.
- */
-function pickDistinctDistractors(candidates, answer, rng) {
-  const used = new Set([answer]);
-  const chosen = [];
-  for (const c of candidates) {
-    if (chosen.length === OPTION_COUNT - 1) break;
-    if (c.value < 0 || used.has(c.value)) continue;
-    used.add(c.value);
-    chosen.push(c);
-  }
-  let offset = 1;
-  while (chosen.length < OPTION_COUNT - 1) {
-    const value = answer + offset;
-    offset = offset > 0 ? -offset : -offset + 1; // walk +1,-1,+2,-2,...
-    if (value < 0 || used.has(value)) continue;
-    used.add(value);
-    chosen.push({ value, tag: 'random-slip' });
-  }
-  return chosen;
-}
 
 export default recipe;
