@@ -79,14 +79,23 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   difficulty. Distractors (canonical tags, see `misconceptions-reference.md`):
   `crossing-ten-misstep` and `add-tens-to-ones` are **within20 only** (gated on `skillId` — the
   within-10 table has no such tag and a sum of exactly 10 doesn't "cross" 10); `operator-mixup`,
-  `off-by-one`, `random-slip` serve both. Format `mcq`.
+  `off-by-one`, `random-slip` serve both. Format `mcq`. **Selection goes through
+  `_plausibility.js`** — as the reference recipe every future addition skill is copied from, this
+  was brought into the plausibility fix alongside the Grade-2 skills rather than deferred; 0%
+  residual at every difficulty for both skills.
 - **`counting.js`** — **multi-skill** (`skillIds: g1.count.1-9, g1.count.1-20`), count
   objects, ranges per skill. Distractors: `double-count-object`, `skip-count-sequence`,
   `count-from-zero`, `random-slip`. Format `count-objects` (carries a `render: { glyph, count }`
   payload).
 - **`subtraction.js`** — **multi-skill** (`skillIds: g1.sub.within10, g1.sub.within20`),
   `a - b`. Distractors: `operator-mixup`, `tens-ignored`, `smaller-from-larger-force`,
-  `off-by-one`, `random-slip`. Format `mcq`.
+  `off-by-one`, `random-slip`. Format `mcq`. **Selection goes through `_plausibility.js`**, same
+  as `addition.js`. **The one skill where the degenerate-answer edge case is NOT a minor
+  residual**: these ceilings (minuend up to 5/8/10 or 10/15/20) make a correct answer of 0 or 1
+  common, not rare, and the ratio rule admits at most one alternative integer for either — so
+  44–64% of questions (100% of it explained by `answer <= 1`, confirmed by direct
+  decomposition) still carry 2 implausible distractors after the fix. Reported to the human as a
+  rule-limitation finding, not patched — see TRACKER.md's Done block.
 - **`compareNumbers.js`** — **multi-skill** (`skillIds: g1.num.compare20, g2.num.compare999`).
   Pick the sign for `a ? b`; larger-operand ceilings 19/19/19 (g1, unchanged) or 99/499/999 (g2)
   by difficulty. Distractors: `alligator-confusion`, `ones-digit-bias`, `digit-length-bias` —

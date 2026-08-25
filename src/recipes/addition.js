@@ -28,7 +28,16 @@
  * (forgot-carry is the doc's Grade-2 two-digit-carry tag, not this skill's. identity-error-zero
  * needs a 0 operand, which neither range ever generates — both draw operands from 1+, so the
  * within-10 tag set is exactly operator-mixup / off-by-one / random-slip.)
+ *
+ * Distractor SELECTION (not the tag rules above) goes through the shared `selectDistractors`
+ * (`_plausibility.js`): at most one of the four options may be eliminable without arithmetic.
+ * `operator-mixup` (`|a-b|`) is implausible whenever a and b differ — this is the reference
+ * recipe every future addition skill is copied from, so the fix applies here too, not just to
+ * the new Grade-2 skills (found in the kid-test plausibility audit at up to 53% combined
+ * 2-implausible rate at higher difficulty rungs, even in this Grade-1 skill).
  */
+
+import { selectDistractors } from './_plausibility';
 
 const OPTION_COUNT = 4;
 
@@ -93,12 +102,12 @@ const recipe = {
     candidates.push({ value: sum + 1, tag: 'off-by-one' });
     candidates.push({ value: sum - 1, tag: 'off-by-one' });
 
-    // random-slip: safe nearby fillers.
-    candidates.push({ value: sum + 2, tag: 'random-slip' });
-    candidates.push({ value: sum - 2, tag: 'random-slip' });
-    candidates.push({ value: sum + 3, tag: 'random-slip' });
-
-    const distractors = pickDistinctDistractors(candidates, sum, rng);
+    const distractors = selectDistractors({
+      candidates,
+      kind: 'add',
+      context: { a, b, answer: sum },
+      count: OPTION_COUNT - 1,
+    });
 
     // Shuffle the {value, tag} pairs together so misconceptions stay index-aligned with
     // options after shuffling (the correct option carries a null tag).
@@ -113,31 +122,5 @@ const recipe = {
     };
   },
 };
-
-/**
- * Choose OPTION_COUNT-1 distinct, non-negative distractors (never equal to the answer).
- * Falls back to nearby slips if misconception-based candidates collide, so we always return
- * a full, valid option set.
- */
-function pickDistinctDistractors(candidates, answer, rng) {
-  const used = new Set([answer]);
-  const chosen = [];
-  for (const c of candidates) {
-    if (chosen.length === OPTION_COUNT - 1) break;
-    if (c.value < 0 || used.has(c.value)) continue;
-    used.add(c.value);
-    chosen.push(c);
-  }
-  // Safety net: only fires for tiny sums where candidates collided.
-  let offset = 1;
-  while (chosen.length < OPTION_COUNT - 1) {
-    const value = answer + offset;
-    offset = offset > 0 ? -offset : -offset + 1; // walk +1,-1,+2,-2,...
-    if (value < 0 || used.has(value)) continue;
-    used.add(value);
-    chosen.push({ value, tag: 'random-slip' });
-  }
-  return chosen;
-}
 
 export default recipe;

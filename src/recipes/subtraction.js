@@ -23,7 +23,15 @@
  * (regroup-ignored is omitted: the doc's rule 10+(ones(a)-b) collapses to the correct answer
  *  for borrow problems — flagged for teacher review. smaller-from-larger-force covers the
  *  borrow ones-error instead. subtract-zero-error needs b==0, which we never generate.)
+ *
+ * Distractor SELECTION (not the tag rules above) goes through the shared `selectDistractors`
+ * (`_plausibility.js`): at most one of the four options may be eliminable without arithmetic.
+ * `operator-mixup` (`a+b`) is implausible on every question by construction (always exceeds the
+ * minuend) — this is the reference recipe every future subtraction skill is copied from, so the
+ * fix applies here too, not just to the new Grade-2 skills.
  */
+
+import { selectDistractors } from './_plausibility';
 
 const OPTION_COUNT = 4;
 
@@ -70,12 +78,12 @@ const recipe = {
     candidates.push({ value: answer + 1, tag: 'off-by-one' });
     candidates.push({ value: answer - 1, tag: 'off-by-one' });
 
-    // random-slip: safe nearby fillers.
-    candidates.push({ value: answer + 2, tag: 'random-slip' });
-    candidates.push({ value: answer - 2, tag: 'random-slip' });
-    candidates.push({ value: answer + 3, tag: 'random-slip' });
-
-    const distractors = pickDistinctDistractors(candidates, answer, rng);
+    const distractors = selectDistractors({
+      candidates,
+      kind: 'sub',
+      context: { a, b, answer },
+      count: OPTION_COUNT - 1,
+    });
 
     // Shuffle {value, tag} pairs together so misconceptions stay index-aligned with options.
     const optionPairs = rng.shuffle([{ value: answer, tag: null }, ...distractors]);
@@ -89,30 +97,5 @@ const recipe = {
     };
   },
 };
-
-/**
- * Choose OPTION_COUNT-1 distinct, non-negative distractors (never equal to the answer).
- * Falls back to nearby slips if misconception-based candidates collide, so we always return
- * a full, valid option set.
- */
-function pickDistinctDistractors(candidates, answer, rng) {
-  const used = new Set([answer]);
-  const chosen = [];
-  for (const c of candidates) {
-    if (chosen.length === OPTION_COUNT - 1) break;
-    if (c.value < 0 || used.has(c.value)) continue;
-    used.add(c.value);
-    chosen.push(c);
-  }
-  let offset = 1;
-  while (chosen.length < OPTION_COUNT - 1) {
-    const value = answer + offset;
-    offset = offset > 0 ? -offset : -offset + 1; // walk +1,-1,+2,-2,...
-    if (value < 0 || used.has(value)) continue;
-    used.add(value);
-    chosen.push({ value, tag: 'random-slip' });
-  }
-  return chosen;
-}
 
 export default recipe;
