@@ -23,7 +23,18 @@
  * A zero tens digit is deliberately drawn more often than chance (ZERO_TENS_CHANCE) so the two
  * zero-column tags are genuinely reachable, not defined-but-dead content — this also matches
  * the CBSE curriculum's own emphasis on numbers like 309 as the tricky case.
+ *
+ * Distractor SELECTION (not the tag rules above, which are unchanged) goes through the shared
+ * `selectDistractors` (`_plausibility.js`): at most one of the four options may be eliminable
+ * without arithmetic. This recipe was the worst offender found in the kid-test plausibility
+ * audit — whenever `t === 0`, three of the four candidates (`expanded-concatenation`,
+ * `zero-placeholder-ignored`, `digit-value-blindness`) are ALWAYS wildly off (digit-length /
+ * magnitude), leaving `reverse-period-reading` — which just reorders the same three digits, so
+ * it's usually in-range — as the only genuinely plausible one. It was getting displaced because
+ * it was listed last; the shared selector picks it regardless of list position now.
  */
+
+import { selectDistractors } from './_plausibility';
 
 const OPTION_COUNT = 4;
 const ZERO_TENS_CHANCE = 40; // percent chance the tens digit is deliberately 0
@@ -52,7 +63,8 @@ const recipe = {
     const [h, t, o] = buildDigits(rng, cap);
     const answer = h * 100 + t * 10 + o;
 
-    // Candidate wrong answers, most-specific first so random-slip is only ever a fallback.
+    // Candidate wrong answers — tag rules unchanged, most-specific first. Selection (which of
+    // these actually become options) is the shared plausibility-aware selector, not this order.
     const candidates = [];
     if (t === 0) {
       candidates.push({ value: h * 1000 + o, tag: 'expanded-concatenation' });
@@ -63,13 +75,12 @@ const recipe = {
       candidates.push({ value: o * 100 + t * 10 + h, tag: 'reverse-period-reading' });
     }
 
-    // random-slip: safe nearby fillers, only used if the above collide or fall short.
-    candidates.push({ value: answer + 1, tag: 'random-slip' });
-    candidates.push({ value: answer - 1, tag: 'random-slip' });
-    candidates.push({ value: answer + 2, tag: 'random-slip' });
-    candidates.push({ value: answer - 2, tag: 'random-slip' });
-
-    const distractors = pickDistinctDistractors(candidates, answer, rng);
+    const distractors = selectDistractors({
+      candidates,
+      kind: 'place',
+      context: { answer },
+      count: OPTION_COUNT - 1,
+    });
 
     // Shuffle the {value, tag} pairs together so misconceptions stay index-aligned with options.
     const optionPairs = rng.shuffle([{ value: answer, tag: null }, ...distractors]);
@@ -83,29 +94,5 @@ const recipe = {
     };
   },
 };
-
-/**
- * Choose OPTION_COUNT-1 distinct, non-negative distractors (never equal to the answer).
- * Falls back to nearby slips if candidates collide, so we always return a full option set.
- */
-function pickDistinctDistractors(candidates, answer, rng) {
-  const used = new Set([answer]);
-  const chosen = [];
-  for (const c of candidates) {
-    if (chosen.length === OPTION_COUNT - 1) break;
-    if (c.value < 0 || used.has(c.value)) continue;
-    used.add(c.value);
-    chosen.push(c);
-  }
-  let offset = 1;
-  while (chosen.length < OPTION_COUNT - 1) {
-    const value = answer + offset;
-    offset = offset > 0 ? -offset : -offset + 1; // walk +1,-1,+2,-2,...
-    if (value < 0 || used.has(value)) continue;
-    used.add(value);
-    chosen.push({ value, tag: 'random-slip' });
-  }
-  return chosen;
-}
 
 export default recipe;

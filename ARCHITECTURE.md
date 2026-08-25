@@ -62,6 +62,18 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
 - **`_rng.js`** — seedable deterministic RNG. `makeRng(seed)` → `{ int, pick, shuffle, next }`
   (mulberry32 + FNV-1a string-seed hash). All recipe randomness goes through this so output
   is reproducible and testable.
+- **`_plausibility.js`** — shared distractor-SELECTION helper (added for the kid-test
+  plausibility fix; never computes a distractor's value, only decides which of a recipe's
+  already-built candidates get spent as option slots). `isImplausible(kind, {a,b,answer}, value)`
+  flags a value eliminable without arithmetic: a monotonic-fact violation (add: `< max(a,b)`;
+  sub: `> minuend`; mul with both factors ≥2: `< max(a,b)`; place/count: no monotonic rule) OR a
+  magnitude-ratio violation (`< answer/2` or `> answer*2`). `selectDistractors({candidates, kind,
+  context, count})` enforces **at most one implausible distractor per question** — plausible
+  candidates first, then at most one implausible (the recipe's own most-specific one, if slots
+  remain short), then a nearby-value walk, itself capped the same way. A tiny minority of very
+  small answers (0, 1) have no integer satisfying the ratio rule at all — the cap is relaxed only
+  as an absolute last resort so the option set is never short, and this is a reported, known edge
+  case, not a bug. First consumer: `counting3digit.js`.
 - **`addition.js`** — reference recipe, **multi-skill** (`skillIds: g1.add.within10,
   g1.add.within20`), sums capped 3/6/10 (within10) or 5/10/20 (within20, unchanged) by
   difficulty. Distractors (canonical tags, see `misconceptions-reference.md`):
@@ -125,7 +137,11 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   deliberately drawn ~40% of the time (`ZERO_TENS_CHANCE`) so the two zero-column tags are
   reachable. Distractors: `expanded-concatenation`, `zero-placeholder-ignored` (both scoped to
   a zero tens digit, per the doc's own example), `digit-value-blindness` (always),
-  `reverse-period-reading` (palindrome-guarded). **Also deliberately absent from
+  `reverse-period-reading` (palindrome-guarded). **Selection goes through `_plausibility.js`'s
+  `selectDistractors`** — this recipe was the worst case in the kid-test plausibility audit
+  (44–49% of questions fully determined by elimination): the three implausible candidates were
+  listed before `reverse-period-reading` (the one usually-plausible one), which the shared
+  selector no longer lets happen. **Also deliberately absent from
   `KIND_BY_RECIPE`** — it's `mcq`, not `count-objects`, so the `'count'` kind would read a
   `render.count` that doesn't exist on this skill's questions.
 - **`__tests__/validator.test.js`** — the shared validator (STANDARDS §3). For each recipe and
