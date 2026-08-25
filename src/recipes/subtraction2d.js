@@ -36,7 +36,16 @@
  *                                      subtracting ((tens(a)-1-tens(b))*10 + (10-ones(b)), always)
  *     - borrow-from-nowhere        : reduced the tens but never added the borrowed 10 to the
  *                                    ones (ans - 10, always)
+ *
+ * Distractor SELECTION (not the tag rules above) goes through the shared `selectDistractors`
+ * (`_plausibility.js`): at most one of the four options may be eliminable without arithmetic.
+ * `operator-mixup` (`a+b`) is implausible on EVERY no-borrow question by construction — a
+ * difference plus its subtrahend is always greater than the minuend, which is exactly the
+ * subtraction monotonic rule — found in the audit at 51-81% combined 2-implausible rate across
+ * both branches.
  */
+
+import { selectDistractors } from './_plausibility';
 
 const OPTION_COUNT = 4;
 const MAX_ATTEMPTS = 30;
@@ -98,13 +107,12 @@ const recipe = {
       candidates.push({ value: (tens(a) - tens(b)) * 10 + ones(a), tag: 'ones-subtraction-ignored' });
     }
 
-    // random-slip: safe nearby fillers, only used if the above collide or fall short.
-    candidates.push({ value: answer + 1, tag: 'random-slip' });
-    candidates.push({ value: answer - 1, tag: 'random-slip' });
-    candidates.push({ value: answer + 2, tag: 'random-slip' });
-    candidates.push({ value: answer - 2, tag: 'random-slip' });
-
-    const distractors = pickDistinctDistractors(candidates, answer, rng);
+    const distractors = selectDistractors({
+      candidates,
+      kind: 'sub',
+      context: { a, b, answer },
+      count: OPTION_COUNT - 1,
+    });
 
     // Shuffle the {value, tag} pairs together so misconceptions stay index-aligned with options.
     const optionPairs = rng.shuffle([{ value: answer, tag: null }, ...distractors]);
@@ -118,29 +126,5 @@ const recipe = {
     };
   },
 };
-
-/**
- * Choose OPTION_COUNT-1 distinct, non-negative distractors (never equal to the answer).
- * Falls back to nearby slips if candidates collide, so we always return a full option set.
- */
-function pickDistinctDistractors(candidates, answer, rng) {
-  const used = new Set([answer]);
-  const chosen = [];
-  for (const c of candidates) {
-    if (chosen.length === OPTION_COUNT - 1) break;
-    if (c.value < 0 || used.has(c.value)) continue;
-    used.add(c.value);
-    chosen.push(c);
-  }
-  let offset = 1;
-  while (chosen.length < OPTION_COUNT - 1) {
-    const value = answer + offset;
-    offset = offset > 0 ? -offset : -offset + 1; // walk +1,-1,+2,-2,...
-    if (value < 0 || used.has(value)) continue;
-    used.add(value);
-    chosen.push({ value, tag: 'random-slip' });
-  }
-  return chosen;
-}
 
 export default recipe;

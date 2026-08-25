@@ -111,7 +111,11 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   tables): no-borrow — `operator-mixup`, `column-alignment-shift`, `digit-subtraction-isolation`
   (palindrome-guarded), `ones-subtraction-ignored`; borrow — `smaller-from-larger-force`,
   `borrow-without-reducing-tens`, `regroup-ten-ones-shortchange`, `borrow-from-nowhere`. Format
-  `mcq`.
+  `mcq`. **Selection goes through `_plausibility.js`** — `operator-mixup` (`a+b`) is implausible
+  on every no-borrow question by construction (a difference plus its subtrahend always exceeds
+  the minuend). Residual, expected, NOT a bug: ~1–7% of questions whose answer is exactly 1 keep
+  2 implausible distractors — the ratio rule admits only the single integer 2 alongside answer=1,
+  so a fourth option is unavoidable there; not something a selection-order fix can close.
 - **`mulIntro.js`** — `skillId: g2.mul.intro`. "Groups of" repeated-addition intro; only 2
   difficulty rungs (product capped 12/20 — this skill has no rung 3). Factors capped at
   `MAX_GROUPS` (5) so the repeated-addition model stays kid-countable; a zero factor is
