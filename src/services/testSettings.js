@@ -24,8 +24,13 @@ export const SCHEMA_VERSION = 1;
 /** Theme slugs = the `.theme-<slug>` palettes in index.css. `wonder` = no class (the :root default). */
 export const THEME_SLUGS = ['wonder', 'sunset', 'bubblegum', 'deepsea'];
 
-/** Wonder-band launch scope is Grades 1–3 (DECISIONS). */
-export const GRADES = [1, 2, 3];
+/**
+ * Selectable in the test panel TODAY. Wonder-band launch scope is Grades 1–3 (DECISIONS) — this
+ * is narrower than that on purpose: Grade 3 has no curriculum yet (TRACKER Now #12, skillMap.js
+ * has zero Grade-3 skills), so offering it as a choice just shows the Grade-1 fallback under a
+ * misleading label. Restore `3` here the same day Now #12's curriculum work lands.
+ */
+export const GRADES = [1, 2];
 
 export const DEFAULT_TEST_SETTINGS = { theme: 'wonder', grade: 1 };
 

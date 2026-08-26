@@ -45,12 +45,12 @@ describe('useTestSettings', () => {
   it('persists theme and grade across a remount', () => {
     const first = renderHook(() => useTestSettings());
     act(() => first.result.current.setTheme('bubblegum'));
-    act(() => first.result.current.setGrade(3));
+    act(() => first.result.current.setGrade(2));
     cleanup();
 
     const second = renderHook(() => useTestSettings());
     expect(second.result.current.theme).toBe('bubblegum');
-    expect(second.result.current.grade).toBe(3);
+    expect(second.result.current.grade).toBe(2);
     expect(bodyThemeClasses()).toEqual(['theme-bubblegum']);
   });
 

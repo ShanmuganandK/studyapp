@@ -423,6 +423,24 @@ rename decision open in "Open questions".
 (#12), no Netlify/origin change, legacy frozen paths untouched, `ProfileSetup`/`ProfileSelector`
 NOT revived. DECISIONS.md not written (human records the themes-are-a-test-instrument entry).
 
+**Follow-up (2026-08-26): Grade 3 removed from the picker, not just fallback-safe.** At ship,
+offering Grade 3 was deliberately "safe" — `readySkills(3)` falls back to the Grade-1 set rather
+than showing an empty Home. Founder's call: a grade with a numeral but no actual Grade-3 content
+behind it reads as broken to a parent even though the fallback is technically correct — the
+right instrument state is not to offer it at all until Now #12 lands. `testSettings.js`'s
+`GRADES` narrowed from `[1,2,3]` to `[1,2]` (single source of truth — also the guard now
+normalising an old persisted `grade: 3` back to 1, not just future-blocking it), `TestPanel.jsx`
+renders whatever `GRADES` lists (no separate UI-only hide) and dropped the now-irrelevant "Grade
+3 has no skills yet" helper text. The `readySkills(grade)` fallback itself is untouched and stays
+correct in general — this only removes the ability to select the one grade that would exercise
+it via the test panel. Restore `3` in `GRADES` the same day Now #12's curriculum work lands.
+
+| Check | Result |
+|---|---|
+| Tests | **437 green** (+1: an explicit test that a persisted `grade: 3` normalises back to 1), 1 skipped. |
+| Lint / `lint:hex` | Clean — 0 errors (3 pre-existing warnings, unchanged). |
+| Real browser, built app | Parent zone renders exactly two grade buttons (`Grade 1`, `Grade 2`); `Grade 3` confirmed absent via `queryByRole`. Zero console errors. |
+
 ---
 
 ## Done — Design-system portability audit + hardening (2026-08-20)

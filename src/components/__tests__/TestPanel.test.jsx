@@ -18,9 +18,10 @@ describe('TestPanel', () => {
     for (const name of ['Wonder', 'Sunset', 'Bubblegum', 'Deep Sea']) {
       expect(screen.getByRole('button', { name: new RegExp(name) })).toBeTruthy();
     }
-    for (const g of [1, 2, 3]) {
+    for (const g of [1, 2]) {
       expect(screen.getByRole('button', { name: `Grade ${g}` })).toBeTruthy();
     }
+    expect(screen.queryByRole('button', { name: 'Grade 3' })).toBeNull();
   });
 
   it('marks the active theme and grade as pressed', () => {
@@ -38,7 +39,7 @@ describe('TestPanel', () => {
     fireEvent.click(screen.getByRole('button', { name: /Deep Sea/ }));
     expect(onThemeChange).toHaveBeenCalledWith('deepsea');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Grade 3' }));
-    expect(onGradeChange).toHaveBeenCalledWith(3);
+    fireEvent.click(screen.getByRole('button', { name: 'Grade 2' }));
+    expect(onGradeChange).toHaveBeenCalledWith(2);
   });
 });

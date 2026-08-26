@@ -10,7 +10,7 @@ import { THEME_SLUGS, GRADES } from '../services/testSettings';
  *
  * @param {string}   theme          - active theme slug
  * @param {(s)=>void} onThemeChange
- * @param {number}   grade          - active grade (1–3)
+ * @param {number}   grade          - active grade (1–2 today — see `testSettings.js`'s `GRADES`)
  * @param {(n)=>void} onGradeChange
  */
 
@@ -94,9 +94,6 @@ export default function TestPanel({ theme, onThemeChange, grade, onGradeChange }
             );
           })}
         </div>
-        <p className="text-xs text-muted">
-          Grade 3 has no skills yet — selecting it is safe and shows the Grade 1 skills for now.
-        </p>
       </div>
     </div>
   );

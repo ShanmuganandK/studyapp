@@ -46,8 +46,14 @@ describe('testSettings', () => {
 
   it('normalises an unknown theme back to the default, keeping a valid grade', async () => {
     const { loadTestSettings, saveTestSettings } = await import('../testSettings.js');
-    saveTestSettings({ theme: 'not-a-theme', grade: 3 });
-    expect(loadTestSettings()).toEqual({ theme: 'wonder', grade: 3 });
+    saveTestSettings({ theme: 'not-a-theme', grade: 2 });
+    expect(loadTestSettings()).toEqual({ theme: 'wonder', grade: 2 });
+  });
+
+  it('normalises grade 3 back to the default — no Grade-3 curriculum yet (Now #12)', async () => {
+    const { loadTestSettings, saveTestSettings } = await import('../testSettings.js');
+    saveTestSettings({ theme: 'sunset', grade: 3 });
+    expect(loadTestSettings()).toEqual({ theme: 'sunset', grade: 1 });
   });
 
   it('normalises an out-of-range grade back to the default, keeping a valid theme', async () => {
@@ -81,9 +87,9 @@ describe('testSettings', () => {
     expect(() => saveTestSettings({ theme: 'sunset', grade: 2 })).not.toThrow();
   });
 
-  it('THEME_SLUGS lists wonder + the three palettes and GRADES is 1–3', async () => {
+  it('THEME_SLUGS lists wonder + the three palettes and GRADES is 1–2 (Grade 3 has no curriculum yet)', async () => {
     const { THEME_SLUGS, GRADES } = await import('../testSettings.js');
     expect(THEME_SLUGS).toEqual(['wonder', 'sunset', 'bubblegum', 'deepsea']);
-    expect(GRADES).toEqual([1, 2, 3]);
+    expect(GRADES).toEqual([1, 2]);
   });
 });

@@ -611,8 +611,11 @@ picker (DECISIONS-level call). Lives behind the parent gate inside `ParentDashbo
   that store is skills-only + allowlist-guarded, and export reads only the skills key — so these
   preferences **cannot ride in a progress export** (verified in-browser: exported file carries the
   skill payload and zero theme/grade data). Exports `THEME_SLUGS`
-  (`wonder`/`sunset`/`bubblegum`/`deepsea`) + `GRADES` (1–3); values are normalised on load/save so
-  an out-of-range input is never stored.
+  (`wonder`/`sunset`/`bubblegum`/`deepsea`) + `GRADES` (**1–2 today, deliberately narrower than the
+  1–3 Wonder-band launch scope** — Grade 3 has no curriculum yet, TRACKER Now #12, so offering it
+  in the test panel would just show the Grade-1 fallback under a misleading label; restore `3`
+  the day Now #12 lands); values are normalised on load/save so an out-of-range input (including a
+  device with an old `grade: 3` from before this) is never stored.
 - **`useTestSettings.js`** — React state over the seam, and the ONE side-effect that **applies a
   theme**: a `theme-<slug>` class on **`document.body`** (`wonder` = no class, the `:root` default).
   Body-level is load-bearing — `ParentGateModal` renders via `createPortal(document.body)`, a
@@ -626,9 +629,10 @@ picker (DECISIONS-level call). Lives behind the parent gate inside `ParentDashbo
   widened from `:root` to also cover `.theme-<slug>` token-definition blocks (effect-layer leaks
   outside those blocks are still caught — proven red).
 - **`TestPanel.jsx`** — presentational: theme swatches (each previews its real palette by wrapping
-  token utilities in the `.theme-<slug>` class — no raw hex) + a Grade 1/2/3 segmented control.
-  Calls `setTheme`/`setGrade` from props; state lives in the hook. Grade 3 is offered and safe
-  (fallback set). Tests: `services/__tests__/testSettings.test.js`, `hooks/__tests__/useTestSettings.test.js`
+  token utilities in the `.theme-<slug>` class — no raw hex) + a Grade segmented control, rendered
+  from `GRADES` (currently 1–2; Grade 3 removed from the picker until Now #12's curriculum lands —
+  see `testSettings.js`). Calls `setTheme`/`setGrade` from props; state lives in the hook. Tests:
+  `services/__tests__/testSettings.test.js`, `hooks/__tests__/useTestSettings.test.js`
   (body-class application), `components/__tests__/TestPanel.test.jsx`.
 
 ### `useOnline` hook (`src/hooks/useOnline.js`)
