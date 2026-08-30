@@ -178,7 +178,8 @@ const CEILINGS = {
   'g1.sub.within20': { caps: { 1: 10, 2: 15, 3: 20 }, value: (q) => numbersIn(q.questionText)[0] },
   'g1.num.compare20': { caps: { 1: 20, 2: 20, 3: 20 }, value: (q) => Math.max(q.render.left, q.render.right) },
   'g2.num.compare999': { caps: { 1: 99, 2: 499, 3: 999 }, value: (q) => Math.max(q.render.left, q.render.right) },
-  'g2.add.2d-nocarry': { caps: { 1: 39, 2: 69, 3: 99 }, value: (q) => q.correctAnswer },
+  // Rungs are a strategy, not a magnitude cap (DECISIONS 2026-08-27) — one flat ceiling for all three.
+  'g2.add.2d-nocarry': { caps: { 1: 99, 2: 99, 3: 99 }, value: (q) => q.correctAnswer },
   'g2.add.2d-carry': { caps: { 1: 49, 2: 79, 3: 99 }, value: (q) => q.correctAnswer },
   'g2.sub.2d-noborrow': { caps: { 1: 39, 2: 69, 3: 99 }, value: (q) => numbersIn(q.questionText)[0] },
   'g2.sub.2d-borrow': { caps: { 1: 49, 2: 79, 3: 99 }, value: (q) => numbersIn(q.questionText)[0] },

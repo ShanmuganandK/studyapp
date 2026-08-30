@@ -42,6 +42,49 @@ describe('addition2d structural carry guarantee', () => {
   });
 });
 
+describe('addition2d strategy rung shapes (DECISIONS 2026-08-27)', () => {
+  it('rung 1 is always 2-digit + 1-digit', () => {
+    for (let run = 0; run < RUNS_PER_DIFFICULTY; run++) {
+      const rng = makeRng(`rung1-shape:${run}`);
+      const q = addition2d.generate(1, rng, 'g2.add.2d-nocarry');
+      const [a, b] = numbersIn(q.questionText);
+      expect(a, `${q.questionText} first operand is not 2-digit`).toBeGreaterThanOrEqual(10);
+      expect(b, `${q.questionText} second operand is not 1-digit`).toBeGreaterThanOrEqual(1);
+      expect(b, `${q.questionText} second operand is not 1-digit`).toBeLessThanOrEqual(9);
+    }
+  });
+
+  it('rung 2 second operand is always a multiple of ten', () => {
+    for (let run = 0; run < RUNS_PER_DIFFICULTY; run++) {
+      const rng = makeRng(`rung2-shape:${run}`);
+      const q = addition2d.generate(2, rng, 'g2.add.2d-nocarry');
+      const [a, b] = numbersIn(q.questionText);
+      expect(a, `${q.questionText} first operand is not 2-digit`).toBeGreaterThanOrEqual(10);
+      expect(b % 10, `${q.questionText} second operand is not a multiple of ten`).toBe(0);
+    }
+  });
+
+  it('rung 3 is always 2-digit + 2-digit', () => {
+    for (let run = 0; run < RUNS_PER_DIFFICULTY; run++) {
+      const rng = makeRng(`rung3-shape:${run}`);
+      const q = addition2d.generate(3, rng, 'g2.add.2d-nocarry');
+      const [a, b] = numbersIn(q.questionText);
+      expect(a, `${q.questionText} first operand is not 2-digit`).toBeGreaterThanOrEqual(10);
+      expect(b, `${q.questionText} second operand is not 2-digit`).toBeGreaterThanOrEqual(10);
+    }
+  });
+
+  it('every rung stays inside the curriculum ceiling and never carries', () => {
+    for (let difficulty = 1; difficulty <= addition2d.maxDifficulty; difficulty++) {
+      for (let run = 0; run < RUNS_PER_DIFFICULTY; run++) {
+        const rng = makeRng(`rung-ceiling:${difficulty}:${run}`);
+        const q = addition2d.generate(difficulty, rng, 'g2.add.2d-nocarry');
+        expect(q.correctAnswer, `${q.questionText} exceeds the curriculum ceiling`).toBeLessThanOrEqual(99);
+      }
+    }
+  });
+});
+
 describe('subtraction2d structural borrow guarantee', () => {
   it('g2.sub.2d-noborrow never requires a borrow', () => {
     for (let difficulty = 1; difficulty <= subtraction2d.maxDifficulty; difficulty++) {

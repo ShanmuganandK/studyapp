@@ -77,7 +77,9 @@ Every recipe conforms to ONE fixed contract (`RECIPE_TEMPLATE.md`). Input: `diff
 + seeded RNG. Output: `{ questionText, correctAnswer, options, format, misconceptions }`.
 
 - **Difficulty is capped** at the curriculum ceiling per skill. It does NOT climb forever —
-  a harder range is a *different skill*.
+  a harder range is a *different skill*. A difficulty rung is not always a magnitude step: for
+  `g2.add.2d-nocarry`, a rung selects a **strategy**, not a bigger number (DECISIONS 2026-08-27) —
+  other skills generalise to that model as each is revisited.
 - **Practice stops when mastery is proven** (~80% at hard level, across sessions on different
   days), then the skill enters spaced-repetition review and the child moves on.
 - **Wrong answers are deliberate:** each distractor encodes a known misconception (e.g.
