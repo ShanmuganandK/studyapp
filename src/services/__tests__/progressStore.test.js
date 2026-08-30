@@ -87,6 +87,14 @@ describe('progressStore', () => {
       expect(() => loadAllSkillStates()).not.toThrow();
       expect(loadAllSkillStates()).toEqual({});
     });
+
+    it('backfills difficultyStreak: 0 on a state saved before that field existed (DECISIONS 2026-08-27)', async () => {
+      const { SCHEMA_VERSION, loadAllSkillStates } = await import('../progressStore.js');
+      const preExisting = freshState(SKILL_ID);
+      delete preExisting.difficultyStreak; // simulate a state saved by the old shape
+      storage.setItem('tinku:v1:skills', JSON.stringify({ version: SCHEMA_VERSION, skills: { [SKILL_ID]: preExisting } }));
+      expect(loadAllSkillStates()[SKILL_ID].difficultyStreak).toBe(0);
+    });
   });
 
   // ── loadSkillState ────────────────────────────────────────────────────────

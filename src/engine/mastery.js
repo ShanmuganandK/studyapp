@@ -50,6 +50,7 @@ export function emptySkillState(skillId, maxDifficulty = 3) {
     reviewInterval: 0,    // index into MASTERY.REVIEW_INTERVALS
     recentParams: [],     // last ~20 question signatures (repeat-avoidance handoff)
     misconceptions: {},   // { tag: count } — which mistakes this child makes
+    difficultyStreak: 0,  // consecutive strong sessions at the current rung (DECISIONS 2026-08-27)
   };
 }
 
@@ -114,6 +115,7 @@ export function applyResult(skillState, sessionResult, config = MASTERY) {
     MASTERED_LEVEL,
     STRONG_RATIO,
     WEAK_RATIO,
+    DIFFICULTY_UP_STREAK,
     LEVEL_UP_REQUIRES_HARD,
     REVIEW_INTERVALS,
   } = config;
@@ -165,16 +167,27 @@ export function applyResult(skillState, sessionResult, config = MASTERY) {
   // middle → level unchanged
 
   // ── 4. Adaptive difficulty ───────────────────────────────────────────────
+  // Decoupled from level (DECISIONS 2026-08-27): difficulty needs DIFFICULTY_UP_STREAK
+  // CONSECUTIVE strong sessions at the current rung before advancing — one strong session
+  // only starts (or continues) the streak. Any non-strong session (weak OR middle) resets
+  // the streak to 0; a weak session additionally eases difficulty down by 1, as before.
 
   const maxDiff = skillState.maxDifficulty;
   let difficulty = skillState.difficulty;
+  let difficultyStreak = skillState.difficultyStreak;
 
   if (isStrong) {
-    difficulty = Math.min(difficulty + 1, maxDiff);
-  } else if (isWeak) {
-    difficulty = Math.max(difficulty - 1, 1);
+    difficultyStreak = Math.min(difficultyStreak + 1, DIFFICULTY_UP_STREAK);
+    if (difficultyStreak >= DIFFICULTY_UP_STREAK && difficulty < maxDiff) {
+      difficulty += 1;
+      difficultyStreak = 0; // consumed — count afresh at the new rung
+    }
+  } else {
+    difficultyStreak = 0;
+    if (isWeak) {
+      difficulty = Math.max(difficulty - 1, 1);
+    }
   }
-  // middle → difficulty unchanged
 
   // ── 5. Spaced repetition ─────────────────────────────────────────────────
 
@@ -212,6 +225,7 @@ export function applyResult(skillState, sessionResult, config = MASTERY) {
     ...skillState,
     level,
     difficulty,
+    difficultyStreak,
     attempts,
     correct,
     lastSeen,

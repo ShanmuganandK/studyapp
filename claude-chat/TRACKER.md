@@ -66,6 +66,7 @@ on this trip.** Anything that does not serve that waits.
 | 9a | **ParentGate integration test flakes on cold runs** | ✅ **Done 2026-08-17** | Taken ahead of #3 as sequenced above. Applied the "better fix" from the diagnosis below: split the single giant `it` (chaining ~20 sequential `waitFor`/`findBy` calls against vitest's default 5 s per-test timeout) into 4 staged tests — set → verify → forgot-reset → remove — sharing one continuous render via `beforeAll`/`afterAll` instead of per-test `render`/`cleanup`. Each stage now gets its own 5 s budget, and a future failure names the stage instead of an opaque 20-step test. Own commit, not folded into #3. Full run: **347 green + 1 skipped** (344 baseline + 3 new stages), lint clean (0 errors, same 3 pre-existing warnings). Original diagnosis preserved below. |
 | 9 | **Welcome / onboarding screen — TRACE, then decide** | 🔎 **Traced 2026-08-18 — P2, observe on this trip** | **Confirmed (a): `ProfileSetup.jsx` is the recalled "welcome page"** — pixel/line match against `documents/screenshots/01_welcome_screen.png` (committed 2026-06-18). **`ProfileSelector.jsx` is "the one other"** — a multi-child "Who is playing?" picker from the old anonymous→Google account model. Both genuinely unrendered (zero references in `src/`) and both additionally **inert**: `localAdapter`'s `onAuthStateChanged` always resolves `null` since the 2026-08-15 de-Firebase rewrite, so `profiles` never leaves `[]` and `addProfile` is a silent no-op if ever rendered. Already documented, not lost — `TASK-INDEX.md` T110 and `ProfileSetup.jsx`'s own docblock both say "quarantined." (b)/(c) ruled out: `git log --diff-filter=A --all` + both stale local branches checked, no unique unmerged commits. **Not a fifth false claim.** **Decision not yet made** — Kid-Test Log already asks "does a child launching straight into the skill path know what to do?" Answer it on the trip. **Note:** #10's grade selector deliberately does NOT revive `ProfileSetup` — it is a parent-zone test control, which keeps this decision genuinely open rather than settling it by accident. |
 | **12** | **⭐ Grade 3 curriculum — DOES NOT EXIST** | 📋 **P3 — spec needed before any code (Chat writes it)** | **Found 2026-08-21 by reading `skillMap.js` directly.** Its own header says *"the curriculum backbone for **Grades 1–2**."* 35 skills: **19 Grade 1, 16 Grade 2, ZERO Grade 3.** Not planned-but-unbuilt — absent. So "full board for Grades 1–3" is not a recipe-writing task; Grade 3 needs curriculum work FIRST: skills, strands, prereqs, difficulty ceilings, ordering, extending `claude-chat/specs/skill-map-spec.md`. **Does not block this trip** — testing can run on G1 + G2 (once #11 lands). ⚠️ Note the store description already says *"CBSE-aligned maths practice for Grades 1-3"* and `PLAY_TITLE`/positioning assume Grades 1–3 — so this must close before launch even though it does not block testing. |
+| **13** | **Strategy rungs — generalise beyond `addition2d.js`** | ⏳ **P2 — observe on this trip first** | `g2.add.2d-nocarry` shipped 2026-08-27 (see Done block below). `DECISIONS.md` 2026-08-27 explicitly does NOT retro-fit every skill in the same entry. Candidates for the same treatment once the current trip's signal is in: `subtraction2d.js` (`g2.sub.2d-noborrow`), the Grade-1 reference recipes. Also open, deliberately not decided: whether a session should *walk* rungs (Set B's paper test did, in 8 questions) instead of holding one rung for the whole session — a session-shape change, not a per-recipe one. |
 
 ## Deploy verification (standing step — added 2026-08-15)
 
@@ -168,6 +169,69 @@ Every palette must also declare the `-rgb` channel triples for `primary`, `prima
 kept in sync with their hex pair by `src/__tests__/designTokens.test.js` (design-system audit,
 2026-08-20). Full candidate values are in the chat handoff for #10; **Deep Sea (dark) is the one
 worth testing first** — dark exercises every inverted slot and is where a leak would surface.
+
+---
+
+## Done — Strategy rungs + level/difficulty decoupling (2026-08-27)
+
+Resolves the pacing question left open at Now #11 (2026-08-22/26): a strong session bumped
+`difficulty` a full rung immediately with no within-skill consolidation. Ships **both** options
+that were on the table there — an actual strategy order (closer to (a)/(c)) plus the
+2-strong-sessions gate (option (b)) — per `DECISIONS.md` 2026-08-27 (LOCKED).
+
+**`src/recipes/addition2d.js` — `g2.add.2d-nocarry` rungs are now a strategy, not a magnitude
+cap.** Rung 1 = 2-digit + 1-digit (add the ones), rung 2 = 2-digit + a multiple of ten (add the
+tens), rung 3 = 2-digit + 2-digit (tens then ones). All three stay no-carry and inside the
+skill's existing 99 ceiling — only operand SHAPE changes per rung, not the range. `buildOperands`
+split into `buildOperandsCarry` (unchanged behaviour, `g2.add.2d-carry` only) and
+`buildOperandsForRung` (new, no-carry only). New structural tests assert each rung's shape
+(`structuralConstraints.test.js`); `validator.test.js`'s `CEILINGS['g2.add.2d-nocarry']` updated
+to one flat cap (99) across all three rungs, since the per-rung magnitude cap no longer applies.
+`g2.add.2d-carry` is untouched — its difficulty still scales a magnitude cap.
+
+**`src/engine/mastery.js` — `level` and `difficulty` are separate axes.** `applyResult` used to
+advance both off one `isStrong` boolean. Now: `level` keeps its existing one-strong-session
+schedule (`LEVEL_UP_REQUIRES_HARD` intact at the 4→5 hop) — unchanged, since slowing it would
+stretch mastery to ~10 sessions/skill for no gain. `difficulty` requires
+`DIFFICULTY_UP_STREAK` (2, named constant in `masteryConfig.js`) **consecutive** strong sessions
+at the current rung before advancing; any non-strong session (weak OR middle) resets the streak
+to 0. A weak session's existing ease-down (difficulty −1) is unchanged and ALSO resets the
+streak. New state field `difficultyStreak` on the skill-state shape (`emptySkillState`).
+
+**Progress-export allowlist guard (DECISIONS 2026-08-17) — flagged before building, handled.**
+Adding `difficultyStreak` to skill state grows the exported shape. Extended
+`SKILL_STATE_KEYS`/`FIELD_TYPES` in `progressBackup.js` — **proven RED first** (4 failing tests
+including the drift guard itself) **then GREEN**, per the standing rule, not just added and
+trusted.
+
+**`progressStore.js` backfill, the guard flag's second-order consequence.** A skill state saved
+under the old 11-key shape (before this change, and not yet touched by `applyResult` again) would
+export as 11 keys and FAIL reimport against the new 12-key allowlist. `readStore()` now backfills
+`difficultyStreak: 0` on read (not written back — lands on disk naturally next time that skill is
+played), so every state this module returns — including in an export taken before that skill's
+next session — matches the current shape. Own test added.
+
+Sample mix generated and eyeballed per rung (seeded, `mix-report`): rung 1 e.g. `47 + 1`, `97 +
+2`; rung 2 e.g. `10 + 70`, `28 + 70`; rung 3 e.g. `81 + 18`, `46 + 40` — matches the intended
+shapes, all ≤99, none carry.
+
+446 tests green (up from 328 at session start — **`CLAUDE.md`'s hardcoded baseline was replaced
+with "CI green is the guard"** in the same pass, since the number was already stale and changes
+almost every commit), lint clean, `lint:hex` clean, build green.
+
+**Not done, deliberately** (see `DECISIONS.md` 2026-08-27 "Open" + "Scope"):
+- Strategy rungs generalising to other skills — landed in `addition2d.js` only.
+- Within-session rung walking (Set B's paper-test format walked all three rungs in 8 questions;
+  the app still holds one rung per session) — a session-shape change, out of scope here.
+- The `misconceptions-reference.md` gap for "added the tens but ignored the ones" — already
+  logged as the top item for the pending teacher review (2026-08-25 entry), unaffected by this
+  change.
+
+**Also found, not fixed here — flagged, not silently edited:** `CLAUDE.md`'s mastery line claims
+"~80% at hard level, **across sessions on different days**." `src/engine/mastery.js` records
+`lastSeen` but never compares it across sessions to gate a level-up — nothing in the codebase
+enforces a distinct-day requirement. Left the line as-is per instruction; needs a human call on
+whether to fix the code or correct the doc.
 
 ---
 

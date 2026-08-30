@@ -69,6 +69,7 @@ describe('emptySkillState', () => {
       reviewInterval: 0,
       recentParams: [],
       misconceptions: {},
+      difficultyStreak: 0,
     });
   });
 
@@ -295,10 +296,14 @@ describe('applyResult', () => {
       expect(applyResult(maxDiff3Skill, strong(1), cfg).level).toBe(4);
     });
 
-    it('still bumps difficulty even when level-5 is blocked', () => {
-      const out = applyResult({ ...maxDiff3Skill, difficulty: 2 }, strong(2), cfg);
-      expect(out.level).toBe(4);
-      expect(out.difficulty).toBe(3); // difficulty bumped; level held
+    it('still bumps difficulty via the two-session streak even when level-5 is blocked', () => {
+      const base = { ...maxDiff3Skill, difficulty: 2 };
+      const afterFirst = applyResult(base, strong(2), cfg);
+      expect(afterFirst.level).toBe(4);
+      expect(afterFirst.difficulty).toBe(2); // first strong session only starts the streak
+      const afterSecond = applyResult(afterFirst, strong(2), cfg);
+      expect(afterSecond.level).toBe(4); // still blocked — difficultyPlayed(2) < maxDifficulty(3)
+      expect(afterSecond.difficulty).toBe(3); // second consecutive strong session advances it
     });
 
     it('allows 4→5 at any difficulty when LEVEL_UP_REQUIRES_HARD is false', () => {
@@ -315,9 +320,39 @@ describe('applyResult', () => {
   // ── Adaptive difficulty ───────────────────────────────────────────────────
 
   describe('adaptive difficulty', () => {
-    it('bumps difficulty up on a strong session', () => {
+    it('does NOT bump difficulty after a single strong session — starts the streak instead', () => {
       const s = { ...emptySkillState('g1.add.within20'), difficulty: 1 };
-      expect(applyResult(s, strong(1)).difficulty).toBe(2);
+      const out = applyResult(s, strong(1));
+      expect(out.difficulty).toBe(1);
+      expect(out.difficultyStreak).toBe(1);
+    });
+
+    it('bumps difficulty after two CONSECUTIVE strong sessions, and resets the streak', () => {
+      const s = { ...emptySkillState('g1.add.within20'), difficulty: 1 };
+      const s2 = applyResult(s, strong(1));
+      const s3 = applyResult(s2, strong(1));
+      expect(s3.difficulty).toBe(2);
+      expect(s3.difficultyStreak).toBe(0);
+    });
+
+    it('a middle session resets the streak to 0 without changing difficulty', () => {
+      const s = { ...emptySkillState('g1.add.within20'), difficulty: 1 };
+      const s2 = applyResult(s, strong(1)); // streak -> 1
+      const s3 = applyResult(s2, middle());
+      expect(s3.difficulty).toBe(1);
+      expect(s3.difficultyStreak).toBe(0);
+      // the next strong session only restarts the streak, it does not advance yet
+      const s4 = applyResult(s3, strong(1));
+      expect(s4.difficulty).toBe(1);
+      expect(s4.difficultyStreak).toBe(1);
+    });
+
+    it('a weak session resets the streak to 0, in addition to easing difficulty down', () => {
+      const s = { ...emptySkillState('g1.add.within20'), difficulty: 2 };
+      const s2 = applyResult(s, strong(1)); // streak -> 1
+      const s3 = applyResult(s2, weak());
+      expect(s3.difficulty).toBe(1); // eased down, same as before this change
+      expect(s3.difficultyStreak).toBe(0);
     });
 
     it('caps difficulty at maxDifficulty on consecutive strong sessions', () => {

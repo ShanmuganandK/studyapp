@@ -21,6 +21,18 @@ export const SCHEMA_VERSION = 1;
 
 // ─── Internal read/write helpers ─────────────────────────────────────────────
 
+/**
+ * A skill state saved before `difficultyStreak` existed (DECISIONS 2026-08-27) is missing the
+ * field and won't be touched again until that skill is next practiced. Backfill it on READ so
+ * every state this module returns has the current shape — `applyResult` gets a real number to
+ * add to, and an export taken before that skill's next session still matches the
+ * `SKILL_STATE_KEYS` allowlist on reimport. Not written back; the field lands on disk naturally
+ * next time `saveSkillState` runs for that skill.
+ */
+function backfillSkillState(state) {
+  return state.difficultyStreak === undefined ? { ...state, difficultyStreak: 0 } : state;
+}
+
 /** Parse the stored blob, or return a fresh empty store on any failure. */
 function readStore() {
   try {
@@ -29,7 +41,11 @@ function readStore() {
     const parsed = JSON.parse(raw);
     // Unknown or future schema version: return empty rather than crash.
     if (parsed?.version !== SCHEMA_VERSION) return { version: SCHEMA_VERSION, skills: {} };
-    return { version: SCHEMA_VERSION, skills: parsed.skills ?? {} };
+    const skills = parsed.skills ?? {};
+    for (const skillId of Object.keys(skills)) {
+      skills[skillId] = backfillSkillState(skills[skillId]);
+    }
+    return { version: SCHEMA_VERSION, skills };
   } catch (err) {
     logger.warn('[progressStore] read failed — progress won\'t persist this session.', err);
     return { version: SCHEMA_VERSION, skills: {} };

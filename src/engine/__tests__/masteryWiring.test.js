@@ -148,12 +148,14 @@ describe('session result produces correct state transitions', () => {
     expect(result.level).toBe(2);
   });
 
-  it('difficulty bumps on strong session and is preserved through save→load', () => {
+  it('difficulty bumps on the second consecutive strong session and is preserved through save→load', () => {
     const { saveSkillState, loadSkillState } = progressStore;
     const initial = emptySkillState(SKILL_ID, MAX_DIFF); // difficulty starts at 1
-    const after = applyResult(initial, strongSession(), MASTERY);
-    expect(after.difficulty).toBe(2); // bumped from 1
-    saveSkillState(SKILL_ID, after);
+    const afterFirst = applyResult(initial, strongSession(), MASTERY);
+    expect(afterFirst.difficulty).toBe(1); // first strong session only starts the streak
+    const afterSecond = applyResult(afterFirst, strongSession(), MASTERY);
+    expect(afterSecond.difficulty).toBe(2); // bumped from 1
+    saveSkillState(SKILL_ID, afterSecond);
     expect(loadSkillState(SKILL_ID)?.difficulty).toBe(2);
   });
 });
@@ -224,14 +226,16 @@ describe('resume at adapted difficulty (buildLiteSession with difficulty option)
     expect(nextWorkingDifficulty(fresh)).toBe(1);
   });
 
-  it('full cycle: strong session → saved → reload → nextWorkingDifficulty is bumped', () => {
+  it('full cycle: two consecutive strong sessions → saved → reload → nextWorkingDifficulty is bumped', () => {
     const { saveSkillState, loadSkillState } = progressStore;
     const initial = emptySkillState(SKILL_ID, 3);
     expect(nextWorkingDifficulty(initial)).toBe(1);
 
-    const afterStrong = applyResult(initial, strongSession(), MASTERY);
-    expect(afterStrong.difficulty).toBe(2); // bumped
-    saveSkillState(SKILL_ID, afterStrong);
+    const afterFirst = applyResult(initial, strongSession(), MASTERY);
+    expect(afterFirst.difficulty).toBe(1); // first strong session only starts the streak
+    const afterSecond = applyResult(afterFirst, strongSession(), MASTERY);
+    expect(afterSecond.difficulty).toBe(2); // bumped
+    saveSkillState(SKILL_ID, afterSecond);
 
     const reloaded = loadSkillState(SKILL_ID);
     expect(nextWorkingDifficulty(reloaded)).toBe(2); // resumes at 2, not 1
