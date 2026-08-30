@@ -528,3 +528,54 @@
   than is ideal. *"Added the tens but ignored the ones"* (34 + 24 → 54) is a real misconception with
   **no entry in `misconceptions-reference.md`**. It was correctly not invented in code. **This is
   now the top item for the teacher review.**
+
+- (2026-08-27) **Strategy rungs replace magnitude rungs; `level` and `difficulty` decouple (LOCKED).**
+
+  **What changed.** A skill's `difficulty` rungs stop meaning *bigger numbers* and start meaning
+  *a different strategy*. For 2-digit addition: rung 1 = add the ones (2-digit + 1-digit), rung 2 =
+  add the tens (2-digit + a multiple of ten), rung 3 = tens then ones (2-digit + 2-digit). Today's
+  rungs are magnitude caps, so `66 + 1` and `34 + 24` share a rung despite being different tasks —
+  one is counting on, the other is column addition.
+
+  **Evidence, labelled honestly.** A paper free-response test (Set A magnitude order vs Set B
+  strategy order, same children, different days) was run in India, August 2026. Children who froze
+  on `34 + 24` in Set A decomposed it as `20 + 4` after Set B's bridge rung. **The result is
+  suggestive, not clean:** small n, and the founder prompted some children and not others, so
+  ordering and teaching were not cleanly separated. **Rung mode proceeds on the average-learner
+  principle (2026-08-25), not on this evidence.** A clever child on an easy rung is briefly bored;
+  a weak child facing two large numbers stops trying. Not symmetric — take the gentler branch.
+
+  **The observed failure was avoidance, not incapability.** The children knew the method. Two large
+  numbers shut them down before they attempted it. Rungs address the freeze, not the skill gap.
+
+  **Boundary on what this can do.** The child who reached `24 = 20 + 4` had already been taught that
+  fact. **Ordering makes an existing strategy reachable; it does not install one.** Teach mode
+  remains real work, not a coat of paint.
+
+  **`level` and `difficulty` are now separate axes, on separate schedules.** `applyResult` currently
+  advances both off one `isStrong` boolean, so two strong sessions put a child on the hardest rung
+  with no consolidation anywhere in the model. This closes the item left open under the
+  average-learner principle (2026-08-25). Going forward:
+
+  - **`difficulty` requires two consecutive strong sessions at a rung before advancing.** Universal —
+    one rule for every skill, no per-skill exceptions. A non-strong session resets the count.
+  - **`level` keeps its existing schedule** (one strong session, `LEVEL_UP_REQUIRES_HARD` intact at
+    level 5). It is the cross-skill confidence counter that gates prereq unlocking; slowing it would
+    stretch mastery to ~10 sessions per skill across 35 skills for no gain.
+  - Difficulty remains per-skill. A child strong at addition still starts subtraction at rung 1.
+
+  **Session length stays fixed at 8.** `STRONG_RATIO` is a ratio, so length silently sets how strict
+  promotion is — 4/5 is far easier to fluke than 7/8. A variable length makes "strong" stop meaning
+  one thing, which is the score-inflation problem the distractor fix just eliminated. 8 is an
+  attention-span figure for ages 6–8, not an adaptivity knob.
+
+  **Revisit trigger.** If two sessions per rung visibly drags — children bored, sessions abandoned —
+  drop to one. Start strict, loosen on evidence.
+
+  **Open, deliberately not settled here.** Whether a session *walks* rungs or holds one. Set B walked
+  all three inside eight questions, and that walk may be what did the work; the app holds one
+  difficulty per session. That is a session-shape change, not a recipe change, and it is NOT in
+  scope for the implementation of this entry.
+
+  **Scope.** Strategy rungs land in `addition2d.js` first and generalise as each recipe is revisited.
+  This entry does not retro-fit every skill.
