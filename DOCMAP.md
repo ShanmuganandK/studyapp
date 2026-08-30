@@ -82,6 +82,7 @@ ask, and the rule gets sharper.
 |---|---|---|
 | `RECIPE_TEMPLATE.md` | **The recipe contract.** Every recipe conforms to it. Protect it. | Live |
 | `misconceptions-reference.md` | Canonical source for misconception tags + distractor rules (~68 rows). **When a recipe and this doc disagree, the doc wins.** | Live — pending one-time teacher review |
+| `GLOSSARY.md` | Resolves ambiguous project vocabulary (e.g. "rung" means two different things) before acting on it. Writes: Chat. Rules, not status. | Live |
 | `claude-chat/specs/skill-map-spec.md` | Skill map: prerequisites, curriculum ceilings, ordering (T61). | Live |
 | `TEACHER-REVIEW.md` | Running list of items needing a primary-maths teacher's eye (T95). | Live, accumulating |
 | `SECURITY.md` | **Filled in 2026-08-16** (human-authored) — resolving the "awaiting the human's call" state below. Chat's recommendation was **delete** (no backend, no accounts, no user data leaving the device, no dependents, and the privacy policy already publishes a contact address); the human chose to **fill it in** instead. Disclosure route: the same address as the privacy policy — email, ack within 7 days, no public issues. Scope stated correctly (client-side PWA, no backend, no accounts, progress never transmitted). The fabricated 5.1.x/4.0.x version table is gone — "only the latest deployed version is supported" replaces it, honest for a project at `0.0.0` with no versioned releases. | Live |
