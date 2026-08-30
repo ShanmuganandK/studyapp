@@ -7,6 +7,9 @@
 > write it, and flags which ones describe **finished** work. Do not read the other ~20 markdown
 > files speculatively; go to the map when you need a specific area.
 >
+> Resolve ambiguous project vocabulary against `GLOSSARY.md` before acting on it — if a term
+> isn't there, ask the human rather than assuming.
+>
 > Applies to Claude Code AND Antigravity. **If anything here conflicts with a task instruction,
 > stop and ask before proceeding.**
 
@@ -91,7 +94,8 @@ never recipe internals.
 ## Guards — these exist to be believed
 
 CI runs on every push and PR: `lint` → `lint:hex` → `test:run` → `build`, then re-runs the
-bundle guard **after** the build. Baseline is **328 tests**.
+bundle guard **after** the build. **CI green is the guard** — the test count changes almost
+every commit, so no count is pinned here; check the CI run for the current total.
 
 | Guard | Protects |
 |---|---|
