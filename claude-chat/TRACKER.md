@@ -172,6 +172,40 @@ worth testing first** — dark exercises every inverted slot and is where a leak
 
 ---
 
+## Done — Mastery simulation across ten learner archetypes (2026-08-31)
+
+The artifact behind `DECISIONS.md` 2026-08-31 (no day-gate on mastery). With no elapsed-time
+backstop, consolidation rests on `DIFFICULTY_UP_STREAK` + `LEVEL_UP_REQUIRES_HARD`; this drives the
+shipped `applyResult` with synthetic sessions to see how they behave across the learner spectrum.
+Read-only against the engine — `mastery.js`, `masteryConfig.js` and every recipe are untouched.
+
+- **`scripts/simulate-mastery.mjs`** — ten archetypes (`baseAccuracy` 0.97 → 0.45, `dropPerDifficulty`
+  0 → 0.25), 8-question sessions played at `nextWorkingDifficulty`, per-question weighted coin flips,
+  60-session cap, seeded via the recipe engine's `src/recipes/_rng.js` (never `Math.random`). Also
+  runs 500 seeds per archetype and an exact binomial session-odds table. `node
+  scripts/simulate-mastery.mjs` rewrites only the marked generated block of the report.
+- **`claude-chat/mastery-simulation-report.md`** — archetype table, single-run results, 500-seed
+  results, session odds, Findings, Limits (Findings/Limits are hand-written and survive regeneration).
+- **`scripts/__tests__/simulate-mastery.test.js`** — 11 tests: archetype 1 masters in <15 sessions;
+  archetype 10 either masters or is explicitly flagged "not reached"; byte-identical rerun; report
+  splice keeps hand-written sections. **Proven RED first:** swapping the rng for `Math.random` fails
+  both determinism tests. `vitest.config.js` now includes `scripts/**/*.test.*` so these run in CI.
+
+**Headline results — full tables and Findings are in the report; tuning calls are the human's, not
+made here.** Only archetypes 1–4 reliably master (500 seeds: 100/100/100/98.2%); archetype 5 masters
+in 23.6% of runs, archetype 6 in 0.2%, 7–10 in 0%. Mastery is a single strong session at the hard
+rung (no streak at level 4→5), so a child at 0.68 accuracy on hard is mastered 98.2% of the time
+given enough sessions — well below the nominal "~80% at hard". `STRONG_RATIO` 0.8 behaves as 7/8
+(87.5%) at 8 questions. Archetype 10 is held by the floor (level/difficulty never below 1) but reaches
+`UNLOCK_LEVEL` in only 0.8% of runs. **Limits:** fixed per-rung accuracy (no simulated child ever
+learns), no fatigue, no remediation ladder, no spaced-rep review — complements kid-testing, does not
+replace it.
+
+`ARCHITECTURE.md` Tooling section updated in the same commit. `DOCMAP.md` was NOT edited (not Code's
+to write) — the new report is unlisted there; flagged for the human.
+
+---
+
 ## Done — Strategy rungs + level/difficulty decoupling (2026-08-27)
 
 Resolves the pacing question left open at Now #11 (2026-08-22/26): a strong session bumped
@@ -1147,7 +1181,9 @@ tolerance floor and the random tiebreak)**,
 **2026-08-27 (strategy rungs replace magnitude rungs; `level` and `difficulty` decouple —
 `difficulty` needs two consecutive strong sessions per rung)**,
 **2026-08-31 (no day-gate on mastery; the "different days" claim is corrected and removed,
-not implemented — same-day strong sessions count fully)**.
+not implemented — same-day strong sessions count fully; validated by the simulation in
+`claude-chat/mastery-simulation-report.md`, see the Done block "Mastery simulation across ten
+learner archetypes")**.
 
 Note: the 2026-08-18 corrections (Now #6, the composer Done blocks, DOCMAP's
 spec-practice-composer.md row) and the 2026-08-21 status ones (Now #7 split, Now #12 /

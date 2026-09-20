@@ -12,6 +12,7 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'node',
-    include: ['src/**/*.test.{js,jsx}'],
+    // `scripts/` is included so tooling with real logic (e.g. the mastery simulation) is under CI.
+    include: ['src/**/*.test.{js,jsx}', 'scripts/**/*.test.{js,jsx}'],
   },
 });

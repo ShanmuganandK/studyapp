@@ -916,3 +916,9 @@ land.
   `.visual-snapshots/` (gitignored — not committed). Not useful until there's a second thing to
   compare against (e.g. a real Explorer-band build); see the script's own header for why it's
   deliberately kept out of CI.
+- **`scripts/simulate-mastery.mjs`** — read-only simulation of `applyResult` across ten synthetic
+  learner archetypes (fixed per-rung accuracy, seeded via `src/recipes/_rng.js`, 8-question sessions,
+  60-session cap). Imports `mastery.js` + `masteryConfig.js` and changes neither. `node
+  scripts/simulate-mastery.mjs` regenerates the marked block of `claude-chat/mastery-simulation-report.md`
+  (Findings/Limits are hand-written and preserved). Tested in `scripts/__tests__/` — `vitest.config.js`
+  includes `scripts/**` for this. Artifact behind DECISIONS 2026-08-31.
