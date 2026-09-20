@@ -33,7 +33,7 @@
 
 - **Recipes, not stored questions.** Logic generates questions. See `RECIPE_TEMPLATE.md` for the contract.
 - **Difficulty capped at curriculum ceiling per skill** (3 rungs: easy/medium/hard). Beyond the ceiling = a different skill.
-- **Mastery = ~80% at hard level across multiple days**, then spaced-repetition review (intervals ~1/2/4/7/21 days). Stop drilling once mastered; move to next skill.
+- **Mastery = ~80% at hard level**, then spaced-repetition review (intervals ~1/2/4/7/21 days). Stop drilling once mastered; move to next skill.
 - **Distractors encode misconceptions** (e.g. forgot-carry) to drive targeted hints + dashboard insight.
 - **Remediation ladder, never punish:** wrong#1 = targeted hint; wrong#2 = visual walkthrough + retry easier; wrong#3 = park skill, give a guaranteed-win question (mood floor — a session never ends on failure). Tinku is never disappointed, always "let's try together."
 - **`misconceptions-reference.md` is the canonical source of truth for misconception tags.** Every recipe's `misconceptions[]` tags and every remediation hint must match it exactly (kebab-case). When the doc and a recipe disagree, the doc wins — reconcile the recipe to the doc, and verify the distractor RULE matches the tag's documented rule (don't just rename the label). New recipes draw their tags + rules from this doc. The doc still requires a one-time primary-math teacher review of its ~68 rows before launch; tag changes from that review are a contained follow-up.
@@ -579,3 +579,14 @@
 
   **Scope.** Strategy rungs land in `addition2d.js` first and generalise as each recipe is revisited.
   This entry does not retro-fit every skill.
+
+- (2026-08-31) **No day-gate on mastery; the "different days" claim is corrected (LOCKED).**
+  Same-day strong sessions count fully toward `level` and `difficulty`. Consolidation is
+  enforced by `DIFFICULTY_UP_STREAK` (2 consecutive strong sessions) and
+  `LEVEL_UP_REQUIRES_HARD`, not by elapsed time — a fast child should not be throttled by a
+  clock. `masteryConfig.js`'s comment and this document's Learning-engine bullet both claimed
+  mastery requires "~80% at hard, across sessions on different days"; neither was ever built
+  (`lastSeen` is recorded but never compared across sessions), and the claim is removed rather
+  than implemented. **Validated by simulation** (`claude-chat/mastery-simulation-report.md`)
+  across ten learner archetypes spanning fast-and-accurate to slow-and-struggling, before being
+  trusted at either end of the spectrum.

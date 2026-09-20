@@ -232,6 +232,9 @@ almost every commit), lint clean, `lint:hex` clean, build green.
 `lastSeen` but never compares it across sessions to gate a level-up — nothing in the codebase
 enforces a distinct-day requirement. Left the line as-is per instruction; needs a human call on
 whether to fix the code or correct the doc.
+**Resolved 2026-08-31 — doc corrected, not code:** `DECISIONS.md` 2026-08-31 (LOCKED) removes
+the claim rather than building a day-gate; the wording is gone from `DECISIONS.md`,
+`CLAUDE.md`, `masteryConfig.js`'s header and `src/engine/README.md`.
 
 ---
 
@@ -1140,7 +1143,11 @@ progress only, versioned envelope, REPLACE not merge — the shape behind Now #3
 **2026-08-21 (themes are a parent-zone test instrument, not a kid-facing feature)**,
 **2026-08-25 (the average-learner design principle; distractor plausibility — at
 most one implausible option per question, amended same day with the absolute
-tolerance floor and the random tiebreak)**.
+tolerance floor and the random tiebreak)**,
+**2026-08-27 (strategy rungs replace magnitude rungs; `level` and `difficulty` decouple —
+`difficulty` needs two consecutive strong sessions per rung)**,
+**2026-08-31 (no day-gate on mastery; the "different days" claim is corrected and removed,
+not implemented — same-day strong sessions count fully)**.
 
 Note: the 2026-08-18 corrections (Now #6, the composer Done blocks, DOCMAP's
 spec-practice-composer.md row) and the 2026-08-21 status ones (Now #7 split, Now #12 /

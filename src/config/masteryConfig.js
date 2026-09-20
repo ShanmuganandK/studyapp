@@ -3,8 +3,8 @@
  *
  * Every threshold, ratio, and interval lives here so kid-test feedback
  * ("reviews come too often", "mastery too easy") changes a number, not logic.
- * (STANDARDS §8 — centralize constants; DECISIONS — mastery = ~80% at hard across
- * multiple days, then spaced-rep intervals ~1/2/4/7/21 days.)
+ * (STANDARDS §8 — centralize constants; DECISIONS — mastery = ~80% at hard,
+ * then spaced-rep intervals ~1/2/4/7/21 days.)
  */
 export const MASTERY = {
   MAX_LEVEL: 5,

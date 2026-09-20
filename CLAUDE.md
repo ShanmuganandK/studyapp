@@ -80,8 +80,8 @@ Every recipe conforms to ONE fixed contract (`RECIPE_TEMPLATE.md`). Input: `diff
   a harder range is a *different skill*. A difficulty rung is not always a magnitude step: for
   `g2.add.2d-nocarry`, a rung selects a **strategy**, not a bigger number (DECISIONS 2026-08-27) —
   other skills generalise to that model as each is revisited.
-- **Practice stops when mastery is proven** (~80% at hard level, across sessions on different
-  days), then the skill enters spaced-repetition review and the child moves on.
+- **Practice stops when mastery is proven** (~80% at hard level), then the skill enters
+  spaced-repetition review and the child moves on.
 - **Wrong answers are deliberate:** each distractor encodes a known misconception (e.g.
   `forgot-carry`), so hints can be targeted and the dashboard can explain *why* a child struggles.
 - `misconceptions-reference.md` is canonical for tags and rules. **When a recipe and that doc
