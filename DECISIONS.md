@@ -590,3 +590,39 @@
   than implemented. **Validated by simulation** (`claude-chat/mastery-simulation-report.md`)
   across ten learner archetypes spanning fast-and-accurate to slow-and-struggling, before being
   trusted at either end of the spectrum.
+
+- (2026-09-01) **`level` requires consolidation too: `LEVEL_UP_STREAK` mirrors `DIFFICULTY_UP_STREAK` (LOCKED).**
+
+  **What the simulation found.** `applyResult` advanced `level` on a single `isStrong` session,
+  at every hop, unchanged since before the 2026-08-27 decoupling — only `difficulty` got a streak
+  requirement. Across 500 seeded runs per archetype: archetype 4 (68% accuracy at hard) mastered
+  in 98.2% of runs; archetype 5 (56% at hard, closer to the average-learner target) mastered in
+  only 23.6%, churning through 3.27 regressions per run on average because promotion needed two
+  lucky sessions in a row at ~4.8% joint probability while demotion needed one unlucky session at
+  ~7.5%. Full data in `claude-chat/mastery-simulation-report.md`.
+
+  **Fix.** `level` gets its own `LEVEL_UP_STREAK` (2, matching `DIFFICULTY_UP_STREAK` — same
+  starting value, independently tunable) requiring that many consecutive strong sessions before a
+  hop fires, at every level, not just the 4→5 mastery hop. Tracked on a new field, `levelStreak`,
+  independent of `difficultyStreak` — the two axes stay decoupled per 2026-08-27, so they get
+  independent counters, not a shared one.
+
+  **Demotion stays asymmetric, unchanged: one weak session still drops `level` by 1.** This is a
+  deliberate ratchet, not an oversight — the average-learner principle already commits to exactly
+  this shape for `difficulty` (streak to ease up, single session to ease down), and the asymmetry
+  is the right one here too: the harm of premature promotion (inflated confidence, a child pushed
+  past what they've shown) is worse than the harm of a fast demotion (a struggling child gets an
+  easier question sooner, which is what they need).
+
+  **Interaction with `LEVEL_UP_REQUIRES_HARD`.** The mastery hop (4→5) still additionally requires
+  `difficultyPlayed >= maxDifficulty`. If the streak threshold is reached but that session wasn't
+  played at hard difficulty, the streak holds at its cap rather than resetting — a child who has
+  shown two consolidated strong sessions shouldn't have to repeat the whole streak just because
+  their most recent session happened to be at a lower rung; the hop fires the next time a strong
+  session at hard difficulty lands.
+
+  **Validated by re-running the simulation** against this config before being trusted, same as the
+  day-gate decision — comparison appended to the existing report rather than a new one.
+
+  **Revisit trigger, same shape as `DIFFICULTY_UP_STREAK`'s:** if 2 visibly drags for a strong
+  learner or fails to meaningfully help archetype-5-shaped children, tune the constant on evidence.
