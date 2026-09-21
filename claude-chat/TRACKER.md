@@ -172,6 +172,63 @@ worth testing first** — dark exercises every inverted slot and is where a leak
 
 ---
 
+## Done — `level` consolidation: `LEVEL_UP_STREAK` (2026-09-01)
+
+Implements `DECISIONS.md` 2026-09-01 (LOCKED): `level` now needs consecutive strong sessions before
+every hop, mirroring `difficulty`. Follows directly from the 2026-08-31 simulation below.
+
+**Shipped (all committed on branch `mastery-level-streak`).**
+- **`masteryConfig.js`** — `LEVEL_UP_STREAK: 2` beside `DIFFICULTY_UP_STREAK`, with the consolidation
+  rule and revisit trigger; file-header and middle-band comments updated to match.
+- **`mastery.js`** — new state field `levelStreak` (independent of `difficultyStreak`); the level block
+  in `applyResult` now reads as a sibling of the difficulty block. Strong session → streak +1 (capped);
+  hop fires at `LEVEL_UP_STREAK`; weak → streak 0 AND level −1 (unchanged asymmetry); middle → streak 0.
+  At the 4→5 hop, `LEVEL_UP_REQUIRES_HARD` still applies and, if the streak is met on a non-hard
+  session, the streak **holds at its cap** (no reset) so the next strong session at hard fires the hop.
+  Both streaks default `?? 0` so a pre-field state can never produce `NaN` and freeze level.
+- **`progressBackup.js` / `progressStore.js`** — allowlist + field types extended for `levelStreak`
+  (guard **proven RED first**: `SKILL_STATE_KEYS` vs `emptySkillState()` drift test and 3 round-trip
+  tests failed on the 11-vs-12-key mismatch, then GREEN); `readStore()` backfills `levelStreak: 0`.
+- **Tests** — the two subtle boundary cases (streak met on a non-hard session → level holds AND streak
+  holds at cap; next strong session at hard → level advances, streak 0), weak-mid-streak reset,
+  middle-mid-streak reset, independence from `difficultyStreak`, configurable length, legacy-state
+  no-NaN. Existing hop tests re-based on a `primed()` helper (one strong session from a hop) so they
+  still isolate what they were written to test. **Mutation-checked:** resetting instead of holding at
+  the cap fails 3 tests; letting a weak session skip the streak reset fails 3 tests.
+- **Simulation** (`scripts/simulate-mastery.mjs`, report) — now emits a *baseline* block
+  (`LEVEL_UP_STREAK` 1 = the old engine; its 48 table rows are **identical** to the report committed at
+  `4de5b71`), an *after* block, a before/after comparison and a longer-horizon table. Added guards: the
+  committed report must equal a fresh regeneration (proven RED), and the baseline arm is pinned to the
+  original results.
+- **Doc sync** — `ARCHITECTURE.md` (skill-state shape and config list were ALSO stale from 2026-08-27:
+  neither listed `difficultyStreak` / `DIFFICULTY_UP_STREAK`; fixed), `CLAUDE.md`, `GLOSSARY.md`,
+  `src/engine/README.md`, `src/engine/mastery.js` and `masteryConfig.js` headers; earlier Done blocks
+  below carry "superseded" pointers instead of being rewritten.
+
+**Simulation result — read this before treating the change as done.** The DECISIONS entry expected the
+streak to help archetype-5-shaped children. **It did not: archetype 5's mastery within 60 sessions fell
+23.6% → 0.0% (95.2% → 1.0% by 480 sessions), its `UNLOCK_LEVEL` reach 100% → 62.6%, and mean difficulty
+regressions rose 3.27 → 3.91.** Archetype 4 (68% at hard) went from 98.2% → 14.2% within 60, a slowdown
+not a wall (100% by 480). Strong learners pay too: minimum sessions to mastery 5 → 10; archetype 3's
+median 8 → 24, p90 13 → 37. `UNLOCK_LEVEL` reach within 60 for archetypes 6–10 fell to ≤ 6.2% (was 100 /
+98.2 / 63.8 / 17.6 / 0.8%). Full tables and hand-written findings:
+`claude-chat/mastery-simulation-report.md`. **No constant was changed** — under DECISIONS 2026-09-01's
+own revisit trigger this is evidence for the human, not for Code to tune.
+
+**Flagged, not fixed (outside this task's scope fence — each needs a human call).**
+- **Level 0 = "not started" in the app** (`composer.js` treats `level > 0` as started; `progressSummary.js`
+  and `ParentDashboard` bucket level 0 as `notStarted`). Level 0→1 now takes two consecutive strong
+  sessions, so a child who plays a skill many times without two in a row still shows as "not started"
+  — read from the code, not tested.
+- **`UNLOCK_LEVEL` (3) gates prereq skills** in the skill map; it was calibrated against one-session
+  hops. Finding 4 in the report quantifies the effect.
+- **Progress backups exported before this change are refused on import.** The allowlist requires exactly
+  the current keys, so a 12-key file (pre-`levelStreak`) fails validation as malformed. The same was
+  already true of files exported before `difficultyStreak` (2026-08-27). Not changed here: loosening the
+  strict allowlist is a DECISIONS 2026-08-17 question.
+
+---
+
 ## Done — Mastery simulation across ten learner archetypes (2026-08-31)
 
 The artifact behind `DECISIONS.md` 2026-08-31 (no day-gate on mastery). With no elapsed-time
@@ -186,7 +243,7 @@ Read-only against the engine — `mastery.js`, `masteryConfig.js` and every reci
   scripts/simulate-mastery.mjs` rewrites only the marked generated block of the report.
 - **`claude-chat/mastery-simulation-report.md`** — archetype table, single-run results, 500-seed
   results, session odds, Findings, Limits (Findings/Limits are hand-written and survive regeneration).
-- **`scripts/__tests__/simulate-mastery.test.js`** — 11 tests: archetype 1 masters in <15 sessions;
+- **`scripts/__tests__/simulate-mastery.test.js`** — 11 tests at the time (18 as of 2026-09-01): archetype 1 masters in <15 sessions;
   archetype 10 either masters or is explicitly flagged "not reached"; byte-identical rerun; report
   splice keeps hand-written sections. **Proven RED first:** swapping the rng for `Math.random` fails
   both determinism tests. `vitest.config.js` now includes `scripts/**/*.test.*` so these run in CI.
@@ -200,6 +257,10 @@ given enough sessions — well below the nominal "~80% at hard". `STRONG_RATIO` 
 `UNLOCK_LEVEL` in only 0.8% of runs. **Limits:** fixed per-rung accuracy (no simulated child ever
 learns), no fatigue, no remediation ladder, no spaced-rep review — complements kid-testing, does not
 replace it.
+
+**Superseded in part, 2026-09-01:** the "single strong session at the hard rung / no streak at level
+4→5" description above is the *baseline* engine. `LEVEL_UP_STREAK` now applies at every hop — see the
+Done block above. The report keeps the baseline findings as written and adds the after-change ones.
 
 `ARCHITECTURE.md` Tooling section updated in the same commit. `DOCMAP.md` was NOT edited (not Code's
 to write) — the new report is unlisted there; flagged for the human.
@@ -225,7 +286,7 @@ to one flat cap (99) across all three rungs, since the per-rung magnitude cap no
 
 **`src/engine/mastery.js` — `level` and `difficulty` are separate axes.** `applyResult` used to
 advance both off one `isStrong` boolean. Now: `level` keeps its existing one-strong-session
-schedule (`LEVEL_UP_REQUIRES_HARD` intact at the 4→5 hop) — unchanged, since slowing it would
+schedule *(superseded 2026-09-01 — `level` now has its own `LEVEL_UP_STREAK`; see that Done block)* (`LEVEL_UP_REQUIRES_HARD` intact at the 4→5 hop) — unchanged, since slowing it would
 stretch mastery to ~10 sessions/skill for no gain. `difficulty` requires
 `DIFFICULTY_UP_STREAK` (2, named constant in `masteryConfig.js`) **consecutive** strong sessions
 at the current rung before advancing; any non-strong session (weak OR middle) resets the streak
@@ -1183,7 +1244,11 @@ tolerance floor and the random tiebreak)**,
 **2026-08-31 (no day-gate on mastery; the "different days" claim is corrected and removed,
 not implemented — same-day strong sessions count fully; validated by the simulation in
 `claude-chat/mastery-simulation-report.md`, see the Done block "Mastery simulation across ten
-learner archetypes")**.
+learner archetypes")**,
+**2026-09-01 (`level` requires consolidation too: `LEVEL_UP_STREAK` mirrors `DIFFICULTY_UP_STREAK`,
+independent `levelStreak` counter, hold-at-cap at the 4→5 hop; re-validated by the same simulation —
+before/after in `claude-chat/mastery-simulation-report.md`, see the Done block "`level` consolidation:
+`LEVEL_UP_STREAK`")**.
 
 Note: the 2026-08-18 corrections (Now #6, the composer Done blocks, DOCMAP's
 spec-practice-composer.md row) and the 2026-08-21 status ones (Now #7 split, Now #12 /

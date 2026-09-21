@@ -4,8 +4,13 @@
  * archetypes, fast-and-accurate through slow-and-struggling (DECISIONS 2026-08-31).
  *
  * WHY: with no day-gate (DECISIONS 2026-08-31), consolidation rests entirely on
- * `DIFFICULTY_UP_STREAK` and `LEVEL_UP_REQUIRES_HARD`. This checks how those behave across the
- * whole learner spectrum before the numbers are trusted at either end of it.
+ * `LEVEL_UP_STREAK`, `DIFFICULTY_UP_STREAK` and `LEVEL_UP_REQUIRES_HARD`. This checks how those
+ * behave across the whole learner spectrum before the numbers are trusted at either end of it.
+ *
+ * The report holds two generated blocks: BASELINE (`LEVEL_UP_STREAK` 1 — the engine's behaviour
+ * before DECISIONS 2026-09-01, when `level` hopped on a single strong session) and AFTER (the
+ * shipped `MASTERY` config), plus a before/after comparison. `LEVEL_UP_STREAK: 1` is exactly the
+ * old rule — one strong session completes the streak — so no old engine copy is needed.
  *
  * WHAT IT IS NOT: a feature. No UI, no recipes, no question content. It reads the engine
  * (`src/engine/mastery.js`, `src/config/masteryConfig.js`) and changes neither. It models
@@ -87,6 +92,7 @@ export function simulateArchetype(
   let levelDemotions = 0;
   let peakDifficulty = state.difficulty;
   let peakLevel = state.level;
+  let floorViolations = 0;     // sessions that pushed a started skill (level ≥ 1) back to 0, or difficulty < 1
   let longestNonStrongRun = 0; // consecutive non-strong sessions at the same difficulty
   let longestStayAtRung = 0;   // consecutive sessions played at the same difficulty
   let nonStrongRun = 0;
@@ -132,6 +138,7 @@ export function simulateArchetype(
 
     if (next.difficulty < state.difficulty) difficultyRegressions++;
     if (next.level < state.level) levelDemotions++;
+    if ((state.level >= 1 && next.level < 1) || next.difficulty < 1) floorViolations++;
     peakDifficulty = Math.max(peakDifficulty, next.difficulty);
     peakLevel = Math.max(peakLevel, next.level);
 
@@ -148,6 +155,7 @@ export function simulateArchetype(
     sessionsPlayed,
     difficultyRegressions,
     levelDemotions,
+    floorViolations,
     longestNonStrongRun,
     longestStayAtRung,
     peakDifficulty,
@@ -167,6 +175,30 @@ export function runAll({ seed = BASE_SEED, maxSessions = MAX_SESSIONS, config = 
 }
 
 /**
+ * Fewest sessions any child can take to reach mastery under `config`: a perfect (8/8) child.
+ * Exact, not simulated with noise. Structural floor of the config — the fast end's cost.
+ */
+export function minSessionsToMastery(config = MASTERY, maxSessions = MAX_SESSIONS) {
+  let state = emptySkillState(SKILL_ID, MAX_DIFFICULTY);
+  for (let n = 1; n <= maxSessions; n++) {
+    state = applyResult(
+      state,
+      {
+        skillId: SKILL_ID,
+        difficultyPlayed: nextWorkingDifficulty(state),
+        questionsTotal: QUESTIONS_PER_SESSION,
+        questionsCorrect: QUESTIONS_PER_SESSION,
+        misconceptionTags: [],
+        date: fakeDate(n),
+      },
+      config,
+    );
+    if (isMastered(state, config)) return n;
+  }
+  return null;
+}
+
+/**
  * Many seeds per archetype. The single-seed table shows ONE trajectory; this shows how much
  * that trajectory depends on luck. Deterministic: seeds are `${seed}:mc:${k}`.
  */
@@ -180,11 +212,13 @@ export function monteCarlo({
     const sessions = [];
     let regressions = 0;
     let unlocked = 0;
+    let demotions = 0;
     for (let k = 0; k < runs; k++) {
       const r = simulateArchetype(a, { seed: `${seed}:mc:${k}`, maxSessions, config });
       // Not-reached runs count as cap+1 so they sort past every real result.
       sessions.push(r.sessionsToMastery ?? maxSessions + 1);
       regressions += r.difficultyRegressions;
+      demotions += r.levelDemotions;
       if (r.peakLevel >= config.UNLOCK_LEVEL) unlocked++;
     }
     sessions.sort((x, y) => x - y);
@@ -196,7 +230,34 @@ export function monteCarlo({
       median: at(0.5),
       p90: at(0.9),
       meanRegressions: regressions / runs,
+      meanLevelDemotions: demotions / runs,
       unlockedPct: (100 * unlocked) / runs,
+    };
+  });
+}
+
+/**
+ * Share of runs that reach mastery within each horizon, for the given archetype ids. One run per
+ * seed at the longest horizon; shorter horizons read off `sessionsToMastery` (same rng stream
+ * prefix, so the cap-60 column matches the cap-60 Monte Carlo exactly).
+ */
+export function masteryByHorizon({
+  ids,
+  horizons,
+  runs = MONTE_CARLO_RUNS,
+  seed = BASE_SEED,
+  config = MASTERY,
+}) {
+  const longest = Math.max(...horizons);
+  return ids.map((id) => {
+    const a = ARCHETYPES.find((x) => x.id === id);
+    const finished = [];
+    for (let k = 0; k < runs; k++) {
+      finished.push(simulateArchetype(a, { seed: `${seed}:mc:${k}`, maxSessions: longest, config }).sessionsToMastery);
+    }
+    return {
+      id,
+      byHorizon: horizons.map((h) => (100 * finished.filter((n) => n !== null && n <= h).length) / runs),
     };
   });
 }
@@ -225,25 +286,138 @@ export function sessionOdds(archetype, d, config = MASTERY) {
 
 // ─── Report ──────────────────────────────────────────────────────────────────
 
-export const GEN_BEGIN = '<!-- BEGIN GENERATED (scripts/simulate-mastery.mjs) — do not hand-edit -->';
-export const GEN_END = '<!-- END GENERATED -->';
+/** Config the engine behaved as before DECISIONS 2026-09-01 (level hopped on ONE strong session). */
+export const BASELINE_CONFIG = { ...MASTERY, LEVEL_UP_STREAK: 1 };
+
+export const BLOCKS = ['baseline', 'after'];
+export const genBegin = (name) => `<!-- BEGIN GENERATED: ${name} (scripts/simulate-mastery.mjs) — do not hand-edit -->`;
+export const genEnd = (name) => `<!-- END GENERATED: ${name} -->`;
 
 const pct = (x) => `${(100 * x).toFixed(1)}%`;
 const reached = (n, cap) => (n === null ? `not reached in ${cap}` : String(n));
+
+function archetypeTable() {
+  const out = [
+    '### Archetypes',
+    '',
+    '`effective accuracy at difficulty d = clamp(baseAccuracy − drop × (d − 1), 0.05, 0.99)`',
+    '',
+    '| # | Label | baseAccuracy | drop / rung | acc @ d1 | acc @ d2 | acc @ d3 |',
+    '|---|---|---|---|---|---|---|',
+  ];
+  for (const a of ARCHETYPES) {
+    out.push(
+      `| ${a.id} | ${a.label} | ${a.baseAccuracy.toFixed(2)} | ${a.dropPerDifficulty.toFixed(3)} | ` +
+        [1, 2, 3].map((d) => effectiveAccuracy(a, d).toFixed(2)).join(' | ') +
+        ' |',
+    );
+  }
+  out.push('');
+  return out;
+}
+
+function oddsTable(config) {
+  const out = [
+    '### Exact session odds (binomial, no simulation)',
+    '',
+    'P(strong) / P(weak) for one 8-question session at each rung. A rung advances only after ' +
+      `${config.DIFFICULTY_UP_STREAK} consecutive strong sessions, so P(strong)^${config.DIFFICULTY_UP_STREAK} ` +
+      'is the chance of clearing a rung in a given pair of sessions. The same odds govern ' +
+      '`level` hops under `LEVEL_UP_STREAK`.',
+    '',
+    '| # | d1 strong / weak | d2 strong / weak | d3 strong / weak |',
+    '|---|---|---|---|',
+  ];
+  for (const a of ARCHETYPES) {
+    const cells = [1, 2, 3].map((d) => {
+      const o = sessionOdds(a, d, config);
+      return `${pct(o.strong)} / ${pct(o.weak)}`;
+    });
+    out.push(`| ${a.id} | ${cells.join(' | ')} |`);
+  }
+  out.push('');
+  return out;
+}
+
+function comparisonTable({ config, compareTo, seed, maxSessions, mcRuns, mc }) {
+  const before = monteCarlo({ seed, runs: mcRuns, maxSessions, config: compareTo });
+  const beforeSingle = runAll({ seed, maxSessions, config: compareTo });
+  const afterSingle = runAll({ seed, maxSessions, config });
+  const show = (n) => (n > maxSessions ? `not reached in ${maxSessions}` : String(n));
+  const arrow = (b, a) => `${b} → ${a}`;
+  const out = [
+    '### Before / after',
+    '',
+    `Before = \`LEVEL_UP_STREAK\` ${compareTo.LEVEL_UP_STREAK} (the engine's rule until DECISIONS ` +
+      `2026-09-01: \`level\` hops on one strong session). After = \`LEVEL_UP_STREAK\` ${config.LEVEL_UP_STREAK}. ` +
+      `Everything else identical. ${mcRuns} seeds per archetype; the seeds are the same for both arms.`,
+    '',
+    `Fewest sessions any child can take to reach mastery (a perfect 8/8 child): ` +
+      `**${minSessionsToMastery(compareTo, maxSessions)} → ${minSessionsToMastery(config, maxSessions)}**.`,
+    '',
+    `| # | Mastered within ${maxSessions} | Median sessions to mastery | p90 sessions to mastery | Mean difficulty regressions | Mean level demotions | Reached \`UNLOCK_LEVEL\` (${config.UNLOCK_LEVEL}) | Single run: sessions to mastery |`,
+    '|---|---|---|---|---|---|---|---|',
+  ];
+  for (let i = 0; i < ARCHETYPES.length; i++) {
+    const b = before[i];
+    const a = mc[i];
+    out.push(
+      `| ${a.id} | ${arrow(`${b.masteredPct.toFixed(1)}%`, `${a.masteredPct.toFixed(1)}%`)} | ` +
+        `${arrow(show(b.median), show(a.median))} | ${arrow(show(b.p90), show(a.p90))} | ` +
+        `${arrow(b.meanRegressions.toFixed(2), a.meanRegressions.toFixed(2))} | ` +
+        `${arrow(b.meanLevelDemotions.toFixed(2), a.meanLevelDemotions.toFixed(2))} | ` +
+        `${arrow(`${b.unlockedPct.toFixed(1)}%`, `${a.unlockedPct.toFixed(1)}%`)} | ` +
+        `${arrow(reached(beforeSingle[i].sessionsToMastery, maxSessions), reached(afterSingle[i].sessionsToMastery, maxSessions))} |`,
+    );
+  }
+  out.push('');
+  return out;
+}
+
+const HORIZONS = [60, 120, 240, 480];
+const HORIZON_IDS = [3, 4, 5, 6];
+
+function horizonTable({ config, compareTo, seed, mcRuns }) {
+  const before = masteryByHorizon({ ids: HORIZON_IDS, horizons: HORIZONS, runs: mcRuns, seed, config: compareTo });
+  const after = masteryByHorizon({ ids: HORIZON_IDS, horizons: HORIZONS, runs: mcRuns, seed, config });
+  const out = [
+    '### Longer horizon — is it a slowdown or a wall?',
+    '',
+    'Share of runs that have reached mastery by N sessions (before → after), same seeds. The 60-session ' +
+      'cap above can make a slowdown look like a wall; this separates them for the archetypes that moved most.',
+    '',
+    `| # | ${HORIZONS.map((h) => `by ${h}`).join(' | ')} |`,
+    `|---|${HORIZONS.map(() => '---').join('|')}|`,
+  ];
+  for (let i = 0; i < HORIZON_IDS.length; i++) {
+    out.push(
+      `| ${HORIZON_IDS[i]} | ` +
+        HORIZONS.map((_, j) => `${before[i].byHorizon[j].toFixed(1)}% → ${after[i].byHorizon[j].toFixed(1)}%`).join(' | ') +
+        ' |',
+    );
+  }
+  out.push('');
+  return out;
+}
 
 export function renderGenerated({
   seed = BASE_SEED,
   maxSessions = MAX_SESSIONS,
   config = MASTERY,
   mcRuns = MONTE_CARLO_RUNS,
+  title = 'Simulation',
+  includeArchetypes = true,
+  includeOdds = true,
+  compareTo = null, // a config to compare `config` against (rendered as a before/after table)
 } = {}) {
   const results = runAll({ seed, maxSessions, config });
   const mc = monteCarlo({ seed, runs: mcRuns, maxSessions, config });
-  const out = [];
+  const out = [`## ${title}`, ''];
 
-  out.push('## Configuration under test', '');
+  out.push('### Configuration under test', '');
   out.push(
     `\`STRONG_RATIO\` ${config.STRONG_RATIO}, \`WEAK_RATIO\` ${config.WEAK_RATIO}, ` +
+      `\`LEVEL_UP_STREAK\` ${config.LEVEL_UP_STREAK}, ` +
       `\`DIFFICULTY_UP_STREAK\` ${config.DIFFICULTY_UP_STREAK}, ` +
       `\`LEVEL_UP_REQUIRES_HARD\` ${config.LEVEL_UP_REQUIRES_HARD}, ` +
       `\`MASTERED_LEVEL\` ${config.MASTERED_LEVEL}. ` +
@@ -256,23 +430,9 @@ export function renderGenerated({
     '',
   );
 
-  out.push('## Archetypes', '');
-  out.push(
-    '`effective accuracy at difficulty d = clamp(baseAccuracy − drop × (d − 1), 0.05, 0.99)`',
-    '',
-    '| # | Label | baseAccuracy | drop / rung | acc @ d1 | acc @ d2 | acc @ d3 |',
-    '|---|---|---|---|---|---|---|',
-  );
-  for (const a of ARCHETYPES) {
-    out.push(
-      `| ${a.id} | ${a.label} | ${a.baseAccuracy.toFixed(2)} | ${a.dropPerDifficulty.toFixed(3)} | ` +
-        [1, 2, 3].map((d) => effectiveAccuracy(a, d).toFixed(2)).join(' | ') +
-        ' |',
-    );
-  }
-  out.push('');
+  if (includeArchetypes) out.push(...archetypeTable());
 
-  out.push('## Results — single seeded run per archetype', '');
+  out.push('### Results — single seeded run per archetype', '');
   out.push(
     '| # | Sessions to mastery | Difficulty regressions | Level demotions | Longest non-strong run (same rung) | Longest stay at one rung | Peak difficulty | Final level | Final difficulty | Attempts | Correct | Misconceptions |',
     '|---|---|---|---|---|---|---|---|---|---|---|---|',
@@ -293,7 +453,7 @@ export function renderGenerated({
     '',
   );
 
-  out.push(`## Results — ${mcRuns} seeds per archetype`, '');
+  out.push(`### Results — ${mcRuns} seeds per archetype`, '');
   out.push(
     'One trajectory is one sample of a noisy process. This repeats each archetype over ' +
       `${mcRuns} deterministic seeds (\`${seed}:mc:0\` … \`${seed}:mc:${mcRuns - 1}\`). ` +
@@ -310,36 +470,51 @@ export function renderGenerated({
   }
   out.push('');
 
-  out.push('## Exact session odds (binomial, no simulation)', '');
-  out.push(
-    'P(strong) / P(weak) for one 8-question session at each rung. A rung advances only after ' +
-      `${config.DIFFICULTY_UP_STREAK} consecutive strong sessions, so P(strong)^${config.DIFFICULTY_UP_STREAK} ` +
-      'is the chance of clearing a rung in a given pair of sessions.',
-    '',
-    '| # | d1 strong / weak | d2 strong / weak | d3 strong / weak |',
-    '|---|---|---|---|',
-  );
-  for (const a of ARCHETYPES) {
-    const cells = [1, 2, 3].map((d) => {
-      const o = sessionOdds(a, d, config);
-      return `${pct(o.strong)} / ${pct(o.weak)}`;
-    });
-    out.push(`| ${a.id} | ${cells.join(' | ')} |`);
+  if (includeOdds) out.push(...oddsTable(config));
+  if (compareTo) {
+    out.push(...comparisonTable({ config, compareTo, seed, maxSessions, mcRuns, mc }));
+    out.push(...horizonTable({ config, compareTo, seed, mcRuns }));
   }
-  out.push('');
 
   return out.join('\n');
 }
 
+/** Both generated blocks, keyed by marker name. */
+export function renderBlocks({ mcRuns = MONTE_CARLO_RUNS, seed = BASE_SEED, maxSessions = MAX_SESSIONS } = {}) {
+  const common = { mcRuns, seed, maxSessions };
+  return {
+    baseline: renderGenerated({
+      ...common,
+      config: BASELINE_CONFIG,
+      title: 'Baseline — `LEVEL_UP_STREAK` 1 (engine behaviour up to 2026-08-31)',
+    }),
+    after: renderGenerated({
+      ...common,
+      config: MASTERY,
+      title: 'After — shipped config, `LEVEL_UP_STREAK` active (DECISIONS 2026-09-01)',
+      includeArchetypes: false,
+      includeOdds: false,
+      compareTo: BASELINE_CONFIG,
+    }),
+  };
+}
+
 const SKELETON = `# Mastery simulation report
 
-Artifact behind DECISIONS 2026-08-31 (no day-gate on mastery). Produced by
-\`scripts/simulate-mastery.mjs\`; regenerate with \`node scripts/simulate-mastery.mjs\`.
+Artifact behind DECISIONS 2026-08-31 (no day-gate on mastery) and 2026-09-01 (\`level\` consolidation).
+Produced by \`scripts/simulate-mastery.mjs\`; regenerate with \`node scripts/simulate-mastery.mjs\`.
 
-${GEN_BEGIN}
-${GEN_END}
+${genBegin('baseline')}
+${genEnd('baseline')}
 
-## Findings
+## Findings — baseline
+
+(not yet written)
+
+${genBegin('after')}
+${genEnd('after')}
+
+## Findings — after \`LEVEL_UP_STREAK\`
 
 (not yet written)
 
@@ -348,14 +523,23 @@ ${GEN_END}
 (not yet written)
 `;
 
-/** Replace the generated block of an existing report, leaving the hand-written sections alone. */
-export function spliceGenerated(existing, generated) {
-  const a = existing.indexOf(GEN_BEGIN);
-  const b = existing.indexOf(GEN_END);
+/** Replace ONE named generated block of an existing report, leaving everything else alone. */
+export function spliceGenerated(existing, generated, name) {
+  const begin = genBegin(name);
+  const end = genEnd(name);
+  const a = existing.indexOf(begin);
+  const b = existing.indexOf(end);
   if (a === -1 || b === -1 || b < a) {
-    throw new Error('report is missing its generated-block markers');
+    throw new Error(`report is missing its "${name}" generated-block markers`);
   }
-  return `${existing.slice(0, a)}${GEN_BEGIN}\n\n${generated}\n${existing.slice(b)}`;
+  return `${existing.slice(0, a)}${begin}\n\n${generated}\n${existing.slice(b)}`;
+}
+
+/** Splice every block into `existing`. */
+export function spliceAll(existing, blocks) {
+  let doc = existing;
+  for (const name of BLOCKS) doc = spliceGenerated(doc, blocks[name], name);
+  return doc;
 }
 
 // ─── CLI ─────────────────────────────────────────────────────────────────────
@@ -365,13 +549,13 @@ const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv
 if (isMain) {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const reportPath = path.join(repoRoot, 'claude-chat', 'mastery-simulation-report.md');
-  const generated = renderGenerated();
+  const blocks = renderBlocks();
 
   if (process.argv.includes('--stdout')) {
-    process.stdout.write(`${generated}\n`);
+    process.stdout.write(`${BLOCKS.map((n) => blocks[n]).join('\n')}\n`);
   } else {
     const existing = existsSync(reportPath) ? readFileSync(reportPath, 'utf8') : SKELETON;
-    writeFileSync(reportPath, spliceGenerated(existing, generated));
+    writeFileSync(reportPath, spliceAll(existing, blocks));
     process.stdout.write(`wrote ${path.relative(repoRoot, reportPath)}\n`);
   }
 }

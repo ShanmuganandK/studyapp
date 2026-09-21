@@ -22,15 +22,18 @@ export const SCHEMA_VERSION = 1;
 // ─── Internal read/write helpers ─────────────────────────────────────────────
 
 /**
- * A skill state saved before `difficultyStreak` existed (DECISIONS 2026-08-27) is missing the
- * field and won't be touched again until that skill is next practiced. Backfill it on READ so
- * every state this module returns has the current shape — `applyResult` gets a real number to
- * add to, and an export taken before that skill's next session still matches the
- * `SKILL_STATE_KEYS` allowlist on reimport. Not written back; the field lands on disk naturally
- * next time `saveSkillState` runs for that skill.
+ * A skill state saved before `difficultyStreak` (DECISIONS 2026-08-27) or `levelStreak`
+ * (DECISIONS 2026-09-01) existed is missing the field and won't be touched again until that skill
+ * is next practiced. Backfill each on READ so every state this module returns has the current
+ * shape — `applyResult` gets a real number to add to, and an export taken before that skill's
+ * next session still matches the `SKILL_STATE_KEYS` allowlist on reimport. Not written back; the
+ * fields land on disk naturally next time `saveSkillState` runs for that skill.
  */
 function backfillSkillState(state) {
-  return state.difficultyStreak === undefined ? { ...state, difficultyStreak: 0 } : state;
+  let out = state;
+  if (out.difficultyStreak === undefined) out = { ...out, difficultyStreak: 0 };
+  if (out.levelStreak === undefined) out = { ...out, levelStreak: 0 };
+  return out;
 }
 
 /** Parse the stored blob, or return a fresh empty store on any failure. */

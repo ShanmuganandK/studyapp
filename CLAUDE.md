@@ -81,7 +81,10 @@ Every recipe conforms to ONE fixed contract (`RECIPE_TEMPLATE.md`). Input: `diff
   `g2.add.2d-nocarry`, a rung selects a **strategy**, not a bigger number (DECISIONS 2026-08-27) —
   other skills generalise to that model as each is revisited.
 - **Practice stops when mastery is proven** (~80% at hard level), then the skill enters
-  spaced-repetition review and the child moves on.
+  spaced-repetition review and the child moves on. Both `level` and `difficulty` advance only
+  after **consecutive** strong sessions (`LEVEL_UP_STREAK` / `DIFFICULTY_UP_STREAK`, 2 each,
+  independent counters); a weak session drops either axis at once. There is **no elapsed-time
+  gate** — consolidation is by streak, not by clock (DECISIONS 2026-08-31, 2026-09-01).
 - **Wrong answers are deliberate:** each distractor encodes a known misconception (e.g.
   `forgot-carry`), so hints can be targeted and the dashboard can explain *why* a child struggles.
 - `misconceptions-reference.md` is canonical for tags and rules. **When a recipe and that doc

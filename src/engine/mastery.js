@@ -10,6 +10,11 @@
  *
  * The persistence layer (a later task) loads skill states before a session and saves the
  * applyResult output after. This module only computes; it never stores.
+ *
+ * Promotion rule (DECISIONS 2026-08-27, 2026-08-31, 2026-09-01): `level` and `difficulty` are
+ * separate axes, each advancing only after consecutive strong sessions (LEVEL_UP_STREAK /
+ * DIFFICULTY_UP_STREAK, independent counters `levelStreak` / `difficultyStreak`). A non-strong
+ * session resets both streaks; a weak session also drops each axis by one. No elapsed-time gate.
  */
 
 import { MASTERY } from '../config/masteryConfig.js';
@@ -51,6 +56,9 @@ export function emptySkillState(skillId, maxDifficulty = 3) {
     recentParams: [],     // last ~20 question signatures (repeat-avoidance handoff)
     misconceptions: {},   // { tag: count } — which mistakes this child makes
     difficultyStreak: 0,  // consecutive strong sessions at the current rung (DECISIONS 2026-08-27)
+    levelStreak: 0,       // consecutive strong sessions toward the next level (DECISIONS 2026-09-01).
+                          // Independent of difficultyStreak despite the similarity — the two axes
+                          // are decoupled (2026-08-27), so each keeps its own counter.
   };
 }
 
@@ -116,6 +124,7 @@ export function applyResult(skillState, sessionResult, config = MASTERY) {
     STRONG_RATIO,
     WEAK_RATIO,
     DIFFICULTY_UP_STREAK,
+    LEVEL_UP_STREAK,
     LEVEL_UP_REQUIRES_HARD,
     REVIEW_INTERVALS,
   } = config;
@@ -140,31 +149,47 @@ export function applyResult(skillState, sessionResult, config = MASTERY) {
   // "middle" is the gap between WEAK_RATIO and STRONG_RATIO
 
   // ── 3. Level movement ────────────────────────────────────────────────────
+  // Sibling of the difficulty block below (DECISIONS 2026-09-01): level needs LEVEL_UP_STREAK
+  // CONSECUTIVE strong sessions before each hop, on its own counter. Any non-strong session
+  // resets the streak to 0; a weak session additionally drops level by 1 (never below 1).
+  // The mastery hop (→ MASTERED_LEVEL) also needs a session at maxDifficulty: if the streak is
+  // met but the session wasn't at hard, the streak HOLDS at its cap (no reset) so the next
+  // strong session at hard fires the hop straight away.
 
   let level = skillState.level;
+  // `?? 0`: a state that predates the field must count from zero, never NaN (NaN >= N is false,
+  // which would silently freeze level forever). progressStore also backfills on read.
+  let levelStreak = skillState.levelStreak ?? 0;
 
   if (isStrong) {
-    const targetLevel = level + 1;
-    if (targetLevel <= MAX_LEVEL) {
-      if (LEVEL_UP_REQUIRES_HARD && targetLevel === MASTERED_LEVEL) {
-        // Reaching mastery requires demonstrating skill at full difficulty.
-        if (difficultyPlayed >= skillState.maxDifficulty) {
+    levelStreak = Math.min(levelStreak + 1, LEVEL_UP_STREAK);
+    if (levelStreak >= LEVEL_UP_STREAK) {
+      const targetLevel = level + 1;
+      if (targetLevel <= MAX_LEVEL) {
+        if (LEVEL_UP_REQUIRES_HARD && targetLevel === MASTERED_LEVEL) {
+          // Reaching mastery requires demonstrating skill at full difficulty.
+          if (difficultyPlayed >= skillState.maxDifficulty) {
+            level = targetLevel;
+            levelStreak = 0; // consumed — count afresh at the new level
+          }
+          // else: streak met, hard requirement not — hold the streak at its cap.
+        } else {
           level = targetLevel;
+          levelStreak = 0; // consumed — count afresh at the new level
         }
-        // else: strong session but not at maxDifficulty — hold at current level
-      } else {
-        level = targetLevel;
+      }
+      // already at MAX_LEVEL → hold
+    }
+  } else {
+    levelStreak = 0;
+    if (isWeak) {
+      // Never below 1 once started; level 0 (not started) has nothing to drop from.
+      if (level > 1) {
+        level -= 1;
       }
     }
-    // already at MAX_LEVEL → hold
-  } else if (isWeak) {
-    // Never below 1 once started; level 0 (not started) has nothing to drop from.
-    if (level > 1) {
-      level -= 1;
-    }
-    // level 0 → stays 0; level 1 → stays 1
+    // middle → level unchanged, streak reset
   }
-  // middle → level unchanged
 
   // ── 4. Adaptive difficulty ───────────────────────────────────────────────
   // Decoupled from level (DECISIONS 2026-08-27): difficulty needs DIFFICULTY_UP_STREAK
@@ -174,7 +199,7 @@ export function applyResult(skillState, sessionResult, config = MASTERY) {
 
   const maxDiff = skillState.maxDifficulty;
   let difficulty = skillState.difficulty;
-  let difficultyStreak = skillState.difficultyStreak;
+  let difficultyStreak = skillState.difficultyStreak ?? 0; // same guard as levelStreak above
 
   if (isStrong) {
     difficultyStreak = Math.min(difficultyStreak + 1, DIFFICULTY_UP_STREAK);
@@ -226,6 +251,7 @@ export function applyResult(skillState, sessionResult, config = MASTERY) {
     level,
     difficulty,
     difficultyStreak,
+    levelStreak,
     attempts,
     correct,
     lastSeen,

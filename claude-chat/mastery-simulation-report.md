@@ -1,17 +1,25 @@
 # Mastery simulation report
 
-Artifact behind DECISIONS 2026-08-31 (no day-gate on mastery). Produced by
-`scripts/simulate-mastery.mjs`; regenerate with `node scripts/simulate-mastery.mjs`.
+Artifact behind DECISIONS 2026-08-31 (no day-gate on mastery) and 2026-09-01 (`level` consolidation,
+`LEVEL_UP_STREAK`). Produced by `scripts/simulate-mastery.mjs`; regenerate with
+`node scripts/simulate-mastery.mjs`.
 
-<!-- BEGIN GENERATED (scripts/simulate-mastery.mjs) — do not hand-edit -->
+**Layout.** *Baseline* = the engine as it behaved until 2026-08-31 (`level` hops on ONE strong session,
+i.e. `LEVEL_UP_STREAK` 1 — the baseline tables reproduce the originally committed report row for row).
+*After* = the shipped config with `LEVEL_UP_STREAK` 2, plus a before/after comparison. Findings for each
+are written by hand under their own heading; the baseline findings are preserved as first written.
 
-## Configuration under test
+<!-- BEGIN GENERATED: baseline (scripts/simulate-mastery.mjs) — do not hand-edit -->
 
-`STRONG_RATIO` 0.8, `WEAK_RATIO` 0.5, `DIFFICULTY_UP_STREAK` 2, `LEVEL_UP_REQUIRES_HARD` true, `MASTERED_LEVEL` 5. Skill `maxDifficulty` 3; 8 questions per session; cap 60 sessions; seed 1.
+## Baseline — `LEVEL_UP_STREAK` 1 (engine behaviour up to 2026-08-31)
+
+### Configuration under test
+
+`STRONG_RATIO` 0.8, `WEAK_RATIO` 0.5, `LEVEL_UP_STREAK` 1, `DIFFICULTY_UP_STREAK` 2, `LEVEL_UP_REQUIRES_HARD` true, `MASTERED_LEVEL` 5. Skill `maxDifficulty` 3; 8 questions per session; cap 60 sessions; seed 1.
 
 With 8 questions, "strong" means ≥ 7/8 correct and "weak" means ≤ 3/8.
 
-## Archetypes
+### Archetypes
 
 `effective accuracy at difficulty d = clamp(baseAccuracy − drop × (d − 1), 0.05, 0.99)`
 
@@ -28,7 +36,7 @@ With 8 questions, "strong" means ≥ 7/8 correct and "weak" means ≤ 3/8.
 | 9 | very weak | 0.52 | 0.230 | 0.52 | 0.29 | 0.06 |
 | 10 | genuinely struggling | 0.45 | 0.250 | 0.45 | 0.20 | 0.05 |
 
-## Results — single seeded run per archetype
+### Results — single seeded run per archetype
 
 | # | Sessions to mastery | Difficulty regressions | Level demotions | Longest non-strong run (same rung) | Longest stay at one rung | Peak difficulty | Final level | Final difficulty | Attempts | Correct | Misconceptions |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -45,7 +53,7 @@ With 8 questions, "strong" means ≥ 7/8 correct and "weak" means ≤ 3/8.
 
 "Difficulty regressions" counts sessions where `difficulty` decreased. "Longest non-strong run" counts consecutive non-strong sessions played at the same difficulty (a strong session, or a change of rung, resets it). "Longest stay" is the most consecutive sessions played at one rung.
 
-## Results — 500 seeds per archetype
+### Results — 500 seeds per archetype
 
 One trajectory is one sample of a noisy process. This repeats each archetype over 500 deterministic seeds (`1:mc:0` … `1:mc:499`). Median and p90 count a not-reached run as beyond the cap.
 
@@ -62,9 +70,9 @@ One trajectory is one sample of a noisy process. This repeats each archetype ove
 | 9 | 0.0% | 17.6% | not reached in 60 | not reached in 60 | 0.10 |
 | 10 | 0.0% | 0.8% | not reached in 60 | not reached in 60 | 0.02 |
 
-## Exact session odds (binomial, no simulation)
+### Exact session odds (binomial, no simulation)
 
-P(strong) / P(weak) for one 8-question session at each rung. A rung advances only after 2 consecutive strong sessions, so P(strong)^2 is the chance of clearing a rung in a given pair of sessions.
+P(strong) / P(weak) for one 8-question session at each rung. A rung advances only after 2 consecutive strong sessions, so P(strong)^2 is the chance of clearing a rung in a given pair of sessions. The same odds govern `level` hops under `LEVEL_UP_STREAK`.
 
 | # | d1 strong / weak | d2 strong / weak | d3 strong / weak |
 |---|---|---|---|
@@ -79,9 +87,11 @@ P(strong) / P(weak) for one 8-question session at each rung. A rung advances onl
 | 9 | 4.5% / 32.0% | 0.1% / 82.4% | 0.0% / 99.9% |
 | 10 | 1.8% / 47.7% | 0.0% / 94.4% | 0.0% / 100.0% |
 
-<!-- END GENERATED -->
+<!-- END GENERATED: baseline -->
 
-## Findings
+## Findings — baseline (`LEVEL_UP_STREAK` 1, engine up to 2026-08-31)
+
+*Written 2026-08-31 against the baseline tables above; describes the engine BEFORE `LEVEL_UP_STREAK`. Kept as the evidence behind DECISIONS 2026-09-01.*
 
 Stated as observed. No change to `masteryConfig.js` is proposed here — that is the human's call.
 Figures are from the tables above ("single run" = the seeded run; "500 seeds" = the Monte Carlo table;
@@ -138,6 +148,127 @@ Figures are from the tables above ("single run" = the seeded run; "500 seeds" = 
    two strong in a row soon enough to advance; from archetype 7 down, noise (or, for 8–10,
    the underlying accuracy) keeps the streak from forming for tens of sessions.
 
+<!-- BEGIN GENERATED: after (scripts/simulate-mastery.mjs) — do not hand-edit -->
+
+## After — shipped config, `LEVEL_UP_STREAK` active (DECISIONS 2026-09-01)
+
+### Configuration under test
+
+`STRONG_RATIO` 0.8, `WEAK_RATIO` 0.5, `LEVEL_UP_STREAK` 2, `DIFFICULTY_UP_STREAK` 2, `LEVEL_UP_REQUIRES_HARD` true, `MASTERED_LEVEL` 5. Skill `maxDifficulty` 3; 8 questions per session; cap 60 sessions; seed 1.
+
+With 8 questions, "strong" means ≥ 7/8 correct and "weak" means ≤ 3/8.
+
+### Results — single seeded run per archetype
+
+| # | Sessions to mastery | Difficulty regressions | Level demotions | Longest non-strong run (same rung) | Longest stay at one rung | Peak difficulty | Final level | Final difficulty | Attempts | Correct | Misconceptions |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | 10 | 0 | 0 | 0 | 6 | 3 | 5 | 3 | 80 | 77 | 0 |
+| 2 | 11 | 0 | 0 | 1 | 7 | 3 | 5 | 3 | 88 | 81 | 0 |
+| 3 | 22 | 0 | 0 | 6 | 18 | 3 | 5 | 3 | 176 | 141 | 0 |
+| 4 | not reached in 60 | 3 | 3 | 8 | 16 | 3 | 2 | 2 | 480 | 348 | 0 |
+| 5 | not reached in 60 | 3 | 2 | 5 | 18 | 2 | 1 | 1 | 480 | 347 | 0 |
+| 6 | not reached in 60 | 3 | 2 | 8 | 16 | 2 | 1 | 1 | 480 | 324 | 0 |
+| 7 | not reached in 60 | 2 | 1 | 15 | 43 | 2 | 2 | 2 | 480 | 312 | 0 |
+| 8 | not reached in 60 | 1 | 0 | 30 | 50 | 2 | 1 | 1 | 480 | 275 | 0 |
+| 9 | not reached in 60 | 0 | 0 | 43 | 60 | 1 | 0 | 1 | 480 | 240 | 0 |
+| 10 | not reached in 60 | 0 | 0 | 33 | 60 | 1 | 0 | 1 | 480 | 220 | 0 |
+
+"Difficulty regressions" counts sessions where `difficulty` decreased. "Longest non-strong run" counts consecutive non-strong sessions played at the same difficulty (a strong session, or a change of rung, resets it). "Longest stay" is the most consecutive sessions played at one rung.
+
+### Results — 500 seeds per archetype
+
+One trajectory is one sample of a noisy process. This repeats each archetype over 500 deterministic seeds (`1:mc:0` … `1:mc:499`). Median and p90 count a not-reached run as beyond the cap.
+
+| # | Reached mastery within 60 | Reached `UNLOCK_LEVEL` (3) at any point | Median sessions to mastery | p90 sessions to mastery | Mean difficulty regressions |
+|---|---|---|---|---|---|
+| 1 | 100.0% | 100.0% | 10 | 12 | 0.00 |
+| 2 | 100.0% | 100.0% | 12 | 16 | 0.00 |
+| 3 | 100.0% | 100.0% | 24 | 37 | 0.18 |
+| 4 | 14.2% | 81.6% | not reached in 60 | not reached in 60 | 2.57 |
+| 5 | 0.0% | 62.6% | not reached in 60 | not reached in 60 | 3.91 |
+| 6 | 0.0% | 6.2% | not reached in 60 | not reached in 60 | 3.35 |
+| 7 | 0.0% | 0.0% | not reached in 60 | not reached in 60 | 1.23 |
+| 8 | 0.0% | 0.0% | not reached in 60 | not reached in 60 | 0.43 |
+| 9 | 0.0% | 0.0% | not reached in 60 | not reached in 60 | 0.10 |
+| 10 | 0.0% | 0.0% | not reached in 60 | not reached in 60 | 0.02 |
+
+### Before / after
+
+Before = `LEVEL_UP_STREAK` 1 (the engine's rule until DECISIONS 2026-09-01: `level` hops on one strong session). After = `LEVEL_UP_STREAK` 2. Everything else identical. 500 seeds per archetype; the seeds are the same for both arms.
+
+Fewest sessions any child can take to reach mastery (a perfect 8/8 child): **5 → 10**.
+
+| # | Mastered within 60 | Median sessions to mastery | p90 sessions to mastery | Mean difficulty regressions | Mean level demotions | Reached `UNLOCK_LEVEL` (3) | Single run: sessions to mastery |
+|---|---|---|---|---|---|---|---|
+| 1 | 100.0% → 100.0% | 5 → 10 | 5 → 12 | 0.00 → 0.00 | 0.00 → 0.00 | 100.0% → 100.0% | 5 → 10 |
+| 2 | 100.0% → 100.0% | 5 → 12 | 8 → 16 | 0.00 → 0.00 | 0.00 → 0.00 | 100.0% → 100.0% | 6 → 11 |
+| 3 | 100.0% → 100.0% | 8 → 24 | 13 → 37 | 0.04 → 0.18 | 0.04 → 0.17 | 100.0% → 100.0% | 8 → 22 |
+| 4 | 98.2% → 14.2% | 17 → not reached in 60 | 37 → not reached in 60 | 0.60 → 2.57 | 0.60 → 2.23 | 100.0% → 81.6% | 36 → not reached in 60 |
+| 5 | 23.6% → 0.0% | not reached in 60 → not reached in 60 | not reached in 60 → not reached in 60 | 3.27 → 3.91 | 3.44 → 2.94 | 100.0% → 62.6% | not reached in 60 → not reached in 60 |
+| 6 | 0.2% → 0.0% | not reached in 60 → not reached in 60 | not reached in 60 → not reached in 60 | 3.34 → 3.35 | 4.59 → 2.36 | 100.0% → 6.2% | not reached in 60 → not reached in 60 |
+| 7 | 0.0% → 0.0% | not reached in 60 → not reached in 60 | not reached in 60 → not reached in 60 | 1.23 → 1.23 | 5.20 → 0.50 | 98.2% → 0.0% | not reached in 60 → not reached in 60 |
+| 8 | 0.0% → 0.0% | not reached in 60 → not reached in 60 | not reached in 60 → not reached in 60 | 0.43 → 0.43 | 3.69 → 0.07 | 63.8% → 0.0% | not reached in 60 → not reached in 60 |
+| 9 | 0.0% → 0.0% | not reached in 60 → not reached in 60 | not reached in 60 → not reached in 60 | 0.10 → 0.10 | 1.67 → 0.01 | 17.6% → 0.0% | not reached in 60 → not reached in 60 |
+| 10 | 0.0% → 0.0% | not reached in 60 → not reached in 60 | not reached in 60 → not reached in 60 | 0.02 → 0.02 | 0.37 → 0.00 | 0.8% → 0.0% | not reached in 60 → not reached in 60 |
+
+### Longer horizon — is it a slowdown or a wall?
+
+Share of runs that have reached mastery by N sessions (before → after), same seeds. The 60-session cap above can make a slowdown look like a wall; this separates them for the archetypes that moved most.
+
+| # | by 60 | by 120 | by 240 | by 480 |
+|---|---|---|---|---|
+| 3 | 100.0% → 100.0% | 100.0% → 100.0% | 100.0% → 100.0% | 100.0% → 100.0% |
+| 4 | 98.2% → 14.2% | 100.0% → 52.4% | 100.0% → 93.6% | 100.0% → 100.0% |
+| 5 | 23.6% → 0.0% | 48.4% → 0.0% | 75.2% → 0.0% | 95.2% → 1.0% |
+| 6 | 0.2% → 0.0% | 0.2% → 0.0% | 1.6% → 0.0% | 3.2% → 0.0% |
+
+<!-- END GENERATED: after -->
+
+## Findings — after `LEVEL_UP_STREAK`
+
+Written 2026-09-01. Stated as observed; no constant was changed and no change is proposed here. Numbers
+are from the *After* block above (before → after, 500 seeds, same seeds in both arms, 60-session cap
+unless a longer horizon is named).
+
+1. **Archetype 5's outcome did not improve — on every mastery measure it got worse.** Mastery within 60
+   sessions: 23.6% → **0.0%**. Within 480: 95.2% → **1.0%** (horizon table). Reached `UNLOCK_LEVEL`:
+   100% → 62.6%. Mean difficulty regressions per run: 3.27 → 3.91 (more churn, not less). Mean level
+   demotions: 3.44 → 2.94 (a modest fall, and partly because fewer level-ups occur to be demoted from).
+   This is not a marginal change and it is in the wrong direction for the case the DECISIONS entry
+   named. By the entry's own revisit trigger ("fails to meaningfully help archetype-5-shaped
+   children"), this is the evidence the trigger describes.
+
+2. **Archetype 4 (68% at hard) went from near-certain to slow.** Mastery within 60: 98.2% → 14.2%;
+   within 120: 100% → 52.4%; within 240: 100% → 93.6%; within 480: 100% → 100%. It is a slowdown, not a
+   wall — the median moves from 17 sessions to roughly 120 — but the child still ends up mastered.
+   The hold-at-cap rule means that once the streak is banked, one strong session at hard fires the hop;
+   that last step is still a single session.
+
+3. **The cost lands on strong learners too.** Structural minimum (a perfect 8/8 child) to mastery:
+   5 → **10** sessions (80 questions). Archetype 1: median 5 → 10, p90 5 → 12. Archetype 2: median
+   5 → 12, p90 8 → 16. Archetype 3 (0.80 at hard): median 8 → **24**, p90 13 → **37**. Whether that
+   "visibly drags" is a kid-test observation this simulation cannot make; it is the other half of the
+   revisit trigger and the numbers are here for it.
+
+4. **`UNLOCK_LEVEL` (3) becomes hard to reach below archetype 4.** Reached within 60 sessions:
+   archetype 4: 100% → 81.6%; 5: 100% → 62.6%; 6: 100% → 6.2%; 7: 98.2% → 0.0%; 8: 63.8% → 0.0%;
+   9: 17.6% → 0.0%; 10: 0.8% → 0.0%. `UNLOCK_LEVEL` is the skill map's prerequisite gate, so this changes
+   which skills open for these children, not just how fast one skill is mastered.
+
+5. **The bottom of the ladder is now "level 0" for archetypes 9 and 10.** Level 0→1 previously took one
+   strong session; it now takes two in a row, and archetypes 9 and 10 (P(strong) at d1 of 4.5% and 1.8%)
+   finish the single seeded run at level 0 after 60 sessions and 480 attempts (previously level 1). The
+   engine's floor (never below level 1 once started) is intact, but these children never *start*.
+   In the app, level 0 is read as "not started" (see the code note in the doc-sync report).
+
+6. **Sessions to mastery for the archetypes that still master are consistent with the streak maths, and
+   nothing regressed at the fast end structurally:** archetype 1 has 0 regressions and 0 level
+   demotions before and after; the single run is 10 sessions against the structural minimum of 10.
+
+7. **Longer horizon (table above).** Archetype 3: unchanged at every horizon. Archetype 4: converges to
+   100% by 480. Archetype 5: 95.2% → 1.0% by 480 — under this config it does not converge. Archetype 6:
+   3.2% → 0.0% by 480.
+
 ## Limits
 
 This tests the engine's logic against **synthetic per-question accuracy**. It does **not** model a
@@ -146,5 +277,7 @@ freeze-on-large-numbers pattern found in the founder's paper test of strategy ru
 archetype's accuracy is fixed per rung for the whole run, so no simulated child ever improves with
 practice; a "not reached in 60" result therefore describes a child who never learns, which real
 children do. The archetype parameters are chosen to span a spectrum, not measured from children.
-It also does not model the remediation ladder, the composer, spaced-repetition review after
-mastery, or misconceptions (tags are empty). It complements kid-testing; it does not replace it.
+It also does not model the remediation ladder, the composer, the skill map's use of `UNLOCK_LEVEL`,
+what the parent dashboard shows for level 0, spaced-repetition review after mastery, or
+misconceptions (tags are empty). Findings 4 and 5 above report the engine's `level` outcomes; what
+those outcomes do to unlocking and to the "not started" label is read from the code, not simulated. It complements kid-testing; it does not replace it.
