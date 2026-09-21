@@ -55,6 +55,20 @@ needs human confirmation before launch:
 > concern `planned` Grade-2 / shape / fraction skills and will be revisited when those recipes
 > are built.
 
+### ☐ 4. `ones-addition-ignored` — new tag, rule not reconstructed but unconfirmed (2-digit addition without carry)
+- **Added 2026-09-21**, filling the gap DECISIONS 2026-08-25 named as the top item for this
+  review: "added the tens but ignored the ones" (34+24 → 54) had no doc entry despite being a
+  real, plausible Grade-2 misconception — now more likely to surface in practice since rung 3
+  (2-digit + 2-digit, DECISIONS 2026-08-27) is live.
+- **Rule, as written:** `(tens(a)+tens(b))*10 + ones(a)` — tens added correctly, ones copied
+  from operand `a` only. Collision-guarded (`ones(b) != 0`). Unlike items 1–3, this rule is
+  newly authored, not reconstructed from lost source prose, but it has not been checked against
+  a teacher's sense of what a child actually does at this step.
+- **Teacher to decide:** does this rule match the real error, or is the more common version
+  something else (e.g. copying `b`'s ones instead of `a`'s, or dropping the ones column
+  entirely rather than copying either operand's)? Confirm the rule and the hint wording before
+  this is trusted as the dominant tagged distractor on that skill's hardest rung.
+
 ---
 
 ## Signed off

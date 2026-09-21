@@ -11,7 +11,7 @@
 **Notation:** for a question with operands `a`, `b`, correct answer `ans`. `tens(n)`/`ones(n)` = digit extraction. `swapDigits(n)` = swap tens/ones of a 2-digit number.
 
 > Source: distilled from *Early Childhood Mathematics Misconception Index (CBSE/NCERT)*, 68 misconceptions across 17 skills. Math formulae lost in doc conversion were reconstructed from the intact prose descriptions.
-> **Review status:** (1) cross-LLM review done — collision guards added (palindrome/zero), `exponentiation-confusion` removed in favour of `skip-count-misstep`, 3 place-value hints rewritten to conceptual "houses/bundles" language, fractions + shape-orientation gaps added (parked). See `claude-chat/archive/llm-review.md`. (2) **Human primary-math teacher review still pending** before launch — see `TEACHER-REVIEW.md` for the running list of items needing sign-off (incl. `regroup-ignored` rule, `g1.num.21-99` tags/format).
+> **Review status:** (1) cross-LLM review done — collision guards added (palindrome/zero), `exponentiation-confusion` removed in favour of `skip-count-misstep`, 3 place-value hints rewritten to conceptual "houses/bundles" language, fractions + shape-orientation gaps added (parked). See `claude-chat/archive/llm-review.md`. (2) **Human primary-math teacher review still pending** before launch — see `TEACHER-REVIEW.md` for the running list of items needing sign-off (incl. `regroup-ignored` rule, `g1.num.21-99` tags/format, `ones-addition-ignored` hint wording).
 
 ---
 
@@ -133,6 +133,7 @@ Skill-specific tags are listed per skill below.
 | `add-across-columns` | sum all digits → `tens(a)+ones(a)+tens(b)+ones(b)` | 23+14 → 10 | "Add ones first, then tens — separately!" | always |
 | `operator-mixup` | `a - b` | → diff | "Plus means add!" | always |
 | `place-value-swap` | `swapDigits(ans)` (46→64) | → 64 | "Add ones first → write 6 in the ones place on the right!" | always |
+| `ones-addition-ignored` | tens added correctly, but ones copied from operand `a` only instead of adding both — `(tens(a)+tens(b))*10 + ones(a)` | 34+24 → 54 | "You got the tens right! Now add the ones from BOTH numbers together too." | always — **guard: only when `ones(b) != 0` (otherwise it equals the correct answer)** |
 
 ### 2-digit addition WITH carry — recipe: `addition2d`, format `mcq`
 | tag | rule | example | hint | condition |
