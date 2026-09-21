@@ -626,3 +626,33 @@
 
   **Revisit trigger, same shape as `DIFFICULTY_UP_STREAK`'s:** if 2 visibly drags for a strong
   learner or fails to meaningfully help archetype-5-shaped children, tune the constant on evidence.
+
+- (2026-09-02) **`LEVEL_UP_STREAK` rejected; `level` reverts to single-session promotion (LOCKED, supersedes 2026-09-01).**
+
+  The 2026-09-01 hypothesis — mirror `DIFFICULTY_UP_STREAK` onto `level` — was validated by
+  simulation before being trusted, per its own text, and failed that validation. 500-seed
+  comparison (`claude-chat/mastery-simulation-report.md`): archetype 5 (56% accuracy at hard, the
+  average-learner target) mastered within 60 sessions in 23.6% of runs under the old rule and 0.0%
+  under the new one; even at a 480-session horizon, 95.2% → 1.0%. Archetype 4 was slowed from a
+  median of 17 sessions to ~120. Strong learners were also slowed (archetype 1's minimum: 5 → 10
+  sessions). Archetypes 6–10 lost access to `UNLOCK_LEVEL` almost entirely.
+
+  **Mechanism, recorded so this isn't retried the same way:** a streak of 2 needs roughly the
+  square of the single-session strong-probability to succeed, while one weak session erases the
+  whole streak AND drops level by one. Mirroring `difficulty`'s asymmetric shape (hard to promote,
+  easy to demote) onto `level` on top of the pre-existing demotion rule compounded rather than
+  balanced — analogy to a working mechanism is not evidence the mirrored version works, which is
+  the whole reason the entry required simulation before trust and not after.
+
+  **`level` reverts to exactly its pre-2026-09-01 behavior:** one strong session promotes (subject
+  to `LEVEL_UP_REQUIRES_HARD` at the 4→5 hop, unchanged), one weak session demotes. `levelStreak`
+  is removed from skill state.
+
+  **The underlying cliff (archetype 4 vs. archetype 5) is not solved and is left open,
+  deliberately.** It remains a single-session gate. Two things weigh against fixing it now: no
+  real kid-test or paper-test evidence has shown premature mastery as a felt problem, unlike the
+  rung-freeze finding that motivated 2026-08-27; and the existing spaced-repetition review already
+  provides a correction mechanism — a false mastery is caught and demoted the next time the skill
+  resurfaces for review, not silently kept. **Revisit only if real signal — kid-test or otherwise —
+  shows premature mastery mattering in practice**, and any future fix must be validated by this
+  same simulation before shipping, not tuned live.
