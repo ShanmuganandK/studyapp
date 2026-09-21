@@ -27,7 +27,7 @@ const SUPPORTED_VERSIONS = [BACKUP_VERSION];
 export const SKILL_STATE_KEYS = [
   'skillId', 'level', 'difficulty', 'maxDifficulty', 'attempts', 'correct',
   'lastSeen', 'nextReview', 'reviewInterval', 'recentParams', 'misconceptions',
-  'difficultyStreak', 'levelStreak',
+  'difficultyStreak',
 ];
 
 const SKILL_STATE_KEY_SET = new Set(SKILL_STATE_KEYS);
@@ -79,7 +79,6 @@ const FIELD_TYPES = {
   recentParams: (v) => Array.isArray(v),
   misconceptions: (v) => isPlainObject(v),
   difficultyStreak: (v) => typeof v === 'number',
-  levelStreak: (v) => typeof v === 'number',
 };
 
 /**

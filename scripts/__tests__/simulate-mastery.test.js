@@ -7,7 +7,6 @@ import {
   simulateArchetype,
   runAll,
   monteCarlo,
-  BASELINE_CONFIG,
   BLOCKS,
   minSessionsToMastery,
   masteryByHorizon,
@@ -42,7 +41,7 @@ describe('archetype definitions', () => {
 });
 
 describe('simulation sanity', () => {
-  it('archetype 1 masters quickly (structural minimum is 10 sessions with LEVEL_UP_STREAK 2)', () => {
+  it('archetype 1 masters quickly (structural minimum is 5 sessions)', () => {
     const r = simulateArchetype(byId(1), { seed: BASE_SEED });
     expect(r.sessionsToMastery).not.toBeNull();
     expect(r.sessionsToMastery).toBeGreaterThanOrEqual(minSessionsToMastery(MASTERY));
@@ -70,37 +69,38 @@ describe('simulation sanity', () => {
   });
 
   it('never breaks the floor: a started skill never returns to level 0, difficulty never below 1', () => {
-    for (const config of [MASTERY, BASELINE_CONFIG]) {
-      for (const a of ARCHETYPES) {
-        const r = simulateArchetype(a, { seed: BASE_SEED, config });
-        expect(r.floorViolations).toBe(0);
-        expect(r.finalState.difficulty).toBeGreaterThanOrEqual(1);
-        expect(r.finalState.misconceptions).toBe(0);
-      }
+    for (const a of ARCHETYPES) {
+      const r = simulateArchetype(a, { seed: BASE_SEED });
+      expect(r.floorViolations).toBe(0);
+      expect(r.finalState.difficulty).toBeGreaterThanOrEqual(1);
+      expect(r.finalState.misconceptions).toBe(0);
     }
   });
 });
 
-describe('baseline vs after (LEVEL_UP_STREAK, DECISIONS 2026-09-01)', () => {
-  it('BASELINE_CONFIG is the shipped config with LEVEL_UP_STREAK 1 and nothing else changed', () => {
-    expect(BASELINE_CONFIG).toEqual({ ...MASTERY, LEVEL_UP_STREAK: 1 });
-    expect(MASTERY.LEVEL_UP_STREAK).toBeGreaterThan(1);
+describe('the live engine is the 2026-08-31 baseline (DECISIONS 2026-09-02 revert guard)', () => {
+  it('MASTERY has no level streak — level promotes on a single strong session', () => {
+    expect(MASTERY.LEVEL_UP_STREAK).toBeUndefined();
+    expect(MASTERY.DIFFICULTY_UP_STREAK).toBe(2);
   });
 
-  it('the baseline arm reproduces the ORIGINAL engine — single-run sessions-to-mastery pinned to the report committed at 4de5b71', () => {
-    const got = runAll({ seed: BASE_SEED, config: BASELINE_CONFIG }).map((r) => r.sessionsToMastery);
+  it('single-run sessions-to-mastery are pinned to the original report committed at 4de5b71', () => {
+    // If the rejected LEVEL_UP_STREAK (or anything else) ever changes level/difficulty movement,
+    // these move and this fails. 5/6/8/36 are the archetype 1-4 results recorded 2026-08-31.
+    const got = runAll({ seed: BASE_SEED }).map((r) => r.sessionsToMastery);
     expect(got).toEqual([5, 6, 8, 36, null, null, null, null, null, null]);
   });
 
-  it('structural minimum sessions to mastery: 5 at baseline, 10 with LEVEL_UP_STREAK 2', () => {
-    expect(minSessionsToMastery(BASELINE_CONFIG)).toBe(5);
-    expect(minSessionsToMastery(MASTERY)).toBe(10);
+  it('structural minimum sessions to mastery is 5 (two strong at rung 1, two at rung 2, one at rung 3)', () => {
+    expect(minSessionsToMastery(MASTERY)).toBe(5);
   });
 
-  it('the streak slows the middle: archetype 4 masters less often by 60 sessions than at baseline', () => {
-    const [b] = masteryByHorizon({ ids: [4], horizons: [60], runs: 60, config: BASELINE_CONFIG });
-    const [a] = masteryByHorizon({ ids: [4], horizons: [60], runs: 60, config: MASTERY });
-    expect(a.byHorizon[0]).toBeLessThan(b.byHorizon[0]);
+  it('archetype 4 (0.68 at hard) still masters in nearly every 60-session run — the open cliff, on record', () => {
+    // DECISIONS 2026-09-02 leaves the archetype-4-vs-5 cliff open deliberately; this pins its current
+    // shape so a change to it is a visible, reviewed one.
+    const [a4, a5] = masteryByHorizon({ ids: [4, 5], horizons: [60], runs: 200 });
+    expect(a4.byHorizon[0]).toBeGreaterThan(90);
+    expect(a5.byHorizon[0]).toBeLessThan(50);
   });
 
   it('horizon shares are monotonic non-decreasing in the horizon', () => {
@@ -129,36 +129,44 @@ describe('determinism', () => {
 describe('report splicing', () => {
   const doc = [
     'intro',
-    genBegin('baseline'), 'OLD-B', genEnd('baseline'),
-    '## Findings — baseline', 'kept-1',
-    genBegin('after'), 'OLD-A', genEnd('after'),
-    '## Findings — after', 'kept-2',
+    genBegin('live'), 'OLD-L', genEnd('live'),
+    '## Findings', 'kept-1',
+    '# REJECTED ARM (frozen)', 'frozen-tables', 'kept-2',
     '',
   ].join('\n');
 
-  it('replaces only the named generated block and keeps everything hand-written', () => {
-    const out = spliceGenerated(doc, 'NEW-B', 'baseline');
-    expect(out).toContain('NEW-B');
-    expect(out).not.toContain('OLD-B');
-    expect(out).toContain('OLD-A'); // the other block is untouched
+  it('replaces only the named generated block and keeps everything hand-written and frozen', () => {
+    const out = spliceGenerated(doc, 'NEW-L', 'live');
+    expect(out).toContain('NEW-L');
+    expect(out).not.toContain('OLD-L');
     expect(out).toContain('kept-1');
+    expect(out).toContain('frozen-tables');
     expect(out).toContain('kept-2');
     expect(out.startsWith('intro\n')).toBe(true);
   });
 
   it('spliceAll updates every block and is idempotent', () => {
-    const blocks = { baseline: 'NEW-B', after: 'NEW-A' };
+    const blocks = { live: 'NEW-L' };
     const once = spliceAll(doc, blocks);
-    expect(once).toContain('NEW-B');
-    expect(once).toContain('NEW-A');
+    expect(once).toContain('NEW-L');
     expect(once).not.toMatch(/OLD-/);
     expect(spliceAll(once, blocks)).toBe(once);
-    expect(BLOCKS).toEqual(['baseline', 'after']);
+    expect(BLOCKS).toEqual(['live']);
   });
 
   it('refuses a report with missing markers rather than clobbering it', () => {
-    expect(() => spliceGenerated('no markers here', 'NEW', 'baseline')).toThrow(/markers/);
-    expect(() => spliceAll(`${genBegin('baseline')}\nx\n${genEnd('baseline')}\n`, { baseline: 'a', after: 'b' })).toThrow(/after/);
+    expect(() => spliceGenerated('no markers here', 'NEW', 'live')).toThrow(/markers/);
+    expect(() => spliceAll('no markers here', { live: 'x' })).toThrow(/live/);
+  });
+
+  it('the report says up top that the LEVEL_UP_STREAK arm is rejected and where the decision is', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const path = await import('node:path');
+    const file = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../claude-chat/mastery-simulation-report.md');
+    const top = readFileSync(file, 'utf8').split('\n').slice(0, 12).join('\n');
+    expect(top).toContain('DECISIONS 2026-09-02');
+    expect(top).toMatch(/REJECTED/);
   });
 
   it('the committed report is in sync with the generator (regenerating changes nothing)', async () => {

@@ -1,21 +1,30 @@
 # Mastery simulation report
 
-Artifact behind DECISIONS 2026-08-31 (no day-gate on mastery) and 2026-09-01 (`level` consolidation,
-`LEVEL_UP_STREAK`). Produced by `scripts/simulate-mastery.mjs`; regenerate with
-`node scripts/simulate-mastery.mjs`.
+> **Read this first — which arm is live (DECISIONS 2026-09-02).** The engine on `master` is the
+> **baseline / live** arm: `level` promotes on ONE strong session, `difficulty` needs two consecutive
+> (`DIFFICULTY_UP_STREAK`). The **`LEVEL_UP_STREAK` arm further down was REJECTED** on this report's own
+> numbers and is kept only as a record of what was tried and why it failed. Do not read its tables as
+> current behaviour.
 
-**Layout.** *Baseline* = the engine as it behaved until 2026-08-31 (`level` hops on ONE strong session,
-i.e. `LEVEL_UP_STREAK` 1 — the baseline tables reproduce the originally committed report row for row).
-*After* = the shipped config with `LEVEL_UP_STREAK` 2, plus a before/after comparison. Findings for each
-are written by hand under their own heading; the baseline findings are preserved as first written.
+Artifact behind DECISIONS 2026-08-31 (no day-gate on mastery), 2026-09-01 (`LEVEL_UP_STREAK`, rejected)
+and 2026-09-02 (the rejection). Produced by `scripts/simulate-mastery.mjs`.
 
-<!-- BEGIN GENERATED: baseline (scripts/simulate-mastery.mjs) — do not hand-edit -->
+**Layout.**
+- **Live engine** (generated; `node scripts/simulate-mastery.mjs` regenerates it, and a test fails if the
+  committed block drifts). Its tables reproduce the originally committed 2026-08-31 baseline row for row.
+- **Findings — baseline**: hand-written 2026-08-31, about the live engine.
+- **REJECTED arm** (frozen, not regenerated): the `LEVEL_UP_STREAK` 2 tables and the before/after
+  comparison. The engine no longer has a level streak, so the script cannot reproduce them; they can be
+  regenerated from branch `mastery-level-streak` (commit `df7b5db`).
+- **Findings — after `LEVEL_UP_STREAK`** (rejected arm) and **Limits**.
 
-## Baseline — `LEVEL_UP_STREAK` 1 (engine behaviour up to 2026-08-31)
+<!-- BEGIN GENERATED: live (scripts/simulate-mastery.mjs) — do not hand-edit -->
+
+## Live engine — `level` promotes on one strong session (the 2026-08-31 baseline; live again per DECISIONS 2026-09-02)
 
 ### Configuration under test
 
-`STRONG_RATIO` 0.8, `WEAK_RATIO` 0.5, `LEVEL_UP_STREAK` 1, `DIFFICULTY_UP_STREAK` 2, `LEVEL_UP_REQUIRES_HARD` true, `MASTERED_LEVEL` 5. Skill `maxDifficulty` 3; 8 questions per session; cap 60 sessions; seed 1.
+`STRONG_RATIO` 0.8, `WEAK_RATIO` 0.5, `DIFFICULTY_UP_STREAK` 2, `LEVEL_UP_REQUIRES_HARD` true, `MASTERED_LEVEL` 5. Skill `maxDifficulty` 3; 8 questions per session; cap 60 sessions; seed 1.
 
 With 8 questions, "strong" means ≥ 7/8 correct and "weak" means ≤ 3/8.
 
@@ -72,7 +81,7 @@ One trajectory is one sample of a noisy process. This repeats each archetype ove
 
 ### Exact session odds (binomial, no simulation)
 
-P(strong) / P(weak) for one 8-question session at each rung. A rung advances only after 2 consecutive strong sessions, so P(strong)^2 is the chance of clearing a rung in a given pair of sessions. The same odds govern `level` hops under `LEVEL_UP_STREAK`.
+P(strong) / P(weak) for one 8-question session at each rung. A rung advances only after 2 consecutive strong sessions, so P(strong)^2 is the chance of clearing a rung in a given pair of sessions. The same odds govern `level` promotes on a single strong session (DECISIONS 2026-09-02).
 
 | # | d1 strong / weak | d2 strong / weak | d3 strong / weak |
 |---|---|---|---|
@@ -87,11 +96,11 @@ P(strong) / P(weak) for one 8-question session at each rung. A rung advances onl
 | 9 | 4.5% / 32.0% | 0.1% / 82.4% | 0.0% / 99.9% |
 | 10 | 1.8% / 47.7% | 0.0% / 94.4% | 0.0% / 100.0% |
 
-<!-- END GENERATED: baseline -->
+<!-- END GENERATED: live -->
 
-## Findings — baseline (`LEVEL_UP_STREAK` 1, engine up to 2026-08-31)
+## Findings — baseline / live engine (`level` on one strong session)
 
-*Written 2026-08-31 against the baseline tables above; describes the engine BEFORE `LEVEL_UP_STREAK`. Kept as the evidence behind DECISIONS 2026-09-01.*
+*Written 2026-08-31 against the live-engine tables above. This is the engine on `master` again (DECISIONS 2026-09-02). These findings are also the evidence behind the open archetype-4-vs-5 cliff that 2026-09-02 deliberately leaves unsolved.*
 
 Stated as observed. No change to `masteryConfig.js` is proposed here — that is the human's call.
 Figures are from the tables above ("single run" = the seeded run; "500 seeds" = the Monte Carlo table;
@@ -148,7 +157,16 @@ Figures are from the tables above ("single run" = the seeded run; "500 seeds" = 
    two strong in a row soon enough to advance; from archetype 7 down, noise (or, for 8–10,
    the underlying accuracy) keeps the streak from forming for tens of sessions.
 
-<!-- BEGIN GENERATED: after (scripts/simulate-mastery.mjs) — do not hand-edit -->
+---
+
+# REJECTED ARM — `LEVEL_UP_STREAK` 2 (frozen record; DECISIONS 2026-09-02)
+
+> **Historical. Not the live engine.** Everything from here to the *Limits* section describes the
+> experiment DECISIONS 2026-09-01 shipped and 2026-09-02 rejected. Generated on 2026-09-01 from branch
+> `mastery-level-streak` (commit `df7b5db`); frozen because the code that produced it is no longer on
+> `master`. Kept so the reason for the rejection stays checkable.
+
+<!-- frozen — no longer regenerated -->
 
 ## After — shipped config, `LEVEL_UP_STREAK` active (DECISIONS 2026-09-01)
 
@@ -222,11 +240,11 @@ Share of runs that have reached mastery by N sessions (before → after), same s
 | 5 | 23.6% → 0.0% | 48.4% → 0.0% | 75.2% → 0.0% | 95.2% → 1.0% |
 | 6 | 0.2% → 0.0% | 0.2% → 0.0% | 1.6% → 0.0% | 3.2% → 0.0% |
 
-<!-- END GENERATED: after -->
+<!-- end of frozen rejected-arm tables -->
 
-## Findings — after `LEVEL_UP_STREAK`
+## Findings — after `LEVEL_UP_STREAK` (REJECTED arm — historical)
 
-Written 2026-09-01. Stated as observed; no constant was changed and no change is proposed here. Numbers
+Written 2026-09-01, about the rejected experiment; the conclusion drawn from them is DECISIONS 2026-09-02. Stated as observed; no constant was changed and no change is proposed here. Numbers
 are from the *After* block above (before → after, 500 seeds, same seeds in both arms, 60-session cap
 unless a longer horizon is named).
 

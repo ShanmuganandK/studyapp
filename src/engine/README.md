@@ -5,9 +5,9 @@ alongside the frozen legacy app (DECISIONS.md "Migration strategy"). Currently a
 folder — modules land here as the migration proceeds.
 
 **Purpose (planned modules):**
-- **Mastery tracker** — promotion/demotion thresholds (~80% at hard; `level` and `difficulty`
-  each need consecutive strong sessions, one weak session drops either — DECISIONS 2026-09-01),
-  replacing the legacy "3-in-a-row keyed to question slots" `src/utils/masteryEngine.js`.
+- **Mastery tracker** — promotion/demotion thresholds (~80% at hard; `level` promotes on one
+  strong session, `difficulty` needs consecutive strong sessions, one weak session drops either —
+  DECISIONS 2026-08-27, 2026-09-02), replacing the legacy "3-in-a-row keyed to question slots" `src/utils/masteryEngine.js`.
 - **Spaced repetition** — review scheduling (intervals ~1/2/4/7/21 days).
 - **Session composer** — the warm-up / frontier / review mix, daily-limit aware.
 - **Remediation ladder** — wrong#1 hint → wrong#2 visual+easier → wrong#3 park + guaranteed

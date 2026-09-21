@@ -119,6 +119,7 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 | **Passcode re-homing** | Known and deferred: passcode lives under `math_kids_settings_anon` via the auth context. Needs proper re-homing **whenever** T109 happens. Recorded so it is not rediscovered as a bug. |
 | **`ThemeManager.jsx` naming trap** (design-system audit, 2026-08-20; **now LIVE — #10 shipped 2026-08-21**) | It manages *views* (`skills`/`quiz`/`parent`), not colour themes. Flagged on 2026-08-20 as "the obvious place to wire a real band switch, doing something unrelated" — anticipated to go live the moment #10 landed, and it has: `ThemeManager` now calls `useTestSettings` and IS the mount point that activates theming (the theme-class logic itself lives in the hook, not here — STANDARDS §2). **Left un-renamed in #10 per instruction** (widely referenced, separate diff). Decide: rename `ThemeManager` → something view-specific (e.g. `ViewManager`) and let a real `ThemeManager` be born correctly-named later, or accept the collision and document it loudly at the call site. |
 | **Remediation ladder: DECISIONS.md describes three steps, the build has two** (found 2026-08-26, verified against the code, not a new decision) | The Learning engine section (2026-07-04 era) specs wrong#1 = targeted hint, wrong#2 = visual walkthrough + retry easier, wrong#3 = park the skill + a guaranteed-win question so a session never ends on failure. `useQuizSession.js` ships only wrong#1 (targeted hint) and wrong#2 (reveal the correct option, auto-advance after `ADVANCE_DELAY_MS`, 1200ms) — no visual walkthrough, no easier retry, no park, no guaranteed-win question. The hook's own docblock says so: `(TODO: full "guaranteed-win last question" deferred per spec.)`. **The decision stands and is not being changed here** — this is a gap between a locked decision and what shipped, the same shape as the 2026-08-15 claims-rule finding, not a new product call. |
+| **Master received unreviewed direct pushes twice in three sessions — Code never checked its picture of master's HEAD** (found 2026-09-02) | Process finding, same shape as the 2026-08-15 CI-wiring one: a gap between a rule (the human reviews and merges; `CLAUDE.md` "one branch per task") and what happened. (1) After the mastery-simulation task, Code pushed two commits straight to `origin/master` (`c4b7f57..4de5b71`) on the instruction "push and commit to origin". (2) After the `LEVEL_UP_STREAK` task, Code fast-forwarded the review branch into `master` and pushed (`4de5b71..df7b5db`) on the instruction "merge to master and commit to remote master" — so the experiment later rejected on its own simulation numbers reached master, and the next task's brief (written on the belief master was still at `4de5b71`) was already wrong. Neither was Code acting alone, and both instructions were explicit; the gap is that Code executed them without first checking that its picture of master's HEAD was current, or flagging the mismatch between the human's stated belief and the repo. **Fix, 2026-09-02:** a standing protocol line at the top of `CLAUDE.md` — Code confirms master's HEAD and origin/master's against its own last-known state before pushing to or merging into master, and flags a mismatch first, however the instruction is phrased and whoever gave it. On this task it did exactly that: it stopped, reported that master was at `df7b5db` not `4de5b71`, and waited. |
 
 ## Out of MVP scope (by decision, not blocked)
 
@@ -172,7 +173,62 @@ worth testing first** — dark exercises every inverted slot and is where a leak
 
 ---
 
+## Done — `LEVEL_UP_STREAK` reverted (2026-09-02)
+
+Implements `DECISIONS.md` 2026-09-02 (LOCKED; supersedes 2026-09-01). Branch
+`revert-level-streak-experiment`, cut from `df7b5db` (then-current master), pushed for review — **not
+merged by Code**. Until it is merged, master still carries the rejected experiment.
+
+**Why, with the numbers** (500 seeds per archetype, `claude-chat/mastery-simulation-report.md`, rejected
+arm kept there as a frozen record): archetype 5 mastered within 60 sessions in **23.6% → 0.0%** of runs
+(**95.2% → 1.0%** even at 480 sessions); archetype 4 slowed from a median 17 to ~120 sessions;
+strong learners slowed (minimum sessions to mastery 5 → 10, archetype 3's median 8 → 24);
+archetypes 6–10 almost never reached `UNLOCK_LEVEL`. Mechanism and the deliberately-open
+archetype-4-vs-5 cliff are in the DECISIONS entry.
+
+**Reverted to the `4de5b71` behavioural state.** `mastery.js`, `masteryConfig.js`, `progressBackup.js`,
+`progressStore.js` restored byte-for-byte from `4de5b71` (so `levelStreak`, `LEVEL_UP_STREAK`, the
+backfill and my `?? 0` guards are gone; `difficultyStreak`/`DIFFICULTY_UP_STREAK` untouched). The
+`levelStreak` tests are removed with the behaviour. **Allowlist drift guard proven RED first** — with the
+engine reverted and `levelStreak` still in the allowlist, 4 tests failed (Guard A and 3 round-trip tests),
+then GREEN after removing it.
+
+**Revert verified against the record, not just by eye.** The regenerated live-engine tables (48 rows)
+are identical to the 2026-08-31 baseline tables, and the 42 rejected-arm rows are preserved unchanged.
+The simulation tests now pin the live engine to that baseline (sessions-to-mastery 5/6/8/36 then
+"not reached"; structural minimum 5) — proven RED by setting `DIFFICULTY_UP_STREAK` to 1 (3 tests fail).
+
+**Docs.** Kept: `ARCHITECTURE.md`'s `difficultyStreak` / `DIFFICULTY_UP_STREAK` documentation (a real gap
+from 2026-08-27, independent of the experiment). Corrected to describe single-session `level`
+promotion: `CLAUDE.md`, `GLOSSARY.md`, `src/engine/README.md`, `ARCHITECTURE.md`'s promotion-rule and
+config paragraphs. `CLAUDE.md` also gains the master-sync protocol line (see the process finding in the
+parked table below). The report opens with a pointer to DECISIONS 2026-09-02 so a reader knows which arm
+is live.
+
+**Test count, reconciled.** `4de5b71` measured directly: **456 passed** + 1 skipped. This branch:
+**464 passed** + 1 skipped. Difference **+8**, all in `scripts/__tests__/simulate-mastery.test.js`
+(11 → 19 tests; `src/` is unchanged at 445): **+5** live-engine baseline-pin tests (no level streak,
+sessions-to-mastery pinned to the 2026-08-31 results, structural minimum 5, the open archetype-4-vs-5
+cliff's shape, horizon monotonicity) and **+3** report tests (`spliceAll` idempotence, the top-of-report
+pointer to DECISIONS 2026-09-02, and the report-drift guard). No `src/` test count moved: the
+`levelStreak` tests added on the rejected branch were removed with the behaviour, back to `4de5b71`'s
+445.
+Lint 0 errors (same 3 pre-existing warnings), `lint:hex` and `privacy:check` clean.
+
+**Left open on purpose:** the archetype-4-vs-5 cliff (a single-session gate lets a 68%-at-hard child
+master almost always and a 56% one rarely). Revisit only on real kid-test signal; any fix must pass this
+simulation before shipping (DECISIONS 2026-09-02).
+
+---
+
 ## Done — `level` consolidation: `LEVEL_UP_STREAK` (2026-09-01)
+
+> **Superseded 2026-09-02 — see `DECISIONS.md` 2026-09-02. The experiment was REJECTED and reverted.**
+> Everything below records what was built and measured on branch `mastery-level-streak` (`df7b5db`); it
+> is NOT the engine's behaviour once the revert branch (`revert-level-streak-experiment`) lands. The
+> "Flagged, not fixed" items below (level 0 = "not started", `UNLOCK_LEVEL`, old-backup import) were
+> consequences of the streak and are moot after the revert. Kept, not deleted, per the same pattern as
+> the 2026-08-27 and 2026-08-31 blocks.
 
 Implements `DECISIONS.md` 2026-09-01 (LOCKED): `level` now needs consecutive strong sessions before
 every hop, mirroring `difficulty`. Follows directly from the 2026-08-31 simulation below.
@@ -258,9 +314,10 @@ given enough sessions — well below the nominal "~80% at hard". `STRONG_RATIO` 
 learns), no fatigue, no remediation ladder, no spaced-rep review — complements kid-testing, does not
 replace it.
 
-**Superseded in part, 2026-09-01:** the "single strong session at the hard rung / no streak at level
-4→5" description above is the *baseline* engine. `LEVEL_UP_STREAK` now applies at every hop — see the
-Done block above. The report keeps the baseline findings as written and adds the after-change ones.
+**Note 2026-09-01, reversed 2026-09-02:** `LEVEL_UP_STREAK` was briefly added to change the "single
+strong session at the hard rung / no streak at level 4→5" behaviour described above, then rejected
+(`DECISIONS.md` 2026-09-02). The description above is the LIVE engine again. The report now marks the
+`LEVEL_UP_STREAK` arm as a frozen rejected record.
 
 `ARCHITECTURE.md` Tooling section updated in the same commit. `DOCMAP.md` was NOT edited (not Code's
 to write) — the new report is unlisted there; flagged for the human.
@@ -286,7 +343,7 @@ to one flat cap (99) across all three rungs, since the per-rung magnitude cap no
 
 **`src/engine/mastery.js` — `level` and `difficulty` are separate axes.** `applyResult` used to
 advance both off one `isStrong` boolean. Now: `level` keeps its existing one-strong-session
-schedule *(superseded 2026-09-01 — `level` now has its own `LEVEL_UP_STREAK`; see that Done block)* (`LEVEL_UP_REQUIRES_HARD` intact at the 4→5 hop) — unchanged, since slowing it would
+schedule *(2026-09-01 tried to supersede this with `LEVEL_UP_STREAK`; rejected 2026-09-02, so this description is live again)* (`LEVEL_UP_REQUIRES_HARD` intact at the 4→5 hop) — unchanged, since slowing it would
 stretch mastery to ~10 sessions/skill for no gain. `difficulty` requires
 `DIFFICULTY_UP_STREAK` (2, named constant in `masteryConfig.js`) **consecutive** strong sessions
 at the current rung before advancing; any non-strong session (weak OR middle) resets the streak
@@ -1248,7 +1305,10 @@ learner archetypes")**,
 **2026-09-01 (`level` requires consolidation too: `LEVEL_UP_STREAK` mirrors `DIFFICULTY_UP_STREAK`,
 independent `levelStreak` counter, hold-at-cap at the 4→5 hop; re-validated by the same simulation —
 before/after in `claude-chat/mastery-simulation-report.md`, see the Done block "`level` consolidation:
-`LEVEL_UP_STREAK`")**.
+`LEVEL_UP_STREAK`")**,
+**2026-09-02 (`LEVEL_UP_STREAK` rejected on that same simulation — archetype 5 mastery 23.6% → 0.0% —
+and `level` reverts to single-session promotion; the archetype-4-vs-5 cliff deliberately left open —
+see the Done block "`LEVEL_UP_STREAK` reverted")**.
 
 Note: the 2026-08-18 corrections (Now #6, the composer Done blocks, DOCMAP's
 spec-practice-composer.md row) and the 2026-08-21 status ones (Now #7 split, Now #12 /

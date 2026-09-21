@@ -52,19 +52,6 @@ function stateAt(level, opts = {}) {
   return { ...s, level, difficulty: opts.difficulty ?? 1, ...opts.extra };
 }
 
-/**
- * Skill state one strong session away from its next level hop (levelStreak = LEVEL_UP_STREAK − 1).
- * Since 2026-09-01 a hop needs consecutive strong sessions, so tests about WHAT happens at a hop
- * (the hard gate, spaced-rep scheduling, boundaries) start here instead of from a cold streak.
- * Tests about the streak itself use `stateAt` and count sessions explicitly.
- */
-function primed(level, opts = {}) {
-  return stateAt(level, {
-    ...opts,
-    extra: { levelStreak: MASTERY.LEVEL_UP_STREAK - 1, ...opts.extra },
-  });
-}
-
 // ─── emptySkillState ──────────────────────────────────────────────────────────
 
 describe('emptySkillState', () => {
@@ -83,7 +70,6 @@ describe('emptySkillState', () => {
       recentParams: [],
       misconceptions: {},
       difficultyStreak: 0,
-      levelStreak: 0,
     });
   });
 
@@ -227,31 +213,31 @@ describe('applyResult', () => {
   // ── Level movement ────────────────────────────────────────────────────────
 
   describe('level movement — strong sessions raise level', () => {
-    it('raises level from 1 to 2 on the strong session that completes the streak', () => {
-      expect(applyResult(primed(1), strong()).level).toBe(2);
+    it('raises level from 1 to 2 on a strong session', () => {
+      expect(applyResult(stateAt(1), strong()).level).toBe(2);
     });
 
     it('raises level from 2 to 3', () => {
-      expect(applyResult(primed(2), strong()).level).toBe(3);
+      expect(applyResult(stateAt(2), strong()).level).toBe(3);
     });
 
     it('raises level from 3 to 4', () => {
-      expect(applyResult(primed(3), strong()).level).toBe(4);
+      expect(applyResult(stateAt(3), strong()).level).toBe(4);
     });
 
-    it('raises level 0→1 below maxDifficulty when LEVEL_UP_REQUIRES_HARD is off', () => {
+    it('does NOT raise from 0 to 1 on a strong session below maxDifficulty when LEVEL_UP_REQUIRES_HARD is off', () => {
       // With LEVEL_UP_REQUIRES_HARD: false, level 0→1 should work even at diff 1
       const cfg = { ...MASTERY, LEVEL_UP_REQUIRES_HARD: false };
-      expect(applyResult(primed(0), strong(1), cfg).level).toBe(1);
+      expect(applyResult(stateAt(0), strong(1), cfg).level).toBe(1);
     });
 
-    it('raises level from 0 to 1 at difficulty 1 (LEVEL_UP_REQUIRES_HARD only blocks the 4→5 hop)', () => {
+    it('raises level from 0 to 1 on a strong session (LEVEL_UP_REQUIRES_HARD only blocks the 4→5 hop)', () => {
       // The hard gate only applies to the MASTERED_LEVEL hop, not to 0→1
-      expect(applyResult(primed(0), strong(1)).level).toBe(1);
+      expect(applyResult(stateAt(0), strong(1)).level).toBe(1);
     });
 
     it('holds at MAX_LEVEL (5) even on a strong session', () => {
-      const s = { ...primed(5), reviewInterval: 2 };
+      const s = { ...stateAt(5), reviewInterval: 2 };
       expect(applyResult(s, strong(3)).level).toBe(5);
     });
   });
@@ -287,155 +273,12 @@ describe('applyResult', () => {
     });
   });
 
-  // ── Level consolidation (LEVEL_UP_STREAK, DECISIONS 2026-09-01) ───────────
-
-  describe('level consolidation — LEVEL_UP_STREAK consecutive strong sessions per hop', () => {
-    it('defaults to 2 — the value the DECISIONS entry locked', () => {
-      expect(MASTERY.LEVEL_UP_STREAK).toBe(2);
-    });
-
-    it('one strong session only starts the streak: level holds, levelStreak = 1', () => {
-      const out = applyResult(stateAt(2), strong());
-      expect(out.level).toBe(2);
-      expect(out.levelStreak).toBe(1);
-    });
-
-    it('the second CONSECUTIVE strong session advances level and consumes the streak', () => {
-      const s2 = applyResult(applyResult(stateAt(2), strong()), strong());
-      expect(s2.level).toBe(3);
-      expect(s2.levelStreak).toBe(0);
-    });
-
-    it('applies at every hop, not just the mastery hop (0→1 needs two as well)', () => {
-      let s = stateAt(0);
-      s = applyResult(s, strong());
-      expect(s.level).toBe(0);
-      s = applyResult(s, strong());
-      expect(s.level).toBe(1);
-    });
-
-    it('a middle session mid-streak resets it — the next strong session only restarts', () => {
-      let s = applyResult(stateAt(2), strong());
-      expect(s.levelStreak).toBe(1);
-      s = applyResult(s, middle());
-      expect(s.level).toBe(2);
-      expect(s.levelStreak).toBe(0);
-      s = applyResult(s, strong());
-      expect(s.level).toBe(2); // not advanced
-      expect(s.levelStreak).toBe(1);
-    });
-
-    it('a weak session mid-streak resets the streak AND still drops level by 1', () => {
-      const s = applyResult(stateAt(3, { extra: { levelStreak: 1 } }), weak());
-      expect(s.levelStreak).toBe(0);
-      expect(s.level).toBe(2); // demotion stays single-session (asymmetric ratchet)
-    });
-
-    it('a weak session at level 1 (no drop available) still resets the streak', () => {
-      const s = applyResult(stateAt(1, { extra: { levelStreak: 1 } }), weak());
-      expect(s.level).toBe(1);
-      expect(s.levelStreak).toBe(0);
-    });
-
-    it('levelStreak and difficultyStreak are independent counters', () => {
-      // levelStreak one from a hop; difficultyStreak cold. One strong session: level hops (its
-      // streak is consumed) while difficultyStreak merely starts. A shared counter cannot do both.
-      const s = applyResult(stateAt(2, { extra: { levelStreak: 1, difficultyStreak: 0 } }), strong());
-      expect(s.level).toBe(3);
-      expect(s.levelStreak).toBe(0);
-      expect(s.difficultyStreak).toBe(1);
-      expect(s.difficulty).toBe(1);
-    });
-
-    it('the streak length is read from config (LEVEL_UP_STREAK 1 restores one-session hops; 3 needs three)', () => {
-      const one = { ...MASTERY, LEVEL_UP_STREAK: 1 };
-      expect(applyResult(stateAt(2), strong(), one).level).toBe(3);
-
-      const three = { ...MASTERY, LEVEL_UP_STREAK: 3 };
-      let s = stateAt(2);
-      s = applyResult(s, strong(), three);
-      s = applyResult(s, strong(), three);
-      expect(s.level).toBe(2);
-      s = applyResult(s, strong(), three);
-      expect(s.level).toBe(3);
-    });
-
-    it('a state saved before the field existed counts from 0 — never NaN, never frozen', () => {
-      const legacy = stateAt(2);
-      delete legacy.levelStreak;
-      delete legacy.difficultyStreak;
-      const s1 = applyResult(legacy, strong());
-      expect(s1.levelStreak).toBe(1);
-      expect(applyResult(s1, strong()).level).toBe(3);
-    });
-
-    it('holds at MAX_LEVEL without overflowing the streak', () => {
-      let s = stateAt(5, { extra: { reviewInterval: 1, nextReview: TODAY } });
-      for (let i = 0; i < 4; i++) s = applyResult(s, strong(3));
-      expect(s.level).toBe(5);
-      expect(s.levelStreak).toBeLessThanOrEqual(MASTERY.LEVEL_UP_STREAK);
-    });
-
-    describe('interaction with LEVEL_UP_REQUIRES_HARD at the 4→5 boundary', () => {
-      const cfg = { ...MASTERY, LEVEL_UP_REQUIRES_HARD: true };
-      const atBoundary = () => stateAt(4, { maxDifficulty: 3 });
-
-      it('streak met on a NON-hard session: level does NOT advance AND the streak holds at its cap', () => {
-        let s = applyResult(atBoundary(), strong(2), cfg);
-        expect(s.levelStreak).toBe(1);
-        s = applyResult(s, strong(2), cfg); // streak now met, but played at 2 < maxDifficulty 3
-        expect(s.level).toBe(4);
-        expect(s.levelStreak).toBe(MASTERY.LEVEL_UP_STREAK); // held — NOT reset to 0
-        expect(isMastered(s)).toBe(false);
-      });
-
-      it('the very next strong session at hard advances level and resets the streak to 0', () => {
-        let s = applyResult(applyResult(atBoundary(), strong(2), cfg), strong(2), cfg);
-        s = applyResult(s, strong(3, { date: '2024-06-01' }), cfg);
-        expect(s.level).toBe(5);
-        expect(s.levelStreak).toBe(0);
-        expect(isMastered(s)).toBe(true);
-        expect(s.nextReview).toBe('2024-06-02'); // mastery scheduling still fires on this hop
-      });
-
-      it('the held streak does not creep past the cap over repeated non-hard strong sessions', () => {
-        let s = atBoundary();
-        for (let i = 0; i < 5; i++) s = applyResult(s, strong(2), cfg);
-        expect(s.level).toBe(4);
-        expect(s.levelStreak).toBe(MASTERY.LEVEL_UP_STREAK);
-      });
-
-      it('a middle session while the streak is held resets it — the child must rebuild it', () => {
-        let s = applyResult(applyResult(atBoundary(), strong(2), cfg), strong(2), cfg);
-        s = applyResult(s, middle(), cfg);
-        expect(s.levelStreak).toBe(0);
-        s = applyResult(s, strong(3), cfg); // strong at hard, but only the first of a new streak
-        expect(s.level).toBe(4);
-        expect(s.levelStreak).toBe(1);
-      });
-
-      it('a weak session while the streak is held resets it and drops level', () => {
-        let s = applyResult(applyResult(atBoundary(), strong(2), cfg), strong(2), cfg);
-        s = applyResult(s, weak(), cfg);
-        expect(s.level).toBe(3);
-        expect(s.levelStreak).toBe(0);
-      });
-
-      it('with LEVEL_UP_REQUIRES_HARD off, the streak hop fires at any difficulty', () => {
-        const off = { ...MASTERY, LEVEL_UP_REQUIRES_HARD: false };
-        const s = applyResult(applyResult(atBoundary(), strong(1), off), strong(1), off);
-        expect(s.level).toBe(5);
-      });
-    });
-  });
-
   // ── Level-5 hard-difficulty gate ──────────────────────────────────────────
 
   describe('LEVEL_UP_REQUIRES_HARD gate (level 4 → 5)', () => {
     const cfg = { ...MASTERY, LEVEL_UP_REQUIRES_HARD: true };
-    // Primed: the streak requirement is already met, so these tests isolate the hard gate.
-    const maxDiff3Skill = primed(4, { maxDifficulty: 3 });
-    const maxDiff2Skill = primed(4, { maxDifficulty: 2 });
+    const maxDiff3Skill = stateAt(4, { maxDifficulty: 3 });
+    const maxDiff2Skill = stateAt(4, { maxDifficulty: 2 });
 
     it('allows 4→5 when difficultyPlayed equals maxDifficulty (3/3)', () => {
       expect(applyResult(maxDiff3Skill, strong(3), cfg).level).toBe(5);
@@ -469,7 +312,7 @@ describe('applyResult', () => {
     });
 
     it('gate applies ONLY to the 4→5 hop, not to 3→4', () => {
-      const s = primed(3, { maxDifficulty: 3 });
+      const s = stateAt(3, { maxDifficulty: 3 });
       expect(applyResult(s, strong(1), cfg).level).toBe(4); // no gate on 3→4
     });
   });
@@ -547,7 +390,7 @@ describe('applyResult', () => {
     const cfg = { ...MASTERY, LEVEL_UP_REQUIRES_HARD: false }; // disable gate for SR tests
 
     it('sets nextReview to date + REVIEW_INTERVALS[0] when just mastered (4→5)', () => {
-      const s = primed(4, { maxDifficulty: 3 });
+      const s = stateAt(4, { maxDifficulty: 3 });
       const out = applyResult(s, strong(3, { date: '2024-01-01' }), cfg);
       expect(out.level).toBe(5);
       expect(out.nextReview).toBe('2024-01-02'); // +1 day
@@ -555,7 +398,7 @@ describe('applyResult', () => {
     });
 
     it('starts reviewInterval at 0 on first mastery (not yet advanced)', () => {
-      const s = primed(4, { maxDifficulty: 3 });
+      const s = stateAt(4, { maxDifficulty: 3 });
       const out = applyResult(s, strong(3), cfg);
       expect(out.reviewInterval).toBe(0);
     });
@@ -580,7 +423,7 @@ describe('applyResult', () => {
     });
 
     it('advances through all intervals: 0→1→2→3→4 (days: 1→2→4→7→21)', () => {
-      let s = primed(4, { maxDifficulty: 3 });
+      let s = stateAt(4, { maxDifficulty: 3 });
       const dates = ['2024-01-01', '2024-01-02', '2024-01-04', '2024-01-08', '2024-01-15'];
       const expectedIntervals = [0, 1, 2, 3, 4];
       const expectedNext = ['2024-01-02', '2024-01-04', '2024-01-08', '2024-01-15', '2024-02-05'];
@@ -626,7 +469,7 @@ describe('applyResult', () => {
 
     it('re-mastery after regression resets review schedule from index 0', () => {
       // Level was 5, dropped to 4 (weak review), re-mastered.
-      const dropped = { ...primed(4), reviewInterval: 3, nextReview: '2099-01-01' };
+      const dropped = { ...stateAt(4), reviewInterval: 3, nextReview: '2099-01-01' };
       const out = applyResult(dropped, strong(3, { date: '2024-06-01' }), cfg);
       expect(out.level).toBe(5);
       expect(out.reviewInterval).toBe(0);
@@ -634,7 +477,7 @@ describe('applyResult', () => {
     });
 
     it('date arithmetic is correct across month boundaries', () => {
-      const s = primed(4, { maxDifficulty: 3 });
+      const s = stateAt(4, { maxDifficulty: 3 });
       const out = applyResult(s, strong(3, { date: '2024-01-31' }), cfg);
       expect(out.nextReview).toBe('2024-02-01'); // Jan 31 + 1 = Feb 1
     });
@@ -657,7 +500,7 @@ describe('applyResult', () => {
     });
 
     it('all correct (10/10 = 100%): counts as strong', () => {
-      const out = applyResult(primed(2), session({ questionsTotal: 10, questionsCorrect: 10 }));
+      const out = applyResult(stateAt(2), session({ questionsTotal: 10, questionsCorrect: 10 }));
       expect(out.level).toBe(3);
     });
 
@@ -667,14 +510,13 @@ describe('applyResult', () => {
     });
 
     it('exactly STRONG_RATIO (8/10 = 80%): counts as strong (boundary inclusive)', () => {
-      const out = applyResult(primed(2), session({ questionsTotal: 10, questionsCorrect: 8 }));
+      const out = applyResult(stateAt(2), session({ questionsTotal: 10, questionsCorrect: 8 }));
       expect(out.level).toBe(3);
     });
 
     it('just below STRONG_RATIO (7/10 = 70%): counts as middle', () => {
-      const out = applyResult(primed(2), session({ questionsTotal: 10, questionsCorrect: 7 }));
-      expect(out.level).toBe(2); // middle = hold (and it burns the primed streak)
-      expect(out.levelStreak).toBe(0);
+      const out = applyResult(stateAt(2), session({ questionsTotal: 10, questionsCorrect: 7 }));
+      expect(out.level).toBe(2); // middle = hold
     });
 
     it('exactly WEAK_RATIO (5/10 = 50%): counts as middle (boundary exclusive)', () => {
@@ -728,8 +570,7 @@ describe('applyResult', () => {
       const r = strong();
       applyResult(s2, r); // call on a different skill first
       const out = applyResult(s1, r);
-      expect(out.level).toBe(0);       // one strong session only starts the streak
-      expect(out.levelStreak).toBe(1); // ...and is unaffected by the other skill's call
+      expect(out.level).toBe(1); // unaffected
     });
   });
 });

@@ -82,14 +82,8 @@ describe('mastery persistence round-trip', () => {
     const { saveSkillState, loadSkillState } = progressStore;
     const initial = emptySkillState(SKILL_ID, MAX_DIFF);
     expect(initial.level).toBe(0);
-    const afterFirst = applyResult(initial, strongSession(), MASTERY);
-    expect(afterFirst.level).toBe(0); // first strong session only starts the level streak
-    expect(afterFirst.levelStreak).toBe(1);
-    saveSkillState(SKILL_ID, afterFirst);
-    const reloaded = loadSkillState(SKILL_ID);
-    expect(reloaded?.levelStreak).toBe(1); // the streak survives save→load
-    const after = applyResult(reloaded, strongSession(), MASTERY);
-    expect(after.level).toBe(1); // 0 → 1 on the second consecutive strong session
+    const after = applyResult(initial, strongSession(), MASTERY);
+    expect(after.level).toBe(1); // 0 → 1 on strong
     saveSkillState(SKILL_ID, after);
     expect(loadSkillState(SKILL_ID)?.level).toBe(1);
   });
@@ -97,8 +91,8 @@ describe('mastery persistence round-trip', () => {
   it('accumulates level across multiple sessions via save→load→apply', () => {
     const { saveSkillState, loadSkillState } = progressStore;
     let state = emptySkillState(SKILL_ID, MAX_DIFF);
-    // Eight strong sessions (LEVEL_UP_STREAK = 2 per hop): level should climb 0→1→2→3→4
-    for (let i = 0; i < 4 * MASTERY.LEVEL_UP_STREAK; i++) {
+    // Apply four strong sessions: level should climb 0→1→2→3→4
+    for (let i = 0; i < 4; i++) {
       state = applyResult(state, strongSession(), MASTERY);
       saveSkillState(SKILL_ID, state);
       state = loadSkillState(SKILL_ID);
@@ -119,7 +113,7 @@ describe('mastery persistence round-trip', () => {
   it('nextReview is saved and loaded correctly when skill is mastered', () => {
     const { saveSkillState, loadSkillState } = progressStore;
     // Reach level 4 first
-    let state = { ...emptySkillState(SKILL_ID, MAX_DIFF), level: 4, levelStreak: MASTERY.LEVEL_UP_STREAK - 1 };
+    let state = { ...emptySkillState(SKILL_ID, MAX_DIFF), level: 4 };
     // Strong session at maxDifficulty → level 5 + spaced rep scheduled
     const cfg = { ...MASTERY, LEVEL_UP_REQUIRES_HARD: true };
     state = applyResult(state, strongSession({ difficultyPlayed: 3, date: '2024-06-01' }), cfg);

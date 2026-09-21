@@ -10,6 +10,13 @@
 > Resolve ambiguous project vocabulary against `GLOSSARY.md` before acting on it — if a term
 > isn't there, ask the human rather than assuming.
 >
+> Claude Code always confirms master's current HEAD (and origin/master's) against its own
+> last-known state before pushing to or merging into master, and flags a mismatch before
+> proceeding — regardless of how the push instruction is phrased or who gave it. This closes a
+> gap found 2026-09-02: master received an unreviewed direct push twice in three sessions,
+> neither from Code acting alone, both from instructions Code executed without first checking
+> whether its picture of master's HEAD was still current.
+>
 > Applies to Claude Code AND Antigravity. **If anything here conflicts with a task instruction,
 > stop and ask before proceeding.**
 
@@ -81,10 +88,10 @@ Every recipe conforms to ONE fixed contract (`RECIPE_TEMPLATE.md`). Input: `diff
   `g2.add.2d-nocarry`, a rung selects a **strategy**, not a bigger number (DECISIONS 2026-08-27) —
   other skills generalise to that model as each is revisited.
 - **Practice stops when mastery is proven** (~80% at hard level), then the skill enters
-  spaced-repetition review and the child moves on. Both `level` and `difficulty` advance only
-  after **consecutive** strong sessions (`LEVEL_UP_STREAK` / `DIFFICULTY_UP_STREAK`, 2 each,
-  independent counters); a weak session drops either axis at once. There is **no elapsed-time
-  gate** — consolidation is by streak, not by clock (DECISIONS 2026-08-31, 2026-09-01).
+  spaced-repetition review and the child moves on. `level` promotes on **one** strong session
+  (subject to `LEVEL_UP_REQUIRES_HARD` at the 4→5 hop); `difficulty` needs
+  `DIFFICULTY_UP_STREAK` (2) **consecutive** strong sessions per rung. One weak session drops
+  either axis. There is **no elapsed-time gate** (DECISIONS 2026-08-31, 2026-09-02).
 - **Wrong answers are deliberate:** each distractor encodes a known misconception (e.g.
   `forgot-carry`), so hints can be targeted and the dashboard can explain *why* a child struggles.
 - `misconceptions-reference.md` is canonical for tags and rules. **When a recipe and that doc

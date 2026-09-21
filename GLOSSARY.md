@@ -10,9 +10,9 @@
 |---|---|---|
 | rung (difficulty) | One of 3 strategy stages within a skill; NOT a magnitude band as of DECISIONS 2026-08-27. | `src/recipes/*`, `src/config/masteryConfig.js` |
 | rung (remediation) | One of 3 steps in the wrong-answer ladder (hint / walkthrough+retry / park+guaranteed-win). DECISIONS 2026-07-04 era; `useQuizSession.js` currently ships only the first two — the guaranteed-win last question is deferred per spec. | `src/hooks/useQuizSession.js` |
-| level | 0–5 per-skill counter gating prereq unlock and mastery. Separate axis from difficulty as of DECISIONS 2026-08-27. Each hop needs `LEVEL_UP_STREAK` (2) consecutive strong sessions (DECISIONS 2026-09-01), tracked on `levelStreak`; one weak session still drops it by 1. Level 0 = not started. | `src/engine/mastery.js`, `src/config/masteryConfig.js` |
+| level | 0–5 per-skill counter gating prereq unlock and mastery. Separate axis from difficulty as of DECISIONS 2026-08-27. One strong session promotes it (`LEVEL_UP_REQUIRES_HARD` gates the 4→5 hop) and one weak session drops it by 1 — a consecutive-session rule for `level` was tried and rejected (DECISIONS 2026-09-02). Level 0 = not started. | `src/engine/mastery.js`, `src/config/masteryConfig.js` |
 | session | One run of 8 questions on one skill. | `src/hooks/useQuizSession.js` |
-| strong session | A session scoring ≥ `STRONG_RATIO` (7/8 at the fixed session length of 8). One strong session only extends a streak — `level` and `difficulty` each need consecutive ones. | `src/config/masteryConfig.js` |
+| strong session | A session scoring ≥ `STRONG_RATIO` (7/8 at the fixed session length of 8). One strong session promotes `level` on its own; `difficulty` needs consecutive ones (`DIFFICULTY_UP_STREAK`). | `src/config/masteryConfig.js` |
 | mastery | Level 5 reached at the skill's `maxDifficulty`. | `src/engine/mastery.js` |
 | skill / skillId | An atomic curriculum unit with a difficulty ceiling, prerequisites, and a recipe. | `src/recipes/skillMap.js` |
 | recipe | A generator function producing questions from `difficulty` + a seeded RNG — never a stored question. | `RECIPE_TEMPLATE.md` |

@@ -458,20 +458,17 @@ this module only does the arithmetic.
   recentParams,      // last ~20 question signatures (repeat-avoidance handoff to session layer)
   misconceptions,    // { tag: count } — which mistake patterns this child shows
   difficultyStreak,  // consecutive strong sessions at the current rung (DECISIONS 2026-08-27)
-  levelStreak,       // consecutive strong sessions toward the next level (DECISIONS 2026-09-01);
-                     // independent of difficultyStreak — the two axes are decoupled
 }
 ```
 
-**Promotion rule** (DECISIONS 2026-08-27 / 2026-08-31 / 2026-09-01). `level` and `difficulty` are
-separate axes, each advancing only after consecutive strong sessions on its own counter:
-`LEVEL_UP_STREAK` → `levelStreak`, `DIFFICULTY_UP_STREAK` → `difficultyStreak` (both 2). A
-non-strong session (weak OR middle) resets both streaks; a weak session also drops each axis by 1
-(`level` never below 1 once started) — streak to climb, single session to fall, deliberately. The
-4→5 (mastery) hop additionally needs `difficultyPlayed >= maxDifficulty` (`LEVEL_UP_REQUIRES_HARD`);
-if the streak is met on a non-hard session it HOLDS at its cap rather than resetting, so the next
-strong session at hard fires the hop. There is no elapsed-time gate. A state missing either streak
-field counts from 0 (`?? 0` in the engine; `progressStore` also backfills on read).
+**Promotion rule** (DECISIONS 2026-08-27 / 2026-08-31 / 2026-09-02). `level` and `difficulty` are
+separate axes on separate schedules. **`level`** promotes on ONE strong session and drops by 1 on one
+weak session (never below 1 once started); the 4→5 (mastery) hop additionally needs
+`difficultyPlayed >= maxDifficulty` (`LEVEL_UP_REQUIRES_HARD`). **`difficulty`** needs
+`DIFFICULTY_UP_STREAK` (2) CONSECUTIVE strong sessions at a rung (`difficultyStreak`); any non-strong
+session resets that streak, and a weak session also eases difficulty down by 1. There is no
+elapsed-time gate. A consecutive-session rule for `level` (`LEVEL_UP_STREAK`) was tried and rejected on
+simulation evidence — DECISIONS 2026-09-02, `claude-chat/mastery-simulation-report.md`.
 
 **Exports** (`src/engine/mastery.js`):
 - `emptySkillState(skillId, maxDifficulty = 3)` — fresh zeroed state
@@ -483,12 +480,11 @@ field counts from 0 (`?? 0` in the engine; `progressStore` also backfills on rea
 
 **Config** (`src/config/masteryConfig.js`) — all tunables in `MASTERY`:
 `MAX_LEVEL`, `UNLOCK_LEVEL`, `MASTERED_LEVEL`, `STRONG_RATIO` (0.8), `WEAK_RATIO` (0.5),
-`LEVEL_UP_STREAK` (2), `DIFFICULTY_UP_STREAK` (2), `LEVEL_UP_REQUIRES_HARD` (true),
+`DIFFICULTY_UP_STREAK` (2), `LEVEL_UP_REQUIRES_HARD` (true),
 `REVIEW_INTERVALS` ([1, 2, 4, 7, 21] days).
 
-**Tests** (`src/engine/__tests__/mastery.test.js`) — 90+ cases: level up/down/hold, the
-`LEVEL_UP_STREAK` consolidation rule (incl. hold-at-cap at the 4→5 boundary), the
-level-5-hard-difficulty gate, adaptive difficulty bounds, full spaced-rep interval progression,
+**Tests** (`src/engine/__tests__/mastery.test.js`) — 80+ cases: level up/down/hold, the
+level-5-hard-difficulty gate, the `DIFFICULTY_UP_STREAK` consecutive-session rule, adaptive difficulty bounds, full spaced-rep interval progression,
 just-mastered vs in-review, regression recovery, all boundary ratios, 0-attempt edge case,
 determinism.
 
@@ -935,5 +931,7 @@ land.
   learner archetypes (fixed per-rung accuracy, seeded via `src/recipes/_rng.js`, 8-question sessions,
   60-session cap). Imports `mastery.js` + `masteryConfig.js` and changes neither. `node
   scripts/simulate-mastery.mjs` regenerates the marked block of `claude-chat/mastery-simulation-report.md`
-  (Findings/Limits are hand-written and preserved). Tested in `scripts/__tests__/` — `vitest.config.js`
-  includes `scripts/**` for this. Artifact behind DECISIONS 2026-08-31.
+  (Findings/Limits and the frozen rejected-`LEVEL_UP_STREAK` section are hand-written/static and
+  preserved). Tested in `scripts/__tests__/` — `vitest.config.js` includes `scripts/**` for this; the
+  tests also pin the live engine to the 2026-08-31 baseline results. Artifact behind DECISIONS
+  2026-08-31 and 2026-09-02.
