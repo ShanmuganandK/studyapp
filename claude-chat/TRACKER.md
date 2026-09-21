@@ -176,8 +176,12 @@ worth testing first** — dark exercises every inverted slot and is where a leak
 ## Done — `LEVEL_UP_STREAK` reverted (2026-09-02)
 
 Implements `DECISIONS.md` 2026-09-02 (LOCKED; supersedes 2026-09-01). Branch
-`revert-level-streak-experiment`, cut from `df7b5db` (then-current master), pushed for review — **not
-merged by Code**. Until it is merged, master still carries the rejected experiment.
+`revert-level-streak-experiment`, cut from `df7b5db` and reviewed, then **fast-forward merged into
+master (`19727c8`)** — no merge commit — after the branch was re-verified on a fresh checkout of the
+committed tree (464 tests passing, `src/` diff against `4de5b71` limited to one README wording change,
+lint / `lint:hex` / `privacy:check` / build clean). **master no longer carries the rejected experiment.**
+Both `revert-level-streak-experiment` and `mastery-level-streak` (`df7b5db`, the rejected attempt) are
+kept on origin as the historical record.
 
 **Why, with the numbers** (500 seeds per archetype, `claude-chat/mastery-simulation-report.md`, rejected
 arm kept there as a frozen record): archetype 5 mastered within 60 sessions in **23.6% → 0.0%** of runs
@@ -225,10 +229,10 @@ simulation before shipping (DECISIONS 2026-09-02).
 
 > **Superseded 2026-09-02 — see `DECISIONS.md` 2026-09-02. The experiment was REJECTED and reverted.**
 > Everything below records what was built and measured on branch `mastery-level-streak` (`df7b5db`); it
-> is NOT the engine's behaviour once the revert branch (`revert-level-streak-experiment`) lands. The
-> "Flagged, not fixed" items below (level 0 = "not started", `UNLOCK_LEVEL`, old-backup import) were
-> consequences of the streak and are moot after the revert. Kept, not deleted, per the same pattern as
-> the 2026-08-27 and 2026-08-31 blocks.
+> is NOT the engine's behaviour — the revert (`revert-level-streak-experiment`) has landed on master
+> (`19727c8`). The "Flagged, not fixed" items below (level 0 = "not started", `UNLOCK_LEVEL`,
+> old-backup import) were consequences of the streak and are moot after the revert. Kept, not deleted,
+> per the same pattern as the 2026-08-27 and 2026-08-31 blocks.
 
 Implements `DECISIONS.md` 2026-09-01 (LOCKED): `level` now needs consecutive strong sessions before
 every hop, mirroring `difficulty`. Follows directly from the 2026-08-31 simulation below.
