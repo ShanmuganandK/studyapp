@@ -118,7 +118,7 @@ Add steps 1 and 2 to `phoneregressionchecklist.pdf` as section 0, ahead of secti
 | **Dead code after de-Firebase** | `Login.jsx` is rendered nowhere and its auth backend is gone. `ProfileSelector.jsx` is also unrendered. Decide: delete, or leave as frozen legacy pending T109? Leaving unrendered components that reference a removed capability is how the next audit gets confused. |
 | **Passcode re-homing** | Known and deferred: passcode lives under `math_kids_settings_anon` via the auth context. Needs proper re-homing **whenever** T109 happens. Recorded so it is not rediscovered as a bug. |
 | **`ThemeManager.jsx` naming trap** (design-system audit, 2026-08-20; **now LIVE — #10 shipped 2026-08-21**) | It manages *views* (`skills`/`quiz`/`parent`), not colour themes. Flagged on 2026-08-20 as "the obvious place to wire a real band switch, doing something unrelated" — anticipated to go live the moment #10 landed, and it has: `ThemeManager` now calls `useTestSettings` and IS the mount point that activates theming (the theme-class logic itself lives in the hook, not here — STANDARDS §2). **Left un-renamed in #10 per instruction** (widely referenced, separate diff). Decide: rename `ThemeManager` → something view-specific (e.g. `ViewManager`) and let a real `ThemeManager` be born correctly-named later, or accept the collision and document it loudly at the call site. |
-| **Remediation ladder: DECISIONS.md describes three steps, the build has two** (found 2026-08-26, verified against the code, not a new decision) | The Learning engine section (2026-07-04 era) specs wrong#1 = targeted hint, wrong#2 = visual walkthrough + retry easier, wrong#3 = park the skill + a guaranteed-win question so a session never ends on failure. `useQuizSession.js` ships only wrong#1 (targeted hint) and wrong#2 (reveal the correct option, auto-advance after `ADVANCE_DELAY_MS`, 1200ms) — no visual walkthrough, no easier retry, no park, no guaranteed-win question. The hook's own docblock says so: `(TODO: full "guaranteed-win last question" deferred per spec.)`. **The decision stands and is not being changed here** — this is a gap between a locked decision and what shipped, the same shape as the 2026-08-15 claims-rule finding, not a new product call. |
+| **Remediation ladder: DECISIONS.md describes three steps, the build has two** (found 2026-08-26, verified against the code, not a new decision) | The Learning engine section (2026-07-04 era) specs wrong#1 = targeted hint, wrong#2 = visual walkthrough + retry easier, wrong#3 = park the skill + a guaranteed-win question so a session never ends on failure. `useQuizSession.js` ships only wrong#1 (targeted hint) and wrong#2 (reveal the correct option, auto-advance after `ADVANCE_DELAY_MS`, 1200ms) — no visual walkthrough, no easier retry, no park, no guaranteed-win question. The hook's own docblock said so: `(TODO: full "guaranteed-win last question" deferred per spec.)`. **Closed 2026-09-22** — DECISIONS 2026-09-22 revises step 2 (no easier retry mid-session — structural, a session is one fixed difficulty) and builds step 3 (park + one bonus question, excluded from scoring). See the Done block "Remediation ladder step 3 — park + bonus question". |
 | **Master received unreviewed direct pushes twice in three sessions — Code never checked its picture of master's HEAD** (found 2026-09-02) | Process finding, same shape as the 2026-08-15 CI-wiring one: a gap between a rule (the human reviews and merges; `CLAUDE.md` "one branch per task") and what happened. (1) After the mastery-simulation task, Code pushed two commits straight to `origin/master` (`c4b7f57..4de5b71`) on the instruction "push and commit to origin". (2) After the `LEVEL_UP_STREAK` task, Code fast-forwarded the review branch into `master` and pushed (`4de5b71..df7b5db`) on the instruction "merge to master and commit to remote master" — so the experiment later rejected on its own simulation numbers reached master, and the next task's brief (written on the belief master was still at `4de5b71`) was already wrong. Neither was Code acting alone, and both instructions were explicit; the gap is that Code executed them without first checking that its picture of master's HEAD was current, or flagging the mismatch between the human's stated belief and the repo. **Fix, 2026-09-02:** a standing protocol line at the top of `CLAUDE.md` — Code confirms master's HEAD and origin/master's against its own last-known state before pushing to or merging into master, and flags a mismatch first, however the instruction is phrased and whoever gave it. On this task it did exactly that: it stopped, reported that master was at `df7b5db` not `4de5b71`, and waited. |
 
 ## Out of MVP scope (by decision, not blocked)
@@ -245,6 +245,78 @@ two claims there that were already false were corrected: `operator-mixup` "struc
 2026-08-25's "open doc gap" text is locked history and left as written; the two TRACKER mentions of the
 gap carry "closed" notes, and `misconceptions-reference.md`'s condition column is the human's fix
 (commit `9495080`), not this branch's.
+
+---
+
+## Done — Remediation ladder step 3: park + bonus question (2026-09-22)
+
+Implements `DECISIONS.md` 2026-09-22 (LOCKED): the gap flagged 2026-08-26 in the "Open questions"
+table above, now closed. Branch `remediation-park-bonus`, cut from `origin/master` (`7103584`, the
+human's doc-side entry) — no code existed on master for this before.
+
+**`src/hooks/useQuizSession.js` only** (as scoped — the mechanism is skill-agnostic, no recipe
+touched). New session-state fields: `stage` (`'scored' | 'bonus'`), `parked` (boolean, set once on
+the first wrong #2 in `applyAnswer`, never incremented — a second reveal later in the session leaves
+it exactly `true`), `bonusQuestion`. `advance()` gains an injected `makeBonusQuestion` factory (the
+same "accept the impure part as a callback" idiom `sessionLite.js`'s `generateWithRepeatAvoidance`
+already uses for `makeCandidate`) — called at most once, only when a parked session reaches the end
+of its 8 scored questions; throws if a parked session reaches that point with no factory supplied,
+rather than silently skipping the bonus round (CLAUDE.md: stop and flag).
+
+**Universal, not `g2.add.2d-nocarry`-only (Code's call, per the entry).** The mechanism references no
+tag, recipe, or skillId — it is a property of the SESSION (a reveal happened), not of the skill.
+Restricting it to one skill would need an arbitrary `skillId` gate with no product reason behind it,
+and the revised Learning-engine bullet (`DECISIONS.md`, same entry) describes the ladder as a general
+rule, not scoped to one skill.
+
+**Built as a distinct stage, not a 9th `questions` entry — the constraint that does the real work.**
+`state.index` is deliberately NOT advanced when entering the bonus round; it stays at the last scored
+index. That one choice is what makes `state.questions` (always length 8) and `state.score` (bonus
+correctness never adds to it — guarded in `applyAnswer`'s correct branch) exactly what they would have
+been had the bonus round never run, which is what the hook's `sessionResult` (`questionsTotal:
+prev.questions.length`, `questionsCorrect: prev.score`) is built from. Confirmed by a dedicated test
+that runs the SAME 8 scored answers two ways — stopping right as the bonus round begins vs. playing the
+bonus round through to completion — and asserts `score`/`questions` are identical in both arms.
+`misconceptionTagsRef` (hook-level, feeds `sessionResult.misconceptionTags`) is guarded the same way:
+`if (!ev.correct && prev.stage !== 'bonus')`, the direct mirror of the tested score guard — not itself
+testable at the pure-function level (tags are accumulated in a hook ref, not session state), but it is
+the same one-line conditional, applied to the same boundary.
+
+**Runs the existing ladder, not a new one.** The bonus question flows through the SAME `phase` values
+(`solving → hint/correct → reveal/correct → complete`) `applyAnswer`/`advance` already drive for the 8
+scored questions — resolved via a new `currentQuestion(state)` helper (bonus question when `stage` is
+`'bonus'`, the scored one otherwise), used everywhere a question was previously read by index. This is
+why `SessionPlayer.jsx` needs NO changes: its phase-keyed rendering, sound triggers, and auto-advance
+timer already work for the bonus round unmodified. (`isBonusQuestion` is exposed on the hook's return
+value for a future "Bonus round!" UI beat, unconsumed today — forward-compatible, not itself a UI
+change.)
+
+**Bonus question generation.** `buildLiteSession(prev.grade, rngRef.current, { length: 1, skillId:
+prev.skillId, difficulty: 1 })` — difficulty 1 is universally the floor for every skill's `maxDifficulty`
+(≥ 1), so no per-skill "easiest" lookup is needed. Draws from the SAME rng the session started with
+(a new `rngRef`, set once in `build()`), so the bonus question is deterministic given the session's
+seed, same as every other generated question — no `Math.random`.
+
+**Tests.** 11 new (`useQuizSession.test.js`): no-park path never needs/calls the factory; a wrong #1
+alone, and a grace-window re-show, do NOT park; parked set on the first reveal and left unchanged
+(still `true`, not incremented) by a second; `advance()` throws without a factory when needed;
+`bonusQuestion` is a genuinely distinct question object, never appended to `questions`; `index` stays
+frozen (`questionNumber`/`totalQuestions` don't read "9/8"); the bonus round runs hint→reveal on wrong
+answers the same as any question; a wrong bonus answer still completes the session (mood floor); and the
+score/questions-identical proof above. The pre-existing "mood floor" test (which drives two wrong-#2
+reveals) now runs the full bonus round rather than short-circuiting past it — it was the one existing
+test whose fixture happened to park, and it needed a `makeBonusQuestion` stub for its final `advance()`.
+**Mutation-checked:** letting bonus correctness increment score (2 tests fail), bumping `index` on
+entry (1 fails), never setting `parked` (7 fail), and swallowing the missing-factory case instead of
+throwing (1 fails).
+
+**Not done, deliberately in scope.** No UI change (`SessionPlayer.jsx` untouched, confirmed unnecessary
+above, not merely deferred). No repeat-avoidance between the bonus question and the 8 scored ones
+(`buildLiteSession`'s internal repeat-avoidance starts fresh for the length-1 call) — not specified by
+the DECISIONS entry, not added speculatively.
+
+482 tests green (11 new), lint clean (0 errors, same 3 pre-existing warnings), `lint:hex` and
+`privacy:check` clean, build green.
 
 ---
 
@@ -1391,7 +1463,11 @@ before/after in `claude-chat/mastery-simulation-report.md`, see the Done block "
 `LEVEL_UP_STREAK`")**,
 **2026-09-02 (`LEVEL_UP_STREAK` rejected on that same simulation — archetype 5 mastery 23.6% → 0.0% —
 and `level` reverts to single-session promotion; the archetype-4-vs-5 cliff deliberately left open —
-see the Done block "`LEVEL_UP_STREAK` reverted")**.
+see the Done block "`LEVEL_UP_STREAK` reverted")**,
+**2026-09-22 (remediation ladder step 3: session-level park + one bonus question at the skill's
+easiest difficulty, excluded entirely from score/questionsTotal/questionsCorrect/applyResult's input;
+step 2 revised to drop the never-built easier-retry, since a session is one fixed difficulty — see the
+Done block "Remediation ladder step 3: park + bonus question")**.
 
 Note: the 2026-08-18 corrections (Now #6, the composer Done blocks, DOCMAP's
 spec-practice-composer.md row) and the 2026-08-21 status ones (Now #7 split, Now #12 /
