@@ -11,11 +11,13 @@
 import { describe, it, expect } from 'vitest';
 import { makeRng } from '../_rng';
 import addition2d from '../addition2d';
+import { isImplausible } from '../_plausibility';
 import subtraction2d from '../subtraction2d';
 
 const RUNS_PER_DIFFICULTY = 200;
 
 const ones = (n) => n % 10;
+const tens = (n) => Math.floor(n / 10);
 const numbersIn = (text) => text.match(/\d+/g).map(Number);
 
 describe('addition2d structural carry guarantee', () => {
@@ -80,6 +82,88 @@ describe('addition2d strategy rung shapes (DECISIONS 2026-08-27)', () => {
         const rng = makeRng(`rung-ceiling:${difficulty}:${run}`);
         const q = addition2d.generate(difficulty, rng, 'g2.add.2d-nocarry');
         expect(q.correctAnswer, `${q.questionText} exceeds the curriculum ceiling`).toBeLessThanOrEqual(99);
+      }
+    }
+  });
+});
+
+describe('addition2d ones-addition-ignored (misconceptions-reference.md, no-carry, rung 3 only)', () => {
+  const TAG = 'ones-addition-ignored';
+  const NOCARRY = 'g2.add.2d-nocarry';
+  const RUNS = 400;
+
+  /** Generate RUNS questions for a rung, with their operands and the tagged option (if any). */
+  function sample(difficulty, skillId = NOCARRY) {
+    const out = [];
+    for (let run = 0; run < RUNS; run++) {
+      const q = addition2d.generate(difficulty, makeRng(`ones-ignored:${skillId}:${difficulty}:${run}`), skillId);
+      const [a, b] = numbersIn(q.questionText);
+      const idx = q.misconceptions.indexOf(TAG);
+      out.push({ q, a, b, tagged: idx === -1 ? null : q.options[idx] });
+    }
+    return out;
+  }
+
+  it('its value is exactly (tens(a)+tens(b))*10 + ones(a), and never the correct answer', () => {
+    let seen = 0;
+    for (const { q, a, b, tagged } of sample(3)) {
+      if (tagged === null) continue;
+      seen++;
+      expect(tagged, q.questionText).toBe((tens(a) + tens(b)) * 10 + ones(a));
+      expect(tagged, q.questionText).not.toBe(q.correctAnswer);
+    }
+    expect(seen, 'the tag never appeared — this test would be vacuous').toBeGreaterThan(100);
+  });
+
+  it('collision guard: never emitted when ones(b) is 0 (it would equal the correct answer)', () => {
+    let guarded = 0;
+    for (const { q, b, tagged } of sample(3)) {
+      if (ones(b) !== 0) continue;
+      guarded++;
+      expect(tagged, `${q.questionText} emitted the tag with ones(b) = 0`).toBeNull();
+    }
+    // Rung 3's second operand ranges 10-89ish, so ones(b) = 0 is a real, non-vacuous slice.
+    expect(guarded, 'no ones(b) = 0 question was exercised — guard test is vacuous').toBeGreaterThan(10);
+  });
+
+  it('is NEVER implausible under _plausibility.js — it competes for plausible slots, not the one implausible slot', () => {
+    // Value = sum - ones(b): within 9 of the answer, >= a >= max(a, b), and above answer / 2 —
+    // so no check is needed in the recipe. Asserted so the claim in addition2d.js's comment is a
+    // guard, not a comment.
+    for (const { q, a, b, tagged } of sample(3)) {
+      if (tagged === null) continue;
+      expect(
+        isImplausible('add', { a, b, answer: q.correctAnswer }, tagged),
+        `${q.questionText}: ${tagged} is implausible`,
+      ).toBe(false);
+    }
+  });
+
+  it('not starved: present in EVERY rung-3 question where tens(b) !== 0 and ones(b) !== 0', () => {
+    // Rung 3 has at most two plausible candidates (place-value-swap and this one), so the
+    // three-slot plausible cut can never drop it. If a future candidate makes a third plausible
+    // one possible ahead of it, this fails rather than the tag quietly disappearing.
+    let available = 0;
+    for (const { q, b, tagged } of sample(3)) {
+      if (tens(b) === 0 || ones(b) === 0) continue;
+      available++;
+      expect(tagged, `${q.questionText} lost ${TAG} to another candidate`).not.toBeNull();
+    }
+    expect(available).toBeGreaterThan(100);
+  });
+
+  it('rung 1 (2-digit + 1-digit) never emits it — tens(b) is always 0', () => {
+    for (const { q, tagged } of sample(1)) expect(tagged, q.questionText).toBeNull();
+  });
+
+  it('rung 2 (2-digit + a multiple of ten) never emits it — ones(b) is always 0', () => {
+    for (const { q, tagged } of sample(2)) expect(tagged, q.questionText).toBeNull();
+  });
+
+  it('g2.add.2d-carry never emits it (no-carry only, per the doc)', () => {
+    for (const difficulty of [1, 2, 3]) {
+      for (const { q, tagged } of sample(difficulty, 'g2.add.2d-carry')) {
+        expect(tagged, q.questionText).toBeNull();
       }
     }
   });

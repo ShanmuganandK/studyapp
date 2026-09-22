@@ -114,19 +114,25 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   leading digit), generalised via two range-parameterised helpers so both skills share the same
   construction. Format `compare` (3 operator options + `render: { left, right }`).
 - **`addition2d.js`** — **multi-skill** (`skillIds: g2.add.2d-nocarry, g2.add.2d-carry`),
-  sums capped 39/69/99 (no-carry) or 49/79/99 (carry). `buildOperands` rejection-samples the
+  no-carry sums capped at 99 flat (its rungs are a STRATEGY, not a magnitude — DECISIONS
+  2026-08-27) and carry sums capped 49/79/99. The operand builders rejection-sample the
   pair so the ones column is STRUCTURALLY carry-free or carry-required (never a coincidence) —
   asserted by a dedicated test, not just a comment. Distractors: no-carry —
   `column-alignment-shift`, `add-across-columns`, `operator-mixup`, `place-value-swap` (guarded
-  against palindrome sums); carry — `forgot-carry`, `write-full-sum-in-column`, `double-carry`,
-  `carry-subtraction-instead`. Format `mcq`. **Selection goes through `_plausibility.js`** — the
-  no-carry branch had two structurally-implausible candidates (`add-across-columns` tops out at
-  36, always; `operator-mixup` collapses below `max(a,b)` whenever a,b differ) competing for one
-  slot at ~99–100% of questions; the carry branch similarly (`write-full-sum-in-column` always,
-  `forgot-carry` frequently). **Known consequence, reported not fixed:** since both no-carry
-  candidates are ALWAYS implausible and `add-across-columns` is listed first, it always wins the
-  one-implausible slot — `operator-mixup` is now structurally unreachable for this skill (a
-  selection-priority finding, not a tag-rule bug; see TRACKER.md 2026-08-25).
+  against palindrome sums), `ones-addition-ignored` (`(tens(a)+tens(b))*10 + ones(a)`, condition
+  `tens(b) !== 0` — rung 3 only, per the doc — AND the `ones(b) !== 0` collision guard; never
+  implausible, so it competes for plausible slots — asserted by test); carry — `forgot-carry`,
+  `write-full-sum-in-column`, `double-carry`, `carry-subtraction-instead`. Format `mcq`.
+  **Selection goes through `_plausibility.js`** — the no-carry branch had two
+  structurally-implausible candidates (`add-across-columns` tops out at 36, always;
+  `operator-mixup` collapses below `max(a,b)` whenever a,b differ) competing for one slot at
+  ~99–100% of questions; the carry branch similarly (`write-full-sum-in-column` always,
+  `forgot-carry` frequently). **Corrected 2026-09-21:** this paragraph used to say
+  `operator-mixup` was structurally unreachable because the first-listed implausible candidate
+  always won the slot. That was fixed the same day it was written (2026-08-25 amendment — ties
+  among implausible candidates are now broken at random via the recipe's seeded rng); measured
+  across 20,000 seeded questions per rung, both `add-across-columns` and `operator-mixup` appear
+  at roughly 40–50%.
 - **`subtraction2d.js`** — **multi-skill** (`skillIds: g2.sub.2d-noborrow, g2.sub.2d-borrow`),
   minuend capped 39/69/99 (no-borrow) or 49/79/99 (borrow). Same `buildOperands`
   rejection-sampling pattern as `addition2d.js` — structurally borrow-free or borrow-required,

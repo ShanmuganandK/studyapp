@@ -173,6 +173,81 @@ worth testing first** — dark exercises every inverted slot and is where a leak
 
 ---
 
+## Done — `ones-addition-ignored` wired into `g2.add.2d-nocarry`, rung 3 only (2026-09-21/22)
+
+Wires the tag added to `misconceptions-reference.md` (2-digit addition without carry) into
+`src/recipes/addition2d.js`. This is the gap DECISIONS 2026-08-25 named as the top teacher-review item:
+"added the tens but ignored the ones" (34 + 24 → 54). **No-carry only — `g2.add.2d-carry` untouched.**
+Branch `ones-addition-ignored-rung3` (an earlier version wired it with no rung restriction, on branch
+`ones-addition-ignored`, still on origin, unmerged, superseded by this).
+
+**Restricted to rung 3 on review.** The first pass used the doc's original condition,
+`ones(b) !== 0` only, and measured it firing on 96.7% of rung-1 questions — *more* than rung 3
+(78.6%). On rung 1, `b` is single-digit so `tens(b) === 0`, and the rule degenerates to
+`sum - ones(b) = a` — the distractor is just `a` itself, which is "ignored `b` entirely," not
+"added the tens, dropped the ones." That's the wrong misconception firing, not a wording quibble.
+On review, the doc's condition column was corrected to `tens(b) !== 0` (rung 3 only — where
+DECISIONS 2026-08-25 named the case, `34+24→54`), and the recipe now matches it exactly:
+`tens(b) !== 0 && ones(b) !== 0`.
+
+**Rule, as in the doc:** `(tens(a)+tens(b))*10 + ones(a)`. Two conditions, both required:
+`tens(b) !== 0` (rung 3 only — see above) and `ones(b) !== 0` (collision guard — otherwise the
+value equals the correct sum). The value is always `sum − ones(b)`.
+
+**The two selection questions, answered (DECISIONS 2026-08-25).**
+- **Does it need a plausibility check? No — it can never be implausible.** It sits within `ones(b) ≤ 9`
+  of the answer, is ≥ `a` ≥ `max(a, b)` (so no monotonic violation), and stays above `answer/2` because
+  `a ≥ 10`. So it competes for the *plausible* slots, never the single implausible one, and the
+  one-implausible-slot rule cannot starve it. Guarded by a test.
+- **Can it be starved anyway?** Only by the three-slot cut of plausible candidates (taken in array
+  order; it is listed last). Structurally impossible on rung 3 — at most two candidates
+  (`place-value-swap` and this one) can be plausible there — and guarded by a test that it is present
+  in EVERY rung-3 question where both conditions hold.
+
+**Measured, 20,000 seeded questions per rung (ad-hoc script, not committed — the committed tests guard
+the structural claims, not these percentages), rung-3-only rule:**
+
+| | rung 1 (2-digit + 1-digit) | rung 2 (+ multiple of ten) | rung 3 (2-digit + 2-digit) |
+|---|---|---|---|
+| tag available (`tens(b)≠0 ∧ ones(b)≠0`) | 0% | 0% | 78.7% |
+| **`ones-addition-ignored`** | **0%** | **0%** | **78.7%** (every available question) |
+| `random-slip` (unrestricted → rung-3-only) | 74.6% (unchanged) | 164.8% (unchanged) | 152.6% → 73.7% |
+| `add-across-columns` | 42.6% (unchanged) | 42.7% (unchanged) | 44.7% → 45.3% (unchanged) |
+| `operator-mixup` | 52.6% (unchanged) | 42.5% (unchanged) | 44.0% → 43.4% (unchanged) |
+| `place-value-swap` | 45.9% (unchanged) | 50.1% (unchanged) | 58.6% → 58.9% (unchanged) |
+
+Rung 3 behaves exactly as intended: the tag fills 78.7% of questions (never starved), replaces about
+half the `random-slip` filler, and every older tag's frequency on every rung is within noise of the
+unrestricted-rule baseline. Rungs 1 and 2 are back to their pre-change frequencies — the tag no longer
+touches them at all.
+
+**Hint wired.** `src/engine/hints.js` gains `'ones-addition-ignored': 'You got the tens right! Now add
+the ones from BOTH numbers together too.'` — the doc's hint text verbatim, added alongside the shared
+add/subtract entries following the file's existing pattern. `hints.test.js`'s `RECIPES` list does not
+include `addition2d.js` (only the Grade-1 recipes), so that suite doesn't exercise this hint directly;
+the recipe/validator tests confirm the tag is emitted and canonical.
+
+**Guards.** Canonical-tag guard (`validator.test.js`) **proven RED first** — recipe emitting the tag
+with the validator's set not yet updated failed with "emitted off-doc tag" — then GREEN after adding
+it (that set is hand-maintained, not parsed from the doc). 7 tests (`structuralConstraints.test.js`):
+exact rule value, collision guard, never-implausible, not-starved-on-rung-3, rung 1 never (tens(b)=0),
+rung 2 never (ones(b)=0), carry skill never. Mutation-checked: dropping the `tens(b) !== 0` restriction
+(1 fails — the rung-1-never test), `ones(b)` instead of `ones(a)` in the value (2 fail), leak into the
+carry branch (2 fail).
+
+**Not done / still open.** `TEACHER-REVIEW.md` item 4 (does the rule match the real error; copying
+`b`'s ones, or dropping the ones column, might be commoner) is still pending — this ships the tag, it
+does not settle that.
+
+**Doc sync.** `ARCHITECTURE.md`'s `addition2d.js` entry lists the tag with its rung-3 condition, and
+two claims there that were already false were corrected: `operator-mixup` "structurally unreachable"
+(fixed 2026-08-25, now ~44%) and the pre-strategy-rung "39/69/99" no-carry caps. `DECISIONS.md`
+2026-08-25's "open doc gap" text is locked history and left as written; the two TRACKER mentions of the
+gap carry "closed" notes, and `misconceptions-reference.md`'s condition column is the human's fix
+(commit `9495080`), not this branch's.
+
+---
+
 ## Done — `LEVEL_UP_STREAK` reverted (2026-09-02)
 
 Implements `DECISIONS.md` 2026-09-02 (LOCKED; supersedes 2026-09-01). Branch
@@ -381,7 +456,8 @@ almost every commit), lint clean, `lint:hex` clean, build green.
   the app still holds one rung per session) — a session-shape change, out of scope here.
 - The `misconceptions-reference.md` gap for "added the tens but ignored the ones" — already
   logged as the top item for the pending teacher review (2026-08-25 entry), unaffected by this
-  change.
+  change. *(Closed 2026-09-21: doc row added and the tag wired, rung 3 only — see the Done block
+  "`ones-addition-ignored` wired".)*
 
 **Also found, not fixed here — flagged, not silently edited:** `CLAUDE.md`'s mastery line claims
 "~80% at hard level, **across sessions on different days**." `src/engine/mastery.js` records
@@ -516,6 +592,9 @@ that is the separate, still-open question logged in the Kid-Test Log's #11 entry
 2-digit-no-carry addition has only one near-tagged candidate (`place-value-swap`) once
 `add-across-columns`/`operator-mixup` are capped to one implausible slot between them. "Added the
 tens but ignored the ones" (34+24→54) remains a plausible real misconception with no doc entry.
+*(Closed 2026-09-21: the doc entry `ones-addition-ignored` was added and wired into `addition2d.js`,
+restricted to rung 3 — see the Done block "`ones-addition-ignored` wired". The teacher-review
+sign-off on its rule and hint wording is still pending — `TEACHER-REVIEW.md` item 4.)*
 
 **Three decisions are now owed a `DECISIONS.md` entry** (the human is drafting all three; see the
 Decisions Log pointer below for the full list): the themes-as-test-instrument call from #10, the

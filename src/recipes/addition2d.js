@@ -28,6 +28,13 @@
  *     - operator-mixup         : subtracted instead of adding (|a - b|, always)
  *     - place-value-swap       : swapped the tens/ones of the correct sum
  *                                 (swapDigits(sum) — guard: skip palindromes, sum % 11 === 0)
+ *     - ones-addition-ignored  : added the tens correctly but copied the ones from operand `a`
+ *                                 only, instead of adding both ((tens(a)+tens(b))*10 + ones(a)).
+ *                                 Condition per the doc: tens(b) !== 0 (rung 3 only — with
+ *                                 tens(b) === 0 the rule degenerates to sum - ones(b) = a itself,
+ *                                 which is "ignored b entirely", a different misconception the
+ *                                 doc does not name) AND ones(b) !== 0 (collision guard — else it
+ *                                 equals the correct sum).
  *   carry:
  *     - forgot-carry              : dropped the carried ten (sum - 10, always — carry required)
  *     - write-full-sum-in-column  : wrote the 2-digit ones-sum straight into the ones place,
@@ -36,7 +43,10 @@
  *     - carry-subtraction-instead : subtracted the carry from the tens column (sum - 20, always)
  * (Both skills' condition is always true by construction — carry-required/carry-free is exactly
  * what buildOperandsCarry / buildOperandsForRung guarantee — so every question offers 3-4 real
- * tagged candidates before any random-slip fallback fires.)
+ * tagged candidates before any random-slip fallback fires. The one exception is
+ * `ones-addition-ignored`, restricted to rung 3 by its own condition (tens(b) !== 0): it never
+ * fires on rung 1 (single-digit b) or rung 2 (b a bare multiple of ten). `ones-addition-ignored`
+ * is no-carry ONLY, per the doc — the carry skill's own tags cover its analogous failure modes.)
  *
  * Distractor SELECTION (not the tag rules above) goes through the shared `selectDistractors`
  * (`_plausibility.js`): at most one of the four options may be eliminable without arithmetic.
@@ -147,6 +157,17 @@ const recipe = {
       candidates.push({ value: Math.abs(a - b), tag: 'operator-mixup' });
       if (sum % 11 !== 0) {
         candidates.push({ value: swapDigits(sum), tag: 'place-value-swap' });
+      }
+      // ones-addition-ignored: value = sum - ones(b). Restricted to tens(b) !== 0 (rung 3 only —
+      // per the doc, misconceptions-reference.md) so it never fires where it would actually mean
+      // "ignored b entirely" (rung 1/2, where b has no tens). ones(b) !== 0 is the separate
+      // collision guard: without it the value equals the correct sum. Never implausible under
+      // _plausibility.js (guarded by test) — it sits within ones(b) <= 9 of the answer, is >= a
+      // >= max(a, b), and a >= 10 keeps it above answer/2 — so it competes for the PLAUSIBLE
+      // slots, not the single implausible one. Listed last: plausible candidates are taken in
+      // array order, so it never displaces the older tags.
+      if (tens(b) !== 0 && ones(b) !== 0) {
+        candidates.push({ value: (tens(a) + tens(b)) * 10 + ones(a), tag: 'ones-addition-ignored' });
       }
     }
 

@@ -44,7 +44,7 @@ const CANONICAL_TAGS = {
   'g1.sub.within20': new Set(SUBTRACTION_TAGS),
   'g1.num.compare20': new Set(['alligator-confusion', 'ones-digit-bias', 'digit-length-bias']),
   'g2.num.compare999': new Set(['alligator-confusion', 'ones-digit-bias', 'digit-length-bias']),
-  'g2.add.2d-nocarry': new Set(['column-alignment-shift', 'add-across-columns', 'operator-mixup', 'place-value-swap', 'random-slip']),
+  'g2.add.2d-nocarry': new Set(['column-alignment-shift', 'add-across-columns', 'operator-mixup', 'place-value-swap', 'ones-addition-ignored', 'random-slip']),
   'g2.add.2d-carry': new Set(['forgot-carry', 'write-full-sum-in-column', 'double-carry', 'carry-subtraction-instead', 'random-slip']),
   'g2.sub.2d-noborrow': new Set(['operator-mixup', 'column-alignment-shift', 'digit-subtraction-isolation', 'ones-subtraction-ignored', 'random-slip']),
   'g2.sub.2d-borrow': new Set(['smaller-from-larger-force', 'borrow-without-reducing-tens', 'regroup-ten-ones-shortchange', 'borrow-from-nowhere', 'random-slip']),

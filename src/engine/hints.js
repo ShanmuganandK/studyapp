@@ -24,6 +24,9 @@ const HINTS = {
   'operator-mixup': 'Check the sign: + puts the groups together, − takes some away.',
   'off-by-one': 'So close — recount your last step, you’re off by just one.',
 
+  // addition (2-digit, no-carry) — misconceptions-reference.md verbatim
+  'ones-addition-ignored': 'You got the tens right! Now add the ones from BOTH numbers together too.',
+
   // subtraction (within 20)
   'tens-ignored': 'Don’t forget the ten! A teen number is ten and some ones.',
   'smaller-from-larger-force': 'Can’t take the ones away? Borrow a ten first!',
