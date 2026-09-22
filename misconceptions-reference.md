@@ -133,7 +133,7 @@ Skill-specific tags are listed per skill below.
 | `add-across-columns` | sum all digits → `tens(a)+ones(a)+tens(b)+ones(b)` | 23+14 → 10 | "Add ones first, then tens — separately!" | always |
 | `operator-mixup` | `a - b` | → diff | "Plus means add!" | always |
 | `place-value-swap` | `swapDigits(ans)` (46→64) | → 64 | "Add ones first → write 6 in the ones place on the right!" | always |
-| `ones-addition-ignored` | tens added correctly, but ones copied from operand `a` only instead of adding both — `(tens(a)+tens(b))*10 + ones(a)` | 34+24 → 54 | "You got the tens right! Now add the ones from BOTH numbers together too." | always — **guard: only when `ones(b) != 0` (otherwise it equals the correct answer)** |
+| `ones-addition-ignored` | tens added correctly, but ones copied from operand `a` only instead of adding both — `(tens(a)+tens(b))*10 + ones(a)` | 34+24 → 54 | "You got the tens right! Now add the ones from BOTH numbers together too." | **`tens(b) != 0`** (rung 3 only — with `tens(b)==0` the rule degenerates to `ans − ones(b) → a` itself, which isn't this misconception) — **guard: only when `ones(b) != 0` (otherwise it equals the correct answer)** |
 
 ### 2-digit addition WITH carry — recipe: `addition2d`, format `mcq`
 | tag | rule | example | hint | condition |
