@@ -68,6 +68,29 @@ on this trip.** Anything that does not serve that waits.
 | **12** | **⭐ Grade 3 curriculum — DOES NOT EXIST** | 📋 **P3 — spec needed before any code (Chat writes it)** | **Found 2026-08-21 by reading `skillMap.js` directly.** Its own header says *"the curriculum backbone for **Grades 1–2**."* 35 skills: **19 Grade 1, 16 Grade 2, ZERO Grade 3.** Not planned-but-unbuilt — absent. So "full board for Grades 1–3" is not a recipe-writing task; Grade 3 needs curriculum work FIRST: skills, strands, prereqs, difficulty ceilings, ordering, extending `claude-chat/specs/skill-map-spec.md`. **Does not block this trip** — testing can run on G1 + G2 (once #11 lands). ⚠️ Note the store description already says *"CBSE-aligned maths practice for Grades 1-3"* and `PLAY_TITLE`/positioning assume Grades 1–3 — so this must close before launch even though it does not block testing. |
 | **13** | **Strategy rungs — generalise beyond `addition2d.js`** | ⏳ **P2 — observe on this trip first** | `g2.add.2d-nocarry` shipped 2026-08-27 (see Done block below). `DECISIONS.md` 2026-08-27 explicitly does NOT retro-fit every skill in the same entry. Candidates for the same treatment once the current trip's signal is in: `subtraction2d.js` (`g2.sub.2d-noborrow`), the Grade-1 reference recipes. **The walk-vs-hold question is answered — DECISIONS 2026-09-22 (bridge-in):** a session does both, on separate tracks — measurement holds one rung, presentation walks up to it via unscored bridge questions, behind a parent-zone test toggle (default OFF). See the Done block "Bridge-in: strategy-rung walk (behind test toggle)". **Still open:** generalising `strategyRungs`/the bridge to any skill beyond `g2.add.2d-nocarry` — same "observe on this trip first" gate. |
 
+### Testing framework — from one-dimensional to a calibrated loop (opened 2026-09-23)
+
+Goal: test whether Tinku works for real children and keep that testing current as the
+product changes. Principle: real children discover behaviours; simulation measures them
+at scale and regression-tests every engine change; each kid test recalibrates the
+simulation. A simulation cannot find a behaviour nobody modelled (the 34+24 freeze came
+from Set B, not the simulation).
+
+Layers: (1) code correctness — exists; (2) simulated children with traits: learning,
+misconception tendencies, freezing, hint use, fatigue — every value labelled "assumed"
+until calibrated — playing full sessions (bridge, ladder, bonus, mastery), not just
+applyResult; (3) an automated player driving the built app for UX regressions — never
+treated as evidence about children; (4) real kid tests with a fixed protocol and an
+on-device, parent-exported session log; (5) calibration of layer 2 from layer 4 data.
+
+Order: log + protocol first (so the bridge-in phone A/B produces usable data), then
+personas v2, then the automated player.
+
+Blocked on: a DECISIONS entry for the on-device session log (data minimisation, DPDP) —
+human to decide. Chat writes the spec after that decision; nothing is built before it.
+
+Owner: human (decisions, protocol), Chat (spec), Code (build).
+
 ## Deploy verification (standing step — added 2026-08-15)
 
 A cache/deploy scare on 2026-08-15 cost real confidence: the live app appeared to be
