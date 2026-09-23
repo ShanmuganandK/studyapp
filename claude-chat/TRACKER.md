@@ -86,8 +86,10 @@ on-device, parent-exported session log; (5) calibration of layer 2 from layer 4 
 Order: log + protocol first (so the bridge-in phone A/B produces usable data), then
 personas v2, then the automated player.
 
-Blocked on: a DECISIONS entry for the on-device session log (data minimisation, DPDP) —
-human to decide. Chat writes the spec after that decision; nothing is built before it.
+Blocked on: a DECISIONS entry for the kid-test session log, shaped as a parent-zone test
+instrument (default off, test-settings key, never in the progress export, no identifiers,
+never networked) — consistent with DECISIONS 2026-07-16, 2026-08-14, 2026-08-17 and
+2026-08-21. Chat drafts that entry next. The lawyer question below does not block the build.
 
 Owner: human (decisions, protocol), Chat (spec), Code (build).
 

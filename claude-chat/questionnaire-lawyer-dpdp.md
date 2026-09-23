@@ -174,6 +174,18 @@ now?
 **F2.** Anything in the pending DPDP Rules you'd flag as likely to affect a
 children's-education app specifically?
 
+**Q-new-1.** Kid testing: during a founder-run test, with the parent present and agreeing, the
+app keeps an on-device log (answers, timing, hint use; no name or identifier) that the parent
+exports and hands to the founder. Is the founder's receipt and brief holding of that file
+"processing of personal data of a child" under DPDP? If yes, what is the minimum (e.g.
+written parental consent, deletion after transcription) that makes it defensible?
+
+**Q-new-2.** Future paid tier: personalization driven by a child's learning history held by us,
+with verifiable parental consent (Rule 10, DigiLocker/token route). Does Section 9(3)'s bar
+on "tracking or behavioural monitoring of children" apply even WITH that consent, i.e. is
+it a prohibition consent cannot lift? Does any Fourth Schedule exemption reach a learning
+app that is not an educational institution?
+
 ---
 
 ## Final triage (most important question in this document)
