@@ -721,16 +721,17 @@ this is prop-threading only, the same shape `theme`/`grade` already use to reach
 The pure functions never read storage themselves; the toggle and the skill's opt-in reach them as
 explicit inputs (`bridgeEnabled` param, `skillMeta.strategyRungs` from the skill map).
 
-**What the question counter and progress indicator show during a bridge/bonus round — reported,
-not changed.** `questionNumber`/`totalQuestions` are derived from `state.index + 1` /
-`state.questions.length`, and `state.index` is frozen through both the bridge and the bonus round
-by construction. So on a rung-3 session with the toggle on: the counter reads **"1 / 8" for the
-rung-1 bridge question, "1 / 8" again for the rung-2 bridge question, then "1 / 8" for the FIRST
-scored question too** — three consecutive questions can show "1 / 8" before it ever advances. If
-the session parks, the bonus round shows **"8 / 8"** (frozen at the last scored index). Confirmed
-in a real browser build. This is a UI decision left open on purpose (task brief): `isBridgeQuestion`
-/ `isBonusQuestion` are exposed on the hook's return value for a future UI change to key off,
-unconsumed by `SessionPlayer.jsx` today.
+**The frozen counter — reported 2026-09-22, resolved 2026-09-23.** `questionNumber`/
+`totalQuestions` are derived from `state.index + 1` / `state.questions.length`, and `state.index`
+is frozen through both the bridge and the bonus round by construction, so the raw counter used to
+misread there (a rung-3 session could show "1 / 8" three times in a row; a parked session froze at
+"8 / 8" through its bonus question — confirmed in a real browser build, `claude-chat/TRACKER.md`).
+**`DECISIONS.md` 2026-09-23 (LOCKED)** replaces the counter with a stage label during those two
+stages: `SessionPlayer.jsx`'s top-bar span now reads `isBridgeQuestion ? 'Warm-up' :
+isBonusQuestion ? 'Bonus' : `${questionNumber} / ${totalQuestions}``, same slot, same
+`text-primary` token — no amber/review/success/coral, no ⭐ (a mood-floor/warm-up beat is not a
+reward). `isBridgeQuestion`/`isBonusQuestion` (already on the hook's return value since
+2026-09-22) are now actually CONSUMED here, not just exposed for later.
 
 **Remediation hint — soft read-window (Option 1).** The pure ladder puts hint LOGIC here (not
 in the screen): on wrong #1 it sets `phase:'hint'`, the distractor's hint, `hintGrace:true`, and

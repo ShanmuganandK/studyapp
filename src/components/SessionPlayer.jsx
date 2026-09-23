@@ -100,7 +100,13 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
           ← Skills
         </button>
         <span className="text-sm font-bold text-primary">
-          {s.questionNumber} / {s.totalQuestions}
+          {/* Stage label replaces the counter during the bridge/bonus rounds (DECISIONS
+              2026-09-23): `state.index` is frozen through both, so "n / 8" would misread there
+              (a rung-3 bridge shows "1 / 8" three times in a row; a parked bonus round freezes
+              at "8 / 8"). Same slot, same token, no amber/review/success/coral, no ⭐ — this is
+              a mood-floor/warm-up beat, not a reward. Scored questions are unchanged: "1 / 8"
+              first appears on the first question that actually counts. */}
+          {s.isBridgeQuestion ? 'Warm-up' : s.isBonusQuestion ? 'Bonus' : `${s.questionNumber} / ${s.totalQuestions}`}
         </span>
         <MuteButton muted={muted} onToggle={toggleMute} />
       </div>

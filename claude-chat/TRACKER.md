@@ -268,6 +268,11 @@ starts climbing on the second scored question. If the session then parks, the bo
 for a future UI change to key off; `SessionPlayer.jsx` needs none today — the bridge/bonus render
 correctly through the same phase-driven paths as any question.
 
+**Resolved 2026-09-23 — see the Done block "Stage label replaces the frozen counter" below.**
+`DECISIONS.md` 2026-09-23 (LOCKED) replaces the counter with "Warm-up"/"Bonus" during those two
+stages instead of leaving the misread "1 / 8" / "8 / 8" in place. This paragraph is kept as the
+finding that prompted the fix, not rewritten.
+
 **Not touched, as scoped:** `mastery.js`, `masteryConfig.js`, every recipe file,
 `scripts/simulate-mastery.mjs`. The mastery simulation report's drift guard stays green,
 unchanged, run to confirm rather than assumed.
@@ -282,6 +287,49 @@ file, not estimated: `useQuizSession.test.js` 22→35 (**+13**), `testSettings.t
 initial draft of this paragraph guessed +6 for this file and was wrong, caught by actually
 counting), `TestPanel.test.jsx` 3→6 (**+3**), new file `useQuizSession.bridge.hook.test.js`
 (**+6**). 13+4+3+6 = **26**, exactly matching the measured delta. Lint clean (0 errors, same 3
+pre-existing warnings), `lint:hex` and `privacy:check` clean, build clean.
+
+---
+
+## Done — Stage label replaces the frozen counter (2026-09-23)
+
+Implements `DECISIONS.md` 2026-09-23 (LOCKED). Closes the counter artifact reported in the
+bridge-in Done block above. Same branch, `bridge-in-strategy-rungs` (still unmerged; the human
+reviews the whole branch).
+
+**What changed — one component, no hook change.** `isBridgeQuestion`/`isBonusQuestion` already
+existed on `useQuizSession`'s return value (shipped 2026-09-22, unconsumed until now) — nothing
+new to expose. The counter itself lives in `SessionPlayer.jsx`'s top bar (checked, not assumed):
+`{s.isBridgeQuestion ? 'Warm-up' : s.isBonusQuestion ? 'Bonus' : `${questionNumber} / ${totalQuestions}`}`,
+same `<span>`, same `text-sm font-bold text-primary` token classes, same accessible-name shape as
+before (the counter was plain rendered text with no ARIA wrapper, so the label is too — nothing
+extra needed there). Scored questions are byte-for-byte unchanged.
+
+**Neutral styling, checked not just claimed.** `text-primary` (indigo) throughout — no
+`accent`/`review`/`success`/`encourage`/coral token, no ⭐, asserted by a test that inspects the
+label's `className` and `textContent` directly rather than trusting the diff.
+
+**Tests — 5 new (`SessionPlayer.test.jsx`), each mutation-checked:** bridge question shows
+"Warm-up" and not "n / 8"; the first scored question after a bridge shows "1 / 8"; bonus question
+shows "Bonus" and not the frozen "8 / 8"; a full toggle-off/never-parked run shows "1 / 8" through
+"8 / 8" with the label never appearing (byte-for-byte the master behaviour); the label carries none
+of the forbidden tokens and no star. Mutation-checked: dropping the bridge check (1 fails),
+dropping the bonus check (1 fails), adding `text-accent` to the label (1 fails, caught by the
+token-absence test).
+
+**Real browser, built app, 360px (docs-responsive.md) and 320px.** Toggle ON, seeded
+`g2.add.2d-nocarry` at difficulty 3, forced one reveal mid-run to exercise the bonus round.
+Screenshots taken of a bridge question ("Warm-up"), the first scored question ("1 / 8"), and the
+bonus question ("Bonus") — all render with identical layout and styling, label swapped only. A
+320px pass confirms no wrap/overlap with "← Skills" or the mute button. **Zero console errors,
+zero off-origin requests**, matching the 2026-09-22 verification's result.
+
+**Not touched, as scoped:** `mastery.js`, `masteryConfig.js`, every recipe file,
+`scripts/simulate-mastery.mjs`, and `useQuizSession.js` itself (the fields it needed already
+existed).
+
+**Test count.** 513 passed + 1 skipped (up from 508 at the start of this commit — +5, exactly the
+5 new `SessionPlayer.test.jsx` cases, no discrepancy this time). Lint clean (0 errors, same 3
 pre-existing warnings), `lint:hex` and `privacy:check` clean, build clean.
 
 ---

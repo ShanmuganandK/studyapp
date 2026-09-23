@@ -92,3 +92,60 @@ describe('SessionPlayer — hint bubble render invariants', () => {
     expect(bubbleCount()).toBe(0);
   });
 });
+
+/**
+ * Stage label (DECISIONS 2026-09-23): the frozen "n / 8" counter is replaced by "Warm-up" /
+ * "Bonus" during the bridge/bonus stages, same slot and token, unchanged during scored questions.
+ */
+describe('SessionPlayer — stage label replaces the frozen counter', () => {
+  afterEach(cleanup);
+
+  function counterSlot() {
+    // The top-bar span that holds either the counter or the stage label — identified by its
+    // sibling structure (between "← Skills" and the mute button), not by text, since the text
+    // is exactly what varies under test.
+    return screen.getByText('← Skills').parentElement.children[1];
+  }
+
+  it('bridge question shows "Warm-up", not the counter', () => {
+    hookValue = baseState({ isBridgeQuestion: true, questionNumber: 1, totalQuestions: 8 });
+    render(<SessionPlayer {...props} />);
+    expect(counterSlot().textContent).toBe('Warm-up');
+    expect(screen.queryByText('1 / 8')).toBeNull();
+  });
+
+  it('the first SCORED question after a bridge shows "1 / 8"', () => {
+    hookValue = baseState({ isBridgeQuestion: false, isBonusQuestion: false, questionNumber: 1, totalQuestions: 8 });
+    render(<SessionPlayer {...props} />);
+    expect(counterSlot().textContent).toBe('1 / 8');
+  });
+
+  it('bonus question shows "Bonus", not the frozen "8 / 8"', () => {
+    hookValue = baseState({ isBonusQuestion: true, questionNumber: 8, totalQuestions: 8 });
+    render(<SessionPlayer {...props} />);
+    expect(counterSlot().textContent).toBe('Bonus');
+    expect(screen.queryByText('8 / 8')).toBeNull();
+  });
+
+  it('toggle off / not parked: counter behaves exactly as on master — "1 / 8" through "8 / 8", label never shown', () => {
+    for (let n = 1; n <= 8; n++) {
+      hookValue = baseState({ questionNumber: n, totalQuestions: 8 }); // isBridgeQuestion/isBonusQuestion absent, as the real hook leaves them when never set
+      const { unmount } = render(<SessionPlayer {...props} />);
+      expect(counterSlot().textContent).toBe(`${n} / 8`);
+      expect(screen.queryByText('Warm-up')).toBeNull();
+      expect(screen.queryByText('Bonus')).toBeNull();
+      unmount();
+    }
+  });
+
+  it('the label carries no amber/review/success/coral token and no star', () => {
+    hookValue = baseState({ isBonusQuestion: true });
+    render(<SessionPlayer {...props} />);
+    const el = counterSlot();
+    const forbidden = ['accent', 'review', 'success', 'encourage', 'amber', 'coral'];
+    for (const token of forbidden) {
+      expect(el.className, `class list "${el.className}" contains "${token}"`).not.toMatch(new RegExp(token));
+    }
+    expect(el.textContent).not.toContain('⭐');
+  });
+});
