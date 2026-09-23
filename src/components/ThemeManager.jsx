@@ -32,7 +32,7 @@ export default function ThemeManager() {
   // the side-effect that applies the theme class to <body> (so the portalled parent gate re-themes
   // — see the hook). NOTE the name: THIS file manages VIEWS, not colour themes; theming logic lives
   // in the hook, not here. The name collision is now live — flagged for a later rename decision.
-  const { theme, grade: testGrade, setTheme, setGrade } = useTestSettings();
+  const { theme, grade: testGrade, bridgeEnabled, setTheme, setGrade, setBridgeEnabled } = useTestSettings();
 
   // A real parent profile (deferred) wins if it ever returns; else the test-panel grade; else 1.
   // currentProfile is always null on the current build, so testGrade is the effective grade today.
@@ -97,7 +97,12 @@ export default function ThemeManager() {
         ))}
 
       {currentView === 'quiz' && activeSkillId && (
-        <RecipeQuizScreen grade={grade} skillId={activeSkillId} onBack={handleBackToSkills} />
+        <RecipeQuizScreen
+          grade={grade}
+          skillId={activeSkillId}
+          onBack={handleBackToSkills}
+          bridgeEnabled={bridgeEnabled}
+        />
       )}
 
       {currentView === 'parent' && (
@@ -110,6 +115,8 @@ export default function ThemeManager() {
           onThemeChange={setTheme}
           grade={testGrade}
           onGradeChange={setGrade}
+          bridgeEnabled={bridgeEnabled}
+          onBridgeEnabledChange={setBridgeEnabled}
         />
       )}
     </Layout>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { initSession, applyAnswer, advance, currentQuestion } from '../useQuizSession';
+import { initSession, applyAnswer, advance, currentQuestion, bridgeRungsFor } from '../useQuizSession';
 import { getHint } from '../../engine/hints';
 
 // A fixed 2-question session (option 0 is always correct here for easy assertions).
@@ -41,7 +41,31 @@ function makeBonusStub() {
 function wrongTwice(s, opt1, opt2) {
   s = applyAnswer(s, opt1); // wrong #1 → hint
   s = { ...s, hintGrace: false }; // simulate the hook closing the read-window
-  return applyAnswer(s, opt2); // deliberate wrong #2 → reveal, parks the session
+  return applyAnswer(s, opt2); // deliberate wrong #2 → reveal, parks the session (scored run only)
+}
+
+/** A distinct bridge-question stub at a given difficulty, for asserting order/exclusion. */
+function makeBridgeStub(difficulty, correctAnswer = 1) {
+  return {
+    questionText: `bridge rung ${difficulty}`,
+    correctAnswer,
+    options: [correctAnswer, correctAnswer + 1, correctAnswer + 7, correctAnswer + 3],
+    misconceptions: [null, 'off-by-one', 'operator-mixup', 'random-slip'],
+    format: 'mcq',
+    difficulty,
+  };
+}
+
+function makeSessionWithBridge(bridgeQuestions) {
+  return { ...makeSession(), bridgeQuestions };
+}
+
+/** Play both scored questions correctly, from a state already at stage 'scored', to 'complete'. */
+function playScoredCorrectly(s) {
+  s = applyAnswer(s, 0);
+  s = advance(s);
+  s = applyAnswer(s, 0);
+  return advance(s, { makeBonusQuestion: makeBonusStub }); // unused unless parked; harmless either way
 }
 
 describe('useQuizSession — remediation ladder (pure logic)', () => {
@@ -156,6 +180,133 @@ describe('useQuizSession — remediation ladder (pure logic)', () => {
     expect(s.phase).toBe('complete');
     expect(s.emotion).toBe('celebrate'); // never sad
     expect(s.score).toBe(0);
+  });
+
+  describe('bridge-in (DECISIONS 2026-09-22)', () => {
+    describe('bridgeRungsFor — pure rung-selection decision', () => {
+      it('working rung 1 → no bridge, regardless of toggle/opt-in', () => {
+        expect(bridgeRungsFor({ bridgeEnabled: true, strategyRungs: true, workingDifficulty: 1 })).toEqual([]);
+      });
+
+      it('working rung 2 → exactly one bridge rung: [1]', () => {
+        expect(bridgeRungsFor({ bridgeEnabled: true, strategyRungs: true, workingDifficulty: 2 })).toEqual([1]);
+      });
+
+      it('working rung 3 → two bridge rungs, ascending: [1, 2]', () => {
+        expect(bridgeRungsFor({ bridgeEnabled: true, strategyRungs: true, workingDifficulty: 3 })).toEqual([1, 2]);
+      });
+
+      it('toggle off + opted-in skill at rung 3 → no bridge', () => {
+        expect(bridgeRungsFor({ bridgeEnabled: false, strategyRungs: true, workingDifficulty: 3 })).toEqual([]);
+      });
+
+      it('toggle on + a skill WITHOUT the opt-in at rung 3 → no bridge', () => {
+        expect(bridgeRungsFor({ bridgeEnabled: true, strategyRungs: false, workingDifficulty: 3 })).toEqual([]);
+      });
+
+      it('an unresolved working difficulty (undefined) → no bridge, never throws', () => {
+        expect(bridgeRungsFor({ bridgeEnabled: true, strategyRungs: true, workingDifficulty: undefined })).toEqual([]);
+      });
+    });
+
+    it('no bridgeQuestions on the session → starts straight in stage "scored"', () => {
+      const s = initSession(makeSession());
+      expect(s.stage).toBe('scored');
+      expect(s.bridgeQuestions).toEqual([]);
+    });
+
+    it('bridgeQuestions present → starts in stage "bridge", at bridgeIndex 0, on that question', () => {
+      const stubs = [makeBridgeStub(1), makeBridgeStub(2)];
+      const s = initSession(makeSessionWithBridge(stubs));
+      expect(s.stage).toBe('bridge');
+      expect(s.bridgeIndex).toBe(0);
+      expect(currentQuestion(s)).toEqual(stubs[0]);
+      expect(s.phase).toBe('solving');
+    });
+
+    it('advancing through the bridge visits each question in array order, then enters "scored" at index 0', () => {
+      const stubs = [makeBridgeStub(1), makeBridgeStub(2)];
+      let s = initSession(makeSessionWithBridge(stubs));
+      s = applyAnswer(s, 0); // bridge rung 1, correct
+      s = advance(s);
+      expect(s.stage).toBe('bridge');
+      expect(s.bridgeIndex).toBe(1);
+      expect(currentQuestion(s)).toEqual(stubs[1]);
+
+      s = applyAnswer(s, 0); // bridge rung 2, correct
+      s = advance(s);
+      expect(s.stage).toBe('scored');
+      expect(s.index).toBe(0);
+      expect(currentQuestion(s)).toEqual(makeSession().questions[0]); // the FIRST scored question
+    });
+
+    it('a bridge reveal does NOT park; the scored run still parks on its own reveal', () => {
+      let s = initSession(makeSessionWithBridge([makeBridgeStub(1)]));
+      s = wrongTwice(s, 1, 2);
+      expect(s.phase).toBe('reveal');
+      expect(s.parked).toBe(false); // must NOT park
+      s = advance(s);
+      expect(s.stage).toBe('scored');
+      s = wrongTwice(s, 1, 2); // now a genuine scored reveal
+      expect(s.parked).toBe(true);
+    });
+
+    it('a correct bridge answer does not touch score', () => {
+      let s = initSession(makeSessionWithBridge([makeBridgeStub(1)]));
+      s = applyAnswer(s, 0); // correct
+      expect(s.phase).toBe('correct');
+      expect(s.score).toBe(0);
+    });
+
+    it('sessionResult inputs (score, questions) are IDENTICAL with the bridge on vs off, for the same scored answers', () => {
+      // "Off" arm: no bridgeQuestions on the session at all.
+      let withoutBridge = initSession(makeSession());
+      withoutBridge = playScoredCorrectly(withoutBridge);
+
+      // "On" arm: two bridge questions, one wrong-twice (reveal) then one correct, THEN the same
+      // two scored answers. If the bridge could leak into score/questions this diverges.
+      let withBridge = initSession(makeSessionWithBridge([makeBridgeStub(1), makeBridgeStub(2)]));
+      withBridge = wrongTwice(withBridge, 1, 2); // bridge rung 1: wrong, wrong → reveal
+      withBridge = advance(withBridge);
+      withBridge = applyAnswer(withBridge, 0); // bridge rung 2: correct
+      withBridge = advance(withBridge); // → stage 'scored'
+      withBridge = playScoredCorrectly(withBridge);
+
+      expect(withBridge.phase).toBe('complete');
+      expect(withBridge.score).toBe(withoutBridge.score);
+      expect(withBridge.questions).toEqual(withoutBridge.questions); // difficultyPlayed's only input
+      expect(withBridge.parked).toBe(withoutBridge.parked); // both false — the bridge reveal didn't park
+      expect(withBridge.score).toBe(2); // sanity: both scored answers really were counted
+    });
+
+    it('bridge → 8-... scored → bonus → complete, in one session, still matches the no-bridge result', () => {
+      // Same proof as above, but the scored run ALSO parks (so the bonus round runs), exercising
+      // bridge + bonus together in one session, end to end.
+      let withoutBridge = initSession(makeSession());
+      withoutBridge = wrongTwice(withoutBridge, 1, 2); // Q1: reveal, parked
+      withoutBridge = advance(withoutBridge);
+      withoutBridge = applyAnswer(withoutBridge, 0); // Q2: correct
+      withoutBridge = advance(withoutBridge, { makeBonusQuestion: makeBonusStub }); // → bonus
+      withoutBridge = applyAnswer(withoutBridge, 0); // bonus: correct
+      withoutBridge = advance(withoutBridge); // → complete
+
+      let withBridge = initSession(makeSessionWithBridge([makeBridgeStub(1)]));
+      withBridge = applyAnswer(withBridge, 0); // bridge: correct
+      withBridge = advance(withBridge); // → stage 'scored'
+      withBridge = wrongTwice(withBridge, 1, 2); // Q1: reveal, parked
+      withBridge = advance(withBridge);
+      withBridge = applyAnswer(withBridge, 0); // Q2: correct
+      withBridge = advance(withBridge, { makeBonusQuestion: makeBonusStub }); // → bonus
+      withBridge = applyAnswer(withBridge, 0); // bonus: correct
+      withBridge = advance(withBridge); // → complete
+
+      expect(withBridge.phase).toBe('complete');
+      expect(withoutBridge.phase).toBe('complete');
+      expect(withBridge.score).toBe(withoutBridge.score);
+      expect(withBridge.questions).toEqual(withoutBridge.questions);
+      expect(withBridge.parked).toBe(withoutBridge.parked);
+      expect(withBridge.score).toBe(1); // sanity
+    });
   });
 
   describe('remediation ladder step 3 — park + bonus question (DECISIONS 2026-09-22)', () => {

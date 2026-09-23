@@ -89,6 +89,8 @@ export default function ParentDashboard({
   onThemeChange,
   grade,
   onGradeChange,
+  bridgeEnabled,
+  onBridgeEnabledChange,
 }) {
   // Single storage read on mount; remounts when navigating back from child view.
   const [summary] = useState(() => {
@@ -338,6 +340,8 @@ export default function ParentDashboard({
             onThemeChange={onThemeChange}
             grade={grade}
             onGradeChange={onGradeChange}
+            bridgeEnabled={bridgeEnabled}
+            onBridgeEnabledChange={onBridgeEnabledChange}
           />
 
           <a

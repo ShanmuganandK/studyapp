@@ -14,6 +14,15 @@
  *
  * FAILURE HANDLING (§8): storage can fail (quota, private browsing, disabled). Every function
  * catches, degrades to defaults, and never crashes the app.
+ *
+ * `bridgeEnabled` (DECISIONS 2026-09-22, bridge-in): the strategy-rung walk test toggle, default
+ * OFF. Added WITHOUT bumping `SCHEMA_VERSION` — `loadTestSettings` resets to full defaults on
+ * any version mismatch (`parsed?.version !== SCHEMA_VERSION`), so bumping it would wipe every
+ * existing device's theme AND grade the moment this shipped, not just default the new field.
+ * `normalise()` already falls back per-field on a value it doesn't recognise (including a
+ * MISSING one), so a pre-existing v1 file with no `bridgeEnabled` key loads with its theme and
+ * grade untouched and the toggle defaulting false — exactly the "must not reset anyone's theme
+ * or grade" requirement, achieved by NOT touching the version.
  */
 
 import logger from '../utils/logger';
@@ -32,18 +41,20 @@ export const THEME_SLUGS = ['wonder', 'sunset', 'bubblegum', 'deepsea'];
  */
 export const GRADES = [1, 2];
 
-export const DEFAULT_TEST_SETTINGS = { theme: 'wonder', grade: 1 };
+export const DEFAULT_TEST_SETTINGS = { theme: 'wonder', grade: 1, bridgeEnabled: false };
 
 /** Coerce a stored/incoming value to a valid setting, falling back per-field on anything unknown. */
 function normalise(raw) {
   const theme = THEME_SLUGS.includes(raw?.theme) ? raw.theme : DEFAULT_TEST_SETTINGS.theme;
   const grade = GRADES.includes(raw?.grade) ? raw.grade : DEFAULT_TEST_SETTINGS.grade;
-  return { theme, grade };
+  const bridgeEnabled =
+    typeof raw?.bridgeEnabled === 'boolean' ? raw.bridgeEnabled : DEFAULT_TEST_SETTINGS.bridgeEnabled;
+  return { theme, grade, bridgeEnabled };
 }
 
 /**
  * Load the saved test settings, or safe defaults on missing/corrupt/failed storage.
- * @returns {{ theme: string, grade: number }}
+ * @returns {{ theme: string, grade: number, bridgeEnabled: boolean }}
  */
 export function loadTestSettings() {
   try {
@@ -61,12 +72,12 @@ export function loadTestSettings() {
 /**
  * Persist the test settings in one write. Values are normalised so an out-of-range input can
  * never be stored. Fire-and-forget: failures are logged in dev, never thrown.
- * @param {{ theme: string, grade: number }} settings
+ * @param {{ theme: string, grade: number, bridgeEnabled: boolean }} settings
  */
 export function saveTestSettings(settings) {
-  const { theme, grade } = normalise(settings);
+  const { theme, grade, bridgeEnabled } = normalise(settings);
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: SCHEMA_VERSION, theme, grade }));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ version: SCHEMA_VERSION, theme, grade, bridgeEnabled }));
   } catch (err) {
     logger.warn('[testSettings] write failed — setting won\'t persist this session.', err);
   }

@@ -216,7 +216,10 @@ The session composer reads it + a child's mastery to decide what to teach; the r
 reads it to know which recipes to build.
 
 - **`SKILLS`** — object keyed by `skillId`; each entry
-  `{ id, name, grade, strand, order, maxDifficulty, prereqs[], recipe, status }`.
+  `{ id, name, grade, strand, order, maxDifficulty, prereqs[], recipe, status }`, plus optional
+  `extras` (`displayName`/`subtitle`/`icon`, and — as of DECISIONS 2026-09-22 — `strategyRungs:
+  true`, the skill-map opt-in for the bridge-in walk; `g2.add.2d-nocarry` only today, a property
+  never a skillId literal, so #13 can add skills here as their rungs convert to a strategy order).
   `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). Seventeen skills
   are `ready` today — `g1.count.1-9`, `g1.count.1-20`, `g1.num.compare20`, `g1.add.within10`,
   `g1.add.within20`, `g1.sub.within10`, `g1.sub.within20`, `g2.num.compare999`,
@@ -624,7 +627,13 @@ picker (DECISIONS-level call). Lives behind the parent gate inside `ParentDashbo
 
 - **`testSettings.js`** — the storage seam (mirrors `progressStore.js`: own key, try/catch,
   `logger.warn`, graceful defaults). Key **`tinku:v1:testSettings`**, shape
-  `{ version, theme, grade }`. **Deliberately separate from `progressStore`** (`tinku:v1:skills`):
+  `{ version, theme, grade, bridgeEnabled }`. `bridgeEnabled` (DECISIONS 2026-09-22, bridge-in) is
+  the strategy-rung walk toggle, default OFF — added WITHOUT bumping `SCHEMA_VERSION` (a bump
+  resets to full defaults on any version mismatch, which would wipe every existing device's theme
+  AND grade, not just default the new field; `normalise()` already falls back per-field on a
+  missing/invalid value, so a legacy v1 file loads with theme/grade unchanged and the toggle
+  false — verified by a dedicated legacy-load test). **Deliberately separate from `progressStore`**
+  (`tinku:v1:skills`):
   that store is skills-only + allowlist-guarded, and export reads only the skills key — so these
   preferences **cannot ride in a progress export** (verified in-browser: exported file carries the
   skill payload and zero theme/grade data). Exports `THEME_SLUGS`
@@ -648,7 +657,9 @@ picker (DECISIONS-level call). Lives behind the parent gate inside `ParentDashbo
 - **`TestPanel.jsx`** — presentational: theme swatches (each previews its real palette by wrapping
   token utilities in the `.theme-<slug>` class — no raw hex) + a Grade segmented control, rendered
   from `GRADES` (currently 1–2; Grade 3 removed from the picker until Now #12's curriculum lands —
-  see `testSettings.js`). Calls `setTheme`/`setGrade` from props; state lives in the hook. Tests:
+  see `testSettings.js`) + a "Warm-up steps (test)" On/Off control (DECISIONS 2026-09-22,
+  `bridgeEnabled`) — same segmented-button pattern as Grade, token classes only. Calls
+  `setTheme`/`setGrade`/`setBridgeEnabled` from props; state lives in the hook. Tests:
   `services/__tests__/testSettings.test.js`, `hooks/__tests__/useTestSettings.test.js`
   (body-class application), `components/__tests__/TestPanel.test.jsx`.
 
@@ -678,6 +689,48 @@ that progress will sync on reconnect. Non-blocking: the session continues normal
   complete-state and returned as `masteryUp`; view data only.
 - The pure engine (`mastery.js`) is NEVER given `Date.now()` — date is always injected by
   this wiring layer.
+
+**Remediation ladder step 3 — park + bonus question (DECISIONS 2026-09-22, not previously
+documented here).** A wrong-#2 reveal sets a session-scoped `parked` boolean (state, set once,
+never incremented). A parked session gets exactly ONE bonus question, at the skill's easiest
+difficulty, after the 8th scored question and before `'complete'` — its own `{ stage: 'bonus',
+bonusQuestion }`, never a 9th `state.questions` entry. `state.index` is frozen through it, so
+`state.questions`/`state.score` (and the `sessionResult` built from them) are exactly what they'd
+be without it. Runs the SAME `phase` machinery via a `currentQuestion(state)` helper, so
+`SessionPlayer.jsx` needed no changes. Universal across every skill.
+
+**Bridge-in (DECISIONS 2026-09-22, behind the `bridgeEnabled` test toggle — see the Test settings
+section above, default OFF).** The 2026-08-27 "does a session walk or hold one rung" question,
+resolved as both, on separate tracks: measurement still holds one rung (the 8 scored questions);
+presentation can walk. Before the scored run, a session on a skill with the skill map's
+`strategyRungs: true` (today: `g2.add.2d-nocarry` only) plays one unscored question at each rung
+BELOW the working rung, ascending (`bridgeRungsFor({ bridgeEnabled, strategyRungs,
+workingDifficulty })`, a pure, exported, independently-tested decision — the actual per-rung
+`buildLiteSession` calls that turn those rungs into questions happen in `build()`, not tested at
+the hook level, same as the bonus round's `makeBonusQuestion`). Its own `{ stage: 'bridge',
+bridgeQuestions, bridgeIndex }`, same exclusion shape as the bonus round — never in
+`state.questions`, never touches `score`; a bridge reveal runs the ladder's hint/reveal but does
+**NOT** set `parked` (parking exists so a session never ENDS on failure; the scored run always
+follows the bridge regardless). `currentQuestion(state)` now resolves THREE sources (bridge →
+scored → bonus) instead of two.
+
+**Toggle plumbing (`bridgeEnabled`).** Read once, in `ThemeManager` (which already owns
+`useTestSettings`), and threaded down as a plain prop: `ThemeManager` → `RecipeQuizScreen` →
+`SessionPlayer` → `useQuizSession`. No new UI at any of those three intermediate components —
+this is prop-threading only, the same shape `theme`/`grade` already use to reach `ParentDashboard`.
+The pure functions never read storage themselves; the toggle and the skill's opt-in reach them as
+explicit inputs (`bridgeEnabled` param, `skillMeta.strategyRungs` from the skill map).
+
+**What the question counter and progress indicator show during a bridge/bonus round — reported,
+not changed.** `questionNumber`/`totalQuestions` are derived from `state.index + 1` /
+`state.questions.length`, and `state.index` is frozen through both the bridge and the bonus round
+by construction. So on a rung-3 session with the toggle on: the counter reads **"1 / 8" for the
+rung-1 bridge question, "1 / 8" again for the rung-2 bridge question, then "1 / 8" for the FIRST
+scored question too** — three consecutive questions can show "1 / 8" before it ever advances. If
+the session parks, the bonus round shows **"8 / 8"** (frozen at the last scored index). Confirmed
+in a real browser build. This is a UI decision left open on purpose (task brief): `isBridgeQuestion`
+/ `isBonusQuestion` are exposed on the hook's return value for a future UI change to key off,
+unconsumed by `SessionPlayer.jsx` today.
 
 **Remediation hint — soft read-window (Option 1).** The pure ladder puts hint LOGIC here (not
 in the screen): on wrong #1 it sets `phase:'hint'`, the distractor's hint, `hintGrace:true`, and

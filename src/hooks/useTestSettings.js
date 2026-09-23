@@ -20,7 +20,7 @@ import { loadTestSettings, saveTestSettings, THEME_SLUGS } from '../services/tes
  * instances writing the body class.
  */
 export default function useTestSettings() {
-  const [{ theme, grade }, setSettings] = useState(loadTestSettings);
+  const [{ theme, grade, bridgeEnabled }, setSettings] = useState(loadTestSettings);
 
   // Apply the active theme as a scoped class on <body>. Reruns only when `theme` changes.
   useEffect(() => {
@@ -47,5 +47,13 @@ export default function useTestSettings() {
     });
   };
 
-  return { theme, grade, setTheme, setGrade };
+  const setBridgeEnabled = (nextBridgeEnabled) => {
+    setSettings((prev) => {
+      const next = { ...prev, bridgeEnabled: nextBridgeEnabled };
+      saveTestSettings(next);
+      return next;
+    });
+  };
+
+  return { theme, grade, bridgeEnabled, setTheme, setGrade, setBridgeEnabled };
 }

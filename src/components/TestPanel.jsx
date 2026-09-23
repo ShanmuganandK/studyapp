@@ -8,10 +8,15 @@ import { THEME_SLUGS, GRADES } from '../services/testSettings';
  * a real device. Purely presentational — all state + persistence + theme application live in
  * useTestSettings.js (STANDARDS §2). Token styling only (no raw hex — lint:hex).
  *
- * @param {string}   theme          - active theme slug
+ * @param {string}   theme               - active theme slug
  * @param {(s)=>void} onThemeChange
- * @param {number}   grade          - active grade (1–2 today — see `testSettings.js`'s `GRADES`)
+ * @param {number}   grade               - active grade (1–2 today — see `testSettings.js`'s `GRADES`)
  * @param {(n)=>void} onGradeChange
+ * @param {boolean}  bridgeEnabled       - strategy-rung bridge-in walk toggle (DECISIONS
+ *                                         2026-09-22), default OFF. Only affects skills opted in
+ *                                         via the skill map's `strategyRungs` property — today,
+ *                                         `g2.add.2d-nocarry` alone.
+ * @param {(b)=>void} onBridgeEnabledChange
  */
 
 const THEME_LABELS = {
@@ -37,7 +42,7 @@ function ThemeSwatch({ slug }) {
   );
 }
 
-export default function TestPanel({ theme, onThemeChange, grade, onGradeChange }) {
+export default function TestPanel({ theme, onThemeChange, grade, onGradeChange, bridgeEnabled, onBridgeEnabledChange }) {
   return (
     <div className="border-t border-primary-soft pt-4 space-y-3">
       <div>
@@ -90,6 +95,30 @@ export default function TestPanel({ theme, onThemeChange, grade, onGradeChange }
                 }`}
               >
                 Grade {g}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Bridge-in (strategy-rung skills only) — DECISIONS 2026-09-22 ────── */}
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-ink">Warm-up steps (test)</p>
+        <div className="flex gap-2">
+          {[false, true].map((value) => {
+            const selected = bridgeEnabled === value;
+            return (
+              <button
+                key={String(value)}
+                onClick={() => onBridgeEnabledChange(value)}
+                aria-pressed={selected}
+                className={`flex-1 rounded-button border py-2 text-sm font-semibold active:scale-95 transition-transform ${
+                  selected
+                    ? 'border-primary ring-2 ring-primary text-primary-ink'
+                    : 'border-primary-soft text-muted'
+                }`}
+              >
+                {value ? 'On' : 'Off'}
               </button>
             );
           })}

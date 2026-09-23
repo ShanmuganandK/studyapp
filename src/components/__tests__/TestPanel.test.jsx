@@ -10,9 +10,31 @@ const base = {
   onThemeChange: () => {},
   grade: 1,
   onGradeChange: () => {},
+  bridgeEnabled: false,
+  onBridgeEnabledChange: () => {},
 };
 
 describe('TestPanel', () => {
+  it('renders the bridge-in toggle, defaulting to Off selected', () => {
+    render(<TestPanel {...base} />);
+    expect(screen.getByText('Warm-up steps (test)')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Off' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'On' }).getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('marks On as pressed when bridgeEnabled is true', () => {
+    render(<TestPanel {...base} bridgeEnabled />);
+    expect(screen.getByRole('button', { name: 'On' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Off' }).getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('calls onBridgeEnabledChange with the chosen boolean', () => {
+    const onBridgeEnabledChange = vi.fn();
+    render(<TestPanel {...base} onBridgeEnabledChange={onBridgeEnabledChange} />);
+    fireEvent.click(screen.getByRole('button', { name: 'On' }));
+    expect(onBridgeEnabledChange).toHaveBeenCalledWith(true);
+  });
+
   it('renders all theme + grade options', () => {
     render(<TestPanel {...base} />);
     for (const name of ['Wonder', 'Sunset', 'Bubblegum', 'Deep Sea']) {

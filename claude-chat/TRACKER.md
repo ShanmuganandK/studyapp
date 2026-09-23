@@ -66,7 +66,7 @@ on this trip.** Anything that does not serve that waits.
 | 9a | **ParentGate integration test flakes on cold runs** | ✅ **Done 2026-08-17** | Taken ahead of #3 as sequenced above. Applied the "better fix" from the diagnosis below: split the single giant `it` (chaining ~20 sequential `waitFor`/`findBy` calls against vitest's default 5 s per-test timeout) into 4 staged tests — set → verify → forgot-reset → remove — sharing one continuous render via `beforeAll`/`afterAll` instead of per-test `render`/`cleanup`. Each stage now gets its own 5 s budget, and a future failure names the stage instead of an opaque 20-step test. Own commit, not folded into #3. Full run: **347 green + 1 skipped** (344 baseline + 3 new stages), lint clean (0 errors, same 3 pre-existing warnings). Original diagnosis preserved below. |
 | 9 | **Welcome / onboarding screen — TRACE, then decide** | 🔎 **Traced 2026-08-18 — P2, observe on this trip** | **Confirmed (a): `ProfileSetup.jsx` is the recalled "welcome page"** — pixel/line match against `documents/screenshots/01_welcome_screen.png` (committed 2026-06-18). **`ProfileSelector.jsx` is "the one other"** — a multi-child "Who is playing?" picker from the old anonymous→Google account model. Both genuinely unrendered (zero references in `src/`) and both additionally **inert**: `localAdapter`'s `onAuthStateChanged` always resolves `null` since the 2026-08-15 de-Firebase rewrite, so `profiles` never leaves `[]` and `addProfile` is a silent no-op if ever rendered. Already documented, not lost — `TASK-INDEX.md` T110 and `ProfileSetup.jsx`'s own docblock both say "quarantined." (b)/(c) ruled out: `git log --diff-filter=A --all` + both stale local branches checked, no unique unmerged commits. **Not a fifth false claim.** **Decision not yet made** — Kid-Test Log already asks "does a child launching straight into the skill path know what to do?" Answer it on the trip. **Note:** #10's grade selector deliberately does NOT revive `ProfileSetup` — it is a parent-zone test control, which keeps this decision genuinely open rather than settling it by accident. |
 | **12** | **⭐ Grade 3 curriculum — DOES NOT EXIST** | 📋 **P3 — spec needed before any code (Chat writes it)** | **Found 2026-08-21 by reading `skillMap.js` directly.** Its own header says *"the curriculum backbone for **Grades 1–2**."* 35 skills: **19 Grade 1, 16 Grade 2, ZERO Grade 3.** Not planned-but-unbuilt — absent. So "full board for Grades 1–3" is not a recipe-writing task; Grade 3 needs curriculum work FIRST: skills, strands, prereqs, difficulty ceilings, ordering, extending `claude-chat/specs/skill-map-spec.md`. **Does not block this trip** — testing can run on G1 + G2 (once #11 lands). ⚠️ Note the store description already says *"CBSE-aligned maths practice for Grades 1-3"* and `PLAY_TITLE`/positioning assume Grades 1–3 — so this must close before launch even though it does not block testing. |
-| **13** | **Strategy rungs — generalise beyond `addition2d.js`** | ⏳ **P2 — observe on this trip first** | `g2.add.2d-nocarry` shipped 2026-08-27 (see Done block below). `DECISIONS.md` 2026-08-27 explicitly does NOT retro-fit every skill in the same entry. Candidates for the same treatment once the current trip's signal is in: `subtraction2d.js` (`g2.sub.2d-noborrow`), the Grade-1 reference recipes. Also open, deliberately not decided: whether a session should *walk* rungs (Set B's paper test did, in 8 questions) instead of holding one rung for the whole session — a session-shape change, not a per-recipe one. |
+| **13** | **Strategy rungs — generalise beyond `addition2d.js`** | ⏳ **P2 — observe on this trip first** | `g2.add.2d-nocarry` shipped 2026-08-27 (see Done block below). `DECISIONS.md` 2026-08-27 explicitly does NOT retro-fit every skill in the same entry. Candidates for the same treatment once the current trip's signal is in: `subtraction2d.js` (`g2.sub.2d-noborrow`), the Grade-1 reference recipes. **The walk-vs-hold question is answered — DECISIONS 2026-09-22 (bridge-in):** a session does both, on separate tracks — measurement holds one rung, presentation walks up to it via unscored bridge questions, behind a parent-zone test toggle (default OFF). See the Done block "Bridge-in: strategy-rung walk (behind test toggle)". **Still open:** generalising `strategyRungs`/the bridge to any skill beyond `g2.add.2d-nocarry` — same "observe on this trip first" gate. |
 
 ## Deploy verification (standing step — added 2026-08-15)
 
@@ -170,6 +170,119 @@ Every palette must also declare the `-rgb` channel triples for `primary`, `prima
 kept in sync with their hex pair by `src/__tests__/designTokens.test.js` (design-system audit,
 2026-08-20). Full candidate values are in the chat handoff for #10; **Deep Sea (dark) is the one
 worth testing first** — dark exercises every inverted slot and is where a leak would surface.
+
+---
+
+## Done — Bridge-in: strategy-rung walk (behind test toggle) (2026-09-22/23)
+
+Implements `DECISIONS.md` 2026-09-22 (bridge-in — LOCKED). Answers the walk-vs-hold question the
+2026-08-27 entry left open, and closes it out on Now #13's row. Branch `bridge-in-strategy-rungs`,
+cut from `51f3f81` (then-current master) — **not merged; the human reviews.**
+
+**What it is.** Before the 8 scored questions, a session on a skill whose rungs are strategy
+stages plays ONE unscored question at each rung BELOW the working rung, ascending — rung 1 gets
+none, rung 3 gets rung 1 then rung 2. Measurement is untouched: still 8 scored questions at the
+working rung, still one `sessionResult`. Ships OFF by default, behind a parent-zone test toggle
+(`tinku:v1:testSettings`), gated per-skill by a new skill-map property (`strategyRungs: true`,
+`g2.add.2d-nocarry` only today).
+
+**Built as the bonus round's sibling, mirrored deliberately.** Same shape as the 2026-09-22
+park+bonus work (`stage`, `currentQuestion(state)`, a frozen `state.index`, an injected factory):
+new `stage: 'bridge'` that runs BEFORE `'scored'`, its own `bridgeQuestions`/`bridgeIndex` (never
+a 9th entry in `state.questions`), `score` untouched (`state.stage === 'scored' ? +1 : unchanged`,
+now covering bridge the same way it already covered bonus), misconception tags excluded the same
+way. **One deliberate difference from the bonus round:** bridge length is known up front from the
+working rung, so `bridgeQuestions` is built EAGERLY in `build()` (not lazily via an injected
+factory at the moment it's needed, the way the bonus question is) — there is no "reached the end,
+now decide" event to hang a lazy factory off.
+
+**Parking does NOT apply to the bridge — the one place this ISN'T a bonus-round mirror.** A
+bridge reveal runs the ladder (hint, then reveal) but must not set `parked`
+(`parked: state.stage === 'scored' ? true : state.parked`) — parking exists so a session never
+*ends* on failure, and the whole scored run always follows the bridge regardless of how the
+bridge went. A scored reveal still parks exactly as before.
+
+**The rung-selection decision is a pure, exported, independently-tested function.**
+`bridgeRungsFor({ bridgeEnabled, strategyRungs, workingDifficulty })` → `[]` / `[1]` / `[1, 2]`.
+Everything RNG/recipe-dependent (`buildLiteSession(..., { length: 1, skillId, difficulty: rung })`
+per rung) stays in `build()`, untested at the hook level — same acknowledged gap as the bonus
+round's `makeBonusQuestion`, not papered over.
+
+**Toggle plumbing — necessary, not "other UI change."** The toggle has to reach `useQuizSession`
+to do anything; that's plain prop-threading (`ThemeManager` → `RecipeQuizScreen` → `SessionPlayer`
+→ `useQuizSession`, the same path `theme`/`grade` already take), zero new visual elements at any
+of the three intermediate components. Flagged here explicitly since it wasn't named in the file
+list. `TestPanel.jsx` gets the one requested control: "Warm-up steps (test)", an On/Off pair
+matching the Grade control's existing pattern, token classes only (`lint:hex` clean).
+
+**`testSettings.js` — `SCHEMA_VERSION` NOT bumped, on purpose.** `loadTestSettings` resets to full
+defaults on ANY version mismatch, so bumping it would wipe every existing device's theme AND
+grade the moment this shipped — not just default the new field. `normalise()` already falls back
+per-field on a missing/invalid value, so a legacy v1 file with no `bridgeEnabled` key loads with
+its theme/grade untouched and the toggle defaulting false. **A test locks the decision, not just
+the outcome:** one test asserts `SCHEMA_VERSION === 1` directly (mutation-checked: bumping it
+fails both that test and the legacy-load test, with the stored `version` hardcoded rather than
+read from the current constant — an earlier draft of the legacy test read it from the constant and
+didn't catch a bump, since both sides moved together; caught and fixed before committing).
+
+**Tests — 26 new across 4 files, each mutation-checked.**
+- `useQuizSession.test.js` (pure, 13 new): `bridgeRungsFor`'s six cases (rung 1/2/3, toggle off,
+  opt-in off, undefined working difficulty); bridge-question order and the scored-run starting
+  fresh at index 0 once it's exhausted; a bridge reveal does NOT park while a scored reveal still
+  does; a correct bridge answer doesn't touch score; the bonus round's "identical sessionResult"
+  proof extended to cover bridge on/off (and, separately, bridge + bonus chained in one session).
+  Mutation-checked: bridge correct increments score, bridge reveal parks, rung order reversed,
+  opt-in ignored, toggle ignored — each caught by at least one test.
+- `useQuizSession.bridge.hook.test.js` (NEW file, 6 tests) — the one claim the pure tests can't
+  reach: does a WRONG bridge answer's tag actually stay out of what gets SAVED? `renderHook` +
+  `vi.useFakeTimers` (mirrors `useTestSettings.test.js`'s existing pattern — the first time this
+  idiom is used for `useQuizSession` itself) drive a REAL session on the REAL `g2.add.2d-nocarry`
+  recipe through real `ADVANCE_DELAY_MS`/`HINT_GRACE_MS` timers, then reads back
+  `loadSkillState` — `attempts: 8` not 9, `misconceptions: {}` even though the bridge question was
+  answered wrong. Also confirms, end to end (not just via the pure decision function): rung 3 →
+  bridge at difficulty 1 then 2 then scored at 3; rung 1 → no bridge; toggle off → no bridge;
+  opted-out skill → no bridge. Mutation-checked: relaxing the hook's tag-accumulation guard from
+  `prev.stage === 'scored'` back to `!ev.correct` alone fails the tag-exclusion test.
+- `testSettings.test.js` (+6): round-trip now covers `bridgeEnabled`; normalisation of a
+  non-boolean value; the legacy-load describe block (2 tests + the `SCHEMA_VERSION` lock); an
+  export-shaped check that the toggle never appears under `tinku:v1:skills`.
+- `TestPanel.test.jsx` (+3): the control renders defaulting to Off selected, marks On when true,
+  calls the handler with the tapped boolean.
+
+**Real browser, built app (`npm run build` + `vite preview`, Playwright against the built output,
+not dev server).** Seeded `g2.add.2d-nocarry` at difficulty 3 via `localStorage` directly (both
+`tinku:v1:testSettings` with `bridgeEnabled:true` and a pre-set `tinku:v1:skills` entry), then
+played a real session through the UI (reading each question's operands off the DOM and tapping the
+correct-sum option). **Confirmed order: `33 + 5` (rung 1) → `54 + 10` (rung 2) → eight 2-digit + 2-
+digit questions (rung 3).** A second run with the toggle off, same seeded difficulty, same
+always-correct strategy, produced a saved skill state (`attempts`, `correct`, `level`,
+`difficulty`, `difficultyStreak`) **byte-identical** to the bridge-on run's saved state. **Zero
+console errors, zero off-origin requests**, both runs.
+
+**What the question counter and progress indicator show during the bridge/bonus (reported per the
+task brief, not fixed — a separate UI decision).** `state.index` is frozen through both, so on a
+rung-3 session with the toggle on the counter reads **"1 / 8" for the rung-1 bridge question,
+"1 / 8" again for rung-2, then "1 / 8" a third time for the first SCORED question** — it only
+starts climbing on the second scored question. If the session then parks, the bonus round shows
+**"8 / 8"**, frozen. `isBridgeQuestion`/`isBonusQuestion` are exposed on the hook's return value
+for a future UI change to key off; `SessionPlayer.jsx` needs none today — the bridge/bonus render
+correctly through the same phase-driven paths as any question.
+
+**Not touched, as scoped:** `mastery.js`, `masteryConfig.js`, every recipe file,
+`scripts/simulate-mastery.mjs`. The mastery simulation report's drift guard stays green,
+unchanged, run to confirm rather than assumed.
+
+**Test count, measured against the actual branch base (`51f3f81`), not estimated.** Base:
+**482 passed + 1 skipped (483 total)**, confirmed via a clean worktree checkout, not the working
+tree (an untracked new test file would otherwise contaminate a `git stash` comparison — caught
+before trusting the first, wrong reading, since untracked files aren't stashed without `-u`).
+Branch: **508 passed + 1 skipped (509 total)** — **+26**, reconciled by counting `it(` blocks per
+file, not estimated: `useQuizSession.test.js` 22→35 (**+13**), `testSettings.test.js` 10→14
+(**+4** — one non-boolean-`bridgeEnabled` test plus the 3-test legacy-load `describe` block; an
+initial draft of this paragraph guessed +6 for this file and was wrong, caught by actually
+counting), `TestPanel.test.jsx` 3→6 (**+3**), new file `useQuizSession.bridge.hook.test.js`
+(**+6**). 13+4+3+6 = **26**, exactly matching the measured delta. Lint clean (0 errors, same 3
+pre-existing warnings), `lint:hex` and `privacy:check` clean, build clean.
 
 ---
 
@@ -1408,6 +1521,12 @@ four Now rows are gated on them and should NOT be built until they are.
 - **NEW (#10):** does a theme change get noticed or reacted to at all? Does a child ask for a different one, or ask to keep one? **Watch for indifference as a real result** — if theme variety moves nothing, the kid-facing picker stays unbuilt and this is a cheap answer, not a failure.
 - **NEW (#11):** is Grade 2 content pitched right, or too hard/easy? Does a Grade 2/3 child find the Grade 1 material insulting? **Specific instance found 2026-08-22 (screenshots, not yet a kid-test result):** on `g2.add.2d-nocarry`, one strong session (≥80%) bumps the adaptive difficulty a full rung immediately (`mastery.js`, pre-existing engine), and a session runs at ONE FIXED difficulty throughout — no ramp within the 8 questions. So the session right after a good one jumps straight to the harder ceiling (39→69) with no easing-in. **Corrected 2026-08-26 (was wrong):** the within-rung mix of trivial single-digit-addend questions (`66+1=?`, testing `column-alignment-shift`) with full 2-digit sums (`34+24=?`) is NOT deliberate — nothing in `addition2d.js` sets that proportion. `buildOperands` draws `a` uniformly across the full cap range FIRST, then draws `b` from `[1, cap-a]`; when `a` lands near the top of its range, `cap-a` is small, forcing `b` small (often single-digit) — the "trivial-looking" questions are an artifact of that sampling order, not a designed mix ratio. Content is correct CBSE Grade-2 syllabus (2-digit addition to 99, with/without carry); this is a PACING question, not a scope question. **Decision:** leave as-is until the trip's kid-test signal says otherwise — same gate as the other #11/#5/#9 pacing questions. If it turns out to matter, the options on the table are (a) an in-session difficulty ramp, (b) requiring 2 strong sessions before advancing a rung, (c) tuning down how often the trivial single-digit-addend variant appears.
 - Does progress loss (cleared data / new device) actually happen in practice, and do parents notice? — informs whether export/import is sufficient
+- **NEW (bridge-in, 2026-09-22, toggle default OFF):** does the bridge walk change the freeze on
+  `34+24` (the rung-freeze finding that motivated strategy rungs, 2026-08-27)? Does the extra
+  10–11 visible questions (bridge + scored, +1 more if parked) fatigue a child or cause
+  abandonment? Compare toggle ON vs OFF on the same child/skill where possible. Revisit trigger
+  already locked in `DECISIONS.md` 2026-09-22: if fatigue/abandonment shows, cut to the single
+  rung immediately below the working rung (not the full walk) before dropping the idea entirely.
 - (existing items carried from prior log — see git history / prior Drive export for full list predating this file)
 
 ## Parked Ideas (carried over, one line each)

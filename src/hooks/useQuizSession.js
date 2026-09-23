@@ -37,6 +37,19 @@
  *   MOOD FLOOR   → session end is ALWAYS celebratory regardless of score, and (as of the bonus
  *                  round above) a parked session's last LIVE moment is a guaranteed-easy
  *                  question, not the failure that parked it.
+ *   BRIDGE-IN    → session order becomes bridge → scored → bonus? (DECISIONS 2026-09-22).
+ *                  BEFORE the 8 scored questions, a session on a skill whose rungs are strategy
+ *                  stages (skill map's `strategyRungs`, currently `g2.add.2d-nocarry` only) plays
+ *                  ONE unscored question at each rung below the working rung, ascending —
+ *                  working rung 1 gets none, rung 3 gets rung 1 then rung 2. Behind a parent-zone
+ *                  test toggle (`bridgeEnabled`, `testSettings.js`, default OFF). Its own
+ *                  `stage: 'bridge'` + `bridgeQuestions`/`bridgeIndex`, same exclusion shape as
+ *                  the bonus round: never in `state.questions`, never touches `score` or
+ *                  `parked` (a bridge reveal runs the ladder's hint/reveal but does NOT park —
+ *                  parking exists so a session never ENDS on failure, and the scored run always
+ *                  follows the bridge either way). Runs the SAME phase machinery as everything
+ *                  else. `difficultyPlayed` (built from `state.questions` only) is therefore
+ *                  unaffected by construction, not by a special case.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -65,6 +78,11 @@ export const HINT_GRACE_MS = 1000;
 // ── Pure state machine (testable without React) ─────────────────────────────────────────
 
 export function initSession(session) {
+  // Bridge-in (DECISIONS 2026-09-22): the hook builds `bridgeQuestions` eagerly (its LENGTH is
+  // known up front from the working rung — unlike the bonus round, nothing here depends on how
+  // the session plays out) and hands them in on `session`. Empty when the toggle is off, the
+  // skill isn't opted in, or the working rung is 1 — session starts straight in 'scored'.
+  const bridgeQuestions = session.bridgeQuestions ?? [];
   return {
     skillId: session.skillId,
     skillName: session.skillName,
@@ -81,16 +99,21 @@ export function initSession(session) {
     revealIndex: null,
     score: 0,
     lastEvent: null, // {type, ...} for the hook to translate into analytics
-    stage: 'scored', // scored | bonus (DECISIONS 2026-09-22, step 3 — see docblock)
-    parked: false, // set once on the first wrong #2; never incremented
+    stage: bridgeQuestions.length > 0 ? 'bridge' : 'scored', // bridge | scored | bonus
+    parked: false, // set once on the first wrong #2 IN THE SCORED RUN; never incremented
     bonusQuestion: null, // the single bonus round's question, once generated
+    bridgeQuestions, // fixed for the session — one question per rung below the working rung
+    bridgeIndex: 0,
   };
 }
 
-/** The question currently being played — the bonus question once `stage` is 'bonus', the
- *  scored one otherwise. The one place that distinction is resolved, so nothing else has to. */
+/** The question currently being played — resolves which of the three question sources (bridge,
+ *  scored, bonus) `stage` points at. The one place that distinction lives, so nothing else has
+ *  to re-derive it. */
 export function currentQuestion(state) {
-  return state.stage === 'bonus' ? state.bonusQuestion : state.questions[state.index];
+  if (state.stage === 'bridge') return state.bridgeQuestions[state.bridgeIndex];
+  if (state.stage === 'bonus') return state.bonusQuestion;
+  return state.questions[state.index];
 }
 
 /** Apply a tapped option through the remediation ladder. Pure: returns the next state. */
@@ -104,8 +127,9 @@ export function applyAnswer(state, optionIndex) {
   const attemptNumber = state.attempts + 1;
 
   if (correct) {
-    // Correct always wins instantly, even mid-grace. The bonus round is excluded from score
-    // entirely (DECISIONS 2026-09-22) — it must not be able to change what applyResult sees.
+    // Correct always wins instantly, even mid-grace. Score counts ONLY the scored run — the
+    // bridge (before it) and the bonus round (after it) must never be able to change what
+    // applyResult sees (DECISIONS 2026-09-22, 2026-09-01/09-22).
     return {
       ...state,
       phase: 'correct',
@@ -113,7 +137,7 @@ export function applyAnswer(state, optionIndex) {
       selectedIndex: optionIndex,
       hint: null,
       hintGrace: false,
-      score: state.stage === 'bonus' ? state.score : state.score + 1,
+      score: state.stage === 'scored' ? state.score + 1 : state.score,
       lastEvent: { type: 'answered', correct: true, tag: 'none', attemptNumber },
     };
   }
@@ -138,8 +162,11 @@ export function applyAnswer(state, optionIndex) {
 
   if (attempts >= 2) {
     // wrong #2 (a deliberate retry after the read window) → gentle reveal, advance on next().
-    // `parked: true` unconditionally: set on the FIRST wrong #2 and idempotent on every one
-    // after (a boolean, never a counter — DECISIONS 2026-09-22).
+    // Parking is scored-run-only: a bridge reveal must NOT park (DECISIONS 2026-09-22 — parking
+    // exists so a session never ENDS on failure, and the scored run always follows the bridge
+    // regardless). In the scored run this sets `true` unconditionally: set on the FIRST wrong #2
+    // and idempotent on every one after (a boolean, never a counter). Outside the scored run
+    // (bridge, or a bonus reveal — already parked by definition) it leaves `parked` untouched.
     return {
       ...state,
       phase: 'reveal',
@@ -150,7 +177,7 @@ export function applyAnswer(state, optionIndex) {
       hint: "Here’s how — let’s see it together!",
       hintGrace: false,
       hintNonce: state.hintNonce + 1,
-      parked: true,
+      parked: state.stage === 'scored' ? true : state.parked,
       lastEvent: { type: 'answered', correct: false, tag, attemptNumber },
     };
   }
@@ -186,6 +213,39 @@ export function applyAnswer(state, optionIndex) {
  * from them unaffected either way.
  */
 export function advance(state, { makeBonusQuestion } = {}) {
+  if (state.stage === 'bridge') {
+    // Advance within the bridge, or into the scored run once it's exhausted (DECISIONS
+    // 2026-09-22). `state.index` is never touched here — the scored run always starts fresh
+    // at index 0, exactly as it would with the bridge off.
+    const nextBridgeIndex = state.bridgeIndex + 1;
+    if (nextBridgeIndex >= state.bridgeQuestions.length) {
+      return {
+        ...state,
+        stage: 'scored',
+        attempts: 0,
+        phase: 'solving',
+        emotion: 'thinking',
+        hint: null,
+        hintGrace: false,
+        selectedIndex: null,
+        revealIndex: null,
+        lastEvent: null,
+      };
+    }
+    return {
+      ...state,
+      bridgeIndex: nextBridgeIndex,
+      attempts: 0,
+      phase: 'solving',
+      emotion: 'thinking',
+      hint: null,
+      hintGrace: false,
+      selectedIndex: null,
+      revealIndex: null,
+      lastEvent: null,
+    };
+  }
+
   const nextIndex = state.index + 1;
   if (nextIndex >= state.questions.length) {
     if (state.stage === 'bonus') {
@@ -246,9 +306,22 @@ export function advance(state, { makeBonusQuestion } = {}) {
   };
 }
 
+/**
+ * Which rungs (ascending) get a bridge question, given the toggle, the skill's opt-in, and the
+ * working rung. Pure — no rng, no recipe, no session-building here (`build()` below does that
+ * with this function's output). Exported so the DECISION is fully unit-testable without React,
+ * storage, or a seeded rng (DECISIONS 2026-09-22).
+ */
+export function bridgeRungsFor({ bridgeEnabled, strategyRungs, workingDifficulty }) {
+  if (!bridgeEnabled || !strategyRungs || workingDifficulty === undefined || workingDifficulty <= 1) {
+    return [];
+  }
+  return Array.from({ length: workingDifficulty - 1 }, (_, i) => i + 1);
+}
+
 // ── The React hook ──────────────────────────────────────────────────────────────────────
 
-export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
+export function useQuizSession(grade, { length = 8, skillId, seed, bridgeEnabled = false } = {}) {
   const [state, setState] = useState(null);
   // Synchronous source of truth so analytics reads/fires correctly even under StrictMode.
   const stateRef = useRef(null);
@@ -284,9 +357,11 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
   const build = useCallback(() => {
     // ── Load saved mastery state for this skill (wiring layer reads clock + skill map) ──
     let startDifficulty;
+    let skillMeta = null; // the skill-map entry, if skillId resolved — only used for bridge-in's opt-in check below
     if (skillId) {
       try {
         const skill = getSkill(skillId);
+        skillMeta = skill;
         const saved = loadSkillState(skillId);
         const loaded = saved ?? emptySkillState(skillId, skill.maxDifficulty);
         skillStateRef.current = loaded;
@@ -305,12 +380,28 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
 
     const rng = makeRng(seed ?? `${skillId ?? 'any'}:${Date.now()}:${Math.random()}`);
     rngRef.current = rng; // reused, if needed, to draw the bonus question later in this session
+
+    // Bridge-in (DECISIONS 2026-09-22): the toggle and the skill's opt-in reach this purely as
+    // explicit inputs (the `bridgeEnabled` param; `skillMeta.strategyRungs` from the already-
+    // loaded skill map entry) — nothing below or in the pure functions reads storage directly.
+    // `bridgeRungsFor` decides WHICH rungs (pure, tested standalone); this draws one question per
+    // rung from the SAME rng, BEFORE the scored questions, so presentation order is bridge
+    // (ascending) → the 8 scored.
+    const bridgeRungs = bridgeRungsFor({
+      bridgeEnabled,
+      strategyRungs: !!skillMeta?.strategyRungs,
+      workingDifficulty: startDifficulty,
+    });
+    const bridgeQuestions = bridgeRungs.map(
+      (rung) => buildLiteSession(grade, rng, { length: 1, skillId, difficulty: rung }).questions[0],
+    );
+
     const session = buildLiteSession(grade, rng, { length, skillId, difficulty: startDifficulty });
     sessionStartRef.current = Date.now();
     questionStartRef.current = Date.now();
-    commit(initSession(session));
+    commit(initSession({ ...session, bridgeQuestions }));
     logEvent('session_start', { skill_id: session.skillId, grade, band: band(grade) });
-  }, [grade, length, skillId, seed]);
+  }, [grade, length, skillId, seed, bridgeEnabled]);
 
   useEffect(() => {
     build();
@@ -426,9 +517,9 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
         });
       }
       // Accumulate wrong-answer tags for the session result (ref, not state — no re-render).
-      // The bonus round is excluded (DECISIONS 2026-09-22): its tags must never reach
-      // applyResult's input, same as its correctness never reaches score.
-      if (!ev.correct && prev.stage !== 'bonus') {
+      // The bridge and the bonus round are excluded (DECISIONS 2026-09-22): their tags must
+      // never reach applyResult's input, same as their correctness never reaches score.
+      if (!ev.correct && prev.stage === 'scored') {
         misconceptionTagsRef.current.push(ev.tag);
       }
     }
@@ -479,10 +570,15 @@ export function useQuizSession(grade, { length = 8, skillId, seed } = {}) {
     revealIndex: state?.revealIndex ?? null,
     score: state?.score ?? 0,
     sessionComplete: state?.phase === 'complete',
-    // Exposed so a future UI change (e.g. "Bonus round!" messaging) can key off it without
-    // another hook change — not consumed by SessionPlayer today, which needs no changes: the
-    // bonus round already renders correctly through the same phase-driven paths as any question.
+    // Exposed so a future UI change (e.g. "Bonus round!" / "Warm-up!" messaging) can key off
+    // them without another hook change — not consumed by SessionPlayer today, which needs no
+    // changes: the bridge and the bonus round already render correctly through the same
+    // phase-driven paths as any question. `questionNumber`/`totalQuestions` are UNCHANGED by
+    // either — `state.index` is frozen through both, so they read against the 8 scored
+    // questions only (see the bridge/bonus Done blocks in TRACKER.md for exactly what that
+    // shows on screen through each).
     isBonusQuestion: state?.stage === 'bonus',
+    isBridgeQuestion: state?.stage === 'bridge',
     masteryUp: state?.masteryUp ?? null,
     answer,
     next,

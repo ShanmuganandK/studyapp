@@ -19,8 +19,8 @@ import CelebrationScreen from './CelebrationScreen';
  *   wrong   → wrong #2 reveal
  *   complete → phase transitions to 'complete' (session end)
  */
-export default function SessionPlayer({ grade, skillId, onExit }) {
-  const s = useQuizSession(grade, { skillId });
+export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = false }) {
+  const s = useQuizSession(grade, { skillId, bridgeEnabled });
 
   // Mute toggle state — initialised from the service so it survives hot reloads.
   const [muted, setMuted] = useState(isSoundMuted);
