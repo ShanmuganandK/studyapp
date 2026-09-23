@@ -700,3 +700,62 @@
 
   **Revised Learning-engine bullet reflects this decision** rather than the original, never-fully-built
   spec — see that bullet above.
+
+- (2026-09-22) **Bridge-in: a strategy-rung session walks up to the working rung before
+  scoring; the walk is never measured (LOCKED — ships behind a parent-zone test toggle,
+  default OFF).**
+
+  **What it settles.** The 2026-08-27 entry left open whether a session *walks* rungs or
+  holds one. Answer: it does both, on separate tracks. **Measurement holds one rung**
+  (unchanged: 8 scored questions at the working difficulty). **Presentation walks**: before
+  the scored run, the child plays ONE unscored bridge question at each rung below their
+  working rung, ascending. Working rung 1 → no bridge. Rung 2 → one bridge question at rung 1.
+  Rung 3 → rung 1, then rung 2, then the 8 scored rung-3 questions. For `g2.add.2d-nocarry`
+  that is add-the-ones → add-the-tens → tens-then-ones: Set B's walk, ending on the rung the
+  child earned.
+
+  **Why the walk is never scored — the lesson from 2026-09-02.** A walk inside the scored
+  session breaks three things. `difficultyPlayed` (the session's max) becomes the top rung on
+  every session, so `LEVEL_UP_REQUIRES_HARD` is met by two or three hard questions. Easy
+  questions pad the ratio, which is the premature-promotion harm the average-learner principle
+  (2026-08-25) exists to prevent. And every simulation result stops describing the engine.
+  `LEVEL_UP_STREAK` failed by changing the measurement rule. This change leaves measurement
+  alone and changes only what the child sees.
+
+  **Exclusions — identical to the bonus round (same-day entry above).** Bridge questions are
+  excluded from `questionsTotal`, `questionsCorrect`, score, misconception tags and
+  `difficultyPlayed`. The `sessionResult` given to `applyResult` must be byte-identical with the
+  toggle on or off, for the same scored answers. Consequence: the mastery simulation
+  (`claude-chat/mastery-simulation-report.md`) stays valid unchanged. It measures what this
+  change does not touch.
+
+  **Ladder applies; parking does not.** A bridge question runs the normal remediation ladder
+  (hint on wrong #1, reveal on wrong #2). A reveal during the bridge does **NOT** set `parked`.
+  Parking exists so a session never *ends* on failure, and the whole scored run still follows
+  the bridge. A reveal in the scored run parks exactly as before.
+
+  **Scope.** Only skills whose rungs are strategy stages. Today that is `g2.add.2d-nocarry`
+  alone. Magnitude-rung skills get no bridge, even with the toggle on. Gated by a skill-map
+  property, never a skillId literal, so each skill opts in as #13 converts it.
+
+  **Ships as a test instrument.** A parent-zone toggle, default OFF, stored in
+  `tinku:v1:testSettings`. It is never in `progressStore` and never in an export (2026-08-17,
+  2026-08-21). The reason: the first real-phone test of strategy rungs must be able to tell
+  "rungs" apart from "rungs plus bridge". Default-on for everyone needs a new entry here, on
+  phone evidence.
+
+  **Evidence, labelled honestly.** Walking rests on the Set B paper test (suggestive, confounded
+  by uneven prompting — 2026-08-27) and on the average-learner principle. The simulation cannot
+  validate it: it has fixed per-rung accuracy, no freeze, no learning. Nothing here has run on a
+  phone.
+
+  **What it deliberately does NOT do.** Set B walked brand-new children from rung 1 to rung 3
+  in one sitting. Bridge-in only walks *up to* a rung the child already earned through the
+  difficulty streak. A new child still climbs across sessions. That is the gentler branch,
+  chosen on purpose. It also does not implement the dropped "easier retry" on wrong #2.
+
+  **Known tension.** Scored length stays 8, so `STRONG_RATIO` still means one thing. But the
+  *visible* length grows: up to 10 for a rung-3 child, 11 if parked. The 2026-08-27 entry also
+  justified 8 by attention span. **Revisit trigger:** if phone testing shows fatigue or
+  abandonment in the bridge, cut to the single rung below the working rung (+1) before
+  dropping the idea.

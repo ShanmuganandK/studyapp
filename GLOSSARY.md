@@ -9,7 +9,8 @@
 | Term | Means | Canonical file |
 |---|---|---|
 | rung (difficulty) | One of 3 strategy stages within a skill; NOT a magnitude band as of DECISIONS 2026-08-27. | `src/recipes/*`, `src/config/masteryConfig.js` |
-| rung (remediation) | One of 3 steps in the wrong-answer ladder (hint / walkthrough+retry / park+guaranteed-win). DECISIONS 2026-07-04 era; `useQuizSession.js` currently ships only the first two — the guaranteed-win last question is deferred per spec. | `src/hooks/useQuizSession.js` |
+| rung (remediation) | One of 3 steps in the wrong-answer ladder: hint → reveal + advance → park (any reveal) + one unscored bonus question at session end (DECISIONS 2026-09-22). | `src/hooks/useQuizSession.js` |
+| bridge (session) | Unscored warm-up questions at each rung below the working rung, played before the 8 scored questions on strategy-rung skills (DECISIONS 2026-09-22, bridge-in). Never measured. Behind a parent-zone test toggle. | `src/hooks/useQuizSession.js` |
 | level | 0–5 per-skill counter gating prereq unlock and mastery. Separate axis from difficulty as of DECISIONS 2026-08-27. One strong session promotes it (`LEVEL_UP_REQUIRES_HARD` gates the 4→5 hop) and one weak session drops it by 1 — a consecutive-session rule for `level` was tried and rejected (DECISIONS 2026-09-02). Level 0 = not started. | `src/engine/mastery.js`, `src/config/masteryConfig.js` |
 | session | One run of 8 questions on one skill. | `src/hooks/useQuizSession.js` |
 | strong session | A session scoring ≥ `STRONG_RATIO` (7/8 at the fixed session length of 8). One strong session promotes `level` on its own; `difficulty` needs consecutive ones (`DIFFICULTY_UP_STREAK`). | `src/config/masteryConfig.js` |
