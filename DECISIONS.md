@@ -759,3 +759,20 @@
   justified 8 by attention span. **Revisit trigger:** if phone testing shows fatigue or
   abandonment in the bridge, cut to the single rung below the working rung (+1) before
   dropping the idea.
+
+- (2026-09-23) **Unscored questions show a stage label, not the question counter (LOCKED).**
+  `state.index` is frozen through the bridge and bonus stages by design (DECISIONS 2026-09-22,
+  both entries), so the "n / 8" counter misreads there. A rung-3 bridge session shows "1 / 8"
+  three times in a row, and a parked session shows a frozen "8 / 8" through its bonus question.
+  During those stages the counter is **replaced** by a label: **"Warm-up"** during the bridge,
+  **"Bonus"** during the bonus round. During scored questions the counter is unchanged, so
+  "1 / 8" first appears on the first question that counts.
+
+  **Neutral styling, deliberately.** The label uses the counter's own typographic slot and
+  colour token. **Never amber, never ⭐** — the bonus round is a mood floor after a reveal, not a
+  reward, and amber means reward/achievement ONLY (2026-07-04, 2026-07-05). Never green or
+  coral either: those mean correct and wrong. No new sound, haptic or animation.
+
+  **Scope.** "Bonus" is live wherever the bonus round is, i.e. every skill. "Warm-up" appears
+  only when the bridge runs (toggle on + strategy-rung skill). The copy is plain English for
+  ages 6–8; revisit the wording on phone-test evidence only.
