@@ -149,7 +149,7 @@ Read only if the revisit trigger fires (see `DECISIONS.md` 2026-08-14). Describe
 | Where | What |
 |---|---|
 | Google Drive | `ARCHIVE (do not edit) — Tinku_Math_Tracker` — the original workbook, superseded 2026-08-15. Everything of value was moved into `TASK-INDEX.md` and `TRACKER.md`. Kept only as a 30-day safety net. |
-| Google Drive | `Tinku Math — Strategy` — roadmap decision gates, kid-test evidence, research briefs A–J, work split, parked ideas, open strategic questions. **Claude Code cannot read Drive and does not need to.** |
+| ~~Google Drive~~ | ~~`Tinku Math — Strategy`~~ — **stale, DECISIONS 2026-09-23: strategy lives in `claude-chat/TRACKER.md`.** There is no separate Drive strategy document; a pointer to one is out of date. |
 | Google Drive | `PROJECT-CONTEXT.md` — founder working style + a signpost to everything above. Rewritten 2026-08-16 as a pointer, not a duplicate; it went stale by trying to be tracker, decisions log and architecture map at once. |
 
 ---

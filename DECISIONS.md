@@ -36,7 +36,7 @@
 - **Mastery = ~80% at hard level**, then spaced-repetition review (intervals ~1/2/4/7/21 days). Stop drilling once mastered; move to next skill.
 - **Distractors encode misconceptions** (e.g. forgot-carry) to drive targeted hints + dashboard insight.
 - **Remediation ladder, never punish (revised 2026-09-22 — see that Change-log entry for the full rationale):** wrong #1 = targeted hint, same question stays live. Wrong #2 = reveal the correct answer with a learning-tone fill, auto-advance to the next question — **no visual walkthrough and no easier retry**, because a session runs at one fixed difficulty throughout, so there is no easier version to retry into mid-session. Any wrong #2 in a session flags that session **parked** (once, regardless of how many wrong #2s occur). A parked session appends **one bonus question**, at the skill's easiest difficulty, after the 8th scored question and before the session completes — this is the mood floor: a session never ends on the child's last live moment being a failure. The bonus question is excluded entirely from `questionsTotal`, `questionsCorrect`, score and mastery's `applyResult` input; it runs the normal ladder mechanics (hint on a wrong tap) but nothing about its outcome is scored. Tinku is never disappointed, always "let's try together."
-- **`misconceptions-reference.md` is the canonical source of truth for misconception tags.** Every recipe's `misconceptions[]` tags and every remediation hint must match it exactly (kebab-case). When the doc and a recipe disagree, the doc wins — reconcile the recipe to the doc, and verify the distractor RULE matches the tag's documented rule (don't just rename the label). New recipes draw their tags + rules from this doc. The doc still requires a one-time primary-math teacher review of its ~68 rows before launch; tag changes from that review are a contained follow-up.
+- **`misconceptions-reference.md` is the canonical source of truth for misconception tags.** Every recipe's `misconceptions[]` tags and every remediation hint must match it exactly (kebab-case). When the doc and a recipe disagree, the doc wins — reconcile the recipe to the doc, and verify the distractor RULE matches the tag's documented rule (don't just rename the label). New recipes draw their tags + rules from this doc. The doc still needs a one-time primary-math teacher review of its ~68 rows; launch proceeds without it (DECISIONS 2026-09-23) and it stays open in `TEACHER-REVIEW.md`. Tag changes from that review are a contained follow-up.
 
 ## Auth & accounts
 
@@ -776,3 +776,47 @@
   **Scope.** "Bonus" is live wherever the bonus round is, i.e. every skill. "Warm-up" appears
   only when the bridge runs (toggle on + strategy-rung skill). The copy is plain English for
   ages 6–8; revisit the wording on phone-test evidence only.
+
+- (2026-09-23) **Launch scope: public release for Grades 1–2; permanent origin
+  `tinku.stringus.com`; personal Play account via the closed test (LOCKED).**
+
+  **Kid-testing is not a launch gate.** The launch itself is now the signal source.
+  The 2026-08-14 revisit trigger (real retention signal, or unprompted willingness to pay) is
+  unchanged. The human sets a numeric success bar before the public link is shared.
+
+  **Grades 1–2 now; Grade 3 "coming soon".** The skill map has no Grade 3 skills (TRACKER #12),
+  so the app, the store description and the listing claim Grades 1–2 only. A false claim in a
+  children's listing costs more trust than a missing grade. Grade 3 ships when #12 does.
+
+  **Permanent origin: `https://tinku.stringus.com`**, a Netlify custom domain (CNAME at the
+  founder's GoDaddy DNS). Progress and the passcode live in `localStorage`, which is scoped
+  to the origin, so every move of the address wipes every user's progress and strands their
+  installed PWA. This is the one move, and it happens before the public link exists. **The
+  origin never changes again without a migration plan recorded here first.** A dedicated
+  brand domain was considered and declined. Hosting stays on Netlify, never on the
+  founder's server, which runs the git/MCP services with repo write access. `stringus.com`
+  must stay on auto-renew: the app and the published privacy-policy URL both depend on it.
+
+  **First-run grade picker; still no accounts.** On first launch, a parent-facing screen asks
+  one thing: "Which class is your child in?" (Class 1 / Class 2 / Class 3 — coming soon,
+  disabled). No name, age or anything else. It writes the same grade the parent-zone control
+  already writes, under `tinku:v1:testSettings`. That key name is historical; it is not renamed,
+  because renaming resets every device. The grade never enters a progress export (2026-08-17,
+  2026-08-21). It can be changed later in the parent zone. This settles TRACKER #9. It does
+  **not** revive `ProfileSetup.jsx`/`ProfileSelector.jsx`, which stay quarantined.
+
+  **Play: personal developer account** (the platform line "individual account under UAE
+  identity" stands). New personal accounts must run a closed test with ≥12 testers opted in
+  for 14 continuous days before production access; **that closed test doubles as the
+  teaser.** The operator name in the privacy policy must match the Play developer name. It
+  is set when the account exists, and before submission.
+
+  **The parent-zone test panel stays visible to public parents** (founder call). The
+  warm-up toggle stays default OFF.
+
+  **Teacher review no longer gates launch.** The Learning-engine bullet said the
+  `misconceptions-reference.md` review is required "before launch". Amended: launch proceeds
+  without it; it stays open in `TEACHER-REVIEW.md`.
+
+  **Strategy lives in TRACKER.md.** There is no separate Drive strategy document; any pointer
+  saying otherwise is stale.

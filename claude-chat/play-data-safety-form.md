@@ -62,7 +62,7 @@ policy violation in its own right, independent of whether the data practice itse
 
 | Wizard question | Answer | Basis |
 |---|---|---|
-| Privacy policy URL | `https://<SITE>/privacy.html` — **fill in the live Netlify domain before submitting** | Generated page, published with the app. |
+| Privacy policy URL | `https://tinku.stringus.com/privacy.html` — **valid once L1's DNS step is verified** | Generated page, published with the app. |
 | Does your app have a way for users to request data deletion? (account deletion policy) | **No account creation in the app** → declare "app does not allow account creation" | §0.1. |
 | Data types collected by third-party SDKs in your app | **None — no third-party SDK ships** | §0.2–0.5. `lucide-react` is icons; `react`/`react-dom` are the framework; Fontsource is bundled font files. None of them are network clients. |
 
@@ -144,8 +144,8 @@ We target under-13s, so the programme applies. This task settles the **policy** 
 
 ## §5 — Pre-submission checklist
 
-- [ ] Netlify deploy is live and `https://<SITE>/privacy.html` loads in a **private window**
-      (i.e. genuinely public, no auth, no preview-only URL).
+- [ ] Netlify deploy is live and `https://tinku.stringus.com/privacy.html` loads in a **private window**
+      (i.e. genuinely public, no auth, no preview-only URL) — **valid once L1's DNS step is verified**.
 - [ ] That exact URL is entered in **both** places Play asks for it: the store listing and the
       Data Safety form.
 - [ ] Open the URL on a device **with the PWA installed** — confirms the service-worker
