@@ -39,5 +39,9 @@ export const PRODUCT_NAME = 'Tinku Math';
  */
 export const SHORT_NAME = 'Tinku Math';
 
-/** Manifest description. Keeps "CBSE-aligned" — descriptive use is the safe form (see above). */
-export const DESCRIPTION = 'CBSE-aligned maths practice for Grades 1-3';
+/**
+ * Manifest description. Keeps "CBSE-aligned" — descriptive use is the safe form (see above).
+ * "Grades 1-2" (not 1-3): DECISIONS 2026-09-23 — launch scope is Grades 1-2 only, since the
+ * skill map has no Grade 3 content yet (TRACKER #12). Restore "1-3" the day #12 ships.
+ */
+export const DESCRIPTION = 'CBSE-aligned maths practice for Grades 1-2';

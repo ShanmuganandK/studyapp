@@ -83,6 +83,11 @@ describe('brand — the name is coherent', () => {
     expect(DESCRIPTION).toMatch(/CBSE/);
   });
 
+  it('claims Grades 1-2, not 1-3 (DECISIONS 2026-09-23 — no Grade 3 content exists yet)', () => {
+    expect(DESCRIPTION).toMatch(/Grades 1-2/);
+    expect(DESCRIPTION).not.toMatch(/Grades 1-3/);
+  });
+
   it('the privacy policy names the same app', () => {
     // The whole point: the policy must name the app as the store lists it.
     expect(APP_NAME).toBe(PRODUCT_NAME);
