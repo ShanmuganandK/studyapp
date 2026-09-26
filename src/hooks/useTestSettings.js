@@ -20,7 +20,7 @@ import { loadTestSettings, saveTestSettings, THEME_SLUGS } from '../services/tes
  * instances writing the body class.
  */
 export default function useTestSettings() {
-  const [{ theme, grade, bridgeEnabled }, setSettings] = useState(loadTestSettings);
+  const [{ theme, grade, bridgeEnabled, gradeChosen }, setSettings] = useState(loadTestSettings);
 
   // Apply the active theme as a scoped class on <body>. Reruns only when `theme` changes.
   useEffect(() => {
@@ -55,5 +55,17 @@ export default function useTestSettings() {
     });
   };
 
-  return { theme, grade, bridgeEnabled, setTheme, setGrade, setBridgeEnabled };
+  // First-run grade picker's ONLY write path (DECISIONS 2026-09-23). Sets grade AND gradeChosen
+  // together, atomically — the ordinary parent-zone `setGrade` above deliberately does NOT touch
+  // gradeChosen, so switching grades later in the parent zone never re-triggers (or, if already
+  // true, never un-suppresses) the picker as a side effect.
+  const chooseInitialGrade = (nextGrade) => {
+    setSettings((prev) => {
+      const next = { ...prev, grade: nextGrade, gradeChosen: true };
+      saveTestSettings(next);
+      return next;
+    });
+  };
+
+  return { theme, grade, bridgeEnabled, gradeChosen, setTheme, setGrade, setBridgeEnabled, chooseInitialGrade };
 }

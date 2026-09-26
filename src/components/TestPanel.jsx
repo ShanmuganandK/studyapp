@@ -98,6 +98,18 @@ export default function TestPanel({ theme, onThemeChange, grade, onGradeChange, 
               </button>
             );
           })}
+          {/* Grade 3 — visibly "coming soon", disabled, not silently absent (DECISIONS
+              2026-09-23, B2: matches the first-run picker's treatment of Class 3 instead of
+              this row just stopping at 2 with no trace of a third option). GRADES itself stays
+              [1, 2] — this is display-only, no curriculum exists to select into yet (Now #12). */}
+          <button
+            type="button"
+            disabled
+            aria-disabled="true"
+            className="flex-1 rounded-button border border-primary-soft py-2 text-sm font-semibold text-muted opacity-50 cursor-not-allowed"
+          >
+            Grade 3 — soon
+          </button>
         </div>
       </div>
 

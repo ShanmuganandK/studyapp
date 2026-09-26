@@ -387,7 +387,9 @@ entry → SkillPathScreen (default) or SkillSelectScreen (?home=cards) → Recip
   `currentProfile?.grade ?? testGrade ?? DEFAULT_GRADE` — the deferred parent profile wins if it
   ever returns, else the parent test-panel grade (`useTestSettings`, below), else 1. Also calls
   `useTestSettings()` (the hook that APPLIES the theme class to `<body>`) and passes theme/grade +
-  setters to `ParentDashboard`. **Naming trap now LIVE:** this file manages *views*, not colour
+  setters to `ParentDashboard`. **First-run gate:** when `!gradeChosen` it returns
+  `GradePickerScreen` in place of the entire `Layout` tree (DECISIONS 2026-09-23 — see the
+  first-run grade picker section). **Naming trap now LIVE:** this file manages *views*, not colour
   themes, yet it is now the mount point that activates theming — the theme LOGIC lives in the hook,
   not here, but the name collision is real (rename decision open — see TRACKER "Open questions").
   The `skills` view renders `SkillPathScreen` by default (kid-test in progress — Screen 3-B);
@@ -627,20 +629,26 @@ picker (DECISIONS-level call). Lives behind the parent gate inside `ParentDashbo
 
 - **`testSettings.js`** — the storage seam (mirrors `progressStore.js`: own key, try/catch,
   `logger.warn`, graceful defaults). Key **`tinku:v1:testSettings`**, shape
-  `{ version, theme, grade, bridgeEnabled }`. `bridgeEnabled` (DECISIONS 2026-09-22, bridge-in) is
+  `{ version, theme, grade, bridgeEnabled, gradeChosen }`. `bridgeEnabled` (DECISIONS 2026-09-22, bridge-in) is
   the strategy-rung walk toggle, default OFF — added WITHOUT bumping `SCHEMA_VERSION` (a bump
   resets to full defaults on any version mismatch, which would wipe every existing device's theme
   AND grade, not just default the new field; `normalise()` already falls back per-field on a
   missing/invalid value, so a legacy v1 file loads with theme/grade unchanged and the toggle
-  false — verified by a dedicated legacy-load test). **Deliberately separate from `progressStore`**
+  false — verified by a dedicated legacy-load test). `gradeChosen` (DECISIONS 2026-09-23) backs the
+  first-run grade picker and was added the same way (no `SCHEMA_VERSION` bump), but its backfill runs
+  the OPPOSITE way to `bridgeEnabled`'s: a stored record MISSING the key means an existing tester who
+  already has a grade, so it backfills **true** (never re-ask them); only a device with **no record at
+  all** yields false. `normalise()` therefore takes an internal `{ existingRecord }` flag — the one
+  field whose default depends on whether `raw` came from storage or from the all-defaults fallback.
+  **Deliberately separate from `progressStore`**
   (`tinku:v1:skills`):
   that store is skills-only + allowlist-guarded, and export reads only the skills key — so these
   preferences **cannot ride in a progress export** (verified in-browser: exported file carries the
   skill payload and zero theme/grade data). Exports `THEME_SLUGS`
-  (`wonder`/`sunset`/`bubblegum`/`deepsea`) + `GRADES` (**1–2 today, deliberately narrower than the
-  1–3 Wonder-band launch scope** — Grade 3 has no curriculum yet, TRACKER Now #12, so offering it
-  in the test panel would just show the Grade-1 fallback under a misleading label; restore `3`
-  the day Now #12 lands); values are normalised on load/save so an out-of-range input (including a
+  (`wonder`/`sunset`/`bubblegum`/`deepsea`) + `GRADES` (**1–2, which now MATCHES launch scope
+  exactly** — DECISIONS 2026-09-23 narrowed the scope itself from 1–3; Grade 3 has no curriculum yet
+  (TRACKER Now #12) and launch shows it as a disabled "coming soon" rather than a real choice;
+  restore `3` the day Now #12 lands); values are normalised on load/save so an out-of-range input (including a
   device with an old `grade: 3` from before this) is never stored.
 - **`useTestSettings.js`** — React state over the seam, and the ONE side-effect that **applies a
   theme**: a `theme-<slug>` class on **`document.body`** (`wonder` = no class, the `:root` default).
@@ -648,7 +656,11 @@ picker (DECISIONS-level call). Lives behind the parent gate inside `ParentDashbo
   sibling of `#root`, so a `#root`-scoped class never reaches it (the 2026-08-20 audit finding).
   Body scope re-themes every surface, portalled ones included (proven in a real browser: the gate
   modal's `primary-ink` follows the active palette). Logic-in-hook keeps `ThemeManager` from owning
-  theme code (STANDARDS §2). Single app-level instance (mounted by `ThemeManager`).
+  theme code (STANDARDS §2). Single app-level instance (mounted by `ThemeManager`). Also
+  exposes `gradeChosen` + **`chooseInitialGrade(n)`** — the first-run picker's ONLY write path,
+  setting grade and `gradeChosen` together in one atomic save. The ordinary `setGrade` deliberately
+  does NOT touch `gradeChosen`, so changing grade later in the parent zone can never re-trigger the
+  picker.
 - **The palettes** live as `.theme-<slug>` blocks in `src/index.css` (colour custom properties only;
   each declares the paired hex + `-rgb` forms in sync, guarded by `__tests__/designTokens.test.js`,
   now extended to check every palette block). `scripts/check-raw-hex.mjs`'s token-block exemption was
@@ -656,12 +668,34 @@ picker (DECISIONS-level call). Lives behind the parent gate inside `ParentDashbo
   outside those blocks are still caught — proven red).
 - **`TestPanel.jsx`** — presentational: theme swatches (each previews its real palette by wrapping
   token utilities in the `.theme-<slug>` class — no raw hex) + a Grade segmented control, rendered
-  from `GRADES` (currently 1–2; Grade 3 removed from the picker until Now #12's curriculum lands —
-  see `testSettings.js`) + a "Warm-up steps (test)" On/Off control (DECISIONS 2026-09-22,
+  from `GRADES` (currently 1–2) plus a **disabled "Grade 3 — soon"** button (DECISIONS 2026-09-23 —
+  display-only, NOT in `GRADES`; it mirrors the first-run picker's treatment so the row doesn't just
+  stop at 2 with no trace of a third option) + a "Warm-up steps (test)" On/Off control (DECISIONS 2026-09-22,
   `bridgeEnabled`) — same segmented-button pattern as Grade, token classes only. Calls
   `setTheme`/`setGrade`/`setBridgeEnabled` from props; state lives in the hook. Tests:
   `services/__tests__/testSettings.test.js`, `hooks/__tests__/useTestSettings.test.js`
   (body-class application), `components/__tests__/TestPanel.test.jsx`.
+
+### First-run grade picker (`src/components/GradePickerScreen.jsx`)
+
+DECISIONS 2026-09-23. Shown **once**, before anything else, on a device that has never had test
+settings written (`!gradeChosen`) — `ThemeManager` returns it INSTEAD of the whole `Layout` tree, so
+there is no nav chrome behind it and no separate "continue" step: `chooseInitialGrade` sets grade and
+`gradeChosen` together, so the very next render is the app proper, already on the chosen grade.
+
+Asks one parent-facing question — "Which class is your child in?" (Class 1 / Class 2 / **Class 3 —
+coming soon**, disabled) — and nothing else: no name, no age, no accounts. Presentational: no state,
+no storage access; `onChoose` does the writing, into the **same** `tinku:v1:testSettings` key the
+parent-zone control already uses (that key name is historical and is NOT renamed — renaming resets
+every device), so the grade stays changeable in the parent zone and **never enters a progress
+export** (DECISIONS 2026-08-17 / 2026-08-21 — a different key entirely).
+
+Does **not** revive `ProfileSetup.jsx` / `ProfileSelector.jsx`, which stay quarantined. Settles
+TRACKER Now #9. Tests: `components/__tests__/GradePickerScreen.test.jsx` (render/choice),
+`components/__tests__/GradePickerGate.integration.test.jsx` (the gate, driven through the REAL
+`ThemeManager` + `AuthProvider`; every assertion is async because `AuthProvider` renders
+`{!loading && children}`, so a sync absence-check would pass on an empty DOM),
+`hooks/__tests__/gradePicker.integration.test.js` (storage key + export exclusion, cross-module).
 
 ### `useOnline` hook (`src/hooks/useOnline.js`)
 

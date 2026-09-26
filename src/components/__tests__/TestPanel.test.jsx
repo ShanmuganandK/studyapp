@@ -43,7 +43,15 @@ describe('TestPanel', () => {
     for (const g of [1, 2]) {
       expect(screen.getByRole('button', { name: `Grade ${g}` })).toBeTruthy();
     }
+    // Exact name — no SELECTABLE "Grade 3" (GRADES stays [1, 2], no curriculum yet, Now #12).
     expect(screen.queryByRole('button', { name: 'Grade 3' })).toBeNull();
+  });
+
+  it('shows Grade 3 as visibly disabled/"soon", not silently absent (DECISIONS 2026-09-23, B2)', () => {
+    render(<TestPanel {...base} />);
+    const g3 = screen.getByRole('button', { name: /Grade 3/ });
+    expect(g3.disabled).toBe(true);
+    expect(g3.textContent).toMatch(/soon/i);
   });
 
   it('marks the active theme and grade as pressed', () => {

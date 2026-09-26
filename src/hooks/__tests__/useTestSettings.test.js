@@ -60,4 +60,39 @@ describe('useTestSettings', () => {
     expect(result.current.grade).toBe(2);
     expect(bodyThemeClasses()).toEqual([]);
   });
+
+  describe('gradeChosen / chooseInitialGrade (DECISIONS 2026-09-23 — first-run grade picker)', () => {
+    it('a fresh device starts with gradeChosen false', () => {
+      const { result } = renderHook(() => useTestSettings());
+      expect(result.current.gradeChosen).toBe(false);
+    });
+
+    it('chooseInitialGrade sets grade AND gradeChosen together, and persists both', () => {
+      const first = renderHook(() => useTestSettings());
+      act(() => first.result.current.chooseInitialGrade(2));
+      expect(first.result.current.grade).toBe(2);
+      expect(first.result.current.gradeChosen).toBe(true);
+      cleanup();
+
+      const second = renderHook(() => useTestSettings());
+      expect(second.result.current.grade).toBe(2);
+      expect(second.result.current.gradeChosen).toBe(true);
+    });
+
+    it('the ordinary parent-zone setGrade does NOT set gradeChosen — it stays whatever it was', () => {
+      const { result } = renderHook(() => useTestSettings());
+      expect(result.current.gradeChosen).toBe(false);
+      act(() => result.current.setGrade(2));
+      expect(result.current.grade).toBe(2);
+      expect(result.current.gradeChosen).toBe(false); // unaffected by the ordinary control
+    });
+
+    it('setGrade after chooseInitialGrade does not un-set gradeChosen', () => {
+      const { result } = renderHook(() => useTestSettings());
+      act(() => result.current.chooseInitialGrade(1));
+      expect(result.current.gradeChosen).toBe(true);
+      act(() => result.current.setGrade(2));
+      expect(result.current.gradeChosen).toBe(true);
+    });
+  });
 });

@@ -5,6 +5,7 @@ import SkillPathScreen from './SkillPathScreen';
 import Layout from './Layout';
 import ParentGateModal from './ParentGateModal';
 import ParentDashboard from './ParentDashboard';
+import GradePickerScreen from './GradePickerScreen';
 import { useAuth } from '../contexts/AuthContext';
 import useTestSettings from '../hooks/useTestSettings';
 
@@ -32,7 +33,16 @@ export default function ThemeManager() {
   // the side-effect that applies the theme class to <body> (so the portalled parent gate re-themes
   // — see the hook). NOTE the name: THIS file manages VIEWS, not colour themes; theming logic lives
   // in the hook, not here. The name collision is now live — flagged for a later rename decision.
-  const { theme, grade: testGrade, bridgeEnabled, setTheme, setGrade, setBridgeEnabled } = useTestSettings();
+  const {
+    theme,
+    grade: testGrade,
+    bridgeEnabled,
+    gradeChosen,
+    setTheme,
+    setGrade,
+    setBridgeEnabled,
+    chooseInitialGrade,
+  } = useTestSettings();
 
   // A real parent profile (deferred) wins if it ever returns; else the test-panel grade; else 1.
   // currentProfile is always null on the current build, so testGrade is the effective grade today.
@@ -75,6 +85,15 @@ export default function ThemeManager() {
     setActiveSkillId(null);
     setCurrentView('parent');
   };
+
+  // First-run grade picker (DECISIONS 2026-09-23): shown ONLY when this device has never had
+  // test settings written — replaces the whole app output (no Layout/nav chrome, no other UI).
+  // chooseInitialGrade sets `grade` and `gradeChosen` together, so the very next render falls
+  // through to the normal `currentView === 'skills'` branch below, already on the chosen grade —
+  // no separate "go to skill path" step needed.
+  if (!gradeChosen) {
+    return <GradePickerScreen onChoose={chooseInitialGrade} />;
+  }
 
   return (
     <Layout currentView={currentView} onNavigate={handleNavigate} scrollLocked={isGateOpen}>
