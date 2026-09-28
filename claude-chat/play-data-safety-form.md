@@ -137,7 +137,8 @@ We target under-13s, so the programme applies. This task settles the **policy** 
   `src/config/brand.js` and guarded. **Play listing title: `Tinku Math: Maths for Kids`** (26/30).
   "CBSE" is out of the name (impersonation risk) and kept in the description. DECISIONS 2026-08-16.
 - **Target age band is still undeclared.** The policy no longer states an age at all — deliberately,
-  so it cannot contradict the Console declaration. Grades 1–3 maps to Play's **"Ages 6–8"** bucket;
+  so it cannot contradict the Console declaration. Grades 1–2 at launch (Grade 3 planned — see
+  TRACKER #12) maps to Play's **"Ages 6–8"** bucket;
   declare it in the content-rating step and it stands alone as the single statement of the band.
 
 ---
@@ -157,7 +158,7 @@ We target under-13s, so the programme applies. This task settles the **policy** 
 - [ ] **`OPERATOR_LINE` is still blank** — the policy names no operator. Decide own name vs. trade
       name (it must match the Play developer name), set it in `src/config/privacyPolicy.js`, run
       `npm run privacy:build`, and redeploy **before** submitting.
-- [ ] Declare the target age band (**Ages 6–8** for Grades 1–3). The policy states no age, so
+- [ ] Declare the target age band (**Ages 6–8** for Grades 1–2 at launch, Grade 3 planned). The policy states no age, so
       Console is the only place it is asserted.
 - [ ] Re-read §0 against the build being submitted. **If anything in §0 is no longer true, stop
       and re-answer this form.**

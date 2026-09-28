@@ -19,7 +19,8 @@ task list without write access to the repo. Shrunk to a dictionary 2026-08-16._
 
 ## MVP scope line
 
-> The MVP must do ONE thing excellently: a child in Grades 1–3 practises CBSE maths,
+> The MVP must do ONE thing excellently: a child in Grades 1–2 at launch (Grade 3 planned — see
+> TRACKER #12) practises CBSE maths,
 > struggles safely, improves over days, and a parent can see it working.
 > Everything that doesn't serve that loop is Phase 2+.
 
