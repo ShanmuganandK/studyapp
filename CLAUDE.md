@@ -24,8 +24,9 @@
 
 ## What this project is
 
-**Tinku Math** — a CBSE/NCERT-aligned maths app for Indian children, **Grades 1–3** at launch
-(the "Wonder" band). Mascot is **Tinku**, a flat 2D blue-grey elephant with a glowing math star.
+**Tinku Math** — a CBSE/NCERT-aligned maths app for Indian children, **Grades 1–2 at launch
+(Grade 3 planned, curriculum not yet built — TRACKER #12; DECISIONS 2026-09-23)** (the "Wonder"
+band). Mascot is **Tinku**, a flat 2D blue-grey elephant with a glowing math star.
 Built solo, targeting India, run from Dubai.
 
 The heart is a **learning loop**: a child practises procedurally-generated maths, gets safe

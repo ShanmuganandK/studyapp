@@ -10,7 +10,7 @@
 > artifact behind it. Three claims were checked on 2026-08-15 and three were false
 > (CI wiring, questionnaire v2, the 296 test count). See "Open questions / to trace".
 
-_Last synced: 2026-09-26_
+_Last synced: 2026-09-28_
 
 ---
 

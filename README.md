@@ -1,7 +1,8 @@
 # Tinku Math 🎓
 
-A gamified, interactive maths learning application for Grades 1–3, aligned with the NCERT/CBSE
-curriculum. Built with React, Vite, and Tailwind CSS.
+A gamified, interactive maths learning application for Grades 1–2 at launch (Grade 3
+planned — see TRACKER #12), aligned with the NCERT/CBSE curriculum. Built with React, Vite, and
+Tailwind CSS.
 
 > **Naming:** the product is **Tinku Math** everywhere — app, manifest, page title, privacy policy.
 > The name is defined once in [`src/config/brand.js`](src/config/brand.js) and derived by every

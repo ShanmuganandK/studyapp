@@ -14,6 +14,10 @@
 - **Success metric until Month 6 = D7 retention, not revenue.**
 - Scope is FROZEN for MVP. New ideas go to the "Parked Ideas" list, not the build.
 
+> **Amended — this section is the original scope summary, not current.** Launch scope is now
+> Grades 1–2 with Grade 3 "coming soon" (2026-09-23), and the MVP takes no payment of any kind
+> (2026-08-14). Both entries are in the Change log below; they win.
+
 ## Mascot
 
 - **Tinku — flat 2D blue-grey elephant with a glowing math star.** This is the ONLY mascot.

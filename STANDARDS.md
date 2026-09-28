@@ -31,13 +31,24 @@ Use **plan mode** for anything bigger than a trivial edit: state the plan, get a
 - **The recipe contract is sacred.** Every question comes from a recipe conforming to `RECIPE_TEMPLATE.md`. No hardcoded questions anywhere. Recipes live in `/recipes`, one per skill.
 - **Separation of layers:**
   - `recipes/` — pure question generation (no UI, no Firebase, no React). Deterministic given (difficulty, rng).
-  - `services/` — Firebase, auth, billing, persistence. The only place external SDKs are touched.
+  - `services/` — device-local persistence (`progressStore`, `testSettings`), plus the feel
+    layer and the inert analytics seam. The only place storage or any external SDK is touched.
+    No Firebase; it was removed (DECISIONS 2026-08-15).
   - `hooks/` — React state + orchestration (session flow, mastery updates) calling services.
   - `components/` — presentational UI only.
 - **Pure where possible.** Recipes and the mastery/spaced-rep logic must be pure functions (input → output, no side effects), so they're trivially testable.
 - **The contract output shape never leaks recipe internals.** Quiz UI, mastery, and dashboard consume only the contract output.
-- **No browser storage for app state** (`localStorage`/`sessionStorage`). Use React state + Firestore. (PWA artifact constraint + correctness.)
-- **Offline-first.** Assume the network may be down. Firestore offline persistence on; the app must function for a full session offline and sync later.
+- **Persistence is device-local, through a service seam — never storage calls scattered in
+  components.** The MVP has no accounts, no cloud and no network (DECISIONS 2026-08-14,
+  2026-08-15). `localStorage` IS the intended backing store, but only `src/services/` touches
+  it: `progressStore.js` owns mastery state, `testSettings.js` the parent test panel. Hooks and
+  components call those services. Keys are prefixed `tinku:v1:`. When cloud sync is
+  reconsidered (deferred, lawyer-gated), those services are the only files that change.
+- **Offline-first, and offline-only.** There is no network call in the build and a CI guard
+  keeps it that way, so the app must work fully with no connection — that is the normal case,
+  not a degraded one. **Nothing ever syncs.** No copy, comment or doc may promise that
+  progress will sync, upload or be backed up to a server. Progress leaves a device only when a
+  parent exports it by hand (DECISIONS 2026-08-17).
 - **Feature flags / config over hardcoding** for things likely to change (daily-limit count, price points, difficulty thresholds) — keep them in a single `config` module.
 
 ## 3. Testing standards
@@ -48,7 +59,8 @@ Use **plan mode** for anything bigger than a trivial edit: state the plan, get a
   - **Mastery / spaced-repetition logic** — promotion/demotion thresholds, interval scheduling, edge cases (0 attempts, all wrong, all right).
   - **Session composer** — correct mix (warm-up/frontier/review), respects daily limit, handles "nothing due".
   - **Remediation ladder** — wrong#1/#2/#3 transitions, mood-floor guarantee (session never ends on failure).
-  - **Auth linking** — anonymous→Google preserves data (mock Firebase).
+  - **Progress export/import** — an export carries behaviour-only skill data and nothing else;
+    a malformed import is refused whole, never partly applied (DECISIONS 2026-08-17).
 - **The shared recipe validator** (`recipes/__tests__/validator.test.js`): takes any recipe, runs `generate()` 100× at each difficulty (1–3), and asserts:
   1. Output matches the contract shape exactly.
   2. `correctAnswer` is always present in `options`.
@@ -57,25 +69,28 @@ Use **plan mode** for anything bigger than a trivial edit: state the plan, get a
   5. Difficulty respects the skill's ceiling (no out-of-range values).
   6. `misconceptions` array aligns index-wise with `options`.
 - **Test behavior, not implementation.** Assert what the user/consumer sees, not internal calls.
-- **Keep tests fast and deterministic.** Seed the RNG in tests. No real network, no real Firebase — mock `services/`.
+- **Keep tests fast and deterministic.** Seed the RNG in tests. No real network and no real storage — mock `services/`.
 - Aim for meaningful coverage on logic (recipes, mastery, composer, remediation), not 100% everywhere. UI components need light smoke tests, not exhaustive ones.
 
-## 4. Data / Firestore conventions
+## 4. Data conventions
 
-- **Single source of truth for shapes.** Document every Firestore shape in `ARCHITECTURE.md`. Don't invent ad-hoc fields.
-- **Everything hangs under the auth UID** (anonymous-first), surviving the anonymous→Google link untouched. Path pattern:
-  ```
-  users/{uid}/children/{childId}/profile
-  users/{uid}/children/{childId}/skills/{skillId}
-  users/{uid}/children/{childId}/sessions/{sessionId}
-  users/{uid}/children/{childId}/streak
-  ```
-- **Skill state doc** (`skills/{skillId}`): `level (0-5)`, `difficulty (1-3)`, `lastSeen`, `nextDue`, `attempts`, `correct`, `misconceptions{tag:count}`, `recentParams[]` (last ~20, repeat-avoidance).
-- **Write batched/coalesced.** Group fields updated together into one write (e.g. one `skills/{id}` update per session, not per question). Minimize Firestore round-trips (cost + offline behavior).
-- **Never store** secrets, API keys, PII beyond what's needed, or anything sensitive in client-readable docs. Firebase config env vars only via `VITE_*` + Netlify env.
-- **Security rules matter** (later task): a user can only read/write their own `users/{uid}/...`. Note it; implement at the billing/launch stage.
-- **Reads are progressive.** Show cached/partial data immediately; never block the whole UI on a network read.
+- **Single source of truth for shapes.** Document every stored shape in `ARCHITECTURE.md`.
+  Don't invent ad-hoc fields.
+- **Storage today is device-local** (DECISIONS 2026-08-14, 2026-08-15): one key per concern,
+  prefixed `tinku:v1:`, read and written only through a service in `src/services/`.
+  `tinku:v1:skills` holds `{ version, skills: { [skillId]: skillState } }`; the skill-state
+  shape is owned by `mastery.js` (`emptySkillState`) and mirrored by an allowlist in
+  `progressBackup.js`, so a new field cannot silently enter an export.
+- **Keyed by `skillId` only.** No user id, no child id, no name, no age, nothing that
+  identifies a person. This is what keeps the store outside DPDP's children's provisions, so
+  it is a hard rule, not a convention.
+- **Write once per session, not per question.** `applyResult` produces one new skill state; the
+  hook saves it once at session end.
+- **Never store** secrets, API keys, or personal data of any kind.
 - **No personal data in URLs or query strings.**
+- **Deferred (not current design):** accounts, cloud sync and the `users/{uid}/children/
+  {childId}/…` document model. Parked pending a lawyer consult (DECISIONS 2026-08-14); git
+  history holds the original design.
 
 ## 5. Performance & layout (low-end Android is the target)
 

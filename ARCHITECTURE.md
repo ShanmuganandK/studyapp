@@ -15,11 +15,11 @@ proven behind a flag, then deleted. See **Migration strategy** below.
 | `src/recipes/`      | **NEW.** Pure question generators (the recipe contract).               |
 | `src/engine/`       | **NEW** (scaffold). Pure core logic: mastery, spaced-rep, composer, remediation. |
 | `src/hooks/`        | **NEW** (scaffold). React orchestration: session flow, mastery updates. |
-| `src/services/`     | **NEW** SDK boundary (auth/firestore/billing) — but currently also holds **FROZEN** legacy popup-first auth (`authService.js`, `firebaseAdapter.js`, `localAdapter.js`). |
+| `src/services/`     | Device-local persistence (`progressStore.js`, `testSettings.js`, `progressBackup.js`), the inert auth seam (`authService.js` → `localAdapter.js`, null-user, no Firebase — DECISIONS 2026-08-15), the inert analytics seam (`analytics.js`), and `sound.js`. No external SDK is touched anywhere in this folder today. |
 | `src/config/`       | **NEW.** Config modules — `brand.js` (**the product name, single source** — see below), `constants.js` (app-wide constants, e.g. `FEEDBACK_WHATSAPP_NUMBER`, `PRIVACY_NOTICE`), `privacyPolicy.js` (**the published privacy policy, as data** — see below), `flags.js` (migration feature flags), `masteryConfig.js` (mastery + spaced-rep tunables), `composerConfig.js` (composer tunables). |
 | `src/components/`   | Presentational React UI (screens, modules, dashboard). The migration bridge. The child-reachable flow is now entirely new (skill-select → recipe quiz); legacy screens stay on disk but FROZEN/unreachable (see **App flow & screens**). |
 | `src/contexts/`     | React contexts (e.g. `AuthContext`). Legacy until auth is rebuilt.     |
-| `src/lib/`          | **FROZEN.** Legacy Firebase init (`firebase.js`).                       |
+| `src/lib/`          | **Gone.** Held the legacy Firebase init (`firebase.js`); deleted in the 2026-08-15 de-Firebase change, folder no longer exists. |
 | `src/utils/`        | **FROZEN.** Legacy question path (generators, factory) + `masteryEngine.js`. |
 | `src/data/`         | **FROZEN.** Legacy stored questions/syllabus (`questions*`, JSON banks). |
 | repo root docs      | `CLAUDE.md`, `DOCMAP.md`, `DECISIONS.md`, `STANDARDS.md`, `RECIPE_TEMPLATE.md`. See `DOCMAP.md` for what every document is and who may write it. |
@@ -175,18 +175,21 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   decomposition ("H hundreds, T tens and O ones make ?") so `correctAnswer` is independently
   re-derivable from the digits in the text, per RECIPE_TEMPLATE's own guidance for skills that
   can't carry digits any other way. Ceiling 199/599/999 on the value. A zero tens digit is
-  deliberately drawn ~40% of the time (`ZERO_TENS_CHANCE`) — **note this no longer keeps
-  `zero-placeholder-ignored` reachable, see below.** Distractors: `expanded-concatenation`,
+  deliberately drawn ~40% of the time (`ZERO_TENS_CHANCE`). Distractors: `expanded-concatenation`,
   `zero-placeholder-ignored` (both scoped to a zero tens digit, per the doc's own example),
   `digit-value-blindness` (always), `reverse-period-reading` (palindrome-guarded). **Selection
   goes through `_plausibility.js`'s `selectDistractors`** — this recipe was the worst case in the
   kid-test plausibility audit (44–49% of questions fully determined by elimination): the three
   implausible candidates were listed before `reverse-period-reading` (the one usually-plausible
-  one), which the shared selector no longer lets happen. **New known consequence, reported not
-  fixed:** `expanded-concatenation` and `zero-placeholder-ignored` are BOTH always implausible
-  when `t===0`, and `expanded-concatenation` is listed first, so it always wins the one
-  implausible slot — `zero-placeholder-ignored` is now structurally unreachable (see TRACKER.md
-  2026-08-25). **Also deliberately absent from
+  one), which the shared selector no longer lets happen. **Corrected — this paragraph used to say
+  `zero-placeholder-ignored` was structurally unreachable** because `expanded-concatenation` was
+  listed first and always won the one implausible slot. That was already fixed by the same
+  2026-08-25 amendment that fixed the analogous `addition2d.js` case (random tie-break among tied
+  implausible candidates via the recipe's seeded rng) — this paragraph was simply never updated to
+  match. **Measured, 20,000 seeded questions per difficulty:** `zero-placeholder-ignored` fires on
+  ~13–14% of questions at every difficulty (`expanded-concatenation` at a comparable ~13–14%),
+  roughly half of the ~27% where `t===0` makes both tags available — consistent with an even random
+  split. **Also deliberately absent from
   `KIND_BY_RECIPE`** — it's `mcq`, not `count-objects`, so the `'count'` kind would read a
   `render.count` that doesn't exist on this skill's questions.
 - **`__tests__/validator.test.js`** — the shared validator (STANDARDS §3). For each recipe and
@@ -195,12 +198,13 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   pass it before merge. **Plausibility guard** (added for the kid-test fix): asserts at most one
   implausible distractor per question (`isImplausible` from `_plausibility.js`), for every skill
   with a `PLAUSIBILITY_KIND` entry (`add`/`sub`/`mul`/`place` — `compare` and `count-objects`
-  have no monotonic rule defined, out of scope). Skips questions whose `correctAnswer <
-  MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY` (2) — a principled, answer-magnitude condition (not a
-  per-skill exemption): below that, `_plausibility.js` proves the ratio rule admits at most one
-  non-answer integer, so "≤1 implausible" is mathematically impossible, not a bug this guard
-  should catch. Proven red on `addition2d.js` (temporarily reverted to naive first-N selection,
-  watched it fail, restored).
+  have no monotonic rule defined, out of scope). **No small-answer skip.** An earlier version of
+  this guard exempted `correctAnswer < MIN_ANSWER_WITH_GUARANTEED_PLAUSIBILITY` (2); the
+  `PLAUSIBLE_ABSOLUTE_TOLERANCE` floor added in the 2026-08-25 amendment (see `_plausibility.js`
+  above) made that exemption unnecessary — every answer, including 0 and 1, now always has enough
+  genuinely plausible nearby integers — so the constant and the skip were deleted, and the guard
+  runs on every generated question, unconditionally. Proven red on `addition2d.js` (temporarily
+  reverted to naive first-N selection, watched it fail, restored).
 - **`__tests__/structuralConstraints.test.js`** — asserts `addition2d.js`/`subtraction2d.js`'s
   carry/borrow guarantee as a TEST, not just a comment: 200 runs per difficulty confirm
   `g2.add.2d-nocarry`/`g2.sub.2d-noborrow` never require a carry/borrow and their carry/borrow
@@ -499,9 +503,11 @@ level-5-hard-difficulty gate, the `DIFFICULTY_UP_STREAK` consecutive-session rul
 just-mastered vs in-review, regression recovery, all boundary ratios, 0-attempt edge case,
 determinism.
 
-**Depends on it (later tasks):** session composer (reads `nextWorkingDifficulty` +
-`isDueForReview`), persistence layer (saves `applyResult` output to Firestore), parent
-dashboard (reads `level` + `misconceptions`). None of those are wired yet.
+**Depends on it, wired today:** the session composer (`SkillSelectScreen.jsx` calls
+`recommendNext`, which reads `nextWorkingDifficulty` + `isDueForReview`); `progressStore.js`
+(wired via `useQuizSession.js`, saves `applyResult` output to `localStorage`, not Firestore —
+MVP is device-local, DECISIONS 2026-08-14); and the parent dashboard (reads `level` +
+`misconceptions`). All three have been wired for weeks, not "later tasks."
 
 ### Practice composer (`src/engine/composer.js` + `src/config/composerConfig.js`)
 
@@ -624,8 +630,9 @@ above. Behind the parent gate, in `ParentDashboard`.
 ### Test settings — parent test panel (`src/services/testSettings.js` + `src/hooks/useTestSettings.js` + `src/components/TestPanel.jsx`)
 
 A parent-zone **TEST INSTRUMENT** (TRACKER #10) — theme + grade controls for kid-testing on a real
-device. **Not a shipped feature, nothing kid-facing:** there is deliberately no kid-reachable theme
-picker (DECISIONS-level call). Lives behind the parent gate inside `ParentDashboard`.
+device. **Shipped and visible to public parents** (DECISIONS 2026-09-23 — the panel stays visible
+at launch, founder call), but **still nothing kid-facing:** there is deliberately no kid-reachable
+theme picker (DECISIONS-level call). Lives behind the parent gate inside `ParentDashboard`.
 
 - **`testSettings.js`** — the storage seam (mirrors `progressStore.js`: own key, try/catch,
   `logger.warn`, graceful defaults). Key **`tinku:v1:testSettings`**, shape
@@ -701,8 +708,13 @@ TRACKER Now #9. Tests: `components/__tests__/GradePickerScreen.test.jsx` (render
 
 Returns a live `isOnline: boolean` (initialised from `navigator.onLine`, updated via
 `window online/offline` events). Used by `Layout` to conditionally render the offline
-banner — a gentle `bg-learn-soft` strip that tells the child Tinku can still play and
-that progress will sync on reconnect. Non-blocking: the session continues normally.
+banner — a gentle `bg-learn-soft` strip reading (verbatim) **"You're offline — Tinku can
+still play! Progress saves when you reconnect."** Non-blocking: the session continues
+normally. **Flagged, not fixed here (see the docs-staleness-sweep report):** the banner's
+own wording is inaccurate against the current architecture — progress saves to `localStorage`
+via `progressStore.js` on session complete regardless of connectivity; there is no server to
+reconnect to and nothing ever syncs (STANDARDS §2). The copy reads as though the app used to
+have a real sync model. Rewording is a human/copy decision, not made here.
 
 ### Session wiring (`src/hooks/useQuizSession.js`) — mastery in/out
 
@@ -853,9 +865,10 @@ mute logic, event mapping, note counts, and silent resilience to API failures.
 ### Analytics seam (`src/services/analytics.js`) — INERT no-op
 
 MVP ships with **no analytics whatsoever** (DECISIONS 2026-07-16): no Firebase Analytics SDK in the
-build, no telemetry (`firebase` is retained for **auth only** — `firebase/analytics`/`getAnalytics`
-is imported nowhere). `logEvent(name, params)` is a deliberate **no-op** — emits nothing (no console,
-no network, no Firebase). The **seam pattern**: feature code keeps calling `logEvent(...)` at its 6
+build, no telemetry. **`firebase` is not retained for anything** — the dependency, `lib/firebase.js`
+and `firebaseAdapter.js` were fully removed in the 2026-08-15 de-Firebase change (confirmed: no
+`firebase` entry in `package.json`, no source file imports it). `logEvent(name, params)` is a
+deliberate **no-op** — emits nothing (no console, no network, no Firebase). The **seam pattern**: feature code keeps calling `logEvent(...)` at its 6
 call-sites (all in `useQuizSession.js`), so when analytics returns — **post-traction, only behind
 verified parental consent** — ONLY this file changes; call-sites stay identical. Guard test
 `__tests__/analytics.test.js` asserts the API is callable, emits nothing, and that no source file
@@ -939,9 +952,13 @@ new-core replacement is proven behind a flag, then deleted (see Migration strate
 - `utils/generators/mathGenerators.js` (Math.random generators), `utils/questionFactory.js`
   (router), `data/questions*` + JSON banks (stored questions) → replaced by `src/recipes/`.
 - `utils/masteryEngine.js` (slot-based "3-in-a-row") → replaced by `src/engine/`.
-- `services/authService.js` + `firebaseAdapter.js`/`localAdapter.js` (popup-first auth),
-  `lib/firebase.js`, and localStorage app state → replaced by anonymous-first
-  `src/services/` + Firestore.
+- The popup-first Firebase auth (`firebaseAdapter.js`, `lib/firebase.js`) this bullet
+  originally named is **gone, not frozen** — deleted in the 2026-08-15 de-Firebase change.
+  `services/authService.js` + `localAdapter.js` still exist but are no longer legacy: they
+  are the current, active, inert null-user seam (DECISIONS 2026-08-15), not code awaiting
+  replacement. **localStorage app state is likewise not legacy** — it is the intended MVP
+  architecture (DECISIONS 2026-08-14), not something slated for a Firestore swap; cloud sync
+  is deferred behind a lawyer-gated decision, not scheduled.
 
 New work targets the new-core folders; new code never imports these.
 
@@ -994,11 +1011,14 @@ these directly; screens fall back to `name` when absent. Star emoji reserved for
 
 ---
 
-## Data model (Firestore)
+## Data model (device-local)
 
-See STANDARDS §4 for the full shape (not yet implemented). Path pattern:
-`users/{uid}/children/{childId}/{profile|skills|sessions|streak}`. Recorded here as modules
-land.
+See STANDARDS §4 for the full shape. Storage today is `localStorage`, one key per concern,
+prefixed `tinku:v1:` (`tinku:v1:skills` for mastery state, `tinku:v1:testSettings` for the
+parent test panel), keyed by `skillId` only — no user id, no child id (DECISIONS 2026-08-14,
+2026-08-15). The `users/{uid}/children/{childId}/{profile|skills|sessions|streak}` Firestore
+path pattern is the **deferred, not current** post-validation design — parked pending a lawyer
+consult; git history holds the original shape.
 
 ---
 
