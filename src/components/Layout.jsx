@@ -30,7 +30,7 @@ const Layout = ({ children, currentView, onNavigate, scrollLocked = false }) => 
         {!isOnline && (
           <div className="bg-learn-soft text-learn-ink text-xs py-2 px-4 flex-shrink-0 flex items-center justify-center gap-2" role="status">
             <img src={tinkuImg} alt="" aria-hidden="true" className="w-7 h-7 object-contain flex-shrink-0" />
-            <span>You're offline — Tinku can still play! Progress saves when you reconnect.</span>
+            <span>You're offline — Tinku can still play! Progress is saved on this device.</span>
           </div>
         )}
 

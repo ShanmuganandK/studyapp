@@ -709,12 +709,12 @@ TRACKER Now #9. Tests: `components/__tests__/GradePickerScreen.test.jsx` (render
 Returns a live `isOnline: boolean` (initialised from `navigator.onLine`, updated via
 `window online/offline` events). Used by `Layout` to conditionally render the offline
 banner — a gentle `bg-learn-soft` strip reading (verbatim) **"You're offline — Tinku can
-still play! Progress saves when you reconnect."** Non-blocking: the session continues
-normally. **Flagged, not fixed here (see the docs-staleness-sweep report):** the banner's
-own wording is inaccurate against the current architecture — progress saves to `localStorage`
-via `progressStore.js` on session complete regardless of connectivity; there is no server to
-reconnect to and nothing ever syncs (STANDARDS §2). The copy reads as though the app used to
-have a real sync model. Rewording is a human/copy decision, not made here.
+still play! Progress is saved on this device."** Non-blocking: the session continues
+normally. **Corrected** (was "Progress saves when you reconnect", flagged by the
+docs-staleness-sweep as implying save was gated on reconnecting to a server — wrong;
+`progressStore.js` writes to `localStorage` on session complete unconditionally and nothing
+ever syncs, STANDARDS §2). Guarded by `src/components/__tests__/Layout.test.jsx`, which also
+asserts the banner never reintroduces a sync/reconnect/upload/cloud claim.
 
 ### Session wiring (`src/hooks/useQuizSession.js`) — mastery in/out
 
