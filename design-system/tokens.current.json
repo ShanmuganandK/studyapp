@@ -1,0 +1,458 @@
+{
+ "name": "Tinku Math",
+ "version": 1,
+ "meta": {
+  "source": "github",
+  "repo": "ShanmuganandK/studyapp",
+  "ref": "claude/intelligent-fermat-1ygylo@1eb5d4a",
+  "package": ".",
+  "paths": {
+   "tokens": [
+    "src/index.css",
+    "tailwind.config.js",
+    "design-handoff/tokens.json"
+   ],
+   "fonts": [
+    "@fontsource-variable/nunito 5.2.7",
+    "@fontsource-variable/baloo-2 5.2.7 (npm, as main.jsx imports)"
+   ],
+   "assets": [
+    "design-handoff/mascot/",
+    "public/pwa-512x512.png",
+    "design-handoff/screenshots/"
+   ],
+   "docs": [
+    "design-handoff/README.md",
+    "design-handoff/docs/ui-overhaul-design-direction.md",
+    "CLAUDE.md"
+   ]
+  },
+  "components": {},
+  "synced": "2026-10-03"
+ },
+ "color": {
+  "themes": [
+   {
+    "id": "wonder",
+    "name": "Wonder (default)"
+   },
+   {
+    "id": "sunset",
+    "name": "Sunset Sands (test)"
+   },
+   {
+    "id": "bubblegum",
+    "name": "Bubblegum (test)"
+   },
+   {
+    "id": "deepsea",
+    "name": "Deep Sea (dark test)"
+   }
+  ],
+  "tokens": [
+   {
+    "name": "color-bg",
+    "value": {
+     "wonder": "#f0f9ff",
+     "sunset": "#fff7ed",
+     "bubblegum": "#fdf4ff",
+     "deepsea": "#0f2740"
+    },
+    "usage": "Screen background — airy sky. Every kid and parent screen sits on it."
+   },
+   {
+    "name": "color-bg-card",
+    "value": {
+     "wonder": "#ffffff",
+     "sunset": "#ffffff",
+     "bubblegum": "#ffffff",
+     "deepsea": "#1c3d5c"
+    },
+    "usage": "Cards, idle answer tiles (gradient start), trays, bottom nav, modals."
+   },
+   {
+    "name": "color-primary",
+    "value": {
+     "wonder": "#4f46e5",
+     "sunset": "#9d3d8f",
+     "bubblegum": "#7e22ce",
+     "deepsea": "#93b4ff"
+    },
+    "usage": "Indigo structure: CTA fill (white text on it), idle answer-tile text, active nav icon, in-progress mastery pips. Reads 6.3:1 on color-bg-card."
+   },
+   {
+    "name": "color-primary-soft",
+    "value": {
+     "wonder": "#e0e7ff",
+     "sunset": "#fae8f5",
+     "bubblegum": "#f3e8ff",
+     "deepsea": "#2b4f74"
+    },
+    "usage": "Soft indigo: idle tile 4px border, active-nav pill, empty pips, path line, card borders."
+   },
+   {
+    "name": "color-primary-ink",
+    "value": {
+     "wonder": "#3730a3",
+     "sunset": "#6b2461",
+     "bubblegum": "#581c87",
+     "deepsea": "#dbe7ff"
+    },
+    "usage": "Deep indigo: headings, titles and big kid-facing numbers/equations on color-bg and color-bg-card."
+   },
+   {
+    "name": "color-primary-tint",
+    "value": {
+     "wonder": "#eef2ff"
+    },
+    "usage": "Gradient end of .kid-tile-idle (color-bg-card → color-primary-tint). Its own hue, not an alpha of primary. Not overridden by any alternate palette — in deepsea the tile gradient still ends on this light tint (flagged)."
+   },
+   {
+    "name": "color-accent",
+    "value": {
+     "wonder": "#fbbf24",
+     "sunset": "#f59e0b",
+     "bubblegum": "#fbbf24",
+     "deepsea": "#fcd34d"
+    },
+    "usage": "REWARD ONLY: mastered ring, mastered pips, celebration stars, the \"N skills mastered\" card. Never for warnings, review-due or wrong answers."
+   },
+   {
+    "name": "color-accent-soft",
+    "value": {
+     "wonder": "#fef3c7",
+     "sunset": "#fef3c7",
+     "bubblegum": "#fef3c7",
+     "deepsea": "#4a3f1c"
+    },
+    "usage": "Reward card background (gold \"N skills mastered\" card, mastery-up beat). color-ink on it."
+   },
+   {
+    "name": "color-success",
+    "value": {
+     "wonder": "#22c55e",
+     "sunset": "#16a34a",
+     "bubblegum": "#22c55e",
+     "deepsea": "#4ade80"
+    },
+    "usage": "Correct answer: tile fill + border, compare blank fill. White text on it reads only 2.28:1 in wonder — kept as the source has it; flagged."
+   },
+   {
+    "name": "color-success-soft",
+    "value": {
+     "wonder": "#dcfce7",
+     "sunset": "#dcfce7",
+     "bubblegum": "#dcfce7",
+     "deepsea": "#1c4532"
+    },
+    "usage": "Pale correct tint for success surfaces."
+   },
+   {
+    "name": "color-encourage",
+    "value": {
+     "wonder": "#fb9a7d",
+     "sunset": "#fb9a7d",
+     "bubblegum": "#fb9a7d",
+     "deepsea": "#fca98f"
+    },
+    "usage": "Wrong answer (soft coral, never red, never amber): wrong-tile 4px border."
+   },
+   {
+    "name": "color-encourage-soft",
+    "value": {
+     "wonder": "#ffede6",
+     "sunset": "#ffede6",
+     "bubblegum": "#ffede6",
+     "deepsea": "#4d2a1e"
+    },
+    "usage": "Wrong-tile fill."
+   },
+   {
+    "name": "color-encourage-ink",
+    "value": {
+     "wonder": "#c2410c",
+     "sunset": "#c2410c",
+     "bubblegum": "#c2410c",
+     "deepsea": "#ffd9c9"
+    },
+    "usage": "Text on color-encourage-soft (wrong-tile label) — 4.56:1, warm and readable, not alarming."
+   },
+   {
+    "name": "color-learn",
+    "value": {
+     "wonder": "#7dd3fc",
+     "sunset": "#7dd3fc",
+     "bubblegum": "#7dd3fc",
+     "deepsea": "#7dd3fc"
+    },
+    "usage": "Hint / learning sky: hint-bubble border, \"Tinku suggests\" path ring, compare wrong-reveal fill."
+   },
+   {
+    "name": "color-learn-soft",
+    "value": {
+     "wonder": "#e0f2fe",
+     "sunset": "#e0f2fe",
+     "bubblegum": "#e0f2fe",
+     "deepsea": "#14384d"
+    },
+    "usage": "Hint-bubble fill, \"currently working on\" strip, offline banner."
+   },
+   {
+    "name": "color-learn-ink",
+    "value": {
+     "wonder": "#0369a1",
+     "sunset": "#0369a1",
+     "bubblegum": "#0369a1",
+     "deepsea": "#bae6fd"
+    },
+    "usage": "Text on color-learn-soft and color-bg: hint text, \"Tinku suggests!\" label (5.2:1)."
+   },
+   {
+    "name": "color-review",
+    "value": {
+     "wonder": "#14b8a6",
+     "sunset": "#0d9488",
+     "bubblegum": "#14b8a6",
+     "deepsea": "#2dd4bf"
+    },
+    "usage": "Review-due ONLY (\"come back to this\"): teal ring and ↻ cue. Any future \"needs attention\" state inherits teal, never amber. Its label text uses color-ink."
+   },
+   {
+    "name": "color-ink",
+    "value": {
+     "wonder": "#1e293b",
+     "sunset": "#44313d",
+     "bubblegum": "#3b2f4a",
+     "deepsea": "#e8eef6"
+    },
+    "usage": "Primary body and question-sentence text on color-bg, color-bg-card, color-accent-soft and color-learn-soft (≥12:1)."
+   },
+   {
+    "name": "color-muted",
+    "value": {
+     "wonder": "#64748b",
+     "sunset": "#8a7280",
+     "bubblegum": "#7c6f8a",
+     "deepsea": "#9bb0c6"
+    },
+    "usage": "Secondary text: subtitles, path node descriptions, parent meta. 4.76:1 on color-bg-card but 4.46:1 on color-bg (wonder), 4.12 in sunset — just under 4.5; flagged, kept as source."
+   }
+  ]
+ },
+ "type": {
+  "fonts": [
+   {
+    "family": "Nunito Variable",
+    "file": "fonts/nunito-latin-wght-normal.woff2",
+    "weight": "200 1000",
+    "style": "normal"
+   },
+   {
+    "family": "Baloo 2 Variable",
+    "file": "fonts/baloo-2-latin-wght-normal.woff2",
+    "weight": "400 800",
+    "style": "normal"
+   }
+  ],
+  "families": {
+   "body": "\"Nunito Variable\", Nunito, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+   "display": "\"Baloo 2 Variable\", \"Baloo 2\", system-ui, sans-serif"
+  },
+  "groups": [
+   {
+    "name": "Kid display",
+    "family": "display",
+    "styles": [
+     {
+      "name": "question",
+      "fontSize": "4.75rem",
+      "lineHeight": 1.5,
+      "fontWeight": 800,
+      "letterSpacing": "0.025em",
+      "sample": "27 + 1 = ?",
+      "usage": "Compact equations in the quiz (text-question). Fluid in code: clamp(3rem, 9vh, 4.75rem) — this is the ceiling. color-primary-ink plus .kid-num-3d. Prompts over 20 chars drop to prompt."
+     },
+     {
+      "name": "option",
+      "fontSize": "2.25rem",
+      "lineHeight": 1.5,
+      "fontWeight": 800,
+      "sample": "14",
+      "usage": "Answer-tile label (KidButton). Fluid: clamp(1.75rem, 6vw, 2.25rem)."
+     },
+     {
+      "name": "title",
+      "fontSize": "2.25rem",
+      "lineHeight": 1.5,
+      "fontWeight": 800,
+      "sample": "What shall we practise?",
+      "usage": "Screen titles and \"Great job!\" in color-primary-ink. Fluid: clamp(1.6rem, 6vw, 2.25rem)."
+     }
+    ]
+   },
+   {
+    "name": "Body",
+    "family": "body",
+    "styles": [
+     {
+      "name": "prompt",
+      "fontSize": "1.5rem",
+      "lineHeight": 1.5,
+      "fontWeight": 800,
+      "sample": "How many apples are there?",
+      "usage": "Kid-facing question sentence in color-ink (extrabold for count, bold for compare). Fluid: clamp(1.15rem, 4.5vw, 1.5rem)."
+     },
+     {
+      "name": "body",
+      "fontSize": "1.1rem",
+      "lineHeight": 1.5,
+      "fontWeight": 400,
+      "sample": "Follow the path with Tinku!",
+      "usage": "Body and subtitles; parent surfaces. Fluid: clamp(0.95rem, 3.4vw, 1.1rem)."
+     },
+     {
+      "name": "hint",
+      "fontSize": "1rem",
+      "lineHeight": 1.375,
+      "fontWeight": 600,
+      "sample": "Count each one slowly!",
+      "usage": "Hint bubble text (font-semibold leading-snug) in color-learn-ink."
+     }
+    ]
+   }
+  ]
+ },
+ "spacing": {
+  "note": "The app uses Tailwind's default 4px-step scale; these are the named rules the docs fix.",
+  "tokens": [
+   {
+    "name": "gutter",
+    "value": "16px",
+    "usage": "Screen side gutter (px-4)."
+   },
+   {
+    "name": "gutter-wide",
+    "value": "20px",
+    "usage": "Wider screen gutter (px-5)."
+   },
+   {
+    "name": "tap-min",
+    "value": "48px",
+    "usage": "Minimum tap target for every kid control."
+   },
+   {
+    "name": "tile-height-max",
+    "value": "5rem",
+    "usage": "Answer tile height ceiling; fluid clamp(3rem, 11vh, 5rem) in code."
+   }
+  ]
+ },
+ "radius": {
+  "tokens": [
+   {
+    "name": "radius-button",
+    "value": "1rem",
+    "usage": "Answer tiles, CTA buttons (rounded-button)."
+   },
+   {
+    "name": "radius-card",
+    "value": "1.5rem",
+    "usage": "Cards, hint bubble, modal, trays (rounded-card)."
+   },
+   {
+    "name": "radius-full",
+    "value": "9999px",
+    "usage": "Pills, nav pill, mastery pips, path medallions (rounded-full)."
+   }
+  ]
+ },
+ "shadow": {
+  "note": "Static only — never animated. Tints follow each palette's ink/primary channels.",
+  "tokens": [
+   {
+    "name": "shadow-button",
+    "value": {
+     "wonder": "inset 0 2px 2px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(30, 41, 59, 0.06), 0 10px 20px -6px rgba(79, 70, 229, 0.2), 0 5px 10px -3px rgba(30, 41, 59, 0.1)",
+     "sunset": "inset 0 2px 2px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(68, 49, 61, 0.06), 0 10px 20px -6px rgba(157, 61, 143, 0.2), 0 5px 10px -3px rgba(68, 49, 61, 0.1)",
+     "bubblegum": "inset 0 2px 2px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(59, 47, 74, 0.06), 0 10px 20px -6px rgba(126, 34, 206, 0.2), 0 5px 10px -3px rgba(59, 47, 74, 0.1)",
+     "deepsea": "inset 0 2px 2px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(232, 238, 246, 0.06), 0 10px 20px -6px rgba(147, 180, 255, 0.2), 0 5px 10px -3px rgba(232, 238, 246, 0.1)"
+    },
+    "usage": "Layered pillow on answer tiles and CTAs."
+   },
+   {
+    "name": "shadow-card",
+    "value": {
+     "wonder": "0 10px 26px -10px rgba(79, 70, 229, 0.22)",
+     "sunset": "0 10px 26px -10px rgba(157, 61, 143, 0.22)",
+     "bubblegum": "0 10px 26px -10px rgba(126, 34, 206, 0.22)",
+     "deepsea": "0 10px 26px -10px rgba(147, 180, 255, 0.22)"
+    },
+    "usage": "Cards, hint bubble, path medallions."
+   },
+   {
+    "name": "shadow-nav",
+    "value": "0 -4px 6px -1px rgba(0, 0, 0, 0.04)",
+    "usage": "Bottom nav top edge."
+   }
+  ]
+ },
+ "duration": {
+  "note": "Animate transform/opacity only; every one collapses under prefers-reduced-motion.",
+  "tokens": [
+   {
+    "name": "dur-screen",
+    "value": "200ms",
+    "usage": "view-enter screen transition, q-enter question slide."
+   },
+   {
+    "name": "dur-option-in",
+    "value": "180ms",
+    "usage": "opt-in tile entrance; stagger 45ms per tile."
+   },
+   {
+    "name": "dur-correct",
+    "value": "300ms",
+    "usage": "correct-pop on the right tile, with the chime."
+   },
+   {
+    "name": "dur-wrong",
+    "value": "260ms",
+    "usage": "encourage-nudge — gentle 3px sway, never a shake."
+   },
+   {
+    "name": "dur-hint",
+    "value": "360ms",
+    "usage": "hint-pop spring on the bubble."
+   },
+   {
+    "name": "dur-mascot-swap",
+    "value": "120ms",
+    "usage": "Tinku pose cross-fade."
+   },
+   {
+    "name": "dur-breathe",
+    "value": "3.2s",
+    "usage": "Tinku idle breathe loop (4px float)."
+   },
+   {
+    "name": "dur-path-pulse",
+    "value": "1800ms",
+    "usage": "Sonar pulse on the suggested path node."
+   }
+  ]
+ },
+ "easing": {
+  "tokens": [
+   {
+    "name": "ease-spring",
+    "value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+    "usage": "Pops: hint-pop, slot-fill, celebrate-pop, star-pop, card-in-suggest."
+   },
+   {
+    "name": "ease-out",
+    "value": "ease-out",
+    "usage": "Entrances: q-enter, opt-in, rise-in, view-enter."
+   }
+  ]
+ }
+}

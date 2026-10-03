@@ -1,0 +1,68 @@
+/* Preview-page styling only. Component looks mirror the class lists in src/components
+   (KidButton, CTA pattern, HintBubble, MasteryPips, SkillPathScreen); values come from tokens.css. */
+* { box-sizing: border-box; }
+body { margin: 0; }
+.page { padding: 24px 16px 48px; max-width: 1180px; margin: 0 auto; }
+.page-head h1 { font-family: var(--font-display); font-weight: 800; color: var(--color-primary-ink); font-size: 2rem; line-height: 1.15; margin: 4px 0 8px; }
+.eyebrow { margin: 0; font-weight: 700; color: var(--color-learn-ink); font-size: .85rem; letter-spacing: .04em; text-transform: uppercase; }
+.lede, .why { color: var(--color-ink); max-width: 760px; line-height: 1.5; }
+.legend { font-size: .85rem; color: var(--color-ink); }
+h2 { font-family: var(--font-display); color: var(--color-primary-ink); font-size: 1.35rem; margin: 36px 0 4px; }
+code { font-size: .85em; background: var(--color-primary-soft); color: var(--color-primary-ink); padding: 1px 5px; border-radius: 6px; }
+a { color: var(--color-primary); font-weight: 700; }
+
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.cell { border-radius: var(--radius-card); padding: 14px 16px 16px; display: grid; gap: 8px; align-content: start; border: 1px solid var(--color-primary-soft); }
+.cell.rec { outline: 3px solid var(--color-learn); outline-offset: -3px; }
+.cap { margin: 0; font-size: .8rem; font-weight: 700; color: var(--color-ink); }
+
+.cta { font-family: var(--font-body); background: var(--color-primary); color: var(--color-on-primary); font-weight: 700; font-size: 1.125rem; padding: 12px 32px; border: 0; border-radius: var(--radius-button); box-shadow: var(--shadow-button); cursor: pointer; justify-self: start; min-height: 48px; }
+.cta:active { transform: scale(.95); }
+
+.tile { font-family: var(--font-display); font-weight: 800; font-size: 2rem; height: 4.5rem; width: 9rem; display: flex; align-items: center; justify-content: center; border: 4px solid; border-radius: var(--radius-button); box-shadow: var(--shadow-button); }
+.tile.idle { background-image: linear-gradient(180deg, var(--color-bg-card) 0%, var(--color-primary-tint) 100%); border-color: var(--color-primary-soft); color: var(--color-primary); }
+.tile.correct { background: var(--color-success); border-color: var(--color-success); color: var(--color-on-success); }
+.tile.wrong { background: var(--color-encourage-soft); border-color: var(--color-encourage); color: var(--color-encourage-ink); }
+
+.node-title { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 1.25rem; color: var(--color-primary-ink); }
+.muted { margin: 0; color: var(--color-muted); font-size: 1.05rem; }
+
+.ratio { font-size: .8rem; font-weight: 800; justify-self: start; padding: 2px 8px; border-radius: 9999px; }
+.pass, .fail { font-weight: 800; padding: 2px 8px; border-radius: 9999px; }
+/* Badge colours use the system's own grammar: success-soft/ink for pass, encourage for fail (never red). */
+.pass { background: var(--color-success-soft); color: var(--color-ink); }
+.fail { background: var(--color-encourage-soft); color: var(--color-encourage-ink); }
+
+.motion { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 16px; border-radius: var(--radius-card); border: 1px solid var(--color-primary-soft); }
+.bubble { background: var(--color-learn-soft); border: 2px solid var(--color-learn); color: var(--color-learn-ink); border-radius: var(--radius-card); padding: 6px 14px; font-weight: 600; box-shadow: var(--shadow-card); }
+.bubble.pop { animation: hint-pop var(--dur-hint, 360ms) var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both; }
+@keyframes hint-pop { 0% { opacity: 0; transform: translateY(10px) scale(.92); } 60% { opacity: 1; transform: translateY(-2px) scale(1.02); } 100% { opacity: 1; transform: none; } }
+.motion-code { flex-basis: 100%; }
+
+/* components.html */
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.card { background: var(--color-bg-card); border-radius: var(--radius-card); box-shadow: var(--shadow-card); padding: 16px; }
+.pips { display: flex; gap: 6px; }
+.pip { width: 12px; height: 12px; border-radius: 9999px; background: var(--color-primary-soft); }
+.pip.on { background: var(--color-primary); }
+.pip.gold { background: var(--color-accent); }
+.medal { width: 88px; height: 88px; border-radius: 9999px; background: var(--color-bg-card); display: grid; place-items: center; font-size: 40px; border: 6px solid var(--color-primary-soft); box-shadow: var(--shadow-card); }
+.medal.mastered { border-color: var(--color-accent); }
+.medal.suggest { border-color: var(--color-learn); }
+.medal.review { border-color: var(--color-review); }
+.label-suggest { color: var(--color-learn-ink); font-weight: 800; margin: 0; }
+.label-review { color: var(--color-ink); font-weight: 800; margin: 0; }
+.mastered-card { background: var(--color-accent-soft); border-radius: var(--radius-card); padding: 16px; color: var(--color-ink); font-weight: 700; }
+.nav { display: flex; justify-content: space-around; background: var(--color-bg-card); box-shadow: var(--shadow-nav); padding: 8px; border-radius: var(--radius-card); }
+.nav span { padding: 8px 20px; border-radius: 9999px; font-weight: 700; font-size: .85rem; color: var(--color-muted); letter-spacing: .04em; }
+.nav span.active { background: var(--color-primary-soft); color: var(--color-primary); }
+.type-q { font-family: var(--font-display); font-weight: 800; font-size: 4rem; color: var(--color-primary-ink); text-shadow: 0 3px 5px rgba(var(--color-primary-ink-rgb), .22); margin: 0; letter-spacing: .025em; }
+.type-prompt { font-weight: 800; font-size: 1.5rem; margin: 0; }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.sw { border-radius: 12px; overflow: hidden; border: 1px solid var(--color-primary-soft); background: var(--color-bg-card); font-size: .78rem; }
+.sw i { display: block; height: 44px; }
+.sw b, .sw small { display: block; padding: 0 8px; }
+.sw b { padding-top: 6px; }
+.sw small { padding-bottom: 6px; color: var(--color-muted); }
+
+@media (prefers-reduced-motion: reduce) { .bubble.pop { animation: none; } }
