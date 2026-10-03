@@ -1,0 +1,31 @@
+/* Preview-only token file — generated 2026-10-03 from src/index.css (current) plus
+ design-system/tokens.recommended.css (recommended, scoped under .rec). Not imported by the app. */
+@font-face{font-family:'Nunito Variable';font-weight:200 1000;src:url(../../node_modules/@fontsource-variable/nunito/files/nunito-latin-wght-normal.woff2) format('woff2-variations');}
+@font-face{font-family:'Baloo 2 Variable';font-weight:400 800;src:url(../../node_modules/@fontsource-variable/baloo-2/files/baloo-2-latin-wght-normal.woff2) format('woff2-variations');}
+:root{--font-body:'Nunito Variable','Nunito',system-ui,-apple-system,'Segoe UI',sans-serif;--font-display:'Baloo 2 Variable','Baloo 2',system-ui,sans-serif;
+  --radius-button:1rem;
+  --radius-card:1.5rem;
+  --shadow-button:inset 0 2px 2px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(var(--color-ink-rgb), 0.06), 0 10px 20px -6px rgba(var(--color-primary-rgb), 0.20), 0 5px 10px -3px rgba(var(--color-ink-rgb), 0.10);
+  --shadow-card:0 10px 26px -10px rgba(var(--color-primary-rgb), 0.22);
+  --shadow-nav:0 -4px 6px -1px rgba(0, 0, 0, 0.04);
+  --text-question:clamp(3rem, 9vh, 4.75rem);
+  --text-option:clamp(1.75rem, 6vw, 2.25rem);
+  --text-title:clamp(1.6rem, 6vw, 2.25rem);
+  --text-prompt:clamp(1.15rem, 4.5vw, 1.5rem);
+  --text-body:clamp(0.95rem, 3.4vw, 1.1rem);
+}
+.theme-wonder{--color-bg:#f0f9ff;--color-bg-card:#ffffff;--color-primary:#4f46e5;--color-primary-rgb:79, 70, 229;--color-primary-soft:#e0e7ff;--color-primary-ink:#3730a3;--color-primary-ink-rgb:55, 48, 163;--color-primary-tint:#eef2ff;--color-accent:#fbbf24;--color-accent-soft:#fef3c7;--color-success:#22c55e;--color-success-soft:#dcfce7;--color-encourage:#fb9a7d;--color-encourage-soft:#ffede6;--color-encourage-ink:#c2410c;--color-learn:#7dd3fc;--color-learn-soft:#e0f2fe;--color-learn-ink:#0369a1;--color-review:#14b8a6;--color-ink:#1e293b;--color-ink-rgb:30, 41, 59;--color-muted:#64748b;--radius-button:1rem;--radius-card:1.5rem;--shadow-button:inset 0 2px 2px rgba(255, 255, 255, 0.9), 0 2px 4px rgba(var(--color-ink-rgb), 0.06), 0 10px 20px -6px rgba(var(--color-primary-rgb), 0.20), 0 5px 10px -3px rgba(var(--color-ink-rgb), 0.10);--shadow-card:0 10px 26px -10px rgba(var(--color-primary-rgb), 0.22);--shadow-nav:0 -4px 6px -1px rgba(0, 0, 0, 0.04);--text-question:clamp(3rem, 9vh, 4.75rem);--text-option:clamp(1.75rem, 6vw, 2.25rem);--text-title:clamp(1.6rem, 6vw, 2.25rem);--text-prompt:clamp(1.15rem, 4.5vw, 1.5rem);--text-body:clamp(0.95rem, 3.4vw, 1.1rem);--color-on-primary:#ffffff;--color-on-success:#ffffff;}
+.theme-sunset{--color-bg:#fff7ed;--color-bg-card:#ffffff;--color-primary:#9d3d8f;--color-primary-rgb:157, 61, 143;--color-primary-soft:#fae8f5;--color-primary-ink:#6b2461;--color-primary-ink-rgb:107, 36, 97;--color-primary-tint:#eef2ff;--color-accent:#f59e0b;--color-accent-soft:#fef3c7;--color-success:#16a34a;--color-success-soft:#dcfce7;--color-encourage:#fb9a7d;--color-encourage-soft:#ffede6;--color-encourage-ink:#c2410c;--color-learn:#7dd3fc;--color-learn-soft:#e0f2fe;--color-learn-ink:#0369a1;--color-review:#0d9488;--color-ink:#44313d;--color-ink-rgb:68, 49, 61;--color-muted:#8a7280;--color-on-primary:#ffffff;--color-on-success:#ffffff;}
+.theme-bubblegum{--color-bg:#fdf4ff;--color-bg-card:#ffffff;--color-primary:#7e22ce;--color-primary-rgb:126, 34, 206;--color-primary-soft:#f3e8ff;--color-primary-ink:#581c87;--color-primary-ink-rgb:88, 28, 135;--color-primary-tint:#eef2ff;--color-accent:#fbbf24;--color-accent-soft:#fef3c7;--color-success:#22c55e;--color-success-soft:#dcfce7;--color-encourage:#fb9a7d;--color-encourage-soft:#ffede6;--color-encourage-ink:#c2410c;--color-learn:#7dd3fc;--color-learn-soft:#e0f2fe;--color-learn-ink:#0369a1;--color-review:#14b8a6;--color-ink:#3b2f4a;--color-ink-rgb:59, 47, 74;--color-muted:#7c6f8a;--color-on-primary:#ffffff;--color-on-success:#ffffff;}
+.theme-deepsea{--color-bg:#0f2740;--color-bg-card:#1c3d5c;--color-primary:#93b4ff;--color-primary-rgb:147, 180, 255;--color-primary-soft:#2b4f74;--color-primary-ink:#dbe7ff;--color-primary-ink-rgb:219, 231, 255;--color-primary-tint:#eef2ff;--color-accent:#fcd34d;--color-accent-soft:#4a3f1c;--color-success:#4ade80;--color-success-soft:#1c4532;--color-encourage:#fca98f;--color-encourage-soft:#4d2a1e;--color-encourage-ink:#ffd9c9;--color-learn:#7dd3fc;--color-learn-soft:#14384d;--color-learn-ink:#bae6fd;--color-review:#2dd4bf;--color-ink:#e8eef6;--color-ink-rgb:232, 238, 246;--color-muted:#9bb0c6;--color-on-primary:#ffffff;--color-on-success:#ffffff;}
+.theme-wonder.rec{--color-success:#16a34a;--color-muted:#617188;}
+.theme-sunset.rec{--color-muted:#826a78;}
+.theme-bubblegum.rec{--color-success:#16a34a;--color-muted:#786b86;}
+.theme-deepsea.rec{--color-on-primary:#0f2740;--color-on-success:#052e16;--color-primary-tint:#234466;}
+/* recomputed effect layer — same formulas as src/index.css */
+.theme-wonder,.theme-sunset,.theme-bubblegum,.theme-deepsea{
+  --shadow-button: inset 0 2px 2px rgba(255,255,255,0.9), 0 2px 4px rgba(var(--color-ink-rgb),0.06), 0 10px 20px -6px rgba(var(--color-primary-rgb),0.20), 0 5px 10px -3px rgba(var(--color-ink-rgb),0.10);
+  --shadow-card: 0 10px 26px -10px rgba(var(--color-primary-rgb),0.22);
+  background:var(--color-bg);color:var(--color-ink);font-family:var(--font-body);}
+/* DS-5 (recommended) motion tokens — same values as today's hard-coded ones */
+:root{--dur-hint:360ms;--ease-spring:cubic-bezier(0.34, 1.56, 0.64, 1);}

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tinku Math — design-system recommendations (preview)</title>
+<!-- Offline preview. No network: fonts come from ../../node_modules (after npm install), else system fonts. -->
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="preview.css">
+</head>
+<body class="theme-wonder page">
+<header class="page-head">
+  <p class="eyebrow">Recommendations · not adopted · 2026-10-03</p>
+  <h1>Design-system recommendations for the Study app</h1>
+  <p class="lede">Each row shows <b>current</b> (exactly what <code>src/index.css</code> ships) next to <b>recommended</b> (<code>design-system/tokens.recommended.css</code>), in all four palettes. Contrast ratios are computed live from the rendered colours. Details and reasoning: <code>design-system/RECOMMENDATIONS.md</code>. Current components: <a href="components.html">components.html</a>.</p>
+  <p class="legend"><span class="pass">≥ threshold</span> <span class="fail">below threshold</span> · thresholds: 4.5:1 normal text, 3:1 large text (answer tiles are 28px+ extrabold)</p>
+</header>
+
+<section>
+  <h2>DS-1 + DS-2 — text on coloured fills (CTA and correct tile)</h2>
+  <p class="why">CTA and correct-tile labels are a literal <code>text-white</code>. DS-1 adds <code>--color-on-primary</code> / <code>--color-on-success</code> so a palette can pick its own label colour (Deep Sea needs dark text). DS-2 deepens Wonder and Bubblegum green from <code>#22c55e</code> to <code>#16a34a</code> (Sunset already ships it).</p>
+  <div class="grid" data-demo="fills"></div>
+</section>
+
+<section>
+  <h2>DS-3 — secondary text on the screen background</h2>
+  <p class="why"><code>--color-muted</code> sits directly on <code>--color-bg</code> for path subtitles. It passes on white cards today, but not on the sky background.</p>
+  <div class="grid" data-demo="muted"></div>
+</section>
+
+<section>
+  <h2>DS-4 — idle answer tile in Deep Sea</h2>
+  <p class="why">The idle tile is a gradient from <code>--color-bg-card</code> to <code>--color-primary-tint</code>. Deep Sea never overrides the tint, so its tiles fade to near-white. The ratio shown is the label against the bottom of the gradient.</p>
+  <div class="grid" data-demo="tile"></div>
+</section>
+
+<section>
+  <h2>DS-5 — motion as tokens (no visual change)</h2>
+  <p class="why">Same values as today, read from variables instead of hard-coded in each <code>@keyframes</code> rule. Tap to replay. With reduced motion on, nothing moves, which is correct.</p>
+  <div class="motion theme-wonder">
+    <button class="cta" id="replay">Replay hint-pop</button>
+    <div class="bubble" id="bubble">Count each one slowly!</div>
+    <code class="motion-code">animation: hint-pop var(--dur-hint, 360ms) var(--ease-spring) both</code>
+  </div>
+</section>
+
+<section>
+  <h2>DS-6 / DS-7 — need art first</h2>
+  <p class="why">A bundled SVG icon set instead of emoji, and Tinku for loading, empty and error states. Neither has a preview yet, on purpose: both need art direction before anything is drawn. The mascot is never redrawn. See <code>RECOMMENDATIONS.md</code>.</p>
+</section>
+
+<script>
+const THEMES=[['wonder','Wonder'],['sunset','Sunset'],['bubblegum','Bubblegum'],['deepsea','Deep Sea']];
+function col(theme,rec,inner){return `<div class="cell theme-${theme}${rec?' rec':''}"><p class="cap">${THEMES.find(t=>t[0]===theme)[1]} · ${rec?'recommended':'current'}</p>${inner}</div>`;}
+const demos={
+  fills:()=>`<button class="cta">Play again</button><span class="ratio" data-fg=".cta" data-bg=".cta" data-min="4.5"></span>
+             <div class="tile correct">14</div><span class="ratio" data-fg=".correct" data-bg=".correct" data-min="3"></span>`,
+  muted:()=>`<p class="node-title">Big Number Party</p><p class="muted">Numbers up to 20</p><span class="ratio" data-fg=".muted" data-bgvar="--color-bg" data-min="4.5"></span>`,
+  tile:()=>`<div class="tile idle">7</div><span class="ratio" data-fg=".idle" data-bgvar="--color-primary-tint" data-min="3"></span>`
+};
+document.querySelectorAll('[data-demo]').forEach(g=>{
+  const d=g.dataset.demo; let h='';
+  for(const [t] of THEMES){ h+=col(t,false,demos[d]()); h+=col(t,true,demos[d]()); }
+  g.innerHTML=h;
+});
+function rgb(s){const m=s.match(/[\d.]+/g).map(Number);return m.slice(0,3);}
+function lum([r,g,b]){return [r,g,b].map(v=>{v/=255;return v<=0.03928?v/12.92:Math.pow((v+0.055)/1.055,2.4)}).reduce((a,v,i)=>a+v*[0.2126,0.7152,0.0722][i],0);}
+function ratio(a,b){const x=lum(a),y=lum(b);return (Math.max(x,y)+0.05)/(Math.min(x,y)+0.05);}
+function hexToRgb(h){h=h.trim().replace('#','');return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16));}
+document.fonts.ready.then(()=>document.querySelectorAll('.ratio').forEach(el=>{
+  const cell=el.closest('.cell'); const fgEl=cell.querySelector(el.dataset.fg);
+  const fg=rgb(getComputedStyle(fgEl).color);
+  const bg=el.dataset.bgvar?hexToRgb(getComputedStyle(cell).getPropertyValue(el.dataset.bgvar)):rgb(getComputedStyle(cell.querySelector(el.dataset.bg)).backgroundColor);
+  const r=ratio(fg,bg); el.textContent=r.toFixed(2)+':1'; el.className='ratio '+(r>=+el.dataset.min?'pass':'fail');
+}));
+const b=document.getElementById('bubble');
+document.getElementById('replay').onclick=()=>{b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop');};
+</script>
+</body>
+</html>

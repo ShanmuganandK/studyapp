@@ -1,0 +1,56 @@
+/* ─── RECOMMENDED token changes — NOT ADOPTED ────────────────────────────────────────────────
+   Proposal only (2026-10-03). Nothing imports this file; `src/index.css` stays the source of
+   truth. Each block names its recommendation (DS-n in design-system/RECOMMENDATIONS.md).
+   To adopt one: copy its lines into the matching block in src/index.css, add the Tailwind
+   mapping noted beside it, update the components listed in RECOMMENDATIONS.md, and run
+   `npm run lint`, `npm run lint:hex`, `npm run test:run`, `npm run build`.
+   ────────────────────────────────────────────────────────────────────────────────────────── */
+
+/* DS-1 — "on-*" text tokens for text that sits ON a coloured fill.
+   Replaces the literal `text-white` on CTAs (bg-primary) and the correct tile (bg-success).
+   Tailwind: colors { 'on-primary': 'var(--color-on-primary)', 'on-success': 'var(--color-on-success)' } */
+:root {
+  --color-on-primary: #ffffff;   /* 6.29:1 on #4f46e5 */
+  --color-on-success: #ffffff;   /* 3.30:1 on #16a34a (DS-2) — passes AA for large text; option text is ≥28px extrabold */
+}
+.theme-sunset    { --color-on-primary: #ffffff; --color-on-success: #ffffff; }
+.theme-bubblegum { --color-on-primary: #ffffff; --color-on-success: #ffffff; }
+.theme-deepsea {
+  --color-on-primary: #0f2740;   /* 7.38:1 on #93b4ff (white there is 2.06:1) */
+  --color-on-success: #052e16;   /* 8.55:1 on #4ade80 (white there is 1.74:1) */
+}
+
+/* DS-2 — correct-answer green one step deeper in Wonder and Bubblegum.
+   Same hue family, same meaning (green = correct, LOCKED grammar untouched). Sunset already
+   ships this exact value. White label: 2.28:1 → 3.30:1. */
+:root            { --color-success: #16a34a; }
+.theme-bubblegum { --color-success: #16a34a; }
+
+/* DS-3 — secondary text that clears 4.5:1 on the screen background, not only on cards.
+   Each is the current muted mixed a few percent toward its own ink (same hue). */
+:root            { --color-muted: #617188; }  /* was #64748b: 4.46 → 4.66 on bg, 4.97 on bg-card */
+.theme-sunset    { --color-muted: #826a78; }  /* was #8a7280: 4.12 → 4.62 on bg */
+.theme-bubblegum { --color-muted: #786b86; }  /* was #7c6f8a: 4.35 → 4.61 on bg */
+
+/* DS-4 — Deep Sea answer tiles: give the dark palette its own tile-gradient endpoint.
+   Today it inherits Wonder's #eef2ff, so idle tiles fade from dark navy to near-white and the
+   light primary label sits at 1.84:1 at the bottom of the tile. */
+.theme-deepsea   { --color-primary-tint: #234466; }  /* primary #93b4ff on it: 4.89:1 */
+
+/* DS-5 — motion and size tokens, so kid-test tuning is a token change, not a keyframe hunt.
+   Values are exactly today's hard-coded ones; adopting this changes nothing visually.
+   Tailwind: minHeight/minWidth { tap: 'var(--size-tap-min)' } */
+:root {
+  --size-tap-min: 48px;
+  --dur-screen: 200ms;        /* view-enter, q-enter */
+  --dur-option-in: 180ms;     /* opt-in; stagger 45ms per tile stays inline */
+  --dur-correct: 300ms;       /* correct-pop */
+  --dur-wrong: 260ms;         /* encourage-nudge */
+  --dur-hint: 360ms;          /* hint-pop */
+  --dur-celebrate: 250ms;     /* celebrate-pop */
+  --dur-star: 300ms;          /* star-pop */
+  --dur-breathe: 3.2s;        /* mascot-breathe */
+  --dur-path-pulse: 1800ms;   /* path-pulse */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+/* e.g. .animate-hint-pop { animation: hint-pop var(--dur-hint) var(--ease-spring) both; } */
