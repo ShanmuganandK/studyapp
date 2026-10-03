@@ -96,6 +96,7 @@ ask, and the rule gets sharper.
 | `docs-responsive.md` | Responsive rules, test widths (360/320), motion + `prefers-reduced-motion`. | Live |
 | `docs-images.md` | The image-asset recipe, referenced from STANDARDS §5. **Resize to display-size × 3 FIRST, then WebP at Q85–90** — resolution is the bigger saving, not format (the 6 Tinku poses went 3.5 MB → 193 KB this way). Also the loading discipline for frequently-shown art: preload all variants, reserve the container size so layout never shifts, cross-fade on opacity only. | Live |
 | `design-handoff/` | Redesign hand-off pack for Claude Design: README brief (constraints, design system, screen inventory, paste-ready prompt), `tokens.json`, real screenshots, mascot poses, reference copies of tokens/components, and `capture.mjs` to regenerate screenshots. **Reference copies — `src/` stays the source of truth.** Excluded from ESLint. | Live (generated 2026-10-03) |
+| `design-system/` | Design-system **recommendations** for the Study app (DS-1 … DS-8): `RECOMMENDATIONS.md` (what, why, exact change, benefit, effort, priority), `tokens.recommended.css` (proposed token changes, imported by nothing), offline previews comparing current and recommended across all four palettes, and a written-down copy of the current system (`tokens.current.json`, `brand-book.md`, `screens.md`). **Proposals only — `src/index.css` stays the source of truth.** Tracked in TRACKER → "Design-system recommendations". | Live (proposals, 2026-10-03) |
 
 ## Feature specs — written by Chat, consumed by Code
 
