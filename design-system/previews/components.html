@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tinku Math — current components (preview)</title>
+<!-- Offline preview of the CURRENT system, recreated from the class lists in src/components. Not app code. -->
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="preview.css">
+</head>
+<body class="theme-wonder page" id="body">
+<header class="page-head">
+  <p class="eyebrow">Current system · "Tinku's Wonder World"</p>
+  <h1>Components and tokens as shipped</h1>
+  <p class="lede">A static recreation of the app's building blocks from <code>src/index.css</code> and the component class lists. Switch palette:
+    <select id="theme" aria-label="Palette">
+      <option value="wonder">Wonder (default)</option><option value="sunset">Sunset (test)</option>
+      <option value="bubblegum">Bubblegum (test)</option><option value="deepsea">Deep Sea (dark test)</option>
+    </select>
+    <label><input type="checkbox" id="rec"> apply recommendations (DS-1–DS-4)</label>
+    · <a href="index.html">recommendations</a></p>
+</header>
+
+<h2>Colour — locked meanings</h2>
+<div class="swatches" id="swatches"></div>
+
+<h2>Type</h2>
+<div class="card">
+  <p class="type-q">27 + 1 = ?</p>
+  <p class="type-prompt">How many apples are there?</p>
+  <p class="muted">Body / subtitle — Nunito, <code>color-muted</code></p>
+</div>
+
+<h2>KidButton — answer tile (answer tiles only)</h2>
+<div class="row">
+  <div class="tile idle">12</div><div class="tile correct">14</div><div class="tile wrong">13</div>
+</div>
+<p class="why">Idle · correct (green) · wrong (soft coral — never red, never amber).</p>
+
+<h2>CTA and hint bubble</h2>
+<div class="row">
+  <button class="cta">Play again</button>
+  <div class="bubble">Count each one slowly!</div>
+</div>
+
+<h2>Journey path — skill-state grammar</h2>
+<div class="row">
+  <div><div class="medal mastered">🎉</div><div class="pips" style="margin-top:8px"><i class="pip gold"></i><i class="pip gold"></i><i class="pip gold"></i><i class="pip gold"></i><i class="pip gold"></i></div><p class="why">Mastered (amber)</p></div>
+  <div><div class="medal suggest">🎉</div><p class="label-suggest">Tinku suggests!</p><div class="pips"><i class="pip on"></i><i class="pip on"></i><i class="pip on"></i><i class="pip"></i><i class="pip"></i></div></div>
+  <div><div class="medal review">⚖️</div><p class="label-review">↻ Review time!</p></div>
+  <div><div class="medal">➕</div><div class="pips" style="margin-top:8px"><i class="pip"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i><i class="pip"></i></div><p class="why">Idle</p></div>
+</div>
+<p class="why">Emoji shown as the app shows them today — DS-6 proposes a bundled SVG set.</p>
+
+<h2>Parent surfaces</h2>
+<div class="row">
+  <div class="mastered-card">⭐ 3 skills mastered</div>
+</div>
+<div class="nav" style="margin-top:16px;max-width:390px"><span class="active">HOME</span><span>PARENT</span></div>
+
+<script>
+const names=['bg','bg-card','primary','primary-soft','primary-ink','primary-tint','accent','accent-soft','success','success-soft','encourage','encourage-soft','encourage-ink','learn','learn-soft','learn-ink','review','ink','muted'];
+const use={accent:'reward ONLY',success:'correct',encourage:'wrong',learn:'hint / learning',review:'review-due',primary:'structure / CTA',bg:'screen'};
+const body=document.getElementById('body');
+function render(){
+  const cs=getComputedStyle(body);
+  document.getElementById('swatches').innerHTML=names.map(n=>{const v=cs.getPropertyValue('--color-'+n).trim();return `<div class="sw"><i style="background:${v}"></i><b>${n}</b><small>${v}${use[n]?' · '+use[n]:''}</small></div>`;}).join('');
+}
+function apply(){body.className='page theme-'+document.getElementById('theme').value+(document.getElementById('rec').checked?' rec':'');render();}
+document.getElementById('theme').onchange=apply;document.getElementById('rec').onchange=apply;render();
+</script>
+</body>
+</html>

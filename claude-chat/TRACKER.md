@@ -10,7 +10,7 @@
 > artifact behind it. Three claims were checked on 2026-08-15 and three were false
 > (CI wiring, questionnaire v2, the 296 test count). See "Open questions / to trace".
 
-_Last synced: 2026-09-28_
+_Last synced: 2026-10-03_
 
 ---
 
@@ -94,6 +94,31 @@ never networked) — consistent with DECISIONS 2026-07-16, 2026-08-14, 2026-08-1
 2026-08-21. Chat drafts that entry next. The lawyer question below does not block the build.
 
 Owner: human (decisions, protocol), Chat (spec), Code (build).
+
+### Design-system recommendations — to look at (opened 2026-10-03)
+
+**Recommendations only. Nothing here is decided or built.** Full reasoning, exact values and the
+files each one touches are in `design-system/RECOMMENDATIONS.md`. To see them, open
+`design-system/previews/index.html`, which shows current next to recommended in all four
+palettes with live contrast ratios.
+
+**Source:** while the current tokens were being synced from `src/index.css` into a Claude design
+system, every text/fill pair was checked for contrast in every palette. The ratios come from the
+hex values; none were measured on a phone yet.
+
+| # | Item | Status | Detail |
+|---|---|---|---|
+| DS-1 | `--color-on-primary` / `--color-on-success` text tokens | 📋 To review — suggest **P1, before L9** | CTA and correct-tile labels are a literal `text-white` (6 `COLOR_CLASS_EXCEPTIONS`). In Deep Sea that reads at 2.06:1 (CTA) and 1.74:1 (correct tile). The tokens fix this and retire all six exceptions. Size S. |
+| DS-2 | Correct green `#22c55e` → `#16a34a` (Wonder, Bubblegum) | 📋 To review — suggest **P1**; needs human OK (it changes how the reward moment looks; the meaning stays the same) | White label 2.28:1 → 3.30:1, which passes AA for large text. Sunset already ships `#16a34a`. Size XS. |
+| DS-3 | Darken `--color-muted` slightly (3 light palettes) | 📋 To review — suggest P2 | On the sky background, muted text reads 4.12–4.46:1 today. Proposed values reach about 4.6:1, keeping the same hue. Size XS. |
+| DS-4 | Deep Sea `--color-primary-tint` override (`#234466`) | 📋 To review — suggest **P1 while Deep Sea is in testing** | Deep Sea idle tiles fade to Wonder's near-white tint, so the label drops to 1.84:1. With the override it is 4.89:1. Size XS. |
+| DS-5 | Motion durations, easing and the 48px tap size as tokens | 📋 To review — suggest P3, post-launch | No visual change. Kid-test tuning would become a token edit, as design-direction rule 3 asks. Size S. |
+| DS-6 | Bundled SVG icon set in place of emoji medallions | 📋 To review — P3, needs art direction first | Emoji render differently on each Android maker's phones and can't follow the theme. Size M–L. |
+| DS-7 | Tinku for loading, empty and error states | 📋 To review — P3 | Today only the offline banner has Tinku. Map the existing poses first. Size M. |
+| DS-8 | Keep the design-system copy in sync with `src/index.css` | 📋 To review — P2 (process) | `design-system/tokens.current.json` and the Claude design system are mirrors and must not drift. Re-sync both in the same PR as any token change. Size S. |
+
+Owner: human (accept, change or drop each one; DS-2 and DS-6 are look-and-feel calls), Code
+(build whatever is accepted, with guards proven red first).
 
 ## Deploy verification (standing step — added 2026-08-15)
 
