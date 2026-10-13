@@ -43,19 +43,18 @@ export const APP_NAME = PRODUCT_NAME;
  * Who "we" is, e.g. 'operated by <name>, based in the UAE'. Rendered as a sentence in the contact
  * section when set; the policy names no operator while it is empty.
  *
- * TODO(operator): still blank. Play and DPDP transparency both expect an identifiable party, and
- * a policy that says "we" throughout without ever saying who names nobody. This is gated on the
- * pre-launch checklist row "Developer / publisher name" (own name vs. a trade name) — whatever is
- * chosen here MUST match the Play developer name on the listing.
+ * Set 2026-10-13 to the Play developer name ("Stringus", personal account). It MUST keep matching the
+ * developer name on the Play listing — change both together. Rendered as
+ * "<APP_NAME> is <this line>." so it must read as a clause, not a sentence.
  *
  * The brand guard's counterpart in `__tests__/privacyPolicy.test.js` asserts both directions: while
  * this is empty the policy must name no operator AND this TODO marker must survive, so the reminder
  * cannot be quietly deleted; once it is set, the line must actually appear on both surfaces.
  */
-export const OPERATOR_LINE = '';
+export const OPERATOR_LINE = 'operated by Stringus, based in the UAE';
 
 /** Shown to the reader and re-published on every change. Update when the text changes. */
-export const LAST_UPDATED = '12 October 2026';
+export const LAST_UPDATED = '13 October 2026';
 
 /** Grievance/contact address. Also the Rule 9 contact if Layer 2 ever returns. */
 export const CONTACT_EMAIL = 'tinku@stringus.com';
