@@ -155,9 +155,9 @@ We target under-13s, so the programme applies. This task settles the **policy** 
 - [ ] `Last updated` in `src/config/privacyPolicy.js` matches the date actually published.
 - [x] App name in the manifest matches the name in the policy and the listing (§4) — done and
       guarded 2026-08-16. Enter `Tinku Math: Maths for Kids` as the listing title.
-- [ ] **`OPERATOR_LINE` is still blank** — the policy names no operator. Decide own name vs. trade
-      name (it must match the Play developer name), set it in `src/config/privacyPolicy.js`, run
-      `npm run privacy:build`, and redeploy **before** submitting.
+- [x] **`OPERATOR_LINE` set 2026-10-13** to `operated by Stringus, based in the UAE` (developer name
+      "Stringus", personal account). It must match the Play developer name exactly — if the listing
+      name changes, change `src/config/privacyPolicy.js`, run `npm run privacy:build`, redeploy.
 - [ ] Declare the target age band (**Ages 6–8** for Grades 1–2 at launch, Grade 3 planned). The policy states no age, so
       Console is the only place it is asserted.
 - [ ] Re-read §0 against the build being submitted. **If anything in §0 is no longer true, stop
