@@ -35,6 +35,22 @@ progress.
 
 **Success is measured by D7 retention, not revenue.** Build for kids returning tomorrow.
 
+**The motivation, in the decisions that bind every choice** (so a session can reason from it
+instead of guessing):
+
+- **The average learner is the design target and breaks every tie** (DECISIONS 2026-08-25). A
+  strong child shrugs off a bad difficulty jump; an average child decides maths isn't for them
+  and puts the phone down. When a pacing choice is uncertain, take the gentler branch. Inflated
+  scores, speed penalties and countdowns work against the child this app is for.
+- **Never punish.** Wrong answers get a hint and Tinku's encouragement, never red, never a
+  harsh shake; a session never ends on a failure (the mood floor).
+- **Parents are the trust gate.** The app processes no child personal data and says so in a
+  published privacy policy. **A false claim in a children's listing costs more trust than a
+  missing feature**, which is why Grade 3 is "coming soon" instead of promised (DECISIONS
+  2026-09-23). Never claim more than the build does.
+- **Ship, then learn.** The launch itself is the signal source; kid-testing in India resumes
+  post-launch and is **not** a launch gate.
+
 ---
 
 ## ⚠️ Current MVP shape — read this before assuming anything
@@ -54,15 +70,59 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
 
 ---
 
+## Where things stand — orientation snapshot (2026-10-13)
+
+> **This is a snapshot for orientation, not a status document.** `claude-chat/TRACKER.md` is the
+> only status source; if this section and the tracker disagree, **the tracker wins** — and fix
+> this section in the same PR. Verify against the code before repeating any line here publicly.
+
+- **Launch posture (DECISIONS 2026-09-23):** public release for **Grades 1–2**, Grade 3 "coming
+  soon". Live at **`https://tinku.stringus.com`** (permanent origin — moving it wipes every
+  user's `localStorage` progress and strands installed PWAs, so it is never changed casually).
+  Done: domain (L1), first-run grade picker (L3), published contact **`tinku@stringus.com`**
+  and the privacy-policy operator line (**"operated by Stringus, based in the UAE"**). Developer
+  name **Stringus**, **personal** Play Console account (the account ID is not stored in the
+  repo). **Open (mostly human):** Play account verification (L2), **Android build — status
+  unknown, no Capacitor project or dependency exists in the repo (L4, a Code task to
+  investigate)**, phone regression walk on the new domain (L5), store listing + Data Safety +
+  Designed-for-Families (L7), a written success bar (L8), the 12-tester × 14-day closed test (L9).
+- **Content coverage is partial — do not imply otherwise.** `src/recipes/skillMap.js` plans 35
+  skills (Grade 1: 19, Grade 2: 16, Grade 3: none). **17 are `ready`: Grade 1: 7, Grade 2: 10**,
+  all in the number/arithmetic strands (counting, comparing, add/subtract, 2-digit with
+  carry/borrow, 3-digit numbers, ×-tables of 2/5/10). **Not built:** shapes, measurement, time,
+  money, data/pictographs, patterns, sorting, ordinals, tens-and-ones, hundreds, numbers 21–99.
+  Roughly half of those need question formats and art that don't exist yet, plus a teacher
+  review of their distractor rules (TRACKER #7, #12). Store copy and in-app text must describe
+  what exists (counting, add/subtract, place value, the 2/5/10 tables), **not** "the CBSE
+  syllabus". Count the `ready` skills from `skillMap.js`, not from memory or from `README.md`.
+- **Design work in flight.** `design-handoff/` (brief, tokens, screenshots, mascot poses,
+  `capture.mjs`) and `design-system/` (recommendations **DS-1…DS-8**) are **proposals and
+  reference copies, not adopted decisions** — `src/index.css` and `tailwind.config.js` stay the
+  source of truth. Biggest real finding: correct-green with white text is 2.28:1 in the default
+  palette; Deep Sea CTA text is 2.06:1. A redesign must keep the **locked colour grammar**
+  (amber = reward only, green = correct, soft coral = wrong, sky = hint, teal = review-due).
+  The first-run grade picker has a known layout bug (content stops about half-way down).
+
+---
+
 ## Tech stack (do not change without a decision)
 
-- **React 18 + Vite** (SPA), **Tailwind CSS**
-- **PWA** (offline-capable, installable) — primary delivery; **Capacitor** wraps it for Play later
+- **React 18 + Vite** (SPA), **Tailwind CSS v3** (`tailwindcss ^3.4`, `tailwind.config.js`,
+  `@tailwind` directives). **Do not accept a Tailwind v4 bump** (Dependabot proposes one) — v4 is
+  a config/CSS migration, not a lockfile change, and CI goes red. Fonts are self-hosted via
+  Fontsource (Nunito + Baloo 2); no CDN.
+- **PWA** (offline-capable, installable) — primary delivery. **Android/Play packaging is not
+  built:** there is no Capacitor dependency or `android/` project in the repo, so earlier text
+  saying "Capacitor wraps it" describes an intention, not code. Investigating it is TRACKER L4.
 - **Persistence: browser `localStorage`, via the `progressStore` seam.** Keys are prefixed
   `tinku:v1:`. This is the *intended* architecture for MVP, not a shortcut.
 - **No backend. No Firebase. No network calls of any kind from `src/`.**
-- **Deployment:** Netlify (web/PWA); Google Play later
+- **Deployment:** Netlify. Production origin **`https://tinku.stringus.com`** (custom domain);
+  every PR also gets a Netlify deploy preview (the Netlify site itself is still named
+  `shan-studyapp-cbsc`). Google Play later (L2–L9).
 - Target devices: **low-end Android.** Performance matters. Animate only `transform` / `opacity`.
+- Tooling: Node 22 (CI), Vitest, ESLint 9 flat config, Playwright (Chromium) for
+  `scripts/visual-snapshot.mjs` and `design-handoff/capture.mjs`.
 
 > **Firebase was fully removed on 2026-08-15.** A network audit found the Auth SDK initialising
 > on every app start, which made the published claim "nothing leaves the device" untrue. The
@@ -106,15 +166,17 @@ never recipe internals.
 
 ## Guards — these exist to be believed
 
-CI runs on every push and PR: `lint` → `lint:hex` → `test:run` → `build`, then re-runs the
-bundle guard **after** the build. **CI green is the guard** — the test count changes almost
-every commit, so no count is pinned here; check the CI run for the current total.
+CI runs on every push and PR: `lint` → `lint:hex` → `privacy:check` → `test:run` → `build`,
+then re-runs the bundle guard (`noFirebaseAuth.test.js`) **after** the build. **CI green is the
+guard** — the test count changes almost every commit, so no count is pinned here; check the CI
+run for the current total. Run all of these locally before pushing; a push that turns CI red
+costs a cycle.
 
 | Guard | Protects |
 |---|---|
 | `noFirebaseAuth.test.js` | No Google identity endpoints in `dist/`. Backs a published privacy claim. |
 | T91 analytics guard | No analytics SDK in the build. |
-| `privacyPolicy.test.js` | Committed `public/privacy.html` is byte-identical to generator output; page loads no external host; the policy makes no unshipped or unverified claim. |
+| `privacyPolicy.test.js` + `npm run privacy:check` | Committed `public/privacy.html` is byte-identical to generator output; page loads no external host; the policy makes no unshipped or unverified claim; `OPERATOR_LINE` is asserted **both directions** (blank → names nobody + TODO survives; set → reaches both surfaces). |
 | `scripts/check-raw-hex.mjs` | Design-token discipline — no raw hex in components (DECISIONS 2026-07-04 / 07-05). |
 | `scripts/frozen-legacy.mjs` | ONE shared list of frozen paths, so guards can't disagree. |
 
@@ -143,10 +205,24 @@ privacy policy or the store listing gets the second kind.
 `src/utils/generators/`, `src/data/questions*`, `masteryEngine.js` and the other paths in
 `scripts/frozen-legacy.mjs` are never edited — new code never imports them.
 
+**Published text is edited at its source.** The privacy policy lives in
+`src/config/privacyPolicy.js`; `public/privacy.html` is **generated** — change the source, run
+`npm run privacy:build`, commit both, and bump `LAST_UPDATED` when the published words change.
+Never hand-edit the HTML. The published contact is **`tinku@stringus.com`**; `OPERATOR_LINE`
+**must match the Play developer name** ("Stringus") — change both together. Keep personal
+addresses, Play account IDs and any secret out of the repo.
+
 **Deploy verification.** After deploying, confirm the Netlify **Published** commit SHA matches
-`master`. A stale service-worker cache and a genuinely stale published deploy look identical
-from outside, and Netlify serves the last *successful* build indefinitely. Incognito first —
-it bypasses the SW and splits the two in 30 seconds.
+`master`, and that `https://tinku.stringus.com` (the production origin, not a `netlify.app`
+preview) serves it. A stale service-worker cache and a genuinely stale published deploy look
+identical from outside, and Netlify serves the last *successful* build indefinitely. Incognito
+first — it bypasses the SW and splits the two in 30 seconds.
+
+**Don't over-claim content.** Before writing any user-facing or store-facing sentence about what
+the app teaches, count the `ready` skills in `skillMap.js` (see the snapshot above). Plans,
+specs and `README.md` describe intent; `README.md` in particular still lists Grade 1 shapes,
+time and money and a "Candy Land" theme that don't exist — treat it as legacy, not as a feature
+list.
 
 ---
 
@@ -165,6 +241,11 @@ it bypasses the SW and splits the two in 30 seconds.
 `TRACKER.md` is the **only** status document in this repo. Nothing else records what is done.
 `TASK-INDEX.md` deliberately holds no status — if you want to write "T9 is done" there, that
 belongs in `TRACKER.md`.
+
+*Exception, recorded 2026-10-13:* `CLAUDE.md` is normally Chat's, but the human explicitly asked
+Code to refresh it (snapshot, tech-stack and CI corrections). That was a one-off instruction, not a
+standing licence — the "Where things stand" snapshot is the part most likely to go stale, so
+whoever lands a launch-relevant change updates it in the same PR.
 
 **Claude Code / Antigravity split:** Claude Code builds the **first of a kind** (engine, data
 models, contracts, anything expensive-if-buggy). Antigravity **replicates** the rest (remaining
@@ -197,6 +278,15 @@ and kid-testing.
 One branch per task. Small commits. Descriptive messages that say *why*, not just *what*.
 The human reviews and merges. **Don't assume a prior session's uncommitted work exists** —
 and don't assume yours survived; check.
+
+**How work lands in practice:** a task branch → push → a **draft PR** against `master` with the
+checks you ran in its test plan → the human marks it ready and merges. Watch the PR for CI and
+review events and fix red CI yourself. Stacked PRs are fine when a change genuinely depends on
+an unmerged one; retarget to `master` once the base merges. In cloud sessions GitHub is reached
+through the GitHub MCP tools, not the `gh` CLI. **Dependabot PRs** are not auto-safe: read what
+they change (a lockfile-only patch bump with green CI is usually fine; a **major** bump such as
+Tailwind 3→4 needs a real migration or an ignore). **Do not push or merge to `master`
+directly**; the HEAD-check rule at the top of this file still applies.
 
 ---
 
