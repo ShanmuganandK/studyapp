@@ -1,111 +1,130 @@
-# Tinku Math 🎓
+# Tinku Math 🐘
 
-A gamified, interactive maths learning application for Grades 1–2 at launch (Grade 3
-planned — see TRACKER #12), aligned with the NCERT/CBSE curriculum. Built with React, Vite, and
-Tailwind CSS.
+A maths practice app for Indian children in **Grades 1–2** (Grade 3 is planned), built around
+**Tinku**, a friendly blue-grey elephant with a glowing math star. A child practises
+procedurally generated questions, gets a gentle hint when they slip, and comes back over the
+following days as the app schedules revision. Parents get a calm progress view behind a PIN.
 
-> **Naming:** the product is **Tinku Math** everywhere — app, manifest, page title, privacy policy.
-> The name is defined once in [`src/config/brand.js`](src/config/brand.js) and derived by every
-> surface; see DECISIONS 2026-08-16 for why "CBSE" belongs in the description and not in the name.
+**Live:** <https://tinku.stringus.com> · **Contact:** tinku@stringus.com · built solo, targeting
+India, run from Dubai.
 
-> **Test commit**: Google Drive MCP + Git MCP integration verified on 2026-08-13T16:00Z. This comment confirms both connectors are working end-to-end: Google Drive reads, Git read-write, and atomic commits are functional.
+> **For contributors and AI agents:** start with [`CLAUDE.md`](CLAUDE.md). It lists the reading
+> order, the locked decisions and the guards. This README is only an overview.
 
-## 🌟 Features
+## What it is, and what it is not
 
-- **Grade-wise Syllabus**: Structured curriculum aligned with NCERT/CBSE standards.
-  - **Grade 1**: Pre-number concepts, Shapes, Numbers (1-99), Addition/Subtraction, Measurement, Time, Money.
-  - **Grade 2**: Numbers (up to 999), Addition/Subtraction (with carry/borrow), Multiplication, Data Handling.
-- **Interactive Modules**:
-  - **Visual Addition**: Learn counting and addition with emojis.
-  - **Visual Fractions**: Understand parts of a whole with interactive pie charts.
-- **Quiz Engine**: Fun, gamified quizzes with instant feedback and score tracking.
-- **Mobile-First Design**: "Candy Land" themed UI optimized for touch devices.
-- **PWA Support**: Installable on devices for offline learning.
+- **Private by design.** Progress lives in the browser's `localStorage` on the child's own
+  device. There are **no accounts, no cloud, no analytics, no ads and no payments**, and the
+  built app makes no network calls. A CI guard keeps it that way, and the published privacy
+  policy ([`public/privacy.html`](public/privacy.html), generated from
+  [`src/config/privacyPolicy.js`](src/config/privacyPolicy.js)) depends on it.
+- **Offline-first PWA.** Installable, and it works with no connection.
+- **Never punishes.** A wrong answer gets a hint from Tinku, then the answer revealed
+  warmly, never a red cross, and a session never ends on a failure.
+- **Content is still partial.** 17 of the 35 planned Grade 1–2 skills are built (Grade 1: 7,
+  Grade 2: 10), all in number and arithmetic: counting, comparing, addition and subtraction
+  (including 2-digit with carry and borrow), 3-digit numbers, and the 2, 5 and 10 times tables.
+  **Shapes, measurement, time, money, data and patterns are not built yet.** The source of truth
+  is the `status` field in [`src/recipes/skillMap.js`](src/recipes/skillMap.js) (count as of
+  2026-10-13). This is **not** a full-syllabus app.
 
-## 🛠️ Tech Stack
+## How it works
 
-- **Frontend**: React (v18)
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **PWA**: Vite Plugin PWA
+Questions are never stored. Each skill has a **recipe** (a function) that generates unlimited
+questions from a difficulty and a seeded random number generator, following the contract in
+[`RECIPE_TEMPLATE.md`](RECIPE_TEMPLATE.md). Every wrong option is a deliberate, known
+misconception ([`misconceptions-reference.md`](misconceptions-reference.md)), so hints can be
+targeted. A session is 8 questions on one skill; mastery, spaced-repetition review and the
+"Tinku suggests" recommendation are computed from the results.
 
-## 🚀 Getting Started
+The parent zone (behind a 4-digit PIN) shows progress, and can export and import it as a file so
+a family can move devices. There is also a test panel for themes and grade, which children
+cannot reach.
 
-### Prerequisites
-- Node.js (v16 or higher)
-- npm (v7 or higher)
+## Tech stack
 
-### Installation
+React 18 · Vite · Tailwind CSS **v3** · Vitest + React Testing Library · `vite-plugin-pwa` ·
+Lucide icons · fonts self-hosted via Fontsource (Nunito, Baloo 2). Hosted on Netlify. No backend.
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd cbse-math-kids-app
-   ```
+## Getting started
 
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
+Needs **Node 22** (what CI uses).
 
-3. **Start the development server**
-   ```bash
-   npm run dev
-   ```
+```bash
+git clone https://github.com/ShanmuganandK/studyapp.git
+cd studyapp
+npm ci
+npm run dev        # dev server, reachable on your LAN (vite --host)
+```
 
-4. **Build for production**
-   ```bash
-   npm run build
-   ```
+No `.env` file or environment variables are needed.
 
-## 📂 Project Structure
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start the dev server |
+| `npm run build` | Regenerate `public/privacy.html`, then build to `dist/` |
+| `npm run preview` | Serve the built `dist/` locally |
+| `npm run test:run` | Run the full test suite once (`npm test` watches) |
+| `npm run lint` | ESLint (new code only; frozen legacy is excluded) |
+| `npm run lint:hex` | Fail on raw colour values in components (use theme tokens) |
+| `npm run privacy:check` | Fail if `public/privacy.html` is out of sync with its source |
+| `npm run privacy:build` | Regenerate `public/privacy.html` |
+| `npm run visual:capture -- <label>` | Screenshot key screens for before/after comparison |
+
+CI (`.github/workflows/ci.yml`) runs lint → lint:hex → privacy:check → tests → build on every
+push and pull request. Run the same before you push.
+
+## Where things are
 
 ```
 src/
-├── components/         # React components
-│   ├── modules/        # Interactive learning modules (VisualAddition, etc.)
-│   ├── Layout.jsx      # Main app layout (Mobile frame)
-│   ├── QuizEngine.jsx  # Quiz logic and UI
-│   └── Syllabus.jsx    # Navigation component
-├── data/               # Static data files
-│   ├── syllabus.js     # Curriculum structure (Grades -> Topics)
-│   └── questions.js    # Question bank for quizzes
-├── App.jsx             # Main application entry point
-└── main.jsx            # React DOM rendering
+├── recipes/      # question generators, one per skill, plus skillMap.js (the curriculum map)
+├── engine/       # pure logic: mastery, spaced repetition, session composer, hints
+├── hooks/        # session flow and test-settings orchestration
+├── services/     # device-local storage, progress export/import, sound; no network
+├── config/       # brand name, privacy policy text, mastery and composer tunables
+├── components/   # screens and presentational UI
+├── index.css     # design tokens (CSS variables) and animations
+├── utils/, data/ # FROZEN legacy question path; never edited, will be deleted
+public/           # PWA icons and the generated privacy.html
+scripts/          # guards (raw-hex, frozen paths), privacy page generator, simulators
+claude-chat/      # tracker, specs and archive
+design-handoff/   # brief, screenshots and tokens for a redesign (reference only)
+design-system/    # design-system recommendations DS-1…DS-8 (proposals, not adopted)
+documents/        # early planning records, kept as history; not current
 ```
 
-## 🚀 Deployment
+[`ARCHITECTURE.md`](ARCHITECTURE.md) is the detailed, maintained map of the code.
 
-### Deploying to Netlify
+## Deployment
 
-1.  **Push to GitHub**: Ensure your project is pushed to a GitHub repository.
-2.  **Connect to Netlify**:
-    *   Log in to Netlify and click **"Add new site"** > **"Import an existing project"**.
-    *   Select **GitHub** and choose your repository (`cbse-math-kids-app`).
-3.  **Build Settings**: Netlify should auto-detect these:
-    *   **Build command**: `npm run build`
-    *   **Publish directory**: `dist`
-4.  **Environment Variables** (Crucial Step 🔐):
-    *   Go to **Site settings** > **Build & deploy** > **Environment** > **Environment variables**.
-    *   Click **"Add variable"**.
-    *   Add each key from your local `.env` file:
-        *   `VITE_FIREBASE_API_KEY`: (Your value)
-        *   `VITE_FIREBASE_AUTH_DOMAIN`: (Your value)
-        *   `VITE_FIREBASE_PROJECT_ID`: (Your value)
-        *   `VITE_FIREBASE_STORAGE_BUCKET`: (Your value)
-        *   `VITE_FIREBASE_MESSAGING_SENDER_ID`: (Your value)
-        *   `VITE_FIREBASE_APP_ID`: (Your value)
-        *   `VITE_FIREBASE_MEASUREMENT_ID`: (Your value)
-5.  **Deploy**: Click **"Deploy site"**.
+Netlify builds with `npm run build` and publishes `dist/` (see `netlify.toml`). Production is
+served from `https://tinku.stringus.com`; every pull request also gets a deploy preview. After a
+deploy, check that the published commit matches `master`, in an incognito window first, because a
+stale service-worker cache looks identical to a stale deploy (see `CLAUDE.md`).
 
-## 📚 Documentation
+> The address is permanent on purpose. Progress is stored per origin, so changing the domain would
+> wipe every user's progress.
 
-Detailed documentation can be found in the `documents/` directory:
-- [Implementation Plan](documents/implementation_plan.md)
-- [Task List](documents/task.md)
-- [Content Sources](documents/content_sources.md) (NCERT/CBSE mapping)
+## Documentation map
 
-## 📄 License
+| Read this | For |
+|---|---|
+| [`CLAUDE.md`](CLAUDE.md) | Orientation, rules and guards (start here) |
+| [`DECISIONS.md`](DECISIONS.md) | Locked product and technical decisions |
+| [`claude-chat/TRACKER.md`](claude-chat/TRACKER.md) | The only status document: what is done and next |
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | How the code fits together |
+| [`STANDARDS.md`](STANDARDS.md) | Code, testing and layout standards |
+| [`DOCMAP.md`](DOCMAP.md) | What every other document is, and who may edit it |
+| [`GLOSSARY.md`](GLOSSARY.md) | Project vocabulary |
 
-This project is open-source and available under the MIT License.
+## Security
+
+Report vulnerabilities by email, as described in [`SECURITY.md`](SECURITY.md). Please don't open
+public issues for security reports.
+
+## License
+
+No license has been chosen yet and the repository has no `LICENSE` file, so nothing here is
+offered for reuse. (An earlier version of this README claimed the MIT License; no license file
+backed that claim.)
