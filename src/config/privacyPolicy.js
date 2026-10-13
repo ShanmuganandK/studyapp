@@ -55,10 +55,10 @@ export const APP_NAME = PRODUCT_NAME;
 export const OPERATOR_LINE = '';
 
 /** Shown to the reader and re-published on every change. Update when the text changes. */
-export const LAST_UPDATED = '15 August 2026';
+export const LAST_UPDATED = '12 October 2026';
 
 /** Grievance/contact address. Also the Rule 9 contact if Layer 2 ever returns. */
-export const CONTACT_EMAIL = 'shanmuganand.kanniappan@gmail.com';
+export const CONTACT_EMAIL = 'tinku@stringus.com';
 
 /**
  * Ordered sections. `heading: null` renders as an unheaded lede paragraph.

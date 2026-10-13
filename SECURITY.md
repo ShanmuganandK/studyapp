@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Email shanmuganand.kanniappan@gmail.com with a description of the
+Email tinku@stringus.com with a description of the
 issue and steps to reproduce. You'll get an acknowledgement within
 7 days. Please don't open a public issue for security reports.
 
