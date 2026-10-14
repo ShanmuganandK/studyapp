@@ -697,6 +697,12 @@ parent-zone control already uses (that key name is historical and is NOT renamed
 every device), so the grade stays changeable in the parent zone and **never enters a progress
 export** (DECISIONS 2026-08-17 / 2026-08-21 — a different key entirely).
 
+Layout (2026-10-14): it is the app's first impression, so it is a full-viewport (`app-frame`) welcome —
+a token-tinted hero with the product name (`brand.js`), a large waving Tinku (sized once from
+`window.innerHeight`: 150/220/260 px) and a claim-free tagline, with the class question on a card
+pinned to the bottom. The old `h-full` root left the lower half blank (the "known layout bug").
+Verified at 390x844, 360x640, 320x568: no scroll.
+
 Does **not** revive `ProfileSetup.jsx` / `ProfileSelector.jsx`, which stay quarantined. Settles
 TRACKER Now #9. Tests: `components/__tests__/GradePickerScreen.test.jsx` (render/choice),
 `components/__tests__/GradePickerGate.integration.test.jsx` (the gate, driven through the REAL
