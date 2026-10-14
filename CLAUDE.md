@@ -83,8 +83,8 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
   and the privacy-policy operator line (**"operated by Stringus, based in the UAE"**). Developer
   name **Stringus**, **personal** Play Console account (the account ID is not stored in the
   repo). **Open (mostly human):** Play account verification (L2), **Android build — investigated
-  2026-10-14: no Android project exists and none ever did; the route (Capacitor vs TWA) is a
-  human decision (TRACKER L4), and it gates the closed test (L9) because that needs a build**, phone regression walk on the new domain (L5), store listing + Data Safety +
+  2026-10-14: no Android project exists and none ever did; the founder chose **Capacitor** (plan:
+  `ANDROID-BUILD-PLAN.md`, status: TRACKER L4), and it gates the closed test (L9) because that needs a build**, phone regression walk on the new domain (L5), store listing + Data Safety +
   Designed-for-Families (L7), a written success bar (L8), the 12-tester × 14-day closed test (L9).
 - **Content coverage is partial — do not imply otherwise.** `src/recipes/skillMap.js` plans 35
   skills (Grade 1: 19, Grade 2: 16, Grade 3: none). **17 are `ready`: Grade 1: 7, Grade 2: 10**,
