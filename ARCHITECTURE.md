@@ -938,6 +938,28 @@ the `TODO(operator)` survives; set → the line reaches both surfaces).
 **Play Data Safety answers** live in `claude-chat/play-data-safety-form.md`, with the factual basis
 for each "No" and the checklist to re-run whenever the build gains a network capability.
 
+### Build output, icons & the lean-build guard (`branding/`, `scripts/build-icons.py`, `distLean.test.js`)
+
+What ships is **only what the app references**: Vite bundles the import graph from `main.jsx` and copies
+`public/` verbatim, so docs, specs, `design-*` folders, legacy generators/screens and source art never
+reach `dist/` (verified with a source map: 65 app modules, no legacy). The one way junk gets in is
+**`public/`**, so it holds only what must be served by name.
+
+- **`branding/app-icon-source-1024.jpg`** — the 1024×1024 source art. Lives OUTSIDE `public/`, so it is not
+  shipped. **`scripts/build-icons.py`** (Pillow, a dev tool only, not an app dependency) regenerates
+  `public/pwa-192x192.png`, `pwa-512x512.png` (palette PNGs with real alpha corners, ~9 KB / ~33 KB),
+  `apple-touch-icon.png` (opaque, full-bleed) and a real multi-size `favicon.ico`. Before 2026-10-14 these
+  were the source JPEG copied three times under `.png`/`.ico` names (1.7 MB, black corners, wrong declared
+  sizes). Build **2.6 MB → 0.9 MB**, service-worker precache **2.2 MiB → 0.6 MiB**.
+- **`src/services/__tests__/distLean.test.js`** — post-build guard (skips with no `dist/`; CI re-runs it after
+  `build`, like `noFirebaseAuth`): allow-listed file types only; image bytes match their extension; manifest
+  icons exist at their declared size; **no unreferenced file ships**; total ≤ 1.25 MB, any file ≤ 150 KB,
+  entry JS ≤ 400 KB. Proven red against four injected violations (JPEG-as-PNG, orphan image, `.md`, oversize).
+- **Known, deliberate leftovers:** Fontsource ships all 9 subset files (≈245 KB of unused Devanagari/Cyrillic/
+  Vietnamese/latin-ext) into `dist/`; browsers fetch only the ranges a page renders and the SW precaches only
+  Latin, so web users pay nothing — it matters only for a bundled Android build (revisit with TRACKER L4 and
+  before any UI localisation).
+
 ### Utilities (`src/utils/logger.js`)
 
 **`logger.js`** — the single logging path for all new code (STANDARDS §8). `debug`/`info` are
