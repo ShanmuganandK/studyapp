@@ -69,6 +69,13 @@ export default defineConfig({
             src: '/pwa-512x512.png',
             sizes: '512x512',
             type: 'image/png'
+          },
+          {
+            // Full-bleed, Tinku inside the central 80% circle, so any Android launcher mask keeps him whole.
+            src: '/pwa-maskable-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable'
           }
         ]
       }

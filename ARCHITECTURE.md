@@ -697,6 +697,12 @@ parent-zone control already uses (that key name is historical and is NOT renamed
 every device), so the grade stays changeable in the parent zone and **never enters a progress
 export** (DECISIONS 2026-08-17 / 2026-08-21 — a different key entirely).
 
+Layout (2026-10-14): it is the app's first impression, so it is a full-viewport (`app-frame`) welcome —
+a token-tinted hero with the product name (`brand.js`), a large waving Tinku (sized once from
+`window.innerHeight`: 150/220/260 px) and a claim-free tagline, with the class question on a card
+pinned to the bottom. The old `h-full` root left the lower half blank (the "known layout bug").
+Verified at 390x844, 360x640, 320x568: no scroll.
+
 Does **not** revive `ProfileSetup.jsx` / `ProfileSelector.jsx`, which stay quarantined. Settles
 TRACKER Now #9. Tests: `components/__tests__/GradePickerScreen.test.jsx` (render/choice),
 `components/__tests__/GradePickerGate.integration.test.jsx` (the gate, driven through the REAL
@@ -938,19 +944,23 @@ the `TODO(operator)` survives; set → the line reaches both surfaces).
 **Play Data Safety answers** live in `claude-chat/play-data-safety-form.md`, with the factual basis
 for each "No" and the checklist to re-run whenever the build gains a network capability.
 
-### Build output, icons & the lean-build guard (`branding/`, `scripts/build-icons.py`, `distLean.test.js`)
+### Build output, icons & the lean-build guard (`scripts/build-icons.py`, `branding/`, `distLean.test.js`)
 
 What ships is **only what the app references**: Vite bundles the import graph from `main.jsx` and copies
 `public/` verbatim, so docs, specs, `design-*` folders, legacy generators/screens and source art never
 reach `dist/` (verified with a source map: 65 app modules, no legacy). The one way junk gets in is
 **`public/`**, so it holds only what must be served by name.
 
-- **`branding/app-icon-source-1024.jpg`** — the 1024×1024 source art. Lives OUTSIDE `public/`, so it is not
-  shipped. **`scripts/build-icons.py`** (Pillow, a dev tool only, not an app dependency) regenerates
-  `public/pwa-192x192.png`, `pwa-512x512.png` (palette PNGs with real alpha corners, ~9 KB / ~33 KB),
-  `apple-touch-icon.png` (opaque, full-bleed) and a real multi-size `favicon.ico`. Before 2026-10-14 these
-  were the source JPEG copied three times under `.png`/`.ico` names (1.7 MB, black corners, wrong declared
-  sizes). Build **2.6 MB → 0.9 MB**, service-worker precache **2.2 MiB → 0.6 MiB**.
+- **Icons are generated from the Tinku mascot art** (`src/assets/mascot/webp/Tinku_Mascot.webp`, the same
+  file the app ships) by **`scripts/build-icons.py`** (Pillow, a dev tool only, not an app dependency):
+  flat brand-indigo field + pale disc + Tinku. Outputs in `public/`: `pwa-192x192.png` / `pwa-512x512.png`
+  ("any", real alpha corners), **`pwa-maskable-512x512.png`** (opaque, full-bleed, Tinku inside the 80% safe
+  circle; declared `purpose: "maskable"` in the manifest), `apple-touch-icon.png`, a multi-size `favicon.ico`
+  (≈ 7–27 KB each). **`branding/play-store-icon-512.png`** is the Play listing icon (L7); it lives OUTSIDE
+  `public/`, so it is never shipped. Before 2026-10-14 the icons were an unrelated calculator-character JPEG
+  copied three times under `.png`/`.ico` names (1.7 MB, black corners, wrong declared sizes). Build
+  **2.6 MB → 0.9 MB**, service-worker precache **2.2 MiB → 0.6 MiB**. (A smooth-gradient variant was
+  rejected: banding at 256 colours, ~330 KB full-colour.)
 - **`src/services/__tests__/distLean.test.js`** — post-build guard (skips with no `dist/`; CI re-runs it after
   `build`, like `noFirebaseAuth`): allow-listed file types only; image bytes match their extension; manifest
   icons exist at their declared size; **no unreferenced file ships**; total ≤ 1.25 MB, any file ≤ 150 KB,
