@@ -26,7 +26,7 @@ export default defineConfig({
     productNameHtml,
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       workbox: {
         // Default globPatterns omits .webp — mascot images would be excluded from
         // the SW precache and fetched cold on every first load, causing broken-icon

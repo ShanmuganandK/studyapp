@@ -114,7 +114,8 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
 - **PWA** (offline-capable, installable) — primary delivery. **Android/Play packaging is not
   built:** there is no Capacitor dependency or `android/` project in the repo, so earlier text
   saying "Capacitor wraps it" describes an intention, not code. Route options and findings are
-  in TRACKER L4. **The PWA icons are mislabelled 1024×1024 JPEGs** (see L4) — fix before packaging.
+  in TRACKER L4. The mislabelled-JPEG icon defect is fixed (build 2.6→0.9 MB, guarded by `distLean.test.js`). **The icon ART is a
+  calculator with "4+" characters, not Tinku — a brand decision for the human, not changed.** Source art is in `branding/`.
 - **Persistence: browser `localStorage`, via the `progressStore` seam.** Keys are prefixed
   `tinku:v1:`. This is the *intended* architecture for MVP, not a shortcut.
 - **No backend. No Firebase. No network calls of any kind from `src/`.**

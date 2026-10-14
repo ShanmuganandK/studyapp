@@ -53,6 +53,7 @@ jobs:
 
       # Re-run the bundle-level guard now that dist/ definitely exists. On a clean checkout the
       # earlier test run has no dist/ to inspect and that assertion skips itself; this second
-      # pass is what actually proves the shipped bundle is free of Google identity endpoints.
+      # pass is what actually proves the shipped bundle is free of Google identity endpoints, and
+      # (distLean) that the build ships only referenced, honestly-typed, size-budgeted files.
       - name: Re-check bundle guards against the built output
-        run: npx vitest run src/services/__tests__/noFirebaseAuth.test.js
+        run: npx vitest run src/services/__tests__/noFirebaseAuth.test.js src/services/__tests__/distLean.test.js
