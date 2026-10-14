@@ -82,9 +82,9 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
   Done: domain (L1), first-run grade picker (L3), published contact **`tinku@stringus.com`**
   and the privacy-policy operator line (**"operated by Stringus, based in the UAE"**). Developer
   name **Stringus**, **personal** Play Console account (the account ID is not stored in the
-  repo). **Open (mostly human):** Play account verification (L2), **Android build — status
-  unknown, no Capacitor project or dependency exists in the repo (L4, a Code task to
-  investigate)**, phone regression walk on the new domain (L5), store listing + Data Safety +
+  repo). **Open (mostly human):** Play account verification (L2), **Android build — investigated
+  2026-10-14: no Android project exists and none ever did; the route (Capacitor vs TWA) is a
+  human decision (TRACKER L4), and it gates the closed test (L9) because that needs a build**, phone regression walk on the new domain (L5), store listing + Data Safety +
   Designed-for-Families (L7), a written success bar (L8), the 12-tester × 14-day closed test (L9).
 - **Content coverage is partial — do not imply otherwise.** `src/recipes/skillMap.js` plans 35
   skills (Grade 1: 19, Grade 2: 16, Grade 3: none). **17 are `ready`: Grade 1: 7, Grade 2: 10**,
@@ -113,7 +113,8 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
   Fontsource (Nunito + Baloo 2); no CDN.
 - **PWA** (offline-capable, installable) — primary delivery. **Android/Play packaging is not
   built:** there is no Capacitor dependency or `android/` project in the repo, so earlier text
-  saying "Capacitor wraps it" describes an intention, not code. Investigating it is TRACKER L4.
+  saying "Capacitor wraps it" describes an intention, not code. Route options and findings are
+  in TRACKER L4. **The PWA icons are mislabelled 1024×1024 JPEGs** (see L4) — fix before packaging.
 - **Persistence: browser `localStorage`, via the `progressStore` seam.** Keys are prefixed
   `tinku:v1:`. This is the *intended* architecture for MVP, not a shortcut.
 - **No backend. No Firebase. No network calls of any kind from `src/`.**
