@@ -40,3 +40,7 @@ graphify-out
 *.njsproj
 *.sln
 *.sw?
+
+# Python bytecode (scripts/build-icons.py is a dev tool)
+__pycache__
+*.pyc
