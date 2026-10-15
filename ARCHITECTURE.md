@@ -829,7 +829,10 @@ returns — the init runs again, always reflecting the latest saved state.
 Pure function — no storage reads, no `Date.now()`. Called by `ParentDashboard` after it loads
 skill states; keeps all logic out of the component (STANDARDS §2).
 
-**`progressSummary(skillStates, today)`** → `ProgressSummary`:
+**`progressSummary(skillStates, today, grade?)`** → `ProgressSummary`. With a `grade`, only that
+class's ready skills are listed/counted and `lastActivity` looks only at that class's practice (the
+parent dashboard passes the active grade, so Class 1 and Class 2 views don't mix; 2026-10-15). No grade
+= all grades. Stored progress is untouched either way:
 - Loops over `status:'ready'` skills from the skill map, sorted by grade then order.
 - Buckets each into `mastered` (level ≥ `MASTERED_LEVEL`), `inProgress` (0 < level < `MASTERED_LEVEL`),
   or `notStarted` (level 0 / no saved state).

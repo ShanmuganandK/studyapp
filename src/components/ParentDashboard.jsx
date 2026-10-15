@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Lock, MessageCircle, Download, Upload } from 'lucide-react';
 import Mascot from './Mascot';
 import MasteryPips from './MasteryPips';
@@ -28,7 +28,7 @@ function levelLabelColour(level) {
 
 function SkillRow({ skill }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-primary-soft last:border-0">
+    <div data-skill-id={skill.skillId} className="flex items-center justify-between py-3 border-b border-primary-soft last:border-0">
       <div className="flex items-center gap-3 min-w-0">
         {skill.icon && (
           <span className="text-2xl flex-shrink-0" aria-hidden="true">
@@ -92,12 +92,14 @@ export default function ParentDashboard({
   bridgeEnabled,
   onBridgeEnabledChange,
 }) {
-  // Single storage read on mount; remounts when navigating back from child view.
-  const [summary] = useState(() => {
-    const skillStates = loadAllSkillStates();
+  // Single storage read on mount; remounts when navigating back from child view. The summary is
+  // derived per GRADE (the active class) so Class 1 shows only Class 1 skills and Class 2 only
+  // Class 2 — and it follows the grade if it is switched from the test panel on this screen.
+  const [skillStates] = useState(() => loadAllSkillStates());
+  const summary = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
-    return progressSummary(skillStates, today);
-  });
+    return progressSummary(skillStates, today, grade);
+  }, [skillStates, grade]);
 
   const { mastered, inProgress, notStarted, masteredCount, lastActivity } = summary;
   const totalReady = mastered.length + inProgress.length + notStarted.length;
@@ -134,7 +136,7 @@ export default function ParentDashboard({
         <h1 className="font-display text-xl font-extrabold text-primary-ink mt-3">
           Your child's progress
         </h1>
-        <p className="text-sm text-muted mt-0.5">Tinku Math</p>
+        <p className="text-sm text-muted mt-0.5">Tinku Math{grade ? ` · Class ${grade}` : ''}</p>
       </div>
 
       <div className="px-4 pb-8 space-y-4">
