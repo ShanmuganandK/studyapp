@@ -4,6 +4,7 @@ import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/re
 import ParentDashboard from '../ParentDashboard';
 import { emptySkillState } from '../../engine/mastery';
 import { saveSkillState, loadAllSkillStates } from '../../services/progressStore';
+import { SKILLS } from '../../recipes/skillMap';
 import { BACKUP_FORMAT, BACKUP_VERSION } from '../../services/progressBackup';
 
 // Mascot preloads webp assets — irrelevant to the settings footer; stub it.
@@ -175,5 +176,30 @@ describe('ParentDashboard — progress backup (export/import, TRACKER "Now" #3)'
     expect(screen.queryByText(/This will replace all progress/)).toBeNull();
     expect(loadAllSkillStates()[SKILL_ID]).toEqual(emptySkillState(SKILL_ID, 3));
     expect(loadAllSkillStates()['g1.sub.within10']).toBeUndefined();
+  });
+});
+
+describe('ParentDashboard — progress follows the active class', () => {
+  afterEach(() => {
+    cleanup();
+    localStorage.clear();
+  });
+
+  const props = { ...baseProps, hasPasscode: false, onGradeChange: () => {} };
+
+  it('Class 1 shows only Class 1 skills; Class 2 only Class 2 skills', () => {
+    const { rerender } = render(<ParentDashboard {...props} grade={1} />);
+    expect(screen.getByText(/Class 1/)).toBeTruthy();
+    const rows = () => [...document.querySelectorAll('[data-skill-id]')].map((e) => e.dataset.skillId);
+    const readyIn = (g) => Object.values(SKILLS).filter((k) => k.status === 'ready' && k.grade === g).length;
+    expect(rows().every((id) => id.startsWith('g1.'))).toBe(true);
+    const class1Rows = rows().length;
+
+    rerender(<ParentDashboard {...props} grade={2} />);
+    expect(screen.getByText(/Class 2/)).toBeTruthy();
+    expect(rows().every((id) => id.startsWith('g2.'))).toBe(true);
+    // Each class lists its own ready skills (skillMap.js), not the union in both.
+    expect(class1Rows).toBe(readyIn(1));
+    expect(rows().length).toBe(readyIn(2));
   });
 });

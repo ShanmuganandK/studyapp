@@ -180,3 +180,44 @@ describe('formatRelativeDate', () => {
     expect(formatRelativeDate('2026-01-16', '2026-01-15')).toBe('today');
   });
 });
+
+// ─── Per-grade view (a child can switch between Class 1 and Class 2) ──────────
+
+describe('progressSummary with a grade', () => {
+  const states = {
+    'g1.count.1-9': stateAt('g1.count.1-9', MASTERY.MASTERED_LEVEL, '2026-01-10'),
+    'g2.mul.table5': stateAt('g2.mul.table5', 2, '2026-01-14'),
+  };
+  const ids = (list) => list.map((s) => s.skillId);
+  const all = (s) => [...s.mastered, ...s.inProgress, ...s.notStarted];
+
+  it('Class 1 lists only Class 1 skills', () => {
+    const s = progressSummary(states, TODAY, 1);
+    expect(all(s).every((e) => e.skillId.startsWith('g1.'))).toBe(true);
+    expect(all(s)).toHaveLength(READY_IDS.filter((i) => i.startsWith('g1.')).length);
+    expect(ids(s.mastered)).toEqual(['g1.count.1-9']);
+  });
+
+  it('Class 2 lists only Class 2 skills', () => {
+    const s = progressSummary(states, TODAY, 2);
+    expect(all(s).every((e) => e.skillId.startsWith('g2.'))).toBe(true);
+    expect(all(s)).toHaveLength(READY_IDS.filter((i) => i.startsWith('g2.')).length);
+    expect(ids(s.inProgress)).toEqual(['g2.mul.table5']);
+    expect(s.masteredCount).toBe(0);
+  });
+
+  it("'Last practised' only looks at the chosen grade's practice", () => {
+    expect(progressSummary(states, TODAY, 1).lastActivity).toBe('5 days ago'); // g1 seen 01-10
+    expect(progressSummary(states, TODAY, 2).lastActivity).toBe('yesterday'); // g2 seen 01-14
+  });
+
+  it('a grade with no ready skills (Class 3) is empty, not an error', () => {
+    const s = progressSummary(states, TODAY, 3);
+    expect(all(s)).toHaveLength(0);
+    expect(s.lastActivity).toBeNull();
+  });
+
+  it('without a grade it still covers every grade (unchanged behaviour)', () => {
+    expect(all(progressSummary(states, TODAY))).toHaveLength(TOTAL_READY);
+  });
+});

@@ -47,6 +47,10 @@ export function formatRelativeDate(lastSeen, today) {
  * @param {{ [skillId: string]: object }} skillStates
  *   From progressStore.loadAllSkillStates(). Missing/unknown keys mean level 0.
  * @param {string} today - ISO date string (YYYY-MM-DD), injected by caller
+ * @param {number} [grade] - when given, ONLY that grade's skills are listed and counted, and
+ *   `lastActivity` considers only that grade's practice. A child can switch between Class 1 and
+ *   Class 2; the parent view must follow the grade the child is on, not mix both. Omitted = all
+ *   grades (the original behaviour). Progress itself stays per-skill and is never discarded.
  * @returns {ProgressSummary}
  *   {
  *     mastered: SkillEntry[],      level === MASTERED_LEVEL
@@ -58,12 +62,15 @@ export function formatRelativeDate(lastSeen, today) {
  *   }
  *   Each SkillEntry: { skillId, displayName, icon, subtitle, level }
  */
-export function progressSummary(skillStates, today) {
+export function progressSummary(skillStates, today, grade) {
   const mastered = [];
   const inProgress = [];
   const notStarted = [];
 
-  for (const skill of READY_SKILLS) {
+  const inGrade = (skillId) => grade == null || SKILLS[skillId]?.grade === grade;
+  const skills = grade == null ? READY_SKILLS : READY_SKILLS.filter((s) => s.grade === grade);
+
+  for (const skill of skills) {
     const state = skillStates[skill.id];
     const level = state?.level ?? 0;
     const entry = {
@@ -83,10 +90,12 @@ export function progressSummary(skillStates, today) {
     }
   }
 
-  // Most-recent lastSeen across ALL stored states (not just ready skills —
-  // any practice counts as activity, including skills that later got removed).
-  const allLastSeen = Object.values(skillStates)
-    .map((s) => s.lastSeen)
+  // Most-recent lastSeen across the stored states (not just ready skills — any practice counts
+  // as activity). With a grade, only that grade's skills count, so "Last practised" matches the
+  // list beside it.
+  const allLastSeen = Object.entries(skillStates)
+    .filter(([skillId]) => inGrade(skillId))
+    .map(([, s]) => s.lastSeen)
     .filter(Boolean)
     .sort();
   const latestSeen = allLastSeen.at(-1) ?? null;
