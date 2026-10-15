@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { SKILLS } from '../recipes/skillMap';
 import { loadAllSkillStates, replaceAllSkillStates } from '../services/progressStore';
+import { saveTextFile } from '../services/fileTransfer';
 import { buildExportEnvelope, exportFilename, parseImportPayload } from '../services/progressBackup';
 
 /**
@@ -27,18 +28,11 @@ export default function useProgressBackup() {
   const [importError, setImportError] = useState(null);
   const stagedSkillsRef = useRef(null); // validated skills, held until confirmImport
 
-  function exportProgress() {
+  // Web: downloads the file. Android: opens the share sheet (services/fileTransfer.js).
+  async function exportProgress() {
     const skills = loadAllSkillStates();
     const envelope = buildExportEnvelope(skills);
-    const blob = new Blob([JSON.stringify(envelope, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = exportFilename();
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+    await saveTextFile(exportFilename(), JSON.stringify(envelope, null, 2));
   }
 
   async function stageImportFile(file) {

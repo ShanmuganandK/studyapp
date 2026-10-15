@@ -22,16 +22,17 @@ parallel with L2 (account verification) and L7 (listing).
 - Production web origin `tinku.stringus.com` is untouched. Android is an additional delivery, and
   iOS stays later (DECISIONS: "Android first, iOS later").
 
-## Phase 1: Prepare the web code (no Android needed, fully testable here)
+## Phase 1: Prepare the web code (no Android needed, fully testable here) — DONE 2026-10-15 except as noted
 1. **Export/import via Capacitor** behind the *same* `useProgressBackup` API (ARCHITECTURE "Capacitor
    gap"). Add a small `services/fileTransfer.js` seam: web = today's Blob/`<a download>`/file input;
    native = `@capacitor/filesystem` write to cache + `@capacitor/share` share sheet, and the
    WebView's file input for import (Android WebView supports it; verify on device).
-2. **Service worker in the WebView:** the PWA SW is unnecessary inside Capacitor and can interfere
+2. **Service worker in the WebView (moved to Phase 2):** done as a dedicated native build mode (no PWA plugin, no SW, no manifest) rather than a runtime check. Original note: the PWA SW is unnecessary inside Capacitor and can interfere
    with updates. Do not register it when `Capacitor.isNativePlatform()`.
-3. **Haptics (T72)** via `@capacitor/haptics`, only if T72 is still wanted. Decide before adding.
-4. **Back button:** Android hardware back must not exit mid-session. Use `@capacitor/app`
-   `backButton` to route to the in-app "leave session?" path. Confirm the current behaviour first.
+3. **Haptics (T72), not started, founder decision pending:** via `@capacitor/haptics`, only if T72 is still wanted. Decide before adding.
+4. **Back button (done):** Back closes the parent gate, leaves a quiz/parent zone for the skill list
+   (the same place the nav "home" goes, with no extra confirm) and exits only from the skill list.
+   Whether leaving a quiz should ask "leave this session?" first is a founder call, not made here.
 5. Tests for the seam in both modes (mock the Capacitor global).
 
 ## Phase 2: Add the Android project and guards
