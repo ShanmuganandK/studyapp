@@ -1,9 +1,8 @@
 # Android build plan: Capacitor (TRACKER L4)
 
-> **Status: plan only. No `android/` project or Capacitor dependency exists yet.** Route chosen by the
-> founder on 2026-10-14 (Capacitor, not TWA). The product decision still needs recording in
-> `DECISIONS.md` by Chat (this file is Code's plan, not a decision record). `TRACKER.md` L4 is the
-> status source.
+> **Status: plan only. No `android/` project or Capacitor dependency exists yet.** The route is
+> **decided: Capacitor from the first build**, recorded in `DECISIONS.md` (2026-10-15), which also holds
+> the TWA alternatives considered and the binding constraints. `TRACKER.md` L4 is the status source.
 
 ## Why this is the long pole
 The closed test (L9: 12 testers x 14 days, personal Play account) needs an **uploaded build**, so the
