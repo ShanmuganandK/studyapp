@@ -824,3 +824,43 @@
 
   **Strategy lives in TRACKER.md.** There is no separate Drive strategy document; any pointer
   saying otherwise is stale.
+
+- (2026-10-15) **Android route: Capacitor, from the first build (LOCKED; founder decision, recorded by Claude Code at the founder's explicit request).**
+  Settles TRACKER L4's route question. The Android app is a **Capacitor** wrap that **bundles `dist/`**
+  (the "Android first (PWA + Capacitor wrap)" line in Platform / packaging stands). The web app at
+  `https://tinku.stringus.com` stays the primary PWA and is unchanged.
+
+  **Considered and not taken:** (a) **TWA** wrapping the live site; (b) **TWA first, Capacitor later**
+  (proposed 2026-10-15 so web releases would reach installed apps without a Play release).
+  Trade-offs on the record so a later session does not re-litigate from scratch:
+  - TWA: each Netlify deploy reaches every install with no Play review; same origin as the PWA, so web
+    progress is shared and `<a download>` export keeps working. Needs Chrome on the device, a first
+    online load, and `/.well-known/assetlinks.json` carrying the Play signing fingerprint.
+  - Capacitor: works offline from install and does not depend on Chrome; the path to iOS later. **Every
+    app change, including content, needs a new signed build, a Play review and a user update.**
+  - **Switching later costs children their progress.** A TWA keeps data in Chrome under the web origin;
+    a Capacitor app has its own storage (origin `https://localhost`). Nothing can carry progress across
+    without accounts/cloud, which are out of scope (2026-08-14). Only the parent-zone export/import can.
+    Choosing Capacitor now means **no Android migration at all**, which is the safest ordering for
+    children's data. (The founder may add their own reason here.)
+
+  **Constraints that bind the build (so the privacy claim stays true):**
+  - **No remote code or remote URL:** no `server.url`, no live-update/OTA plugin, no network or
+    analytics plugin. The app loads only what ships in the bundle.
+  - **Plugin allow-list**, enforced by a guard proven red first. Allowed from the start: core, app
+    (back button), and only the Filesystem/Share (and Haptics, T72) plugins the code needs.
+  - The AndroidManifest permissions are asserted by a test. Removing `INTERNET` is **unverified**; it
+    is tried and measured, never assumed.
+  - **Android progress is separate from web progress.** Export/import is the only bridge. Tester notes
+    say so.
+  - Play App Signing; the upload key lives only in GitHub Actions secrets, never in the repo.
+  - **Does not change** the MVP shape: still no accounts, cloud, analytics, ads or payment. Which
+    business model comes later is a separate founder decision; a subscription or school sales would
+    need accounts and Play Billing and is **not** decided or built here.
+
+  **Open, founder (see `ANDROID-BUILD-PLAN.md`):** `appId` (permanent once on Play); Android auto-backup
+  on/off (cloud backup would contradict "nothing leaves the device" unless the policy says so);
+  Haptics now/later; who runs the first build (GitHub Actions recommended). Unverified: Play's
+  acceptance of "Stringus" as the public developer name on a personal account.
+  **Revisit trigger:** a concrete need for web-speed Android releases that bundling cannot meet, decided
+  **before the public link**, while only closed-test families hold data.
