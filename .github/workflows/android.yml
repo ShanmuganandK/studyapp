@@ -45,8 +45,14 @@ jobs:
           distribution: temurin
           java-version: '17' # what the Android Gradle Plugin 8.13 in android/ requires
 
-      # Installs the SDK pieces Gradle needs and accepts the licences (a clean runner has neither).
-      - uses: android-actions/setup-android@v3
+      # GitHub's runner image already ships the Android SDK (ANDROID_HOME). The android-actions/setup-android
+      # action failed on it ("Failed to find package 'tools'"), so it is not used: accept the licences and
+      # install exactly the two pieces this project needs (compileSdk/targetSdk 36 in android/variables.gradle).
+      - name: Android SDK components
+        run: |
+          SDKMANAGER=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
 
@@ -118,7 +124,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
+      - name: Android SDK components
+        run: |
+          SDKMANAGER=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort -V | tail -1)
+          yes | "$SDKMANAGER" --licenses > /dev/null || true
+          "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0"
 
       - uses: gradle/actions/setup-gradle@v4
 

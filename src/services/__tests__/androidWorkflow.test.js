@@ -63,7 +63,7 @@ describe('android.yml', () => {
     const used = [...yml.matchAll(/uses:\s*([^\s@]+)@/g)].map((m) => m[1]);
     const allowed = new Set([
       'actions/checkout', 'actions/setup-node', 'actions/setup-java', 'actions/upload-artifact',
-      'android-actions/setup-android', 'gradle/actions/setup-gradle',
+      'gradle/actions/setup-gradle',
     ]);
     expect(used.filter((u) => !allowed.has(u))).toEqual([]);
     expect(used.length).toBeGreaterThan(0);
