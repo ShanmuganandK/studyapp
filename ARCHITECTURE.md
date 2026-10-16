@@ -643,8 +643,9 @@ above. Behind the parent gate, in `ParentDashboard`.
   the Tinku art by `scripts/build-icons.py` (adaptive icon + legacy + splash logo). Guard:
   `services/__tests__/androidProject.test.js` (each assertion proven red) and the policy test requires the
   backup disclosure while `allowBackup` is on. Cannot be built in the cloud sandbox: Phase 3 builds in CI.
-- **Android build workflow (Phase 3, 2026-10-16):** `.github/workflows/android.yml`, **manual only**
-  (`workflow_dispatch`; never PR/push). `debug` job: same gates as CI, `npm run build:android`,
+- **Android build workflow (Phase 3, 2026-10-16):** `.github/workflows/android.yml`, **debug auto-runs on a
+  push to master** (docs-only pushes skipped; never PR/fork/schedule); **release is manual**
+  (`workflow_dispatch`, `build_type=release`). JDK 21. `debug` job: same gates as CI, `npm run build:android`,
   `gradlew assembleDebug`, then **measures the APK's permissions with `aapt2`** (fails on anything but the
   AndroidX app-private `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`) and uploads `app-debug.apk`. `release`
   job (`needs: debug`, `environment: android-release`): decodes the upload key from a secret, builds the
