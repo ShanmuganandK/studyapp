@@ -7,7 +7,8 @@ android {
         applicationId "com.stringus.tinku"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        // Play needs a strictly increasing versionCode per upload; CI passes the run number.
+        versionCode (System.getenv('TINKU_VERSION_CODE') ?: '1') as Integer
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -16,8 +17,24 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Release signing comes ONLY from environment variables set by the android-release workflow, which
+    // decodes the upload key from a GitHub secret. Nothing secret is, or may ever be, written in this
+    // file or in the repo (androidProject.test.js guards that).
+    signingConfigs {
+        release {
+            if (System.getenv('TINKU_KEYSTORE_FILE')) {
+                storeFile file(System.getenv('TINKU_KEYSTORE_FILE'))
+                storePassword System.getenv('TINKU_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('TINKU_KEY_ALIAS')
+                keyPassword System.getenv('TINKU_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
+            if (System.getenv('TINKU_KEYSTORE_FILE')) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -43,12 +60,3 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
-
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
-    }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
-}

@@ -94,6 +94,15 @@ describe('Gradle + repo hygiene', () => {
     const target = Number(read(join(ANDROID, 'variables.gradle')).match(/targetSdkVersion\s*=\s*(\d+)/)[1]);
     expect(target).toBeGreaterThanOrEqual(REQUIRED_TARGET_SDK);
   });
+  it('reads release signing only from the environment and never from a literal', () => {
+    const app = read(join(ANDROID, 'app', 'build.gradle'));
+    expect(app).toMatch(/System\.getenv\('TINKU_KEYSTORE_FILE'\)/);
+    expect(app).not.toMatch(/(storePassword|keyPassword|keyAlias)\s+['"]/);
+  });
+  it('pulls in no Google services / Firebase Gradle plugin', () => {
+    expect(read(join(ANDROID, 'build.gradle'))).not.toMatch(/google-services|firebase/i);
+    expect(read(join(ANDROID, 'app', 'build.gradle'))).not.toMatch(/google-services|firebase/i);
+  });
   it('commits no keystore or signing secret', () => {
     const walk = (d) => readdirSync(d).flatMap((n) => {
       if (n === 'node_modules' || n === 'build' || n === '.gradle') return [];

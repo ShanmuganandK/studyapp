@@ -54,7 +54,7 @@ parallel with L2 (account verification) and L7 (listing).
    child data on the device; the privacy policy says nothing leaves the device, and cloud backup would
    contradict that unless the policy says so).
 
-## Phase 3: Build, sign, ship to the closed test
+## Phase 3: Build, sign, ship to the closed test — workflow WRITTEN 2026-10-16, never run (founder steps: ANDROID-RELEASE-RUNBOOK.md)
 1. **GitHub Actions** `android.yml`: Node 22, JDK 17, Android SDK, `npm ci`, `npm run build`,
    `npx cap sync android`, `./gradlew bundleRelease`. Upload the AAB as an artifact. Runs on tag or
    manual dispatch, not every PR.

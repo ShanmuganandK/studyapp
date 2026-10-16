@@ -641,6 +641,16 @@ above. Behind the parent gate, in `ParentDashboard`.
   the Tinku art by `scripts/build-icons.py` (adaptive icon + legacy + splash logo). Guard:
   `services/__tests__/androidProject.test.js` (each assertion proven red) and the policy test requires the
   backup disclosure while `allowBackup` is on. Cannot be built in the cloud sandbox: Phase 3 builds in CI.
+- **Android build workflow (Phase 3, 2026-10-16):** `.github/workflows/android.yml`, **manual only**
+  (`workflow_dispatch`; never PR/push). `debug` job: same gates as CI, `npm run build:android`,
+  `gradlew assembleDebug`, then **measures the APK's permissions with `aapt2`** (fails on anything but the
+  AndroidX app-private `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`) and uploads `app-debug.apk`. `release`
+  job (`needs: debug`, `environment: android-release`): decodes the upload key from a secret, builds the
+  signed `app-release.aab` (versionCode = run number via `TINKU_VERSION_CODE`), deletes the key.
+  `android/app/build.gradle` reads signing only from `TINKU_*` env vars; the google-services Gradle plugin
+  was removed. Guards: `androidWorkflow.test.js` (7 ways to leak the key, each proven red) and extra
+  assertions in `androidProject.test.js`. **Never run yet; the sandbox cannot build Android.** Steps for
+  the human: `ANDROID-RELEASE-RUNBOOK.md`.
 
 ### Test settings — parent test panel (`src/services/testSettings.js` + `src/hooks/useTestSettings.js` + `src/components/TestPanel.jsx`)
 
