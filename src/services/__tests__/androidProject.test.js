@@ -23,6 +23,21 @@ const ANDROID = join(ROOT, 'android');
 const MAIN = join(ANDROID, 'app', 'src', 'main');
 const read = (p) => readFileSync(p, 'utf8');
 
+// Removes XML comments with a plain scan (no regex replace), so a manifest comment can never hide or
+// fake an attribute in these assertions. An unterminated comment drops the rest of the file.
+function stripXmlComments(xml) {
+  let out = '';
+  let i = 0;
+  for (;;) {
+    const start = xml.indexOf('<!--', i);
+    if (start === -1) return out + xml.slice(i);
+    out += xml.slice(i, start);
+    const end = xml.indexOf('-->', start + 4);
+    if (end === -1) return out;
+    i = end + 3;
+  }
+}
+
 const EXPECTED_APP_ID = 'com.stringus.tinku';
 const ALLOWED_PERMISSIONS = []; // UNVERIFIED on a device; see the comment in AndroidManifest.xml
 const REQUIRED_TARGET_SDK = 36;
@@ -43,7 +58,7 @@ describe('capacitor.config.json', () => {
 
 describe('AndroidManifest.xml', () => {
   const manifest = read(join(MAIN, 'AndroidManifest.xml'));
-  const noComments = manifest.replace(/<!--[\s\S]*?-->/g, '');
+  const noComments = stripXmlComments(manifest);
 
   it('requests exactly the allow-listed permissions', () => {
     const declared = [...noComments.matchAll(/<uses-permission[^>]*android:name="([^"]+)"/g)].map((m) => m[1]);
@@ -66,7 +81,7 @@ describe('AndroidManifest.xml', () => {
     expect(exported.map((m) => m[1])).toEqual(['activity']);
   });
   it('shares only the private cache through the FileProvider', () => {
-    const paths = read(join(MAIN, 'res', 'xml', 'file_paths.xml')).replace(/<!--[\s\S]*?-->/g, '');
+    const paths = stripXmlComments(read(join(MAIN, 'res', 'xml', 'file_paths.xml')));
     const entries = [...paths.matchAll(/<([a-z-]+-path)\b/g)].map((m) => m[1]);
     expect(entries).toEqual(['cache-path']);
   });
