@@ -55,9 +55,9 @@ parallel with L2 (account verification) and L7 (listing).
    contradict that unless the policy says so).
 
 ## Phase 3: Build, sign, ship to the closed test — workflow WRITTEN 2026-10-16, never run (founder steps: ANDROID-RELEASE-RUNBOOK.md)
-1. **GitHub Actions** `android.yml`: Node 22, JDK 17, Android SDK, `npm ci`, `npm run build`,
-   `npx cap sync android`, `./gradlew bundleRelease`. Upload the AAB as an artifact. Runs on tag or
-   manual dispatch, not every PR.
+1. **GitHub Actions** `android.yml`: Node 22, JDK 21 (Capacitor 8 compiles at Java 21), Android SDK, `npm ci`, `npm run build`,
+   `npx cap sync android`, `./gradlew bundleRelease`. Upload the AAB as an artifact. The debug build runs on every push to
+   master (never on a PR or fork); the signed release build is manual dispatch only.
 2. **Signing:** use **Play App Signing**. Generate an *upload key*, keep it and its password in GitHub
    Actions secrets only (**never in the repo**; the keystore is gitignored). The founder creates the
    key; Code wires the workflow.

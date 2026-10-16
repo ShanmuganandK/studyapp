@@ -1,7 +1,7 @@
 # Android release runbook (founder steps)
 
 > Companion to `ANDROID-BUILD-PLAN.md` (Phase 3). **Steps for the human; Claude Code cannot do these.**
-> The workflow is `.github/workflows/android.yml` (manual only). Play Console screens change, so where a
+> The workflow is `.github/workflows/android.yml` (debug builds run automatically on each merge to master; the release build is started by hand). Play Console screens change, so where a
 > step names a Play screen, check the wording against what you see. Never paste a password, the keystore, or
 > its base64 into a chat, an issue, a commit or a PR.
 

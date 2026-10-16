@@ -894,3 +894,11 @@
   channel from v4's gradient colour interpolation). This supersedes the CLAUDE.md "do not accept a Tailwind v4
   bump" rule, which was a guard against an UNMIGRATED bump. Remaining audit items (fast-uri, `uuid` via
   `@capacitor/cli`→`xcode`) are build tooling only; not addressed here.
+
+## 2026-10-16 — Android debug build runs on every merge to master; release stays manual
+The first real Android build failed three times in a row (Gradle `versionCode`, an XML comment, Java 21), each
+found only when someone started the manual workflow. The `debug` job now also runs on a **push to master**
+(docs-only pushes skipped), so a broken Android build is seen when it lands. The **release** build stays
+manual: it is the only job that reads the Play upload key and it consumes a Play versionCode. No PR, fork,
+tag or schedule trigger exists; the release job is skipped unless the run was hand-started with
+`build_type=release`. Asserted by `androidWorkflow.test.js`. JDK is 21 (Capacitor 8 modules compile at 21).

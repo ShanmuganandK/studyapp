@@ -1,16 +1,28 @@
 name: Android build
 
-# MANUAL ONLY (DECISIONS 2026-10-15/16). This workflow can handle the Play upload key, so it must never
-# run on pull_request / push (a PR from a fork or a stray branch must not be able to reach a secret).
-# workflow_dispatch can only be started by someone with write access to the repo.
+# DEBUG builds run automatically when something is merged to master (DECISIONS 2026-10-16), so a broken
+# Android build is seen the moment it lands, not weeks later. RELEASE builds stay manual: they handle the
+# Play upload key and cost a Play versionCode, so only a person with write access starts one
+# (workflow_dispatch -> build_type = release).
 #
-#   build_type = debug    -> a debug APK you can install on a phone to test. No secrets used.
-#   build_type = release  -> a SIGNED .aab for Play. Runs in the `android-release` environment, which is
-#                            where the four signing secrets live (see ANDROID-RELEASE-RUNBOOK.md).
+# Why this is still safe for the key: the only automatic trigger is a push to master. A pull request,
+# a fork, or any other branch can never start this workflow, and the release job (the only one that can
+# read the four signing secrets, via the `android-release` environment) is skipped unless the run was
+# started by hand with build_type = release. androidWorkflow.test.js asserts all of that.
 #
-# The debug APK is built in BOTH modes, and its permissions are MEASURED from the real merged manifest
+#   push to master        -> debug APK (no secrets). Docs-only pushes are skipped.
+#   build_type = debug    -> the same, started by hand (e.g. to retry).
+#   build_type = release  -> a SIGNED .aab for Play (see ANDROID-RELEASE-RUNBOOK.md).
+#
+# The debug APK is built in ALL modes, and its permissions are MEASURED from the real merged manifest
 # (aapt2), not inferred from the source manifest: this is the evidence for the Play Data Safety form.
 on:
+  push:
+    branches: [master]
+    paths-ignore:
+      - '**/*.md'
+      - 'design-handoff/**'
+      - 'design-system/**'
   workflow_dispatch:
     inputs:
       build_type:
@@ -43,7 +55,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17' # what the Android Gradle Plugin 8.13 in android/ requires
+          java-version: '21' # Capacitor 8's Android modules compile at Java 21 (capacitor.build.gradle); AGP 8.13 / Gradle 8.14 run on it
 
       # GitHub's runner image already ships the Android SDK (ANDROID_HOME). The android-actions/setup-android
       # action failed on it ("Failed to find package 'tools'"), so it is not used: accept the licences and
@@ -104,7 +116,7 @@ jobs:
 
   release:
     # Only when asked for, and only after the debug build + permission check above passed.
-    if: ${{ inputs.build_type == 'release' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.build_type == 'release' }}
     needs: debug
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -122,7 +134,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Android SDK components
         run: |
