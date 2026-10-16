@@ -117,6 +117,17 @@ describe('privacy policy — DECISIONS 2026-08-14 wording constraints', () => {
     expect(allText.toLowerCase()).toContain('backup');
   });
 
+  it('discloses the phone-level backup whenever the Android project turns automatic backup on', () => {
+    // DECISIONS 2026-10-15: Android auto-backup is ON, so a copy of the app's data can sit in the
+    // parent's own Google account. "Nothing leaves the device" would then be untrue by omission.
+    const manifest = readFileSync(join(REPO_ROOT, 'android', 'app', 'src', 'main', 'AndroidManifest.xml'), 'utf8');
+    if (/android:allowBackup="true"/.test(manifest)) {
+      expect(allText).toMatch(/phone's own backup feature/);
+      expect(allText).toMatch(/Google account/);
+      expect(allText).toMatch(/never sent to us/);
+    }
+  });
+
   it('states the app-side claim flatly (no accounts, no tracking)', () => {
     expect(allText).toMatch(/no sign-up and no accounts/);
     expect(allText).toMatch(/advertising, analytics, tracking/);

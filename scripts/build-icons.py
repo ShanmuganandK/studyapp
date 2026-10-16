@@ -14,6 +14,8 @@ OUTPUTS
                                              the central 80% circle so any launcher mask keeps him whole
   public/apple-touch-icon.png                180px opaque (iOS rounds the corners itself)
   public/favicon.ico                         16/32/48
+  android/.../res/mipmap-*, drawable-*       Capacitor Android launcher icons (adaptive + legacy) and splash
+                                             logo, only when android/ exists (npx cap add android)
   branding/play-store-icon-512.png           Play Console listing icon (L7). NOT shipped: it lives
                                              outside public/ and src/, so it never enters the build
 
@@ -51,8 +53,9 @@ def rgb(hex_colour):
     return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
 
 
-def compose(art, width_fraction, disc_fraction):
-    canvas = Image.new("RGBA", (SIZE, SIZE), rgb(FIELD_COLOUR) + (255,))
+def compose(art, width_fraction, disc_fraction, field=True):
+    # field=False leaves the canvas transparent (the Android adaptive-icon FOREGROUND layer).
+    canvas = Image.new("RGBA", (SIZE, SIZE), rgb(FIELD_COLOUR) + (255,) if field else (0, 0, 0, 0))
     cx, cy = SIZE // 2, SIZE // 2
     r = int(SIZE * disc_fraction)
     ImageDraw.Draw(canvas).ellipse((cx - r, cy - r, cx + r, cy + r), fill=rgb(DISC_COLOUR) + (255,))
@@ -89,6 +92,45 @@ def palette_png(img, path):
                  dither=Image.Dither.FLOYDSTEINBERG).save(path, optimize=True)
 
 
+ANDROID_RES = ROOT / "android" / "app" / "src" / "main" / "res"
+# density -> (legacy launcher px, adaptive layer px [108dp], splash logo px)
+ANDROID_DENSITIES = {"mdpi": (48, 108, 160), "hdpi": (72, 162, 240), "xhdpi": (96, 216, 320),
+                     "xxhdpi": (144, 324, 480), "xxxhdpi": (192, 432, 640)}
+ADAPTIVE_WIDTH, ADAPTIVE_DISC = 0.40, 0.30   # inside the adaptive icon's 66dp-of-108dp safe circle
+
+
+def android_resources(art):
+    """Launcher icons + splash logo for the Capacitor Android project (skipped if android/ is absent).
+
+    Adaptive icon = flat indigo background colour (values/ic_launcher_background.xml) + a transparent
+    foreground layer (pale disc + Tinku). Legacy (pre-API 26) icons are the rounded-square and circle
+    composites. Splash = Tinku on a pale disc, centred over a solid colour by drawable/splash.xml.
+    """
+    if not ANDROID_RES.exists():
+        return []
+    any_icon = rounded(compose(art, ANY_WIDTH, ANY_DISC))
+    fg = compose(art, ADAPTIVE_WIDTH, ADAPTIVE_DISC, field=False)
+    round_src = compose(art, MASKABLE_WIDTH, MASKABLE_DISC)
+    circle = Image.new("L", (SIZE, SIZE), 0)
+    ImageDraw.Draw(circle).ellipse((INSET, INSET, SIZE - 1 - INSET, SIZE - 1 - INSET), fill=255)
+    round_icon = round_src.copy()
+    round_icon.putalpha(circle)
+    splash = compose(art, 0.62, 0.40, field=False)
+    written = []
+    for dens, (legacy, adaptive, logo) in ANDROID_DENSITIES.items():
+        d = ANDROID_RES / f"mipmap-{dens}"
+        d.mkdir(exist_ok=True)
+        for name, img, n in (("ic_launcher.png", any_icon, legacy), ("ic_launcher_round.png", round_icon, legacy),
+                             ("ic_launcher_foreground.png", fg, adaptive)):
+            img.resize((n, n), Image.LANCZOS).save(d / name, optimize=True)
+            written.append(d / name)
+        dd = ANDROID_RES / f"drawable-{dens}"
+        dd.mkdir(exist_ok=True)
+        splash.resize((logo, logo), Image.LANCZOS).save(dd / "splash_logo.png", optimize=True)
+        written.append(dd / "splash_logo.png")
+    return written
+
+
 def main():
     art_full = Image.open(MASCOT).convert("RGBA")
     art = art_full.crop(art_full.getbbox())
@@ -104,6 +146,12 @@ def main():
 
     BRANDING.mkdir(exist_ok=True)
     small(maskable, 512).save(BRANDING / "play-store-icon-512.png", optimize=True)  # full-colour 32-bit, as Play asks
+
+    android = android_resources(art)
+    for p in android[:3]:
+        print(f"{str(p.relative_to(ROOT)):60s} {p.stat().st_size / 1024:7.1f} KB")
+    if android:
+        print(f"... {len(android)} Android resources written")
 
     for p in (PUBLIC / "pwa-512x512.png", PUBLIC / "pwa-192x192.png", PUBLIC / "pwa-maskable-512x512.png",
               PUBLIC / "apple-touch-icon.png", PUBLIC / "favicon.ico", BRANDING / "play-store-icon-512.png"):

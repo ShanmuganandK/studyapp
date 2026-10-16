@@ -35,7 +35,7 @@ parallel with L2 (account verification) and L7 (listing).
    Whether leaving a quiz should ask "leave this session?" first is a founder call, not made here.
 5. Tests for the seam in both modes (mock the Capacitor global).
 
-## Phase 2: Add the Android project and guards
+## Phase 2: Add the Android project and guards — DONE 2026-10-16 (not built or run on a device; see Phase 3)
 1. `npm i @capacitor/core @capacitor/cli @capacitor/android` plus only the plugins from phase 1.
    `capacitor.config.ts`: `appId` (**founder decision**, permanent once on Play, e.g.
    `com.stringus.tinku`), `appName` from `brand.js` (`Tinku Math`), `webDir: 'dist'`, no `server.url`
@@ -72,7 +72,12 @@ parallel with L2 (account verification) and L7 (listing).
 - Privacy policy URL: `https://tinku.stringus.com/privacy.html` (already live).
 - Store text must describe what exists (CLAUDE.md "Don't over-claim content").
 
-## Open decisions for the founder
+## Decisions (answered 2026-10-16, see DECISIONS)
+appId `com.stringus.tinku`; auto-backup ON; GitHub Actions; Back goes straight to the list for now.
+Still open: haptics (T72), whether Play accepts "Stringus" as the developer name, and the Data Safety
+answer for backup.
+
+## Open decisions for the founder (original list, kept for the record)
 1. `appId` / package name (permanent).
 2. Auto-backup on or off (see phase 2.5).
 3. Haptics now or later (T72).

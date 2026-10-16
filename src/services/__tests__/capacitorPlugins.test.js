@@ -15,6 +15,8 @@ const ALLOWED = {
   '@capacitor/app': 'hardware Back button',
   '@capacitor/filesystem': 'write the progress backup to the private cache',
   '@capacitor/share': 'hand the backup file to the share sheet',
+  '@capacitor/cli': 'build tooling only: cap add / cap sync (devDependency)',
+  '@capacitor/android': 'the native Android runtime the wrap runs on',
 };
 
 const pkg = JSON.parse(

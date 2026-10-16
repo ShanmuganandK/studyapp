@@ -1,0 +1,8 @@
+{
+  "appId": "com.stringus.tinku",
+  "appName": "Tinku Math",
+  "webDir": "dist-android",
+  "android": {
+    "allowMixedContent": false
+  }
+}

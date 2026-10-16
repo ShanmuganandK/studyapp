@@ -864,3 +864,22 @@
   acceptance of "Stringus" as the public developer name on a personal account.
   **Revisit trigger:** a concrete need for web-speed Android releases that bundling cannot meet, decided
   **before the public link**, while only closed-test families hold data.
+
+- (2026-10-16) **Android wrap: the founder's answers to the open questions (LOCKED; recorded by Claude Code
+  at the founder's request).** Builds on 2026-10-15 (Capacitor from the first build).
+  - **appId `com.stringus.tinku`.** Permanent once the first AAB is uploaded to Play.
+  - **Android automatic backup: ON.** Progress follows the parent to a new phone through the PARENT'S OWN
+    Google backup; the app never sends it anywhere. Consequence taken on purpose: the published policy
+    could no longer say progress is "on your device only" or that switching devices "will erase it", so
+    `privacyPolicy.js` now says "on your device", "can erase it", and discloses the phone-level backup
+    (guarded: the policy test fails if `android/` enables backup and the disclosure is missing). The Play
+    **Data Safety** answer for backup is a founder/Play-Console call, not made here. The cache (transient
+    export files) is excluded from backup.
+  - **First build runs on GitHub Actions** (Phase 3 of `ANDROID-BUILD-PLAN.md`); the upload key lives only
+    in Actions secrets.
+  - **Back from a quiz goes straight to the skill list (no "leave this session?" prompt) for now.** The
+    founder wants tester comments first ("a tricky one", average-learner tie-break, 2026-08-25). Revisit
+    after the closed test; a prompt adds a decision for a young child at the moment they want to stop.
+  - **No Android permissions are requested** (not even INTERNET): the app is fully offline. **UNVERIFIED on
+    a device** (this sandbox cannot run Android): if the first APK shows a blank screen, restore INTERNET in
+    the manifest and the guard, and reflect it in Data Safety. Haptics (T72) remain undecided and unbuilt.

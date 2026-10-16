@@ -54,7 +54,7 @@ export const APP_NAME = PRODUCT_NAME;
 export const OPERATOR_LINE = 'operated by Stringus, based in the UAE';
 
 /** Shown to the reader and re-published on every change. Update when the text changes. */
-export const LAST_UPDATED = '13 October 2026';
+export const LAST_UPDATED = '16 October 2026';
 
 /** Grievance/contact address. Also the Rule 9 contact if Layer 2 ever returns. */
 export const CONTACT_EMAIL = 'tinku@stringus.com';
@@ -76,7 +76,7 @@ export const SECTIONS = [
     heading: 'No sign-up, no accounts',
     paragraphs: [
       `${APP_NAME} has no sign-up and no accounts. Your child's progress — skills practised, ` +
-        'levels, streaks — is saved on your device only. It is never sent to us. We cannot see it.',
+        'levels, streaks — is saved on your device. It is never sent to us. We cannot see it.',
     ],
   },
   {
@@ -102,8 +102,14 @@ export const SECTIONS = [
     // may only claim what is true now.
     paragraphs: [
       'Because progress is stored on your device, clearing your browser data, uninstalling, ' +
-        'or switching devices will erase it. You can save a backup copy from the Parent Zone ' +
+        'or switching devices can erase it. You can save a backup copy from the Parent Zone ' +
         'at any time.',
+      // Android app only; DECISIONS 2026-10-15 turned Android automatic backup ON. Guarded by
+      // privacyPolicy.test.js, which fails if android/ enables backup and this sentence is missing.
+      'On the Android app, your phone\'s own backup feature may also keep a copy of this ' +
+        "app's data in your Google account and restore it if you move to a new phone. That copy " +
+        'is held by Google under your account, is controlled by your phone\'s backup settings, ' +
+        'and is never sent to us. You can turn it off in those settings.',
     ],
   },
   {

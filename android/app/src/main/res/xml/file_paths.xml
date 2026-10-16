@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the app's private cache can be shared (the progress backup is written there, then handed to the
+     share sheet). The template's whole-external-storage path was removed: nothing else may be exposed. -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <cache-path name="backup" path="." />
+</paths>

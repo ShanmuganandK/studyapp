@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 6-11 full-backup rules; same intent as data_extraction_rules.xml. -->
+<full-backup-content>
+    <include domain="root" path="." />
+    <exclude domain="root" path="cache" />
+</full-backup-content>
