@@ -99,6 +99,7 @@ ask, and the rule gets sharper.
 | `design-system/` | Design-system **recommendations** (DS-1 … DS-8): `RECOMMENDATIONS.md` (what, why, exact change, benefit, effort, priority), `tokens.recommended.css` (proposed token changes, imported by nothing), offline previews comparing current and recommended across all four palettes, and a written-down copy of the current system (`tokens.current.json`, `brand-book.md`, `screens.md`). **Proposals only — `src/index.css` stays the source of truth.** Tracked in TRACKER → "Design-system recommendations". | Live (proposals, 2026-10-03) |
 | `branding/` | Brand assets that are **not shipped** (outside `public/` and `src/`): `play-store-icon-512.png`, the Play Console listing icon, generated with the app icons by `scripts/build-icons.py` from the Tinku mascot art. Not a document — listed so nobody moves it into `public/`. | Live (2026-10-14) |
 | `ANDROID-BUILD-PLAN.md` | Capacitor Android build plan (TRACKER L4): phases, guards, signing, store facts, open founder decisions. A **plan**, not status; TRACKER L4 holds status. | Live (2026-10-14) |
+| `ANDROID-RELEASE-RUNBOOK.md` | The founder's steps for the Android build: test the debug APK, create the Play upload key, add the four GitHub secrets, first signed AAB. Steps, not status. | Live (2026-10-16) |
 
 ## Feature specs — written by Chat, consumed by Code
 

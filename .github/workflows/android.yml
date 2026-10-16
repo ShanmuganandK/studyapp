@@ -1,0 +1,160 @@
+name: Android build
+
+# MANUAL ONLY (DECISIONS 2026-10-15/16). This workflow can handle the Play upload key, so it must never
+# run on pull_request / push (a PR from a fork or a stray branch must not be able to reach a secret).
+# workflow_dispatch can only be started by someone with write access to the repo.
+#
+#   build_type = debug    -> a debug APK you can install on a phone to test. No secrets used.
+#   build_type = release  -> a SIGNED .aab for Play. Runs in the `android-release` environment, which is
+#                            where the four signing secrets live (see ANDROID-RELEASE-RUNBOOK.md).
+#
+# The debug APK is built in BOTH modes, and its permissions are MEASURED from the real merged manifest
+# (aapt2), not inferred from the source manifest: this is the evidence for the Play Data Safety form.
+on:
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'debug = test APK (no secrets); release = signed AAB for Play'
+        type: choice
+        options: [debug, release]
+        default: debug
+
+permissions:
+  contents: read
+
+env:
+  # The ONLY permission the merged manifest may contain. AndroidX adds this app-private, signature-level
+  # permission to every app; it grants no network or device access. Anything else (INTERNET, storage,
+  # location...) fails the build.
+  ALLOWED_PERMISSION: com.stringus.tinku.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17' # what the Android Gradle Plugin 8.13 in android/ requires
+
+      # Installs the SDK pieces Gradle needs and accepts the licences (a clean runner has neither).
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Install
+        run: npm ci
+
+      # Same gates as CI, so an Android artifact is never built from a tree CI would reject.
+      - name: Lint, privacy page, tests
+        run: |
+          npm run lint
+          npm run lint:hex
+          npm run privacy:check
+          npm run test:run
+
+      - name: Build the Android web bundle and sync it into android/
+        run: npm run build:android
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew --no-daemon assembleDebug
+
+      # MEASURE, don't infer: read the permissions out of the APK that was actually built.
+      - name: Check the APK's real permissions
+        run: |
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          AAPT2=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)
+          "$AAPT2" dump permissions "$APK" | tee permissions.txt
+          "$AAPT2" dump badging "$APK" | grep -E "^(package|sdkVersion|targetSdkVersion)" | tee badging.txt
+          FOUND=$(grep -oE "uses-permission[^:]*: name='[^']+'" permissions.txt | sed -E "s/.*name='([^']+)'/\1/" | sort -u)
+          UNEXPECTED=$(echo "$FOUND" | grep -vxF "$ALLOWED_PERMISSION" | grep -v '^$' || true)
+          {
+            echo "### Measured APK permissions"
+            echo '```'
+            cat permissions.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "::error::Unexpected permission(s) in the built APK:"
+            echo "$UNEXPECTED"
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tinku-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+          if-no-files-found: error
+
+  release:
+    # Only when asked for, and only after the debug build + permission check above passed.
+    if: ${{ inputs.build_type == 'release' }}
+    needs: debug
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # The signing secrets are stored on this environment, not on the repo, so no other job can read them.
+    # Add "Required reviewers" to the environment if you want a human approval click before each release.
+    environment: android-release
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Install
+        run: npm ci
+
+      - name: Build the Android web bundle and sync it into android/
+        run: npm run build:android
+
+      - name: Decode the upload key (never printed, deleted afterwards)
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not set on the android-release environment. See ANDROID-RELEASE-RUNBOOK.md."
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+          echo "TINKU_KEYSTORE_FILE=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+
+      - name: Build signed release AAB
+        working-directory: android
+        env:
+          TINKU_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          TINKU_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          TINKU_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          TINKU_VERSION_CODE: ${{ github.run_number }}
+        run: ./gradlew --no-daemon bundleRelease
+
+      - name: Remove the decoded key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/upload.jks"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: tinku-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+          if-no-files-found: error
