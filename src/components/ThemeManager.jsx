@@ -8,6 +8,7 @@ import ParentDashboard from './ParentDashboard';
 import GradePickerScreen from './GradePickerScreen';
 import { useAuth } from '../contexts/AuthContext';
 import useTestSettings from '../hooks/useTestSettings';
+import useAndroidBackButton from '../hooks/useAndroidBackButton';
 
 // EXPERIMENT (screen-3b): SkillPathScreen is the current default Home (kid-test in progress).
 // `?home=cards` switches to the card-list variant (SkillSelectScreen) for A/B comparison —
@@ -85,6 +86,9 @@ export default function ThemeManager() {
     setActiveSkillId(null);
     setCurrentView('parent');
   };
+
+  // Android Back button (no-op on web): close the gate → leave quiz/parent → exit from the list.
+  useAndroidBackButton({ isGateOpen, currentView }, { closeGate, goToSkills: handleBackToSkills });
 
   // First-run grade picker (DECISIONS 2026-09-23): shown ONLY when this device has never had
   // test settings written — replaces the whole app output (no Layout/nav chrome, no other UI).

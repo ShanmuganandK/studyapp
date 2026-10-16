@@ -18,6 +18,10 @@
     "visual:list": "node scripts/visual-snapshot.mjs list"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.5.3",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/share": "^8.0.3",
     "@fontsource-variable/baloo-2": "^5.2.7",
     "@fontsource-variable/nunito": "^5.2.7",
     "lucide-react": "^0.460.0",

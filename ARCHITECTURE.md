@@ -621,11 +621,17 @@ above. Behind the parent gate, in `ParentDashboard`.
 - **Import REPLACES, never merges** — `replaceAllSkillStates` writes a fresh store with no
   prior read, so a skill absent from the imported file is genuinely gone, not carried over.
   Behind a two-step confirm in `ParentDashboard` stating this plainly.
-- **Capacitor gap, deliberately not built for (DECISIONS 2026-08-17):** delivery is
-  `Blob`/`<a download>`/`<input type="file">`, which work in the PWA today but have no
-  Capacitor equivalent. When the Android wrap ships, this needs a Capacitor
-  Filesystem/Share-plugin implementation behind the same hook API — not pre-solved against a
-  wrapper that doesn't exist yet.
+- **Android (Capacitor) seam, built 2026-10-15 (Phase 1 of `ANDROID-BUILD-PLAN.md`):**
+  `services/platform.js` (`isNativeApp()`, the only place that asks Capacitor) and
+  `services/fileTransfer.js` (`saveTextFile`: web = Blob + `<a download>`; native = Filesystem write to
+  the private cache + the system share sheet, plugins loaded by dynamic `import()` on the native
+  branch only). `useProgressBackup.exportProgress` calls it, so the screen is unchanged. Import still
+  uses `<input type="file">`, which the Android WebView supports. Android Back:
+  `services/backButton.js` (pure `backAction`: close gate → leave quiz/parent → exit from the list) +
+  `hooks/useAndroidBackButton.js` (native only), mounted in `ThemeManager`. Guard:
+  `services/__tests__/capacitorPlugins.test.js` is the plugin **allow-list** (core, app, filesystem,
+  share); any other `@capacitor/*` fails the build until added deliberately. Web cost: entry JS
+  +~20 KB (core) and ~11 KB of lazy plugin chunks that the web never executes.
 
 ### Test settings — parent test panel (`src/services/testSettings.js` + `src/hooks/useTestSettings.js` + `src/components/TestPanel.jsx`)
 
