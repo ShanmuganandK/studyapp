@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Brand indigo (--color-primary). Re-typed because Android resources cannot read the web tokens. -->
+    <!-- Brand indigo (the web primary colour token). Re-typed because Android resources cannot read the web tokens. -->
     <color name="ic_launcher_background">#4F46E5</color>
-    <!-- Pale indigo (--color-primary-soft): the splash backdrop. -->
+    <!-- Pale indigo (the web primary-soft token): the splash backdrop. -->
     <color name="splash_background">#E0E7FF</color>
 </resources>
