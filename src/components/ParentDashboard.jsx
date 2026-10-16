@@ -31,7 +31,7 @@ function SkillRow({ skill }) {
     <div data-skill-id={skill.skillId} className="flex items-center justify-between py-3 border-b border-primary-soft last:border-0">
       <div className="flex items-center gap-3 min-w-0">
         {skill.icon && (
-          <span className="text-2xl flex-shrink-0" aria-hidden="true">
+          <span className="text-2xl shrink-0" aria-hidden="true">
             {skill.icon}
           </span>
         )}
@@ -42,7 +42,7 @@ function SkillRow({ skill }) {
           )}
         </div>
       </div>
-      <div className="flex flex-col items-end gap-1 flex-shrink-0 ml-3">
+      <div className="flex flex-col items-end gap-1 shrink-0 ml-3">
         <MasteryPips level={skill.level} />
         {skill.level > 0 && (
           <span className={`text-xs font-medium ${levelLabelColour(skill.level)}`}>

@@ -28,8 +28,8 @@ const Layout = ({ children, currentView, onNavigate, scrollLocked = false }) => 
         {/* Offline banner — appears when the device loses connectivity. Auto-hides on
             reconnect. Non-blocking: child can keep playing (local state intact). */}
         {!isOnline && (
-          <div className="bg-learn-soft text-learn-ink text-xs py-2 px-4 flex-shrink-0 flex items-center justify-center gap-2" role="status">
-            <img src={tinkuImg} alt="" aria-hidden="true" className="w-7 h-7 object-contain flex-shrink-0" />
+          <div className="bg-learn-soft text-learn-ink text-xs py-2 px-4 shrink-0 flex items-center justify-center gap-2" role="status">
+            <img src={tinkuImg} alt="" aria-hidden="true" className="w-7 h-7 object-contain shrink-0" />
             <span>You're offline — Tinku can still play! Progress is saved on this device.</span>
           </div>
         )}
@@ -47,7 +47,7 @@ const Layout = ({ children, currentView, onNavigate, scrollLocked = false }) => 
         </div>
 
         {/* Bottom Navigation */}
-        <div className="flex-shrink-0 h-20 bg-bg-card border-t border-primary-soft flex items-center justify-around px-4 shadow-nav">
+        <div className="shrink-0 h-20 bg-bg-card border-t border-primary-soft flex items-center justify-around px-4 shadow-nav">
           <NavItem
             icon={<Home size={22} strokeWidth={2.5} />}
             label="Home"

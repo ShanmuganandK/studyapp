@@ -107,10 +107,12 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
 
 ## Tech stack (do not change without a decision)
 
-- **React 18 + Vite** (SPA), **Tailwind CSS v3** (`tailwindcss ^3.4`, `tailwind.config.js`,
-  `@tailwind` directives). **Do not accept a Tailwind v4 bump** (Dependabot proposes one) — v4 is
-  a config/CSS migration, not a lockfile change, and CI goes red. Fonts are self-hosted via
-  Fontsource (Nunito + Baloo 2); no CDN.
+- **React 18 + Vite** (SPA), **Tailwind CSS v4** (`tailwindcss ^4`, `@tailwindcss/postcss`; migrated
+  2026-10-16 from v3 after a Dependabot bump broke master twice: v4 is a config/CSS migration, not a
+  lockfile change). The design tokens are still in `tailwind.config.js`, loaded from `src/index.css` with
+  `@config`, so every token class keeps its name. Fonts are self-hosted via Fontsource (Nunito + Baloo 2);
+  no CDN. **Do not use v3-only utilities** (`flex-shrink-*`, `bg-opacity-*`, bare `shadow`/`blur`/`rounded`,
+  `outline-none`): v4 renamed or removed them (`shrink-*`, `/opacity`, `*-sm`→`*-xs`, `outline-hidden`).
 - **PWA** (offline-capable, installable) — primary delivery. **Android/Play packaging: the Capacitor
   project exists (`android/`, `capacitor.config.json`; DECISIONS 2026-10-15/16) but has never been
   built or run: no APK/AAB exists yet.** Status and next steps are in TRACKER L4;

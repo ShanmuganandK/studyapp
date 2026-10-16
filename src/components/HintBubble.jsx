@@ -20,7 +20,7 @@ export default function HintBubble({ hint, emotion = 'encourage' }) {
   if (!hint) return null;
 
   return (
-    <div className="flex-shrink-0 flex justify-center mt-0.5 mb-1 px-2">
+    <div className="shrink-0 flex justify-center mt-0.5 mb-1 px-2">
       <div
         role="status"
         aria-live="polite"

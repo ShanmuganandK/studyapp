@@ -95,7 +95,7 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
   return (
     <div className="flex flex-col h-full overflow-hidden bg-bg px-5 pt-1 pb-2">
       {/* Top bar: back · progress counter · mute toggle */}
-      <div className="flex items-center justify-between flex-shrink-0">
+      <div className="flex items-center justify-between shrink-0">
         <button onClick={onExit} className="text-sm font-semibold text-muted hover:text-ink transition-colors">
           ← Skills
         </button>
@@ -114,7 +114,7 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
       {/* Tinku's stage: decorative, yields space first — shrinks while a hint shows (see
           mascotSize). A soft ground ellipse sits beneath him so he feels IN the world (he
           breathes/floats above it) rather than pasted on. */}
-      <div className="relative flex flex-col items-center flex-shrink-0">
+      <div className="relative flex flex-col items-center shrink-0">
         <Mascot emotion={s.emotion} size={mascotSize} />
         <div aria-hidden="true" className="tinku-ground h-3 w-2/5 max-w-[140px] -mt-1 rounded-[50%]" />
       </div>
@@ -124,7 +124,7 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
           isolates that remount from the sibling keys used for the question transitions below, so
           React always cleanly unmounts the previous bubble (no orphaned/stacked bubble that
           would otherwise persist across taps and questions). */}
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <HintBubble key={s.hintNonce} hint={s.hint} emotion={s.emotion} />
       </div>
 
@@ -143,8 +143,8 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
       {/* Options. Buttons are disabled during the post-answer pause (phase correct/reveal) so a
           kid can't double-tap into the next question — it auto-advances after ADVANCE_DELAY_MS.
           Keyed by questionNumber so the tiles remount and stagger-in on each new question. */}
-      {/* Answers: flex-shrink-0 — never compressed, always fully visible */}
-      <div key={s.questionNumber} className="flex-shrink-0 flex flex-wrap justify-center gap-3 max-w-sm w-full mx-auto pb-2 pt-1">
+      {/* Answers: shrink-0 — never compressed, always fully visible */}
+      <div key={s.questionNumber} className="shrink-0 flex flex-wrap justify-center gap-3 max-w-sm w-full mx-auto pb-2 pt-1">
         {s.question.options.map((opt, i) => (
           <KidButton
             key={i}
