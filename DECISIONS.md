@@ -883,3 +883,14 @@
   - **No Android permissions are requested** (not even INTERNET): the app is fully offline. **UNVERIFIED on
     a device** (this sandbox cannot run Android): if the first APK shows a blank screen, restore INTERNET in
     the manifest and the guard, and reflect it in Data Safety. Haptics (T72) remain undecided and unbuilt.
+
+- (2026-10-16) **Tailwind CSS migrated v3 → v4 (founder chose this over staying on v3; recorded by Claude Code).**
+  Why: a Dependabot grouped security bump put `tailwindcss ^4` into `package.json` twice and broke master's
+  build each time (2026-10-07, 2026-10-16), and staying on v3 left `npm audit` flagging 11 build-time
+  advisories (5 high) whose only fix is v4. (`npm audit --omit=dev` was 0 either way: nothing flagged ships
+  in the app.) Done as a deliberate migration: `@tailwindcss/postcss`, `@config` keeps `tailwind.config.js` as
+  the token source (no class renames), v3-only utilities renamed in live components, and a seeded
+  before/after screenshot diff of 18 screens (17 pixel-identical; the first-run picker differs by ≤8/255 per
+  channel from v4's gradient colour interpolation). This supersedes the CLAUDE.md "do not accept a Tailwind v4
+  bump" rule, which was a guard against an UNMIGRATED bump. Remaining audit items (fast-uri, `uuid` via
+  `@capacitor/cli`→`xcode`) are build tooling only; not addressed here.

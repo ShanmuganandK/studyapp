@@ -1,6 +1,20 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+/* Tailwind v4 (migrated 2026-10-16): the design tokens still live in tailwind.config.js, loaded here, so
+   every token utility (bg-primary, rounded-card, text-title, ...) keeps its name and its CSS variable. */
+@config "../tailwind.config.js";
+
+/* v3 -> v4 compatibility (Tailwind upgrade guide): v4 made the default border colour `currentColor`;
+   v3 used gray-200. Keep the v3 look wherever a border has no explicit colour class. */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
 
 :root {
   /* Type families (self-hosted via Fontsource, imported in main.jsx). Body = Nunito (friendly,

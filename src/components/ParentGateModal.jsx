@@ -138,7 +138,7 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
             : 'Enter your 4-digit PIN to continue';
 
     return createPortal(
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
             <div className={`bg-bg-card rounded-card shadow-card w-full max-w-sm max-h-[92dvh] overflow-y-auto ${error ? 'animate-shake' : ''}`}>
 
                 {/* Top: close + Tinku + heading + subtitle */}
@@ -178,7 +178,7 @@ const ParentGateModal = ({ isOpen, onClose, onSuccess, isSettingMode = false }) 
                             onChange={(e) => { setChallengeInput(e.target.value.replace(/\D/g, '')); setError(false); }}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleChallengeSubmit(); }}
                             aria-label="Answer"
-                            className="mt-5 w-full text-center text-2xl font-semibold text-ink bg-bg border border-primary-soft rounded-button py-3 focus:outline-none focus:border-primary"
+                            className="mt-5 w-full text-center text-2xl font-semibold text-ink bg-bg border border-primary-soft rounded-button py-3 focus:outline-hidden focus:border-primary"
                         />
                         {error && (
                             <p className="text-center text-encourage font-medium mt-3 text-sm">

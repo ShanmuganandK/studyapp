@@ -246,7 +246,9 @@ future kid-feedback tuning is a token change, not a screen hunt.
 - **Tokens** live as CSS custom properties in **`src/index.css`** (`:root` = Wonder-band
   defaults; a future band overrides the SAME properties under a scoped class — no component
   changes needed). **`tailwind.config.js`** exposes them as utilities so components use named
-  tokens, never raw hex. Groups: colour
+  tokens, never raw hex (Tailwind **v4** since 2026-10-16: `postcss.config.js` uses `@tailwindcss/postcss`, and
+  `src/index.css` starts with `@import "tailwindcss"; @config "../tailwind.config.js";` plus a v3-compat
+  default border colour; verified by a seeded before/after screenshot diff of 18 screens, 17 pixel-identical). Groups: colour
   (`bg`, `bg-card`, `primary`/`-soft`/`-ink`, `accent`, `success`/`-soft`, `encourage`/`-soft`/`-ink`,
   `learn`/`-soft`/`-ink`, `review`, `ink`, `muted`), `rounded-{button,card}`, `shadow-{button,card,nav}`, fluid
   `text-{question,option,title,prompt,body}` (clamp), and **type families** `font-body` (`--font-body`)

@@ -43,7 +43,7 @@ cannot reach.
 
 ## Tech stack
 
-React 18 · Vite · Tailwind CSS **v3** · Vitest + React Testing Library · `vite-plugin-pwa` ·
+React 18 · Vite · Tailwind CSS **v4** · Vitest + React Testing Library · `vite-plugin-pwa` ·
 Lucide icons · fonts self-hosted via Fontsource (Nunito, Baloo 2). Hosted on Netlify. No backend.
 
 ## Getting started
