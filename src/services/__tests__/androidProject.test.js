@@ -114,3 +114,29 @@ describe('Gradle + repo hygiene', () => {
     expect(bad).toEqual([]);
   });
 });
+
+describe('Android XML sources', () => {
+  // XML forbids a double hyphen inside a comment, and only the Android resource merger (CI's
+  // assembleDebug) enforces it: a "--color-x" token name in a comment broke the first real build.
+  it('have no "--" inside a comment', () => {
+    const walk = (d) => readdirSync(d).flatMap((n) => {
+      const p = join(d, n);
+      if (n === 'build' || n === 'node_modules') return [];
+      return statSync(p).isDirectory() ? walk(p) : [p];
+    });
+    const bad = [];
+    for (const f of walk(join(ANDROID, 'app', 'src')).filter((x) => extname(x) === '.xml')) {
+      const xml = read(f);
+      let i = 0;
+      for (;;) {
+        const start = xml.indexOf('<!--', i);
+        if (start === -1) break;
+        const end = xml.indexOf('-->', start + 4);
+        if (end === -1) { bad.push(`${f}: unterminated comment`); break; }
+        if (xml.slice(start + 4, end).includes('--')) bad.push(f);
+        i = end + 3;
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+});
