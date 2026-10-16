@@ -107,6 +107,31 @@ jobs:
             exit 1
           fi
 
+      # Informational only (never fails the build): why a phone might refuse the APK. Signature scheme and
+      # certificate, 4-byte alignment and compression of resources.arsc (Android 11+ rejects an install
+      # without them), the declared SDK levels, and the native ABIs (none expected: this app has no native code).
+      - name: APK install diagnostics
+        continue-on-error: true
+        run: |
+          APK=android/app/build/outputs/apk/debug/app-debug.apk
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)
+          {
+            echo "### APK install diagnostics"
+            echo '```'
+            ls -l "$APK"
+            echo "--- apksigner verify"
+            "$BT"apksigner verify --verbose --print-certs "$APK" 2>&1 | grep -v "^WARNING" | head -20
+            echo "--- zipalign (4-byte)"
+            "$BT"zipalign -c -P 16 -v 4 "$APK" 2>&1 | tail -2
+            echo "--- resources.arsc storage"
+            unzip -v "$APK" resources.arsc | tail -3
+            echo "--- native libs (expect none)"
+            unzip -l "$APK" | grep -c "lib/" || true
+            echo "--- badging"
+            "$BT"aapt2 dump badging "$APK" | grep -E "^(package|sdkVersion|targetSdkVersion|compileSdkVersion|native-code)" 
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/upload-artifact@v4
         with:
           name: tinku-debug-apk
