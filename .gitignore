@@ -44,3 +44,19 @@ graphify-out
 # Python bytecode (scripts/build-icons.py is a dev tool)
 __pycache__
 *.pyc
+
+# Android (Capacitor): the native project is committed; its build output and secrets are not
+dist-android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/captures/
+android/**/*.keystore
+android/**/*.jks
+android/keystore.properties
+*.aab
+*.apk
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json

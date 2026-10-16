@@ -20,11 +20,19 @@ const productNameHtml = {
 }
 
 // https://vitejs.dev/config/
-export default defineConfig({
+//
+// `vite build --mode android` is the Capacitor (Android) bundle (DECISIONS 2026-10-15): the same app,
+// but NO service worker, NO web manifest and NO PWA registration script — the Android app bundles its
+// own assets and a service worker inside the WebView would only fight the native updater. It builds to
+// dist-android/ (Capacitor's webDir) so it can never be mistaken for, or overwrite, the web build.
+export default defineConfig(({ mode }) => {
+  const android = mode === 'android'
+  return {
+  build: android ? { outDir: 'dist-android' } : {},
   plugins: [
     react(),
     productNameHtml,
-    VitePWA({
+    ...(android ? [] : [VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
       workbox: {
@@ -79,6 +87,7 @@ export default defineConfig({
           }
         ]
       }
-    })
+    })]),
   ],
+  }
 })
