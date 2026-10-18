@@ -20,10 +20,12 @@ const SIGN_BOX = 'var(--q-sign-box, 3rem)';
 export default function QuestionView({ question, blankFill = null }) {
   if (question.format === 'count-objects') {
     const { glyph, count } = question.render;
-    // Rows of 5: a 3-row tray (11-15 objects) must fit the same question area as a 1-row one, so the
-    // objects scale down with the row count. The base size comes from the stage's budget.
+    // Rows of 5, up to 3 rows (11-15 objects). The tray is sized by the room the question area really has
+    // (it is a size container, `qreg`): what is left after the prompt (reserved at 2 lines) and the tray
+    // padding is shared between the rows. So 3 rows shrink, 1 row stays big, and nothing is clipped.
     const rows = Math.ceil(count / 5);
-    const rowScale = rows <= 1 ? 1 : rows === 2 ? 0.8 : 0.6;
+    const fit = `((100cqh - 2.6 * var(--text-prompt) - 2.75rem) / ${rows} / 1.3)`;
+    const size = `min(var(--q-glyph, clamp(1.5rem, 6.5vw, 2.5rem)), max(1.25rem, ${fit}))`;
     return (
       <div className="text-center">
         <p className="text-prompt font-extrabold text-ink mb-3">{question.questionText}</p>
@@ -41,8 +43,8 @@ export default function QuestionView({ question, blankFill = null }) {
                 key={i}
                 className="count-glyph flex items-center justify-center leading-none select-none"
                 style={{
-                  fontSize: `calc(var(--q-glyph, clamp(1.5rem, 6.5vw, 2.5rem)) * ${rowScale})`,
-                  minWidth: `calc(var(--q-glyph, 1.75rem) * ${rowScale} * 1.1)`,
+                  fontSize: size,
+                  minWidth: `calc(${size} * 1.1)`,
                 }}
               >
                 {glyph}

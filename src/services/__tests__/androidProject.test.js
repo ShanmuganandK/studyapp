@@ -76,6 +76,9 @@ describe('AndroidManifest.xml', () => {
       expect(read(join(MAIN, 'res', 'xml', f))).toMatch(/exclude domain="root" path="cache"/);
     }
   });
+  it('locks the launcher activity to portrait (the quiz layout is built for portrait only)', () => {
+    expect(noComments).toMatch(/<activity\b[^>]*android:screenOrientation="portrait"/);
+  });
   it('exports only the launcher activity', () => {
     const exported = [...noComments.matchAll(/<(activity|service|receiver|provider)\b[^>]*android:exported="true"/g)];
     expect(exported.map((m) => m[1])).toEqual(['activity']);

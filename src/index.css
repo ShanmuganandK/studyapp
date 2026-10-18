@@ -270,7 +270,7 @@
   }
 }
 .quiz-hint-slot { display: flex; align-items: center; justify-content: center; min-height: 0; }
-.quiz-question { min-height: 0; overflow-x: hidden; overflow-y: auto; }
+.quiz-question { container: qreg / size; min-height: 0; overflow-x: hidden; overflow-y: auto; }
 
 /* Kid-facing big numbers/equation — a soft depth shadow that adds a "3D pop" while staying
    crisply readable for early readers (no hard extrusion). Static text-shadow. */
