@@ -7,6 +7,6 @@ import SessionPlayer from './SessionPlayer';
  * `skillId` and hands off to SessionPlayer, which drives the session (remediation, scoring,
  * session-end). A thin presentational seam between selection and play.
  */
-export default function RecipeQuizScreen({ grade = 1, skillId, onBack, bridgeEnabled = false }) {
-  return <SessionPlayer grade={grade} skillId={skillId} onExit={onBack} bridgeEnabled={bridgeEnabled} />;
+export default function RecipeQuizScreen({ grade = 1, skillId, onBack, bridgeEnabled = false, onSessionComplete }) {
+  return <SessionPlayer grade={grade} skillId={skillId} onExit={onBack} bridgeEnabled={bridgeEnabled} onSessionComplete={onSessionComplete} />;
 }

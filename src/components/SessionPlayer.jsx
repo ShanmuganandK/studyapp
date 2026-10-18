@@ -21,8 +21,16 @@ import { quizProfileForGrade } from '../config/quizLayout';
  *   wrong   → wrong #2 reveal
  *   complete → phase transitions to 'complete' (session end)
  */
-export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = false }) {
+export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = false, onSessionComplete }) {
   const s = useQuizSession(grade, { skillId, bridgeEnabled });
+
+  // Tell the shell when the session has ended so it can bring the Home/Parent bar back on the summary
+  // (it is hidden during questions). Reset on unmount so leaving the quiz never leaves it stale.
+  const done = !!s.sessionComplete;
+  useEffect(() => {
+    onSessionComplete?.(done);
+    return () => onSessionComplete?.(false);
+  }, [done]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Mute toggle state — initialised from the service so it survives hot reloads.
   const [muted, setMuted] = useState(isSoundMuted);
