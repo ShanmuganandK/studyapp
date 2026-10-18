@@ -252,7 +252,7 @@
    fits without scrolling. Same rules, smaller numbers. */
 @container quiz (max-height: 600px) {
   .quiz-grid[data-profile] {
-    --q-mascot: clamp(5rem, min(25cqh, 84cqw), 20rem);
+    --q-mascot: clamp(5rem, min(23cqh, 84cqw), 20rem);
     --q-tile: clamp(3rem, 10.5cqh, 5rem);
     --q-glyph: clamp(1.5rem, min(5cqh, 10cqw), 3rem);
   }

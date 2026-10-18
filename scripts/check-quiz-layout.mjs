@@ -18,6 +18,9 @@
  *   4. NO DEAD VOID  the empty space inside the question area is at most 28% of the stage;
  *   5. TOUCHABLE  every answer tile is at least 44 px tall.
  * (1, 2 and 5 also run on the cramped size; 3 and 4 only where there is room to judge.)
+ * A fresh install only ever plays the EASIEST rung (1-row counting trays), so a second pass seeds progress at the
+ * hardest rung of 'Big Number Party' and plays until it has measured a 1-, 2- and 3-row tray: that is where the
+ * counting tray was once clipped on a real phone (2026-10-18). It fails if it never gets to see a 3-row tray.
  * Portrait only: this is a portrait app (the Android build should be locked to portrait).
  *
  * Exit code 1 if anything fails, with the offending measurement printed.
@@ -28,7 +31,7 @@ import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const PORT = 4324;
+const PORT = Number(process.env.LAYOUT_PORT) || 4324;
 const URL = `http://localhost:${PORT}`;
 const shotsDir = process.argv.includes('--shots') ? process.argv[process.argv.indexOf('--shots') + 1] : null;
 if (shotsDir) mkdirSync(shotsDir, { recursive: true });
@@ -43,6 +46,9 @@ const PHONES = [
 ];
 const GRADES = [1, 2];
 const SKILLS_PER_GRADE = 3;
+const HARD_COUNTING_SKILL = /Big Number Party/i;   // g1.count.1-20, the skill with 1-, 2- and 3-row trays
+const HARD_QUESTIONS_MAX = 60;
+const ONLY = process.env.LAYOUT_ONLY;   // e.g. LAYOUT_ONLY=Galaxy to run one phone while iterating
 const QUESTIONS_PER_SKILL = Number(process.env.LAYOUT_QUESTIONS) || 3;   // raise it to sweep more random questions (e.g. every counting tray size)
 const CHROMIUM = process.env.CHROMIUM_PATH || (process.env.PLAYWRIGHT_BROWSERS_PATH ? join(process.env.PLAYWRIGHT_BROWSERS_PATH, 'chromium') : undefined);
 
@@ -68,6 +74,7 @@ const measure = () => {
     questionScrolls: question ? question.scrollHeight - question.clientHeight : 0,
     questionContentH: question?.firstElementChild?.firstElementChild ? question.firstElementChild.firstElementChild.offsetHeight : 0,
     hasBubble: !!document.querySelector('[role="status"]'),
+    glyphs: document.querySelectorAll('.count-glyph').length,
     profile: grid.dataset.profile,
   };
 };
@@ -75,6 +82,60 @@ const measure = () => {
 const failures = [];
 const fail = (where, msg, m) => failures.push(`${where}: ${msg}${m ? `  (${JSON.stringify(m)})` : ''}`);
 const rows = [];
+
+// Measures + asserts ONE question on the screen, then answers it so the session moves on. Returns the
+// measurement (or null when there is no quiz screen). `shot` saves screenshots for this question.
+async function checkQuestion(page, phone, where, stats, shot) {
+  const rest = await page.evaluate(measure);
+  if (!rest) return null; // session ended or the skill has no quiz screen
+  stats.measured++; stats.stageH = rest.grid.h;
+  stats.mascotMin = Math.min(stats.mascotMin, rest.mascotImg.h); stats.mascotMax = Math.max(stats.mascotMax, rest.mascotImg.h);
+
+  // 1. FITS
+  if (rest.answers.b > rest.grid.b + 1) fail(where, 'answers overflow the stage', { answersBottom: rest.answers.b, stageBottom: rest.grid.b });
+  if (rest.questionScrolls > 1) fail(where, `question area needs scrolling (${Math.round(rest.questionScrolls)} px)`, { region: rest.question.h });
+  // 5. TOUCHABLE
+  if (rest.tile.h < 44) fail(where, `answer tile only ${Math.round(rest.tile.h)} px tall`);
+  // 3 + 4: only where there is room to judge
+  if (!phone.cramped) {
+    if (rest.mascotImg.h < 0.22 * rest.grid.h) fail(where, `Tinku is only ${Math.round((100 * rest.mascotImg.h) / rest.grid.h)}% of the stage`, { mascot: rest.mascotImg.h, stage: rest.grid.h });
+    const dead = (rest.question.h - rest.questionContentH) / rest.grid.h;
+    stats.voidMax = Math.max(stats.voidMax, dead);
+    if (dead > 0.28) fail(where, `${Math.round(dead * 100)}% of the stage is empty space in the question area`, { region: rest.question.h, content: rest.questionContentH });
+  }
+  if (shotsDir && shot) await page.screenshot({ path: join(shotsDir, `${phone.w}x${phone.h}-rest.png`) });
+
+  // 2. HINT MOVES NOTHING: tap a wrong-ish option; if a bubble appears, compare.
+  const tiles = page.locator('[data-q="answers"] button');
+  const n = await tiles.count();
+  for (let t = 0; t < n; t++) {
+    await tiles.nth(t).click({ timeout: 1500 }).catch(() => {});
+    await page.clock.runFor(150);
+    const m = await page.evaluate(measure);
+    if (m?.hasBubble) {
+      stats.hints++;
+      const d = (a, b) => Math.abs(a - b);
+      if (d(m.mascotImg.w, rest.mascotImg.w) > 1 || d(m.mascotImg.h, rest.mascotImg.h) > 1) fail(where, 'Tinku changed size when the hint appeared', { before: rest.mascotImg, after: m.mascotImg });
+      for (const part of ['hint', 'question', 'answers']) {
+        if (d(m[part].y, rest[part].y) > 1.5 || d(m[part].h, rest[part].h) > 1.5) fail(where, `${part} moved or resized when the hint appeared`, { before: rest[part], after: m[part] });
+      }
+      if (m.hint.h < 40) fail(where, 'hint slot too small to hold a hint', { slot: m.hint.h });
+      const bubble = await page.evaluate(() => { const b = document.querySelector('[role="status"]'); const s = document.querySelector('[data-q="hint"]'); const bb = b.getBoundingClientRect(), sb = s.getBoundingClientRect(); return { over: Math.max(0, bb.height - sb.height), clipped: b.scrollHeight - b.clientHeight }; });
+      if (bubble.over > 2 || bubble.clipped > 2) fail(where, 'hint text does not fit the hint slot', bubble);
+      if (shotsDir && shot) await page.screenshot({ path: join(shotsDir, `${phone.w}x${phone.h}-hint.png`) });
+      break;
+    }
+  }
+  // finish this question (keep tapping until it advances), then move on
+  for (let t = 0; t < 8; t++) {
+    const before = await page.locator('text=/\\d+ \\/ \\d+/').first().textContent().catch(() => '');
+    await tiles.nth(t % Math.max(1, n)).click({ timeout: 1000 }).catch(() => {});
+    await page.clock.runFor(1400);
+    const after = await page.locator('text=/\\d+ \\/ \\d+/').first().textContent().catch(() => '');
+    if (after !== before) break;
+  }
+  return rest;
+}
 
 async function checkPhone(phone) {
   const stats = { stageH: 0, mascotMin: Infinity, mascotMax: 0, voidMax: 0, measured: 0, hints: 0 };
@@ -90,67 +151,45 @@ async function checkPhone(phone) {
       await page.locator('button[aria-label]').nth(k).click(); await page.clock.runFor(800);
       for (let qn = 0; qn < QUESTIONS_PER_SKILL; qn++) {
         const where = `${phone.name} ${phone.w}x${phone.h} g${grade} skill#${k} q${qn + 1}`;
-        const rest = await page.evaluate(measure);
-        if (!rest) break; // session ended or the skill has no quiz screen
-        stats.measured++; stats.stageH = rest.grid.h;
-        stats.mascotMin = Math.min(stats.mascotMin, rest.mascotImg.h); stats.mascotMax = Math.max(stats.mascotMax, rest.mascotImg.h);
-
-        // 1. FITS
-        if (rest.answers.b > rest.grid.b + 1) fail(where, 'answers overflow the stage', { answersBottom: rest.answers.b, stageBottom: rest.grid.b });
-        if (rest.questionScrolls > 1) fail(where, `question area needs scrolling (${Math.round(rest.questionScrolls)} px)`, { region: rest.question.h });
-        // 5. TOUCHABLE
-        if (rest.tile.h < 44) fail(where, `answer tile only ${Math.round(rest.tile.h)} px tall`);
-        // 3 + 4: only where there is room to judge
-        if (!phone.cramped) {
-          if (rest.mascotImg.h < 0.22 * rest.grid.h) fail(where, `Tinku is only ${Math.round((100 * rest.mascotImg.h) / rest.grid.h)}% of the stage`, { mascot: rest.mascotImg.h, stage: rest.grid.h });
-          const dead = (rest.question.h - rest.questionContentH) / rest.grid.h;
-          stats.voidMax = Math.max(stats.voidMax, dead);
-          if (dead > 0.28) fail(where, `${Math.round(dead * 100)}% of the stage is empty space in the question area`, { region: rest.question.h, content: rest.questionContentH });
-        }
-        if (shotsDir && grade === 1 && k === 0 && qn === 0) await page.screenshot({ path: join(shotsDir, `${phone.w}x${phone.h}-rest.png`) });
-
-        // 2. HINT MOVES NOTHING: tap a wrong-ish option; if a bubble appears, compare.
-        const tiles = page.locator('[data-q="answers"] button');
-        const n = await tiles.count();
-        for (let t = 0; t < n; t++) {
-          await tiles.nth(t).click({ timeout: 1500 }).catch(() => {});
-          await page.clock.runFor(150);
-          const m = await page.evaluate(measure);
-          if (m?.hasBubble) {
-            stats.hints++;
-            const d = (a, b) => Math.abs(a - b);
-            if (d(m.mascotImg.w, rest.mascotImg.w) > 1 || d(m.mascotImg.h, rest.mascotImg.h) > 1) fail(where, 'Tinku changed size when the hint appeared', { before: rest.mascotImg, after: m.mascotImg });
-            for (const part of ['hint', 'question', 'answers']) {
-              if (d(m[part].y, rest[part].y) > 1.5 || d(m[part].h, rest[part].h) > 1.5) fail(where, `${part} moved or resized when the hint appeared`, { before: rest[part], after: m[part] });
-            }
-            if (m.hint.h < 40) fail(where, 'hint slot too small to hold a hint', { slot: m.hint.h });
-            const bubble = await page.evaluate(() => { const b = document.querySelector('[role="status"]'); const s = document.querySelector('[data-q="hint"]'); const bb = b.getBoundingClientRect(), sb = s.getBoundingClientRect(); return { over: Math.max(0, bb.height - sb.height), clipped: b.scrollHeight - b.clientHeight }; });
-            if (bubble.over > 2 || bubble.clipped > 2) fail(where, 'hint text does not fit the hint slot', bubble);
-            if (shotsDir && grade === 1 && k === 0 && qn === 0) await page.screenshot({ path: join(shotsDir, `${phone.w}x${phone.h}-hint.png`) });
-            break;
-          }
-        }
-        // finish this question (keep tapping until it advances), then move on
-        for (let t = 0; t < 8; t++) {
-          const before = await page.locator('text=/\\d+ \\/ \\d+/').first().textContent().catch(() => '');
-          await tiles.nth(t % Math.max(1, n)).click({ timeout: 1000 }).catch(() => {});
-          await page.clock.runFor(1400);
-          const after = await page.locator('text=/\\d+ \\/ \\d+/').first().textContent().catch(() => '');
-          if (after !== before) break;
-        }
+        if (!(await checkQuestion(page, phone, where, stats, grade === 1 && k === 0 && qn === 0))) break;
       }
     }
+    await ctx.close();
+  }
+
+  // HARD COUNTING PASS: progress seeded at the hardest rung, so 2- and 3-row counting trays actually appear.
+  {
+    const skillState = (id) => ({ skillId: id, level: 3, difficulty: 3, maxDifficulty: 3, attempts: 0, correct: 0, lastSeen: null, nextReview: null, reviewInterval: 0, recentParams: [], misconceptions: {}, difficultyStreak: 0 });
+    const hardProgress = JSON.stringify({ version: 1, skills: { 'g1.count.1-20': skillState('g1.count.1-20') } });
+    const ctx = await browser.newContext({ viewport: { width: phone.w, height: phone.h }, deviceScaleFactor: 2, reducedMotion: 'reduce' });
+    const page = await ctx.newPage();
+    await page.addInitScript(([s, k]) => { localStorage.setItem('tinku:v1:testSettings', s); localStorage.setItem('tinku:v1:skills', k); },
+      [settings(1), hardProgress]);
+    await page.clock.install({ time: 1760000000000 });
+    await page.goto(URL); await page.clock.runFor(1500);
+    await page.getByRole('button', { name: HARD_COUNTING_SKILL }).click(); await page.clock.runFor(800);
+    const traySizes = new Set();
+    for (let qn = 0; qn < HARD_QUESTIONS_MAX && traySizes.size < 3; qn++) {
+      const where = `${phone.name} ${phone.w}x${phone.h} hard-counting q${qn + 1}`;
+      const m = await checkQuestion(page, phone, where, stats, false);
+      if (!m) { // summary: put the hardest-rung progress back (our wrong taps lower it), then play again
+        await page.evaluate((k) => localStorage.setItem('tinku:v1:skills', k), hardProgress);
+        await page.getByRole('button', { name: /play again/i }).click().catch(() => {}); await page.clock.runFor(800); continue;
+      }
+      if (m.glyphs) traySizes.add(Math.ceil(m.glyphs / 5));
+    }
+    if (traySizes.size < 3) fail(`${phone.name} ${phone.w}x${phone.h}`, `hard-counting pass only saw tray rows [${[...traySizes]}]: it must see 1, 2 and 3 rows or it proves nothing`);
     await ctx.close();
   }
   rows.push({ phone, stats });
 }
 
-await Promise.all(PHONES.map(checkPhone));
+await Promise.all(PHONES.filter((p) => !ONLY || p.name.includes(ONLY)).map(checkPhone));
 await browser.close(); stop();
 
 const pad = (s, n) => String(s).padEnd(n);
 console.log(`${pad('phone', 24)}${pad('stage', 11)}${pad('Tinku px (min-max)', 20)}${pad('Tinku % of stage', 18)}${pad('worst void', 12)}${pad('hints', 7)}checked`);
-for (const { phone, stats: s } of PHONES.map((p) => rows.find((r) => r.phone === p))) {
+for (const { phone, stats: s } of PHONES.filter((p) => !ONLY || p.name.includes(ONLY)).map((p) => rows.find((r) => r.phone === p))) {
   console.log(`${pad(phone.name, 24)}${pad(`${phone.w}x${Math.round(s.stageH)}`, 11)}${pad(`${Math.round(s.mascotMin)}-${Math.round(s.mascotMax)}`, 20)}${pad(`${Math.round((100 * s.mascotMax) / s.stageH)}%`, 18)}${pad(phone.cramped ? 'n/a' : `${Math.round(s.voidMax * 100)}%`, 12)}${pad(s.hints, 7)}${s.measured}`);
 }
 if (failures.length) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { useQuizSession } from '../hooks/useQuizSession';
 import { playSound, haptic, setSoundMuted, isSoundMuted } from '../services/sound';
 import Mascot from './Mascot';
@@ -27,7 +27,9 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
   // Tell the shell when the session has ended so it can bring the Home/Parent bar back on the summary
   // (it is hidden during questions). Reset on unmount so leaving the quiz never leaves it stale.
   const done = !!s.sessionComplete;
-  useEffect(() => {
+  // Layout effect (not useEffect): after 'Play again' the nav must be hidden BEFORE the new question paints,
+  // or the quiz stage flashes one frame at the wrong size.
+  useLayoutEffect(() => {
     onSessionComplete?.(done);
     return () => onSessionComplete?.(false);
   }, [done]); // eslint-disable-line react-hooks/exhaustive-deps

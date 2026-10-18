@@ -21,11 +21,11 @@ export default function QuestionView({ question, blankFill = null }) {
   if (question.format === 'count-objects') {
     const { glyph, count } = question.render;
     // Rows of 5, up to 3 rows (11-15 objects). The tray is sized by the room the question area really has
-    // (it is a size container, `qreg`): what is left after the prompt (reserved at 2 lines) and the tray
-    // padding is shared between the rows. So 3 rows shrink, 1 row stays big, and nothing is clipped.
+    // (it is a size container, `qreg`): what is left after the prompt (reserved at 2 lines of 1.5 line-height)
+    // and the fixed spacing (prompt margin, tray padding and gaps, wrapper padding: ~4rem) is shared between the rows. So 3 rows shrink, 1 row stays big, and nothing is clipped.
     const rows = Math.ceil(count / 5);
-    const fit = `((100cqh - 2.6 * var(--text-prompt) - 2.75rem) / ${rows} / 1.3)`;
-    const size = `min(var(--q-glyph, clamp(1.5rem, 6.5vw, 2.5rem)), max(1.25rem, ${fit}))`;
+    const fit = `((100cqh - 3.1 * var(--text-prompt) - 4.25rem) / ${rows} / 1.05)`;
+    const size = `min(var(--q-glyph, clamp(1.5rem, 6.5vw, 2.5rem)), max(1rem, ${fit}))`;
     return (
       <div className="text-center">
         <p className="text-prompt font-extrabold text-ink mb-3">{question.questionText}</p>
