@@ -36,14 +36,14 @@ export default function CelebrationScreen({ score, total, masteryUp, onPlayAgain
   const buttonsDelayMs = masteryUp ? masteryDelayMs + 420 : starsEndMs + 300;
 
   return (
-    <div className="relative flex flex-col items-center justify-center h-full overflow-hidden bg-bg px-6 py-6 text-center">
+    <div className="quiz-stage relative flex flex-col items-center justify-center h-full overflow-hidden bg-bg px-6 py-6 text-center">
       {/* Background burst — behind the content (z-0). */}
       <Confetti />
 
       <div className="relative z-10 flex flex-col items-center w-full">
         {/* Beat 1 — Tinku pops in on his ground stage. */}
         <div className="animate-celebrate-pop flex flex-col items-center">
-          <Mascot emotion="celebrate" size="clamp(90px, 15vh, 160px)" />
+          <Mascot emotion="celebrate" size="clamp(6.5rem, min(29cqh, 84cqw), 20rem)" />
           <div aria-hidden="true" className="tinku-ground h-3 w-2/5 max-w-[140px] -mt-1 rounded-[50%]" />
         </div>
 

@@ -53,6 +53,8 @@ export default function ThemeManager() {
   const [currentView, setCurrentView] = useState('skills');
   const [activeSkillId, setActiveSkillId] = useState(null);
   const [isGateOpen, setIsGateOpen] = useState(false);
+  // True while the quiz is on its summary screen: the bottom nav is hidden during questions only.
+  const [sessionDone, setSessionDone] = useState(false);
   const [isGateSettingMode, setIsGateSettingMode] = useState(false);
 
   const handleSelectSkill = (skillId) => {
@@ -100,7 +102,7 @@ export default function ThemeManager() {
   }
 
   return (
-    <Layout currentView={currentView} onNavigate={handleNavigate} scrollLocked={isGateOpen} hideNav={currentView === 'quiz'}>
+    <Layout currentView={currentView} onNavigate={handleNavigate} scrollLocked={isGateOpen} hideNav={currentView === 'quiz' && !sessionDone}>
       {/* Mounted only while open so it starts fresh each time — its internal mode initialises
           from isSettingMode with no stale-state lag (fixes the first-click-no-op race). */}
       {isGateOpen && (
@@ -125,6 +127,7 @@ export default function ThemeManager() {
           skillId={activeSkillId}
           onBack={handleBackToSkills}
           bridgeEnabled={bridgeEnabled}
+          onSessionComplete={setSessionDone}
         />
       )}
 

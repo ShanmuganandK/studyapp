@@ -220,3 +220,22 @@ describe('SessionPlayer — one spacing budget', () => {
     expect(profile()).toBe('standard');
   });
 });
+
+describe('SessionPlayer — tells the shell when the session ends (bottom nav returns on the summary)', () => {
+  afterEach(cleanup);
+
+  it('reports false during questions, true on the summary, and false again on unmount', () => {
+    const calls = [];
+    const onSessionComplete = (v) => calls.push(v);
+    hookValue = baseState();
+    const { rerender, unmount } = render(<SessionPlayer {...props} onSessionComplete={onSessionComplete} />);
+    expect(calls.at(-1)).toBe(false);
+
+    hookValue = baseState({ sessionComplete: true, score: 8, masteryUp: null });
+    rerender(<SessionPlayer {...props} onSessionComplete={onSessionComplete} />);
+    expect(calls.at(-1)).toBe(true);
+
+    unmount();
+    expect(calls.at(-1)).toBe(false); // leaving the quiz never leaves the shell thinking a session is done
+  });
+});
