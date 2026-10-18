@@ -351,6 +351,20 @@ future kid-feedback tuning is a token change, not a screen hunt.
   `blankFill` prop (`SessionPlayer` derives `'correct'`/`'reveal'`/`null` from `phase`, existing
   view-state — no new hook/recipe data) to fill the compare blank with the correct sign
   (`animate-slot-fill`): green on a correct answer, sky/learn on the wrong-#2 reveal.
+- **Quiz spacing budget (2026-10-18)** — `SessionPlayer` is a size container (`.quiz-stage`, `container: quiz /
+  size`) with one grid child (`.quiz-grid[data-profile]`) in `src/index.css`:
+  `bar | Tinku + ground | hint slot | question (the only elastic row) | answer tiles`. Every size in it
+  (Tinku, hint slot, type tokens, tiles, counted objects, compare numbers) is a CSS variable computed from the
+  stage's own height/width (`cqh`/`cqw`) in that ONE place; `QuestionView`/`KidButton`/`HintBubble` read the
+  variables (with their old values as fallbacks). **Nothing resizes or moves anything else:** the hint has a
+  reserved slot (holds `QuizPips` when there is no hint), so Tinku keeps his size and only his pose changes.
+  The profile is picked per GRADE by `config/quizLayout.js` (`roomy` = Classes 1-2, big Tinku; `standard` =
+  Class 3+, bigger question area), never per question. Two container-query tiers (≤600 px, ≤440 px stage) trade
+  size for fit. Guards: `config/__tests__/quizLayout.test.js` (every profile has CSS), the "one spacing budget"
+  tests in `SessionPlayer.test.jsx`, and **`npm run layout:check`** (`scripts/check-quiz-layout.mjs`, on demand,
+  not in CI: plays real sessions at 5 phone sizes and asserts fit, hint-moves-nothing, Tinku ≥ 22% of the
+  stage, no dead void, tiles ≥ 44 px; proved RED). Supersedes the "mascot yields space first" clause of
+  STANDARDS §5 for this screen (DECISIONS 2026-10-18).
 - **`skillStateVisual.jsx`** — **the shared skill-state visual grammar** (SINGLE source both Home views
   consume so they can't drift). `getSkillVisual({ level, isDue, isSuggested, isReviewSuggested })` →
   `{ state, ring, cue, loud }` with fixed precedence: suggested-review (teal ring, loud review cue) >
