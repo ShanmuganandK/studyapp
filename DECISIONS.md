@@ -921,3 +921,10 @@ already exits), and lock the Android app to portrait.
 ## 2026-10-18 — Quiz screen: no bottom nav, portrait lock, self-sizing counting tray
 
 Founder call (after a real-device test on a Samsung S25 Ultra): the Home/Parent bottom bar is hidden while a quiz is on screen (`Layout` `hideNav`, set for the `quiz` view); the quiz's own "← Skills" link and the Android Back button remain the exits. The Android activity is locked to portrait (`screenOrientation`), because the quiz layout is built and measured for portrait only. The counting tray's object size now comes from the room the question area actually has (`.quiz-question` is a size container), so a 3-row tray (11-15 objects) shrinks to fit instead of being clipped. Interpreted "lock landscape" as "lock the orientation" (portrait); flagged to the founder.
+
+## 2026-10-18 — The quiz summary keeps the bottom nav; the layout check covers hard-rung counting trays
+
+Founder call, same day as the entry above. The Home/Parent bar is hidden **only while a question is on screen**; on the end-of-session summary ("Great job!") it comes back, because that screen has the room and Home is the natural next step. Tinku on the summary is sized at the quiz's ratio (29% of the stage) so the two screens match. Mechanism: `SessionPlayer` reports `sessionComplete` up through `onSessionComplete` (`RecipeQuizScreen` → `ThemeManager` → `Layout` `hideNav`), in a layout effect so the bar never flashes at the wrong time after "Play again".
+
+Engineering note recorded with it (verified, not a product decision): `npm run layout:check` originally only played the easiest rung of each skill, so it never produced a 2- or 3-row counting tray, the case that clipped on a real S25 Ultra. It now has a second pass at the hardest rung of "Big Number Party" that must measure a 1-, 2- and 3-row tray, and it was proved RED against the pre-fix build (4 failures) and green on the fix. That pass found two more real defects (a 3-row tray still overflowing on a 360x640 phone; a one-frame stage resize after "Play again"), both fixed. The check is still on demand, not in CI (CI has no browser).
+

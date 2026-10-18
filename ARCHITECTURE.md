@@ -366,7 +366,13 @@ future kid-feedback tuning is a token change, not a screen hunt.
   size for fit. Guards: `config/__tests__/quizLayout.test.js` (every profile has CSS), the "one spacing budget"
   tests in `SessionPlayer.test.jsx`, and **`npm run layout:check`** (`scripts/check-quiz-layout.mjs`, on demand,
   not in CI: plays real sessions at 5 phone sizes and asserts fit, hint-moves-nothing, Tinku ≥ 22% of the
-  stage, no dead void, tiles ≥ 44 px; proved RED). Supersedes the "mascot yields space first" clause of
+  stage, no dead void, tiles ≥ 44 px; proved RED). A second pass seeds progress at the hardest rung of
+  'Big Number Party' and must measure a 1-, 2- and 3-row counting tray (a fresh install only ever plays
+  1-row trays); `LAYOUT_QUESTIONS` / `LAYOUT_ONLY` / `LAYOUT_PORT` env knobs. The counting tray sizes itself from the
+  question area's own height (`.quiz-question` is a size container, `qreg`), so a 3-row tray shrinks instead of
+  clipping. The bottom nav is hidden while a question is showing and returns on the summary (see
+  `CelebrationScreen`). The Android activity is locked to portrait (`screenOrientation` in the manifest, guarded by
+  `androidProject.test.js`), because this layout is built and measured for portrait only. Supersedes the "mascot yields space first" clause of
   STANDARDS §5 for this screen (DECISIONS 2026-10-18).
 - **`skillStateVisual.jsx`** — **the shared skill-state visual grammar** (SINGLE source both Home views
   consume so they can't drift). `getSkillVisual({ level, isDue, isSuggested, isReviewSuggested })` →
