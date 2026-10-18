@@ -27,30 +27,43 @@ SRC=branding/mascot-originals
 OUT=src/assets/mascot/webp
 SIZE=1024
 QUALITY=${MASCOT_QUALITY:-88}
-# original -> shipped file : erase-from-row (blank = keep everything)
+# original : shipped file : erase-from-row : fuzz% : fit
+#   erase-from-row  blank = keep everything; else blank out rows from there down (baked ground shadow)
+#   fuzz%           how far from white still counts as background (default 14; the `standing` original
+#                   has a soft ground shadow that needs a wider net)
+#   fit             blank = keep the original framing; "WIDTH" = trim to the character, scale to that
+#                   many px wide and stand it on the shared baseline of a square canvas (for originals
+#                   drawn on a different canvas than the rest)
 POSES=(
-  "waving:Tinku_Bye:"
-  "thumbs-up:Tinku_Encourage_2:"
-  "thinking:Tinku_Think3:"
-  "sleeping:Tinku_Sleeping:"
-  "celebrate:Tinku_Happy_2:1815"
+  "waving:Tinku_Bye:::"
+  "thumbs-up:Tinku_Encourage_2:::"
+  "thinking:Tinku_Think3:::"
+  "sleeping:Tinku_Sleeping:::"
+  "celebrate:Tinku_Happy_2:1815::"
+  "standing:Tinku_Mascot::24:1400"
 )
+CANVAS=2000     # the square the originals share
+BASELINE=1790   # y of the feet on that canvas (the standing poses end ~here)
 
 CONVERT=$(command -v magick || command -v convert) || { echo "ImageMagick not found" >&2; exit 1; }
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$OUT"
 
 for entry in "${POSES[@]}"; do
-  IFS=: read -r pose file erase <<<"$entry"
+  IFS=: read -r pose file erase fuzz fit <<<"$entry"; fuzz=${fuzz:-14}
   in="$SRC/$pose.jpg"; out="$OUT/$file.webp"
   [ -f "$in" ] || { echo "missing $in" >&2; exit 1; }
   W=$($CONVERT "$in" -format %w info:); H=$($CONVERT "$in" -format %h info:)
   L=$((W-1)); B=$((H-1))
-  $CONVERT "$in" -alpha set -fuzz 14% -fill none \
+  $CONVERT "$in" -alpha set -fuzz ${fuzz}% -fill none \
     -floodfill +0+0 white -floodfill +$L+0 white -floodfill +0+$B white -floodfill +$L+$B white \
     -channel A -morphology Erode Disk:1.2 -blur 0x0.7 +channel "$TMP/cut.png"
   if [ -n "$erase" ]; then
     $CONVERT "$TMP/cut.png" -region "${W}x$((H-erase))+0+$erase" -alpha transparent +region "$TMP/cut.png"
+  fi
+  if [ -n "$fit" ]; then
+    $CONVERT "$TMP/cut.png" -trim +repage -resize "${fit}x${fit}" -background none \
+      -gravity south -extent "${CANVAS}x$((BASELINE))" -gravity north -extent "${CANVAS}x${CANVAS}" "$TMP/cut.png"
   fi
   $CONVERT "$TMP/cut.png" -filter Lanczos -resize ${SIZE}x${SIZE} \
     -define webp:method=6 -define webp:alpha-quality=100 -quality "$QUALITY" "$out"

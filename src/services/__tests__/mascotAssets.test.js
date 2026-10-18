@@ -11,11 +11,11 @@ import { fileURLToPath } from 'node:url';
  * alpha. This fails if a pose is swapped back to a small file, or to one with no transparency (a
  * white box around Tinku on the tinted screens).
  *
- * `Tinku_Mascot` (the 3/4 default) is NOT in this list yet: its original has a checkerboard baked in
- * and is waiting for a clean white-background version. Add it here when it is regenerated.
+ * `Tinku_Mascot` (the 3/4 default, also the source of the app icons) joined the list on 2026-10-18 when a
+ * clean white-background original arrived. If you regenerate it, re-run `scripts/build-icons.py` too.
  */
 const DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'assets', 'mascot', 'webp');
-const REGENERATED = ['Tinku_Bye', 'Tinku_Encourage_2', 'Tinku_Think3', 'Tinku_Sleeping', 'Tinku_Happy_2'];
+const REGENERATED = ['Tinku_Bye', 'Tinku_Encourage_2', 'Tinku_Think3', 'Tinku_Sleeping', 'Tinku_Happy_2', 'Tinku_Mascot'];
 
 // Minimal RIFF/WebP chunk reader: enough to read the extended header (VP8X) and see an alpha chunk.
 function readWebp(buf) {
