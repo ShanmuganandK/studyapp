@@ -13,11 +13,17 @@
      should be `...DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` (an app-private one that every AndroidX app
      has). If the run **failed** on an unexpected permission, tell Claude Code: do not upload anything.
    - **Artifacts → `tinku-debug-apk`** (download the zip, unzip it: `app-debug.apk`).
-3. Put `app-debug.apk` on an Android phone (USB cable + `adb install app-debug.apk`, or send it to the
-   phone and allow "install unknown apps" for that one app) and walk through it:
+3. Put `app-debug.apk` on an Android phone and walk through it. **`adb install -r <full path to app-debug.apk>`
+   is the route proven to work** (Android Studio → Running devices over wireless debugging; a Samsung S25 Ultra
+   installed this way on 2026-10-18). Sending the file to the phone and installing through its own installer
+   (Files, Samsung's installer) **failed with "App not installed"** on that phone; the cause was never found,
+   and the APK itself was proven valid. If you must sideload by hand and it fails, use `adb` instead.
+   Then walk through it:
    - [ ] The class picker appears and the app loads **(blank white screen = tell Claude Code; the fix is
      one line, we only removed the INTERNET permission on an unverified assumption)**.
-   - [ ] A quiz plays, sound works, Tinku shows.
+   - [ ] A quiz plays, sound works, Tinku shows. **No Home/Parent bar during a question** (it returns on the
+     "Great job!" summary), and **rotating the phone does not rotate the app** (portrait lock).
+   - [ ] A counting question with 11-15 objects (3 rows) fits without clipping.
    - [ ] Parent zone → **export progress** opens the phone's share sheet and a file can be saved.
    - [ ] The **Back** button: closes the parent PIN box; leaves a quiz or the parent zone for the skill
      list; only leaves the app from the skill list.

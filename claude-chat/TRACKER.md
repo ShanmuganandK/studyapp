@@ -225,6 +225,51 @@ worth testing first** — dark exercises every inverted slot and is where a leak
 
 ---
 
+## Done — Android debug build on a real phone + quiz-screen polish (2026-10-17/18)
+
+Launch order **L4** (status row updated) plus the quiz/summary screens, driven by the founder's first
+real-device test on a **Samsung S25 Ultra** (PRs #51-#54 on `master`; the Android CI fixes landed just before).
+Decisions: `DECISIONS.md` 2026-10-16 (auto debug builds) and 2026-10-18 (three entries).
+
+**What shipped.**
+- **Android debug APK builds in CI on every merge to master** (`.github/workflows/android.yml`; release stays a
+  manual, signed run). Fixed on the way: Gradle `versionCode` null cast, an XML comment containing `--` (now a
+  guard test), JDK 21 for Capacitor 8, an APK-install-diagnostics step in the run summary. The APK was installed
+  and run on the S25 Ultra with `adb install -r` over wireless debugging.
+- **Tinku art re-processed:** six poses from the founder's 2000 px white-background originals
+  (`branding/mascot-originals/`) to 1024 px transparent WebP by `scripts/build-mascot.sh`; PWA/Android icons
+  regenerated from the new standing pose; `mascotAssets.test.js` guards all six.
+- **Quiz screen = one spacing budget** (`.quiz-stage`/`.quiz-grid`, `config/quizLayout.js`, PR #51): Tinku is
+  ~29% of the stage and is never resized for a hint (the hint has its own reserved slot, holding the progress
+  dots otherwise); every size is a CSS variable computed from the stage; per-grade profiles (`roomy` Classes 1-2).
+- **Bottom Home/Parent bar hidden during questions, back on the summary; Android locked to portrait; counting
+  tray sized from the room it has** (PRs #52, #53): the summary's Tinku matches the quiz's size.
+- **`npm run layout:check`** (`scripts/check-quiz-layout.mjs`, on demand, not in CI): measures fit,
+  hint-moves-nothing, Tinku size, dead space and tile size on 5 phone sizes, plus (PR #54) a hard-rung counting
+  pass that must see 1-, 2- and 3-row trays.
+
+**Registration / verification.**
+
+| Check | Result |
+|---|---|
+| Full vitest / lint / `lint:hex` | Green on each PR's CI (`verify` x2, CodeQL + analysis jobs). |
+| `layout:check` proved RED | Against the pre-fix build the hard-rung pass reports 4 failures (question area scrolling 8-30 px at 412x915, 430x932, 360x780); green on the fix at all 5 sizes. It also found a 3-row overflow on 360x640 and a one-frame resize after "Play again", both fixed. |
+| Real device | APK installed and quizzes/summary viewed on the S25 Ultra (founder). The **3-row tray fit, the portrait lock and the summary layout after PR #53/#54 have not yet been confirmed on the phone.** |
+
+**Not done / open.**
+- Runbook Part A device walk (share-sheet export, Back button, airplane mode, icon/splash) not ticked off.
+- The signed release AAB has never been built (needs the upload key + 4 secrets); Play account verification (L2) pending.
+- Installing through the phone's own installer failed ("App not installed"); cause unknown, `adb` works.
+- The spacing budget covers the quiz and summary screens only; welcome/grade picker, skill list and parent
+  screens are not on it yet (the grade picker has a known layout bug).
+- `STANDARDS.md` §5 still says "mascot yields space first"; `DECISIONS.md` 2026-10-18 supersedes it for the quiz
+  screen, but the document itself is Chat's to reword.
+- Founder decisions still open: haptics (T72), the Data Safety answer for auto-backup, whether Play accepts the
+  "Stringus" developer name, a back-from-quiz confirmation prompt, an iPhone app (iPhone users only get the PWA).
+- Netlify Lighthouse Accessibility is 97 (reason not examined); Dependabot alert 110 not examined.
+
+---
+
 ## Done — First-run grade picker + Grades 1–2 description (2026-09-26)
 
 Launch order **L3** (Task B). Implements `DECISIONS.md` 2026-09-23 (launch scope — LOCKED) and
