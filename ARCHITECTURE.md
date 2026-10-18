@@ -343,7 +343,7 @@ future kid-feedback tuning is a token change, not a screen hunt.
   optional mastery-up beat → buttons last), choreographed by per-element `animation-delay`. Purely
   presentational: mood floor + mastery-up detection live in the engine/hook; it renders `score`/`total`/
   `masteryUp` and reuses `Confetti`. It is its own `quiz-stage` size container and sizes Tinku at the
-  quiz's 29%-of-stage ratio. `SessionPlayer` reports `sessionComplete` up through `onSessionComplete`
+  quiz's 29%-of-stage ratio. `SessionPlayer` reports `sessionComplete` up through `onSessionComplete` (in a layout effect, so the nav is hidden before the next question paints)
   (`RecipeQuizScreen` → `ThemeManager`), which hides the bottom nav during questions only and brings it back
   on this summary (`Layout` `hideNav`). Uses token-based CTA buttons (not `KidButton`, which is an
   answer-tile primitive — 50% width, idle/correct/wrong — semantically wrong for CTAs). Smoke test:
