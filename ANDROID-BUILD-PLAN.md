@@ -70,7 +70,7 @@ parallel with L2 (account verification) and L7 (listing).
   no unexpected permissions. **Measure the built APK/AAB**, don't infer.
 - Designed for Families requirements, content rating questionnaire, target audience (children).
 - Privacy policy URL: `https://tinku.stringus.com/privacy.html` (already live).
-- Store text must describe what exists (CLAUDE.md "Don't over-claim content").
+- Store text must describe what exists (AGENTS.md "Don't over-claim content").
 
 ## Decisions (answered 2026-10-16, see DECISIONS)
 appId `com.stringus.tinku`; auto-backup ON; GitHub Actions; Back goes straight to the list for now.

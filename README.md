@@ -8,7 +8,7 @@ following days as the app schedules revision. Parents get a calm progress view b
 **Live:** <https://tinku.stringus.com> · **Contact:** tinku@stringus.com · built solo, targeting
 India, run from Dubai.
 
-> **For contributors and AI agents:** start with [`CLAUDE.md`](CLAUDE.md). It lists the reading
+> **For contributors and AI agents:** start with [`AGENTS.md`](AGENTS.md). It lists the reading
 > order, the locked decisions and the guards. This README is only an overview.
 
 ## What it is, and what it is not
@@ -101,7 +101,7 @@ documents/        # early planning records, kept as history; not current
 Netlify builds with `npm run build` and publishes `dist/` (see `netlify.toml`). Production is
 served from `https://tinku.stringus.com`; every pull request also gets a deploy preview. After a
 deploy, check that the published commit matches `master`, in an incognito window first, because a
-stale service-worker cache looks identical to a stale deploy (see `CLAUDE.md`).
+stale service-worker cache looks identical to a stale deploy (see `AGENTS.md`).
 
 > The address is permanent on purpose. Progress is stored per origin, so changing the domain would
 > wipe every user's progress.
@@ -110,7 +110,7 @@ stale service-worker cache looks identical to a stale deploy (see `CLAUDE.md`).
 
 | Read this | For |
 |---|---|
-| [`CLAUDE.md`](CLAUDE.md) | Orientation, rules and guards (start here) |
+| [`AGENTS.md`](AGENTS.md) | Orientation, rules and guards (start here) |
 | [`DECISIONS.md`](DECISIONS.md) | Locked product and technical decisions |
 | [`claude-chat/TRACKER.md`](claude-chat/TRACKER.md) | The only status document: what is done and next |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | How the code fits together |

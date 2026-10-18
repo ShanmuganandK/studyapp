@@ -264,6 +264,8 @@ Decisions: `DECISIONS.md` 2026-10-16 (auto debug builds) and 2026-10-18 (three e
   screens are not on it yet (the grade picker has a known layout bug).
 - `STANDARDS.md` §5 still says "mascot yields space first"; `DECISIONS.md` 2026-10-18 supersedes it for the quiz
   screen, but the document itself is Chat's to reword.
+- `CLAUDE.md` was renamed `AGENTS.md` and refreshed (2026-10-18, DECISIONS same date); older entries in this tracker
+  that say `CLAUDE.md` mean that file under its old name.
 - Founder decisions still open: haptics (T72), the Data Safety answer for auto-backup, whether Play accepts the
   "Stringus" developer name, a back-from-quiz confirmation prompt, an iPhone app (iPhone users only get the PWA).
 - Netlify Lighthouse Accessibility is 97 (reason not examined); Dependabot alert 110 not examined.

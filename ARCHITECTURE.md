@@ -1,7 +1,7 @@
 # ARCHITECTURE.md — Living Map of Tinku Math
 
-> Read this after `CLAUDE.md` + `DECISIONS.md` to orient without scanning every file.
-> Update it in the SAME commit as any structural change (standing instruction in CLAUDE.md).
+> Read this after `AGENTS.md` + `DECISIONS.md` to orient without scanning every file.
+> Update it in the SAME commit as any structural change (standing instruction in AGENTS.md).
 
 ---
 
@@ -22,7 +22,7 @@ proven behind a flag, then deleted. See **Migration strategy** below.
 | `src/lib/`          | **Gone.** Held the legacy Firebase init (`firebase.js`); deleted in the 2026-08-15 de-Firebase change, folder no longer exists. |
 | `src/utils/`        | **FROZEN.** Legacy question path (generators, factory) + `masteryEngine.js`. |
 | `src/data/`         | **FROZEN.** Legacy stored questions/syllabus (`questions*`, JSON banks). |
-| repo root docs      | `CLAUDE.md`, `DOCMAP.md`, `DECISIONS.md`, `STANDARDS.md`, `RECIPE_TEMPLATE.md`. See `DOCMAP.md` for what every document is and who may write it. |
+| repo root docs      | `AGENTS.md`, `DOCMAP.md`, `DECISIONS.md`, `STANDARDS.md`, `RECIPE_TEMPLATE.md`. See `DOCMAP.md` for what every document is and who may write it. |
 | `claude-chat/specs/` | Live specs + design direction (composer, skill map, Wonder visual language). Read before working in that area. |
 | `claude-chat/archive/` | Specs for work already shipped, and plans for work out of MVP scope. Read for the *reasoning*, never as a to-do list. |
 
@@ -1122,7 +1122,7 @@ consult; git history holds the original shape.
   `// @vitest-environment jsdom` docblock; `vitest.config.js` includes `@vitejs/plugin-react` for
   the JSX transform. First render test: `src/components/__tests__/SessionPlayer.test.jsx` — mocks
   `useQuizSession` and asserts hint-bubble render invariants (never stacks, always clears on
-  correct / next question), guarding the keyed-remount fix. This is the render-test layer CLAUDE.md
+  correct / next question), guarding the keyed-remount fix. This is the render-test layer AGENTS.md
   calls for; logic still lives in the pure node-env suites.
 - **`scripts/visual-snapshot.mjs`** — ON-DEMAND, manual, NOT wired into CI. Screenshots a fixed
   set of representative screens against a real built app (Playwright + `vite preview`) and

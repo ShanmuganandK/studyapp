@@ -4,7 +4,7 @@
 > session either reads all of them (wasteful) or guesses (wrong). This file says what each
 > one is, **who is allowed to write it**, and **whether it describes the present or the past**.
 >
-> **You do not need to read most of these.** `CLAUDE.md` tells you the four to always read.
+> **You do not need to read most of these.** `AGENTS.md` tells you the four to always read.
 > Come here when you need detail on a specific area, or before creating a new document.
 >
 > **Layout (2026-08-16).** Root holds only what is read often or read first. Everything else moved
@@ -64,7 +64,8 @@ ask, and the rule gets sharper.
 
 | File | What it is | Writes |
 |---|---|---|
-| `CLAUDE.md` | Project orientation + the rules. The bootstrap. | Chat |
+| `AGENTS.md` | Project orientation + the rules. The bootstrap. (Was `CLAUDE.md` until 2026-10-18.) | Chat |
+| `CLAUDE.md` | A **stub** (`@AGENTS.md`) so Claude Code, which looks for this filename, still loads `AGENTS.md`. Do not put content here. | Nobody |
 | `DECISIONS.md` | Locked decisions, dated, **append-only**. If a task contradicts one, stop and ask. | Chat proposes; Code may append verified facts with human approval |
 | `STANDARDS.md` | Code standards. §0 discipline, §8 scope. | Chat |
 | `ARCHITECTURE.md` | Living map of the codebase — folder map, modules, contracts. Read to orient without scanning every file. | **Code**, same commit as the change |

@@ -155,5 +155,5 @@ Navigation map: `GradePicker (once) → Home (path|cards) → Quiz session (8 Qs
 
 ## 8. Repo pointers (for implementation after design)
 
-`CLAUDE.md` → `DECISIONS.md` → `STANDARDS.md` → `ARCHITECTURE.md` (§ "Design tokens & UI-overhaul primitives") → `claude-chat/TRACKER.md`.
+`AGENTS.md` → `DECISIONS.md` → `STANDARDS.md` → `ARCHITECTURE.md` (§ "Design tokens & UI-overhaul primitives") → `claude-chat/TRACKER.md`.
 Guards that will fail a redesign build if violated: `npm run lint:hex`, `src/__tests__/designTokens.test.js`, `noFirebaseAuth.test.js`, analytics guard, `privacyPolicy.test.js`.
