@@ -5,8 +5,9 @@
  * window) lives in useQuizSession; this component only renders what it's handed. That split
  * (STANDARDS §2) means a future visual redesign restyles this file without touching the ladder.
  *
- * Rendered directly below Tinku (who is in his 'encourage' pose on a wrong answer) with an
- * upward tail, so the hint reads as Tinku speaking. The parent gives it a changing `key`
+ * Rendered in Tinku's RESERVED speech slot, directly below him (he is in his 'encourage' pose on a
+ * wrong answer) with an upward tail, so the hint reads as Tinku speaking. The slot is budgeted in the
+ * quiz stage (index.css), so showing a hint moves and resizes nothing. The parent gives it a changing `key`
  * (the hook's hintNonce) so the pop-in animation replays on every hint (re)emission — the
  * moment must grab a young child's attention, not slip by unnoticed.
  *
@@ -20,15 +21,15 @@ export default function HintBubble({ hint, emotion = 'encourage' }) {
   if (!hint) return null;
 
   return (
-    <div className="shrink-0 flex justify-center mt-0.5 mb-1 px-2">
+    <div className="flex justify-center items-center w-full max-h-full px-1">
       <div
         role="status"
         aria-live="polite"
         data-emotion={emotion}
         // Compact but prominent: fluid text so a long hint stays a line or two and never crowds
         // the question off-screen (STANDARDS §5 fit-one-viewport).
-        className="animate-hint-pop origin-top relative max-w-xs bg-learn-soft border-2 border-learn text-learn-ink rounded-card px-3.5 py-1.5 text-center font-semibold leading-snug shadow-card"
-        style={{ fontSize: 'clamp(0.8rem, 3.4vw, 0.95rem)' }}
+        className="animate-hint-pop origin-top relative max-w-sm max-h-full bg-learn-soft border-2 border-learn text-learn-ink rounded-card px-3.5 py-1.5 text-center font-semibold leading-snug shadow-card"
+        style={{ fontSize: 'var(--q-hint-font, clamp(0.8rem, 3.4vw, 0.95rem))' }}
       >
         {/* Tail pointing up to Tinku — a rotated square sharing the bubble's top/left border. */}
         <span

@@ -23,7 +23,8 @@ vi.mock('../../hooks/useQuizSession', () => ({
   useQuizSession: () => hookValue,
 }));
 // Mascot preloads webp assets + Images — irrelevant here; stub to keep the test about structure.
-vi.mock('../Mascot', () => ({ default: () => null }));
+// It exposes the size it was given, because "Tinku is never resized" is one of the things under test.
+vi.mock('../Mascot', () => ({ default: ({ size, emotion }) => <span data-testid="mascot" data-size={String(size)} data-emotion={emotion} /> }));
 // Sound/haptics are fire-and-forget side effects.
 vi.mock('../../services/sound', () => ({
   playSound: () => {},
@@ -147,5 +148,75 @@ describe('SessionPlayer — stage label replaces the frozen counter', () => {
       expect(el.className, `class list "${el.className}" contains "${token}"`).not.toMatch(new RegExp(token));
     }
     expect(el.textContent).not.toContain('⭐');
+  });
+});
+
+/**
+ * The quiz screen's spacing budget (DECISIONS 2026-10-18): showing a hint must not resize or move
+ * anything. Tinku keeps the profile's size, the hint has its own reserved slot, and the progress dots
+ * fill that slot when there is no hint. (The pixel-level version of this runs in a real browser:
+ * `npm run layout:check`.)
+ */
+describe('SessionPlayer — one spacing budget', () => {
+  afterEach(cleanup);
+  const mascot = () => screen.getByTestId('mascot');
+  const slot = () => screen.getByTestId('hint-slot');
+  const pips = () => screen.queryByTestId('quiz-pips');
+
+  it('never resizes Tinku when a hint appears; only his pose changes', () => {
+    hookValue = baseState();
+    const { rerender } = render(<SessionPlayer {...props} />);
+    const restSize = mascot().getAttribute('data-size');
+    expect(restSize).toBe('var(--q-mascot)'); // the budget's size, not a number computed here
+    expect(mascot().getAttribute('data-emotion')).toBe('thinking');
+
+    hookValue = baseState({ phase: 'hint', emotion: 'encourage', hint: 'A hint', hintNonce: 1, selectedIndex: 0 });
+    rerender(<SessionPlayer {...props} />);
+    expect(mascot().getAttribute('data-size')).toBe(restSize);
+    expect(mascot().getAttribute('data-emotion')).toBe('encourage');
+  });
+
+  it('keeps the hint slot in the layout with or without a hint, and the bubble lives inside it', () => {
+    hookValue = baseState();
+    const { rerender } = render(<SessionPlayer {...props} />);
+    expect(slot()).toBeTruthy();
+    expect(slot().querySelector('[role="status"]')).toBeNull();
+
+    hookValue = baseState({ phase: 'hint', emotion: 'encourage', hint: 'A hint', hintNonce: 1, selectedIndex: 0 });
+    rerender(<SessionPlayer {...props} />);
+    expect(slot().querySelector('[role="status"]')?.textContent).toContain('A hint');
+  });
+
+  it('fills the slot with progress dots at rest and swaps them for the bubble, one at a time', () => {
+    hookValue = baseState({ questionNumber: 3 });
+    const { rerender } = render(<SessionPlayer {...props} />);
+    expect(slot().contains(pips())).toBe(true);
+    const dots = [...pips().querySelectorAll('[data-pip]')].map((d) => d.dataset.pip);
+    expect(dots).toEqual(['done', 'done', 'now', 'todo', 'todo', 'todo', 'todo', 'todo']);
+
+    hookValue = baseState({ questionNumber: 3, phase: 'hint', hint: 'A hint', hintNonce: 1, selectedIndex: 0 });
+    rerender(<SessionPlayer {...props} />);
+    expect(pips()).toBeNull();
+  });
+
+  it('shows no dots during the warm-up/bonus rounds, where "n / 8" does not apply', () => {
+    hookValue = baseState({ isBridgeQuestion: true });
+    const { rerender } = render(<SessionPlayer {...props} />);
+    expect(pips()).toBeNull();
+    expect(slot()).toBeTruthy(); // the slot itself stays, so the layout is identical
+    hookValue = baseState({ isBonusQuestion: true });
+    rerender(<SessionPlayer {...props} />);
+    expect(pips()).toBeNull();
+  });
+
+  it('picks the spacing profile from the grade, once, not per question', () => {
+    hookValue = baseState();
+    const { container, rerender } = render(<SessionPlayer {...props} grade={1} />);
+    const profile = () => container.querySelector('.quiz-grid').dataset.profile;
+    expect(profile()).toBe('roomy');
+    rerender(<SessionPlayer {...props} grade={2} />);
+    expect(profile()).toBe('roomy');
+    rerender(<SessionPlayer {...props} grade={3} />);
+    expect(profile()).toBe('standard');
   });
 });

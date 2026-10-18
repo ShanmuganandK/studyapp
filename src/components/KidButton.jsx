@@ -32,7 +32,7 @@ export default function KidButton({ label, state = 'idle', disabled = false, onC
         disabled ? 'cursor-default' : 'active:scale-95 hover:scale-[1.03]'
       }`}
       style={{
-        height: 'clamp(3rem, 11vh, 5rem)',
+        height: 'var(--q-tile, clamp(3rem, 11vh, 5rem))',
         width: 'calc(50% - 0.375rem)',
         // Stagger only applies to the idle stagger-in animation.
         animationDelay: state === 'idle' ? `${index * 45}ms` : undefined,

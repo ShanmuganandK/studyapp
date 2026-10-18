@@ -5,7 +5,9 @@ import Mascot from './Mascot';
 import QuestionView from './QuestionView';
 import HintBubble from './HintBubble';
 import KidButton from './KidButton';
+import QuizPips from './QuizPips';
 import CelebrationScreen from './CelebrationScreen';
+import { quizProfileForGrade } from '../config/quizLayout';
 
 /**
  * SessionPlayer — drives one playable session via useQuizSession and renders it.
@@ -81,11 +83,11 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
   // makes a fast wrong tap re-show the hint instead of skipping it.
   const locked = s.phase === 'correct' || s.phase === 'reveal';
 
-  // Fit-one-viewport (STANDARDS §5): the mascot is decorative and yields space FIRST. When the
-  // hint bubble is showing, Tinku shrinks so the bubble takes the reclaimed space instead of
-  // pushing the question into scroll. He stays present (it's his speech bubble), just smaller.
-  const hintShowing = !!s.hint;
-  const mascotSize = hintShowing ? 'clamp(52px, 10vh, 92px)' : 'clamp(96px, 18vh, 180px)';
+  // ONE spacing budget (see `.quiz-stage` in index.css, DECISIONS 2026-10-18). Tinku is NOT resized when
+  // a hint shows: the hint has its own reserved slot, so Tinku, the question and the tiles stay put and
+  // only his pose changes. The profile is chosen per grade, never per question.
+  const profile = quizProfileForGrade(grade);
+  const showPips = !s.isBridgeQuestion && !s.isBonusQuestion;
 
   // Compare blank fills with the CORRECT sign so the statement completes: green on a correct
   // answer, sky/learn on the wrong-#2 reveal ("here's how"). null → dashed placeholder. Existing
@@ -93,9 +95,10 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
   const blankFill = s.phase === 'correct' ? 'correct' : s.phase === 'reveal' ? 'reveal' : null;
 
   return (
-    <div className="flex flex-col h-full overflow-hidden bg-bg px-5 pt-1 pb-2">
+    <div className="quiz-stage h-full overflow-hidden bg-bg px-5 pt-1 pb-2">
+     <div className="quiz-grid" data-profile={profile}>
       {/* Top bar: back · progress counter · mute toggle */}
-      <div className="flex items-center justify-between shrink-0">
+      <div data-q="bar" className="flex items-center justify-between">
         <button onClick={onExit} className="text-sm font-semibold text-muted hover:text-ink transition-colors">
           ← Skills
         </button>
@@ -111,31 +114,30 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
         <MuteButton muted={muted} onToggle={toggleMute} />
       </div>
 
-      {/* Tinku's stage: decorative, yields space first — shrinks while a hint shows (see
-          mascotSize). A soft ground ellipse sits beneath him so he feels IN the world (he
-          breathes/floats above it) rather than pasted on. */}
-      <div className="relative flex flex-col items-center shrink-0">
-        <Mascot emotion={s.emotion} size={mascotSize} />
+      {/* Tinku's stage: decorative. A soft ground ellipse sits beneath him so he feels IN the world
+          (he breathes/floats above it) rather than pasted on. His size is the profile's, always. */}
+      <div data-q="mascot" className="relative flex flex-col items-center justify-end">
+        <Mascot emotion={s.emotion} size="var(--q-mascot)" />
         <div aria-hidden="true" className="tinku-ground h-3 w-2/5 max-w-[140px] -mt-1 rounded-[50%]" />
       </div>
 
-      {/* Tinku's hint speech bubble, in a STABLE single-child wrapper slot. HintBubble remounts
-          on each (re)emission via its hintNonce key to replay the pop-in; the dedicated wrapper
-          isolates that remount from the sibling keys used for the question transitions below, so
-          React always cleanly unmounts the previous bubble (no orphaned/stacked bubble that
-          would otherwise persist across taps and questions). */}
-      <div className="shrink-0">
-        <HintBubble key={s.hintNonce} hint={s.hint} emotion={s.emotion} />
+      {/* Tinku's speech slot, RESERVED so a hint never moves anything. Holds the hint bubble when
+          there is one, and otherwise the progress dots. Stable single-child wrapper: HintBubble
+          remounts on each (re)emission via its hintNonce key to replay the pop-in; the dedicated
+          wrapper isolates that remount from the sibling keys used for the question transitions
+          below, so React always cleanly unmounts the previous bubble (no orphaned/stacked bubble). */}
+      <div data-q="hint" data-testid="hint-slot" className="quiz-hint-slot">
+        {s.hint
+          ? <HintBubble key={s.hintNonce} hint={s.hint} emotion={s.emotion} />
+          : (showPips && <QuizPips total={s.totalQuestions} current={s.questionNumber} />)}
       </div>
 
-      {/* Question area: flex-1 + min-h-0 so it takes remaining space and yields when tight.
-          overflow-y-auto is the scoped fallback for exceptionally long questions.
-          justify-center vertically centres the question in the free space so on tall phones
-          (e.g. S25 Ultra) the slack is balanced above/below rather than pooling into one big
-          void between the question and the answers. Keyed by questionNumber so the new
-          question gently slides/fades in on each advance (GPU-safe). */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
-        <div key={s.questionNumber} className="animate-q-enter flex flex-col items-stretch justify-center min-h-full py-3">
+      {/* Question area: the ONLY elastic part of the budget. It takes whatever the fixed parts leave,
+          centres the question in it (so slack is balanced, not pooled into one void), and scrolls as a
+          last resort for an exceptionally long question. Keyed by questionNumber so the new question
+          gently slides/fades in on each advance (GPU-safe). */}
+      <div data-q="question" className="quiz-question">
+        <div key={s.questionNumber} className="animate-q-enter flex flex-col items-stretch justify-center min-h-full py-2">
           <QuestionView question={s.question} blankFill={blankFill} />
         </div>
       </div>
@@ -144,7 +146,7 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
           kid can't double-tap into the next question — it auto-advances after ADVANCE_DELAY_MS.
           Keyed by questionNumber so the tiles remount and stagger-in on each new question. */}
       {/* Answers: shrink-0 — never compressed, always fully visible */}
-      <div key={s.questionNumber} className="shrink-0 flex flex-wrap justify-center gap-3 max-w-sm w-full mx-auto pb-2 pt-1">
+      <div data-q="answers" key={s.questionNumber} className="flex flex-wrap justify-center gap-3 max-w-sm w-full mx-auto pb-1">
         {s.question.options.map((opt, i) => (
           <KidButton
             key={i}
@@ -160,6 +162,7 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
           />
         ))}
       </div>
+     </div>
     </div>
   );
 }

@@ -14,9 +14,16 @@
  *   null      → dashed placeholder (resting/wrong/hint; never slot a wrong value in)
  * Formats without a blank (mcq, count-objects) ignore it.
  */
+// The compare sign box: sized by the stage's budget (3rem = the old fixed w-12 h-12 when there is none).
+const SIGN_BOX = 'var(--q-sign-box, 3rem)';
+
 export default function QuestionView({ question, blankFill = null }) {
   if (question.format === 'count-objects') {
     const { glyph, count } = question.render;
+    // Rows of 5: a 3-row tray (11-15 objects) must fit the same question area as a 1-row one, so the
+    // objects scale down with the row count. The base size comes from the stage's budget.
+    const rows = Math.ceil(count / 5);
+    const rowScale = rows <= 1 ? 1 : rows === 2 ? 0.8 : 0.6;
     return (
       <div className="text-center">
         <p className="text-prompt font-extrabold text-ink mb-3">{question.questionText}</p>
@@ -33,7 +40,10 @@ export default function QuestionView({ question, blankFill = null }) {
               <span
                 key={i}
                 className="count-glyph flex items-center justify-center leading-none select-none"
-                style={{ fontSize: 'clamp(1.5rem, 6.5vw, 2.5rem)', minWidth: '1.75rem', minHeight: '1.75rem' }}
+                style={{
+                  fontSize: `calc(var(--q-glyph, clamp(1.5rem, 6.5vw, 2.5rem)) * ${rowScale})`,
+                  minWidth: `calc(var(--q-glyph, 1.75rem) * ${rowScale} * 1.1)`,
+                }}
               >
                 {glyph}
               </span>
@@ -51,7 +61,7 @@ export default function QuestionView({ question, blankFill = null }) {
         <p className="text-prompt font-bold text-ink mb-3">Which sign goes in the box?</p>
         {/* Numbers use clamp() so they shrink on short screens without losing readability. */}
         <div className="flex items-center justify-center gap-4">
-          <span className="kid-num-3d font-display font-extrabold text-primary-ink" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{left}</span>
+          <span className="kid-num-3d font-display font-extrabold text-primary-ink" style={{ fontSize: 'var(--q-num, clamp(2rem, 8vh, 3.75rem))' }}>{left}</span>
           {blankFill ? (
             // The CORRECT operator lands in the slot so the child sees the completed statement
             // (e.g. "5 < 15"). Green on a correct win; sky/learn on the wrong-#2 reveal ("here's
@@ -59,20 +69,20 @@ export default function QuestionView({ question, blankFill = null }) {
             // per treatment) so it mounts fresh and the pop-in animation plays.
             <span
               key={`fill-${blankFill}`}
-              className={`animate-slot-fill font-display font-extrabold w-12 h-12 rounded-button border-4 flex items-center justify-center ${
+              className={`animate-slot-fill font-display font-extrabold rounded-button border-4 flex items-center justify-center ${
                 blankFill === 'correct'
                   ? 'border-success bg-success-soft text-success'
                   : 'border-learn bg-learn-soft text-learn-ink'
               }`}
-              style={{ fontSize: 'clamp(1.5rem, 6vh, 2.5rem)' }}
+              style={{ width: SIGN_BOX, height: SIGN_BOX, fontSize: 'calc(var(--q-sign-box, 3rem) * 0.55)' }}
             >
               {question.correctAnswer}
             </span>
           ) : (
             // Resting / wrong / hint: dashed placeholder — never slot a wrong sign in (never punish).
-            <span key="blank" className="w-12 h-12 rounded-button border-4 border-dashed border-primary-soft bg-bg-card flex items-center justify-center text-2xl text-primary">?</span>
+            <span key="blank" style={{ width: SIGN_BOX, height: SIGN_BOX, fontSize: 'calc(var(--q-sign-box, 3rem) * 0.5)' }} className="rounded-button border-4 border-dashed border-primary-soft bg-bg-card flex items-center justify-center text-primary">?</span>
           )}
-          <span className="kid-num-3d font-display font-extrabold text-primary-ink" style={{ fontSize: 'clamp(2rem, 8vh, 3.75rem)' }}>{right}</span>
+          <span className="kid-num-3d font-display font-extrabold text-primary-ink" style={{ fontSize: 'var(--q-num, clamp(2rem, 8vh, 3.75rem))' }}>{right}</span>
         </div>
       </div>
     );

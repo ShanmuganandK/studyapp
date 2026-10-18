@@ -902,3 +902,18 @@ found only when someone started the manual workflow. The `debug` job now also ru
 manual: it is the only job that reads the Play upload key and it consumes a Play versionCode. No PR, fork,
 tag or schedule trigger exists; the release job is skipped unless the run was hand-started with
 `build_type=release`. Asserted by `androidWorkflow.test.js`. JDK is 21 (Capacitor 8 modules compile at 21).
+
+## 2026-10-18 — Quiz screen: a spacing budget, not "Tinku shrinks for the hint"
+On a tall phone (S25 Ultra) the installed app left about a third of the quiz screen empty and Tinku, capped at
+180 px, collapsed to a thumbnail whenever a hint appeared. Founder direction: spacing must follow one
+algorithm, the hint/notification idea of shrinking the mascot is to be challenged, and for small children the
+mascot with the right emotion should be large. Decided: (1) the quiz screen has ONE spacing budget measured
+from its own height (`.quiz-stage` in `index.css`); (2) **no component resizes or moves another**: the hint
+has a reserved slot and Tinku changes only his pose; (3) sizes come from a **profile chosen per grade**
+(`roomy` for Classes 1-2, `standard` for Class 3+, to be tuned when wordier questions exist), never per
+question, so Tinku never changes size mid-session; (4) the question area is the only elastic part. This
+**supersedes the "mascot shrinks/yields space first" clause of STANDARDS §5 for the quiz screen**; its
+intent (the answers are never pushed off-screen, no scrolling for normal questions) is kept and measured by
+`npm run layout:check`. STANDARDS.md still carries the old wording: Chat/founder to update. Open ideas not
+done: hide the bottom Home/Parent bar during a quiz (it costs about 11% of the height; the "← Skills" link
+already exits), and lock the Android app to portrait.
