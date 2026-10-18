@@ -43,7 +43,7 @@ const PHONES = [
 ];
 const GRADES = [1, 2];
 const SKILLS_PER_GRADE = 3;
-const QUESTIONS_PER_SKILL = 3;
+const QUESTIONS_PER_SKILL = Number(process.env.LAYOUT_QUESTIONS) || 3;   // raise it to sweep more random questions (e.g. every counting tray size)
 const CHROMIUM = process.env.CHROMIUM_PATH || (process.env.PLAYWRIGHT_BROWSERS_PATH ? join(process.env.PLAYWRIGHT_BROWSERS_PATH, 'chromium') : undefined);
 
 const preview = spawn('npx', ['vite', 'preview', '--port', String(PORT), '--strictPort'], { stdio: 'ignore', detached: true });

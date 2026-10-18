@@ -14,7 +14,7 @@ import tinkuImg from '../assets/mascot/webp/Tinku_Mascot.webp';
  * decoration (never seen on a phone) and don't participate in band theming, so they're
  * not tokenised further — the token rule targets product UI, not the dev preview frame.
  */
-const Layout = ({ children, currentView, onNavigate, scrollLocked = false }) => {
+const Layout = ({ children, currentView, onNavigate, scrollLocked = false, hideNav = false }) => {
   const isOnline = useOnline();
 
   return (
@@ -46,7 +46,9 @@ const Layout = ({ children, currentView, onNavigate, scrollLocked = false }) => 
           </div>
         </div>
 
-        {/* Bottom Navigation */}
+        {/* Bottom Navigation. Hidden during a quiz (DECISIONS 2026-10-18): the room goes to the question,
+            and a mid-quiz tap on Parent/Home was an accident. The quiz keeps its own '← Skills' exit. */}
+        {!hideNav && (
         <div className="shrink-0 h-20 bg-bg-card border-t border-primary-soft flex items-center justify-around px-4 shadow-nav">
           <NavItem
             icon={<Home size={22} strokeWidth={2.5} />}
@@ -61,6 +63,7 @@ const Layout = ({ children, currentView, onNavigate, scrollLocked = false }) => 
             onClick={() => onNavigate('parent')}
           />
         </div>
+        )}
       </div>
     </div>
   );

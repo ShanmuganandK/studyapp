@@ -50,3 +50,16 @@ describe('Layout offline banner', () => {
     expect(screen.queryByRole('status')).toBeNull();
   });
 });
+
+describe('Layout bottom nav', () => {
+  it('shows Home and Parent by default', () => {
+    renderLayout();
+    expect(screen.getByText('Home')).toBeTruthy();
+    expect(screen.getByText('Parent')).toBeTruthy();
+  });
+  it('hides them when hideNav is set (during a quiz)', () => {
+    render(<Layout currentView="quiz" onNavigate={() => {}} hideNav><p>x</p></Layout>);
+    expect(screen.queryByText('Home')).toBeNull();
+    expect(screen.queryByText('Parent')).toBeNull();
+  });
+});

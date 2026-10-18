@@ -917,3 +917,7 @@ intent (the answers are never pushed off-screen, no scrolling for normal questio
 `npm run layout:check`. STANDARDS.md still carries the old wording: Chat/founder to update. Open ideas not
 done: hide the bottom Home/Parent bar during a quiz (it costs about 11% of the height; the "← Skills" link
 already exits), and lock the Android app to portrait.
+
+## 2026-10-18 — Quiz screen: no bottom nav, portrait lock, self-sizing counting tray
+
+Founder call (after a real-device test on a Samsung S25 Ultra): the Home/Parent bottom bar is hidden while a quiz is on screen (`Layout` `hideNav`, set for the `quiz` view); the quiz's own "← Skills" link and the Android Back button remain the exits. The Android activity is locked to portrait (`screenOrientation`), because the quiz layout is built and measured for portrait only. The counting tray's object size now comes from the room the question area actually has (`.quiz-question` is a size container), so a 3-row tray (11-15 objects) shrinks to fit instead of being clipped. Interpreted "lock landscape" as "lock the orientation" (portrait); flagged to the founder.

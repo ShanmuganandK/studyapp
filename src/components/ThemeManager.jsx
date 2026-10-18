@@ -100,7 +100,7 @@ export default function ThemeManager() {
   }
 
   return (
-    <Layout currentView={currentView} onNavigate={handleNavigate} scrollLocked={isGateOpen}>
+    <Layout currentView={currentView} onNavigate={handleNavigate} scrollLocked={isGateOpen} hideNav={currentView === 'quiz'}>
       {/* Mounted only while open so it starts fresh each time — its internal mode initialises
           from isSettingMode with no stale-state lag (fixes the first-click-no-op race). */}
       {isGateOpen && (
