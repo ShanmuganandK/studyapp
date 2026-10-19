@@ -928,3 +928,7 @@ Founder call, same day as the entry above. The Home/Parent bar is hidden **only 
 
 Engineering note recorded with it (verified, not a product decision): `npm run layout:check` originally only played the easiest rung of each skill, so it never produced a 2- or 3-row counting tray, the case that clipped on a real S25 Ultra. It now has a second pass at the hardest rung of "Big Number Party" that must measure a 1-, 2- and 3-row tray, and it was proved RED against the pre-fix build (4 failures) and green on the fix. That pass found two more real defects (a 3-row tray still overflowing on a 360x640 phone; a one-frame stage resize after "Play again"), both fixed. The check is still on demand, not in CI (CI has no browser).
 
+
+## 2026-10-18 — `CLAUDE.md` renamed to `AGENTS.md`
+
+Founder instruction: the agent-orientation file is now **`AGENTS.md`** (agent-neutral; the repo is worked on by Claude Code, Antigravity and others). A one-line `CLAUDE.md` stub containing `@AGENTS.md` stays so Claude Code, which looks for that filename, still loads the instructions; it must never hold content. Live references (README, DOCMAP, STANDARDS, ARCHITECTURE, design docs, two code comments) now point at `AGENTS.md`. Older dated entries in this file and in `claude-chat/TRACKER.md` that name `CLAUDE.md` are history and were left as written. The file was also refreshed at the same time (stale Android/"never built" lines removed; Android build, quiz-layout and guard facts added).

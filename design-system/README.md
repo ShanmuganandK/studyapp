@@ -35,7 +35,7 @@ and only the type looks different.
 
 ## Rules these recommendations respect
 
-These rules come from `CLAUDE.md` and DECISIONS, and no recommendation breaks them:
+These rules come from `AGENTS.md` and DECISIONS, and no recommendation breaks them:
 
 - The colour grammar is locked: amber = reward only, green = correct, soft coral = wrong, sky =
   hint, teal = review.

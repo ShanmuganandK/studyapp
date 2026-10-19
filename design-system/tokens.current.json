@@ -24,7 +24,7 @@
    "docs": [
     "design-handoff/README.md",
     "design-handoff/docs/ui-overhaul-design-direction.md",
-    "CLAUDE.md"
+    "AGENTS.md"
    ]
   },
   "components": {},

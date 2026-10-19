@@ -15,7 +15,7 @@ import { PRODUCT_NAME } from '../config/brand';
  * (big Tinku on a soft token-tinted field, the product name, one friendly line) with the class
  * question on a card pinned to the bottom, where a thumb reaches. Fit-one-viewport: Tinku is
  * sized once from the viewport height (smaller on short phones), everything else is fixed-size.
- * The tagline makes no content claim (CLAUDE.md: never over-claim what the app teaches).
+ * The tagline makes no content claim (AGENTS.md: never over-claim what the app teaches).
  *
  * Presentational only: no local state, no storage access — `onChoose` (wired to
  * `chooseInitialGrade`) does the writing. Parent-facing: body font throughout (NOT the

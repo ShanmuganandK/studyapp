@@ -1,6 +1,6 @@
 # STANDARDS.md — Coding, Architecture, Testing & Data Standards
 
-> Read alongside `CLAUDE.md` and `DECISIONS.md` at the start of every session. Applies to **both Claude Code and Antigravity**.
+> Read alongside `AGENTS.md` and `DECISIONS.md` at the start of every session. Applies to **both Claude Code and Antigravity**.
 > This is a behavioral guardrail file, intentionally concise. Follow it; don't expand it without reason. §8 (engineering discipline) and §9 (self-audit) keep new code clean as the product grows — applied at the right proportion for a small-but-serious product, never as enterprise bloat.
 
 ---

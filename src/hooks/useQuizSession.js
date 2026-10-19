@@ -202,7 +202,7 @@ export function applyAnswer(state, optionIndex) {
  * (a parked session reaching the end of its 8 scored questions), same "inject the impure part"
  * idiom `sessionLite.js`'s `generateWithRepeatAvoidance` uses for `makeCandidate`. Required
  * whenever it would actually be called — omitting it for a parked session is a caller bug, not
- * something to paper over (CLAUDE.md: stop and flag, don't resolve silently), so it throws
+ * something to paper over (AGENTS.md: stop and flag, don't resolve silently), so it throws
  * rather than silently skipping the bonus round the session earned.
  *
  * `state.index` is NOT advanced when entering the bonus round (DECISIONS 2026-09-22: the bonus

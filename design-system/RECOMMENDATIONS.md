@@ -43,7 +43,7 @@ literal `text-white`.
 **Why.**
 
 - `text-white` is a fixed colour, so it can't re-theme. That breaks the rule in `src/index.css`
-  that a theme only overrides variables, and the rule in `CLAUDE.md` that components never
+  that a theme only overrides variables, and the rule in `AGENTS.md` that components never
   hard-code colours.
 - It works in the light palettes only because their primaries are dark. Deep Sea inverts
   `primary` to a light `#93b4ff`, so white text drops to **2.06:1** on every CTA ("Play again",

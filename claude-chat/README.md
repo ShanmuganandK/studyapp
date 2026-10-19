@@ -24,7 +24,7 @@ zero telemetry, guest or otherwise), and outbound messaging (WhatsApp/email/push
 summaries) deferred post-consent-stack — see DECISIONS.md entries dated
 2026-07-16. This folder's legal docs reflect that lean-MVP posture.
 
-Read alongside `CLAUDE.md`, `DECISIONS.md`, `STANDARDS.md`, `ARCHITECTURE.md` at
+Read alongside `AGENTS.md`, `DECISIONS.md`, `STANDARDS.md`, `ARCHITECTURE.md` at
 repo root — those remain the primary orientation files for any AI agent working
 in this repo. This folder is planning/tracking, not code orientation.
 
