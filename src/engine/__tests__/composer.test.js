@@ -21,6 +21,7 @@ import {
   recommendNext,
 } from '../composer.js';
 import { emptySkillState } from '../mastery.js';
+import { SKILLS } from '../../recipes/skillMap.js';
 import { MASTERY } from '../../config/masteryConfig.js';
 import { COMPOSER } from '../../config/composerConfig.js';
 
@@ -505,5 +506,65 @@ describe('integration with production MASTERY config', () => {
     };
     const r5 = recommendNext(s5, MAP, TODAY);
     expect(r5.reason).toBe('all_caught_up');
+  });
+});
+
+
+// ─── Planned prerequisites (DECISIONS 2026-10-19) ─────────────────────────────
+
+describe('isPrereqsMet: a prerequisite with no recipe yet cannot gate anything', () => {
+  const MAP3 = {
+    ...MAP,
+    // depends on a PLANNED skill and a ready one
+    'skill.after': { id: 'skill.after', name: 'After', grade: 1, order: 10, prereqs: ['skill.planned', 'skill.a'], recipe: 'x', status: 'ready' },
+    // depends ONLY on a planned skill
+    'skill.only': { id: 'skill.only', name: 'Only', grade: 1, order: 11, prereqs: ['skill.planned'], recipe: 'y', status: 'ready' },
+  };
+
+  it('skips the planned prereq but still requires the ready one', () => {
+    expect(isPrereqsMet('skill.after', {}, MAP3)).toBe(false); // skill.a not done
+    expect(isPrereqsMet('skill.after', states(['skill.a', MASTERY.UNLOCK_LEVEL]), MAP3)).toBe(true);
+  });
+
+  it('a skill whose only prereq is planned is open', () => {
+    expect(isPrereqsMet('skill.only', {}, MAP3)).toBe(true);
+  });
+
+  it('the gate applies again as soon as that skill becomes ready', () => {
+    const shipped = { ...MAP3, 'skill.planned': { ...MAP3['skill.planned'], status: 'ready', recipe: 'p' } };
+    expect(isPrereqsMet('skill.only', {}, shipped)).toBe(false);
+    expect(isPrereqsMet('skill.only', states(['skill.planned', MASTERY.UNLOCK_LEVEL]), shipped)).toBe(true);
+  });
+
+  it('a prereq id that is not in the map at all is still locked (unchanged)', () => {
+    const odd = { ...MAP, 'skill.odd': { id: 'skill.odd', name: 'Odd', grade: 1, order: 12, prereqs: ['skill.ghost'], recipe: 'z', status: 'ready' } };
+    expect(isPrereqsMet('skill.odd', {}, odd)).toBe(false);
+  });
+});
+
+describe('real skill map: the suggested path reaches every ready skill', () => {
+  it('2-digit add/subtract and 3-digit numbers are not walled off by the unbuilt place-value skills', () => {
+    const base = states(['g1.add.within20', MASTERY.UNLOCK_LEVEL], ['g1.sub.within20', MASTERY.UNLOCK_LEVEL]);
+    expect(isPrereqsMet('g2.add.2d-nocarry', base, SKILLS)).toBe(true);
+    expect(isPrereqsMet('g2.sub.2d-noborrow', base, SKILLS)).toBe(true);
+    expect(isPrereqsMet('g2.num.3digit', {}, SKILLS)).toBe(true);
+    // the Grade 1 basics are still required
+    expect(isPrereqsMet('g2.add.2d-nocarry', {}, SKILLS)).toBe(false);
+  });
+
+  it('following the composer from a fresh start visits every `ready` skill', () => {
+    // Guards the whole CLASS of bug: any ready skill that no chain of recommendations can reach
+    // (here: blocked behind a planned prerequisite) fails this test.
+    let st = {};
+    const visited = new Set();
+    for (let i = 0; i < 200; i++) {
+      const rec = recommendNext(st, SKILLS, TODAY);
+      if (rec.reason === 'all_caught_up' || !rec.skillId) break;
+      visited.add(rec.skillId);
+      st = { ...st, [rec.skillId]: masteredState(rec.skillId, TOMORROW) };
+    }
+    const ready = Object.values(SKILLS).filter((s) => s.status === 'ready').map((s) => s.id);
+    const unreachable = ready.filter((id) => !visited.has(id));
+    expect(unreachable, `ready skills the suggested path never reaches: ${unreachable.join(', ')}`).toEqual([]);
   });
 });

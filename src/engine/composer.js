@@ -14,7 +14,10 @@
  *
  * Only `status:'ready'` skills are ever recommended — planned skills have no recipe.
  * Prereqs are checked via `isUnlockedLevel` on the prereq's stored state; a missing
- * state counts as locked.
+ * state counts as locked — EXCEPT a prereq whose own skill is `planned`: it has no recipe, so no child
+ * can ever practise it and it can never have a state. Treating it as locked would wall off everything
+ * behind it forever (DECISIONS 2026-10-19), so it is skipped. When that skill ships (status 'ready')
+ * the gate applies to it again with no further change.
  */
 
 import { isMastered, isUnlockedLevel, isDueForReview } from './mastery.js';
@@ -25,7 +28,8 @@ import { COMPOSER } from '../config/composerConfig.js';
 /**
  * True if every prerequisite of `skillId` is at or above the unlock level.
  * Vacuously true when the skill has no prerequisites.
- * A prereq with no saved state is treated as locked (level 0).
+ * A prereq with no saved state is treated as locked (level 0), unless that prereq skill is not
+ * `ready` (no recipe yet): those are skipped, see the file header.
  *
  * @param {string} skillId
  * @param {{ [skillId: string]: SkillState }} skillStates
@@ -36,6 +40,9 @@ export function isPrereqsMet(skillId, skillStates, skillMap) {
   const skill = skillMap[skillId];
   if (!skill) return false;
   return skill.prereqs.every((prereqId) => {
+    // A prereq with no recipe yet can never be satisfied by practice, so it cannot gate anything.
+    const prereqSkill = skillMap[prereqId];
+    if (prereqSkill && prereqSkill.status !== 'ready') return true;
     const state = skillStates[prereqId];
     return state ? isUnlockedLevel(state) : false;
   });

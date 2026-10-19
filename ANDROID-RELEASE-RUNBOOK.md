@@ -19,8 +19,9 @@
    (Files, Samsung's installer) **failed with "App not installed"** on that phone; the cause was never found,
    and the APK itself was proven valid. If you must sideload by hand and it fails, use `adb` instead.
    Then walk through it:
-   - [ ] The class picker appears and the app loads **(blank white screen = tell Claude Code; the fix is
-     one line, we only removed the INTERNET permission on an unverified assumption)**.
+   - [x] The class picker appears and the app loads. **Verified 2026-10-18 on a Samsung S25 Ultra:** the debug
+     APK has no INTERNET permission and still loads and plays quizzes. (A blank white screen on another phone
+     = tell Claude Code; the fix would be one line.)
    - [ ] A quiz plays, sound works, Tinku shows. **No Home/Parent bar during a question** (it returns on the
      "Great job!" summary), and **rotating the phone does not rotate the app** (portrait lock).
    - [ ] A counting question with 11-15 objects (3 rows) fits without clipping.

@@ -88,7 +88,7 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
   repo).
 - **Android (TRACKER L4):** Capacitor (DECISIONS 2026-10-15). A **debug APK builds in CI on every
   merge to master and has run on a real phone** (Samsung S25 Ultra, installed with `adb install
-  -r`). The **signed release AAB has never been built** (needs the upload key + 4 secrets in the
+  -r`), with **no INTERNET permission** — it loads and plays quizzes without one (verified on that phone). The **signed release AAB has never been built** (needs the upload key + 4 secrets in the
   `android-release` environment) and it gates the closed test (L9). The Android activity is
   **locked to portrait**. A sideload through the phone's own installer failed once ("App not
   installed", cause unknown); `adb` works. Steps: `ANDROID-RELEASE-RUNBOOK.md`.
