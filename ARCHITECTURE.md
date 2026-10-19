@@ -556,7 +556,10 @@ side effects and is trivially testable.
    skill with the nearest upcoming review date (or `skillId: null`).
 
 Only `status:'ready'` skills are ever recommended. Prereqs are checked with `isUnlockedLevel`
-on the prereq's stored state; a missing state counts as locked.
+on the prereq's stored state; a missing state counts as locked, **except a prereq whose own skill is not
+`ready`** (no recipe yet, so it can never have a state): that one is skipped, so unbuilt skills (e.g.
+`g1.place.tens-ones`) cannot wall off the Grade 2 line behind them (DECISIONS 2026-10-19). A reachability test in
+`composer.test.js` fails if any `ready` skill cannot be reached by following the suggestions from a fresh start.
 
 **Returns:** `{ skillId: string | null, reason: 'review' | 'frontier' | 'new' | 'all_caught_up' }`
 
