@@ -109,7 +109,9 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
   tens-and-ones is the real fix. **Suggestions are grade-scoped** (DECISIONS 2026-10-20): a Class 2 child starts on
   Class 2 skills with Class 1 assumed cleared; progress is per skill id; there are no separate profiles (one child per
   device). **The closed-test success bar (L8) is decided** (7 of 12 children on 3+ days in week 1 and 2+ in week 2); what
-  counts as "practised" and how the days are measured are still open.
+  counts as "practised" is decided (a finished session) and **measured on the device** (`practiceDays`, shown in the parent
+  dashboard and included in the export); the tester protocol is still to be written. The **Class** control is its own
+  parent-zone section, apart from the Test settings (theme, warm-up).
 - **Screens on the new layout system:** only the **quiz and its summary** use the spacing budget
   (see "Quiz screen layout" below). The grade picker, skill list and parent screens do not yet;
   the first-run grade picker has a known layout bug (content stops about half-way down).
