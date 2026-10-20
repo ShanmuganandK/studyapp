@@ -10,6 +10,9 @@ import useProgressBackup from '../hooks/useProgressBackup';
 import PrivacyNotice from './PrivacyNotice';
 import PrivacyPolicy from './PrivacyPolicy';
 import TestPanel from './TestPanel';
+import ClassPicker from './ClassPicker';
+import { loadPracticeDays, localDateString } from '../services/practiceDays';
+import { summarisePracticeDays } from '../engine/practiceSummary';
 
 // ─── Local helpers ────────────────────────────────────────────────────────────
 
@@ -102,6 +105,10 @@ export default function ParentDashboard({
   }, [skillStates, grade]);
 
   const { mastered, inProgress, notStarted, masteredCount, lastActivity } = summary;
+
+  // Days practised (DECISIONS 2026-10-20): read once on mount, same snapshot pattern as the skill states above.
+  const [practiceDays] = useState(loadPracticeDays);
+  const practice = useMemo(() => summarisePracticeDays(practiceDays, localDateString()), [practiceDays]);
   const totalReady = mastered.length + inProgress.length + notStarted.length;
 
   // Inline "Remove passcode?" confirm — avoids an accidental one-tap removal of the gate.
@@ -226,6 +233,22 @@ export default function ParentDashboard({
           )}
         </div>
 
+        {practice.total > 0 && (
+          <div className="text-center -mt-2" data-testid="practice-days">
+            <p className="text-xs text-muted">
+              Days practised: <span className="text-ink font-medium">{practice.total}</span>
+            </p>
+            <p className="text-xs text-muted">
+              First week: <span className="text-ink font-medium">{practice.week1} of 7 days</span>
+              {practice.week2Started && (
+                <>
+                  {' · '}Second week: <span className="text-ink font-medium">{practice.week2} of 7 days</span>
+                </>
+              )}
+            </p>
+          </div>
+        )}
+
         {/* ── Privacy reassurance ──────────────────────────────────────────── */}
         <PrivacyNotice variant="card" onReadPolicy={() => setShowPolicy(true)} />
 
@@ -336,12 +359,15 @@ export default function ParentDashboard({
             )}
           </div>
 
-          {/* Parent test panel (theme + grade) — a TEST INSTRUMENT, not kid-facing (TRACKER #10). */}
+          {/* Class (grade): a real setting since suggestions became grade-scoped (DECISIONS 2026-10-20). */}
+          <div className="border-t border-primary-soft pt-4">
+            <ClassPicker grade={grade} onGradeChange={onGradeChange} />
+          </div>
+
+          {/* Parent test panel (theme + warm-up) — TEST INSTRUMENTS, not kid-facing (TRACKER #10). */}
           <TestPanel
             theme={theme}
             onThemeChange={onThemeChange}
-            grade={grade}
-            onGradeChange={onGradeChange}
             bridgeEnabled={bridgeEnabled}
             onBridgeEnabledChange={onBridgeEnabledChange}
           />

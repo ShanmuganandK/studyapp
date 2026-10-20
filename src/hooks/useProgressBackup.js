@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { SKILLS } from '../recipes/skillMap';
 import { loadAllSkillStates, replaceAllSkillStates } from '../services/progressStore';
 import { saveTextFile } from '../services/fileTransfer';
+import { loadPracticeDays, replacePracticeDays } from '../services/practiceDays';
 import { buildExportEnvelope, exportFilename, parseImportPayload } from '../services/progressBackup';
 
 /**
@@ -18,6 +19,7 @@ const ERROR_MESSAGES = {
   'wrong-format': "That file isn't a Tinku Math backup file.",
   'unsupported-version': 'That backup was made by a newer version of the app.',
   'malformed-skills': 'That backup file looks damaged.',
+  'malformed-practice-days': 'That backup file looks damaged.',
 };
 
 export default function useProgressBackup() {
@@ -27,11 +29,12 @@ export default function useProgressBackup() {
   const [pendingImport, setPendingImport] = useState(null); // { skillCount, ignoredSkillCount } | null
   const [importError, setImportError] = useState(null);
   const stagedSkillsRef = useRef(null); // validated skills, held until confirmImport
+  const stagedDaysRef = useRef(null); // validated practice days (null = the file had none), held with it
 
   // Web: downloads the file. Android: opens the share sheet (services/fileTransfer.js).
   async function exportProgress() {
     const skills = loadAllSkillStates();
-    const envelope = buildExportEnvelope(skills);
+    const envelope = buildExportEnvelope(skills, new Date(), loadPracticeDays());
     await saveTextFile(exportFilename(), JSON.stringify(envelope, null, 2));
   }
 
@@ -53,6 +56,7 @@ export default function useProgressBackup() {
     }
 
     stagedSkillsRef.current = result.skills;
+    stagedDaysRef.current = result.practiceDays;
     setPendingImport({
       skillCount: Object.keys(result.skills).length,
       ignoredSkillCount: result.ignoredSkillCount,
@@ -62,12 +66,16 @@ export default function useProgressBackup() {
   function confirmImport() {
     if (!stagedSkillsRef.current) return;
     replaceAllSkillStates(stagedSkillsRef.current);
+    // A backup that carries practice days restores them too; an older backup without any leaves this device's own list alone.
+    if (stagedDaysRef.current) replacePracticeDays(stagedDaysRef.current);
     stagedSkillsRef.current = null;
+    stagedDaysRef.current = null;
     setPendingImport(null);
   }
 
   function cancelImport() {
     stagedSkillsRef.current = null;
+    stagedDaysRef.current = null;
     setPendingImport(null);
     setImportError(null);
   }

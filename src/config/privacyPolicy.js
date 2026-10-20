@@ -54,7 +54,7 @@ export const APP_NAME = PRODUCT_NAME;
 export const OPERATOR_LINE = 'operated by Stringus, based in the UAE';
 
 /** Shown to the reader and re-published on every change. Update when the text changes. */
-export const LAST_UPDATED = '16 October 2026';
+export const LAST_UPDATED = '20 October 2026';
 
 /** Grievance/contact address. Also the Rule 9 contact if Layer 2 ever returns. */
 export const CONTACT_EMAIL = 'tinku@stringus.com';
@@ -76,7 +76,7 @@ export const SECTIONS = [
     heading: 'No sign-up, no accounts',
     paragraphs: [
       `${APP_NAME} has no sign-up and no accounts. Your child's progress — skills practised, ` +
-        'levels, streaks — is saved on your device. It is never sent to us. We cannot see it.',
+        'levels, the days practised, streaks — is saved on your device. It is never sent to us. We cannot see it.',
     ],
   },
   {

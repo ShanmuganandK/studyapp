@@ -15,7 +15,7 @@ proven behind a flag, then deleted. See **Migration strategy** below.
 | `src/recipes/`      | **NEW.** Pure question generators (the recipe contract).               |
 | `src/engine/`       | **NEW** (scaffold). Pure core logic: mastery, spaced-rep, composer, remediation. |
 | `src/hooks/`        | **NEW** (scaffold). React orchestration: session flow, mastery updates. |
-| `src/services/`     | Device-local persistence (`progressStore.js`, `testSettings.js`, `progressBackup.js`), the inert auth seam (`authService.js` → `localAdapter.js`, null-user, no Firebase — DECISIONS 2026-08-15), the inert analytics seam (`analytics.js`), and `sound.js`. No external SDK is touched anywhere in this folder today. |
+| `src/services/`     | Device-local persistence (`progressStore.js`, `testSettings.js`, `practiceDays.js`, `progressBackup.js`), the inert auth seam (`authService.js` → `localAdapter.js`, null-user, no Firebase — DECISIONS 2026-08-15), the inert analytics seam (`analytics.js`), and `sound.js`. No external SDK is touched anywhere in this folder today. |
 | `src/config/`       | **NEW.** Config modules — `brand.js` (**the product name, single source** — see below), `constants.js` (app-wide constants, e.g. `FEEDBACK_WHATSAPP_NUMBER`, `PRIVACY_NOTICE`), `privacyPolicy.js` (**the published privacy policy, as data** — see below), `flags.js` (migration feature flags), `masteryConfig.js` (mastery + spaced-rep tunables), `composerConfig.js` (composer tunables). |
 | `src/components/`   | Presentational React UI (screens, modules, dashboard). The migration bridge. The child-reachable flow is now entirely new (skill-select → recipe quiz); legacy screens stay on disk but FROZEN/unreachable (see **App flow & screens**). |
 | `src/contexts/`     | React contexts (e.g. `AuthContext`). Legacy until auth is rebuilt.     |
@@ -617,6 +617,15 @@ task lands, `progressStore` is the only file that changes.
 unchanged) but currently always `[]` — neither `buildLiteSession` nor `applyResult` populates
 it. Cross-session repeat-avoidance is a future nicety.
 
+### Practice days (`src/services/practiceDays.js` + `src/engine/practiceSummary.js`) — DECISIONS 2026-10-20
+
+The closed-test success bar counts days, and the skills store keeps only one `lastSeen` per skill, so a separate
+on-device list records the LOCAL calendar dates (`YYYY-MM-DD`, sorted, unique, capped ~800, no identifiers) on which a
+session was FINISHED (`recordPracticeDay()` in `useQuizSession`'s session-complete branch; idempotent). Own key
+`tinku:v1:practiceDays`, outside the skills store. `summarisePracticeDays(days, today)` (pure) gives the total and the
+first-/second-week counts from the child's own first day; `ParentDashboard` shows them. The list rides the progress
+export as an optional `practiceDays` field (below) and is restored on import.
+
 ### Progress backup (`src/services/progressBackup.js` + `src/hooks/useProgressBackup.js`) — local export/import
 
 Parent-zone export/import of progress as a local JSON file (TRACKER "Now" #3, shape locked in
@@ -738,12 +747,11 @@ theme picker (DECISIONS-level call). Lives behind the parent gate inside `Parent
   widened from `:root` to also cover `.theme-<slug>` token-definition blocks (effect-layer leaks
   outside those blocks are still caught — proven red).
 - **`TestPanel.jsx`** — presentational: theme swatches (each previews its real palette by wrapping
-  token utilities in the `.theme-<slug>` class — no raw hex) + a Grade segmented control, rendered
-  from `GRADES` (currently 1–2) plus a **disabled "Grade 3 — soon"** button (DECISIONS 2026-09-23 —
-  display-only, NOT in `GRADES`; it mirrors the first-run picker's treatment so the row doesn't just
-  stop at 2 with no trace of a third option) + a "Warm-up steps (test)" On/Off control (DECISIONS 2026-09-22,
-  `bridgeEnabled`) — same segmented-button pattern as Grade, token classes only. Calls
-  `setTheme`/`setGrade`/`setBridgeEnabled` from props; state lives in the hook. Tests:
+  token utilities in the `.theme-<slug>` class — no raw hex) + a "Warm-up steps (test)" On/Off control (DECISIONS 2026-09-22,
+  `bridgeEnabled`) — token classes only. Calls `setTheme`/`setBridgeEnabled` from props; state lives in the hook.
+  **The Grade control is no longer here:** `ClassPicker.jsx` (2026-10-20, DECISIONS 2026-10-20) is its own parent-zone
+  "Class" section (Class 1, Class 2, a disabled "Class 3 — soon"; same `testSettings.grade` value), because it decides
+  what is suggested and so is a real setting, not a test. Tests:
   `services/__tests__/testSettings.test.js`, `hooks/__tests__/useTestSettings.test.js`
   (body-class application), `components/__tests__/TestPanel.test.jsx`.
 

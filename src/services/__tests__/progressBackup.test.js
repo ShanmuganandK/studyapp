@@ -52,7 +52,7 @@ describe('parseImportPayload — round trip', () => {
     const skills = { [SKILL_ID]: validState(SKILL_ID), [OTHER_ID]: validState(OTHER_ID) };
     const raw = JSON.stringify(buildExportEnvelope(skills));
     const result = parseImportPayload(raw, KNOWN_IDS);
-    expect(result).toEqual({ valid: true, skills, ignoredSkillCount: 0 });
+    expect(result).toEqual({ valid: true, skills, ignoredSkillCount: 0, practiceDays: null });
   });
 });
 
@@ -158,6 +158,7 @@ describe('parseImportPayload — unknown skillIds (curriculum grows over time)',
       valid: true,
       skills: { [SKILL_ID]: validState(SKILL_ID) },
       ignoredSkillCount: 1,
+      practiceDays: null,
     });
   });
 
@@ -168,7 +169,7 @@ describe('parseImportPayload — unknown skillIds (curriculum grows over time)',
       skills: { 'g0.retired': validState('g0.retired') },
     });
     const result = parseImportPayload(raw, KNOWN_IDS);
-    expect(result).toEqual({ valid: true, skills: {}, ignoredSkillCount: 1 });
+    expect(result).toEqual({ valid: true, skills: {}, ignoredSkillCount: 1, practiceDays: null });
   });
 });
 
@@ -193,5 +194,39 @@ describe('Guard B — a smuggled passcode-shaped entry is rejected, not silently
       valid: false,
       error: 'malformed-skills',
     });
+  });
+});
+
+describe('practice days in the backup (DECISIONS 2026-10-20)', () => {
+  const skills = () => ({ [SKILL_ID]: validState() });
+  const file = (extra = {}) => JSON.stringify({ format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: 'x', skills: skills(), ...extra });
+
+  it('buildExportEnvelope adds practiceDays only when given, so a version-1 envelope is otherwise unchanged', () => {
+    const now = new Date('2026-10-20T12:00:00.000Z');
+    expect(buildExportEnvelope(skills(), now)).not.toHaveProperty('practiceDays');
+    expect(buildExportEnvelope(skills(), now, ['2026-10-19', '2026-10-20']).practiceDays).toEqual(['2026-10-19', '2026-10-20']);
+  });
+
+  it('an older backup with no practiceDays still imports, reporting practiceDays: null', () => {
+    const r = parseImportPayload(file(), KNOWN_IDS);
+    expect(r.valid).toBe(true);
+    expect(r.practiceDays).toBeNull();
+  });
+
+  it('a backup with practiceDays imports them sorted and de-duplicated', () => {
+    const r = parseImportPayload(file({ practiceDays: ['2026-10-20', '2026-10-19', '2026-10-20'] }), KNOWN_IDS);
+    expect(r.valid).toBe(true);
+    expect(r.practiceDays).toEqual(['2026-10-19', '2026-10-20']);
+  });
+
+  it('refuses the whole import when practiceDays is damaged', () => {
+    for (const bad of ['2026-10-20', ['not-a-date'], [20261020], { a: 1 }, null]) {
+      expect(parseImportPayload(file({ practiceDays: bad }), KNOWN_IDS)).toEqual({ valid: false, error: 'malformed-practice-days' });
+    }
+  });
+
+  it('refuses a list longer than the app would ever keep', () => {
+    const tooMany = Array.from({ length: 801 }, (_, i) => `2024-01-${String((i % 28) + 1).padStart(2, '0')}-${i}`);
+    expect(parseImportPayload(file({ practiceDays: tooMany }), KNOWN_IDS).valid).toBe(false);
   });
 });

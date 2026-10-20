@@ -58,6 +58,7 @@ import { buildLiteSession } from '../engine/sessionLite';
 import { getHint } from '../engine/hints';
 import { logEvent } from '../services/analytics';
 import { loadSkillState, saveSkillState } from '../services/progressStore';
+import { recordPracticeDay } from '../services/practiceDays';
 import { emptySkillState, applyResult, nextWorkingDifficulty, isMastered } from '../engine/mastery';
 import { MASTERY } from '../config/masteryConfig';
 import { getSkill } from '../recipes/skillMap';
@@ -459,6 +460,10 @@ export function useQuizSession(grade, { length = 8, skillId, seed, bridgeEnabled
         questions_correct: prev.score,
         duration_sec: Math.round((Date.now() - sessionStartRef.current) / 1000),
       });
+
+      // A finished session counts as a practice day (DECISIONS 2026-10-20: the closed-test success bar counts
+      // days, and the app has no analytics). Local date, idempotent; a session left half-way never gets here.
+      recordPracticeDay();
 
       // ── Save mastery (clock read here; pure engine stays clock-free) ──────────────
       if (prev.skillId && skillStateRef.current) {

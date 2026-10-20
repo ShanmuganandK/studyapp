@@ -8,8 +8,6 @@ afterEach(cleanup);
 const base = {
   theme: 'wonder',
   onThemeChange: () => {},
-  grade: 1,
-  onGradeChange: () => {},
   bridgeEnabled: false,
   onBridgeEnabledChange: () => {},
 };
@@ -35,41 +33,30 @@ describe('TestPanel', () => {
     expect(onBridgeEnabledChange).toHaveBeenCalledWith(true);
   });
 
-  it('renders all theme + grade options', () => {
+  it('renders all theme options', () => {
     render(<TestPanel {...base} />);
     for (const name of ['Wonder', 'Sunset', 'Bubblegum', 'Deep Sea']) {
       expect(screen.getByRole('button', { name: new RegExp(name) })).toBeTruthy();
     }
-    for (const g of [1, 2]) {
-      expect(screen.getByRole('button', { name: `Grade ${g}` })).toBeTruthy();
-    }
-    // Exact name — no SELECTABLE "Grade 3" (GRADES stays [1, 2], no curriculum yet, Now #12).
-    expect(screen.queryByRole('button', { name: 'Grade 3' })).toBeNull();
   });
 
-  it('shows Grade 3 as visibly disabled/"soon", not silently absent (DECISIONS 2026-09-23, B2)', () => {
+  it('no longer holds the class/grade control: that is a real setting now (ClassPicker, DECISIONS 2026-10-20)', () => {
     render(<TestPanel {...base} />);
-    const g3 = screen.getByRole('button', { name: /Grade 3/ });
-    expect(g3.disabled).toBe(true);
-    expect(g3.textContent).toMatch(/soon/i);
+    expect(screen.queryByRole('button', { name: /Grade \d/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Class \d/ })).toBeNull();
   });
 
-  it('marks the active theme and grade as pressed', () => {
-    render(<TestPanel {...base} theme="sunset" grade={2} />);
+  it('marks the active theme as pressed', () => {
+    render(<TestPanel {...base} theme="sunset" />);
     expect(screen.getByRole('button', { name: /Sunset/ }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: 'Grade 2' }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByRole('button', { name: /Wonder/ }).getAttribute('aria-pressed')).toBe('false');
   });
 
-  it('calls the handlers with the chosen theme slug / grade number', () => {
+  it('calls the handler with the chosen theme slug', () => {
     const onThemeChange = vi.fn();
-    const onGradeChange = vi.fn();
-    render(<TestPanel {...base} onThemeChange={onThemeChange} onGradeChange={onGradeChange} />);
+    render(<TestPanel {...base} onThemeChange={onThemeChange} />);
 
     fireEvent.click(screen.getByRole('button', { name: /Deep Sea/ }));
     expect(onThemeChange).toHaveBeenCalledWith('deepsea');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Grade 2' }));
-    expect(onGradeChange).toHaveBeenCalledWith(2);
   });
 });

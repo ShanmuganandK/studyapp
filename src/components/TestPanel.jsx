@@ -1,7 +1,8 @@
-import { THEME_SLUGS, GRADES } from '../services/testSettings';
+import { THEME_SLUGS } from '../services/testSettings';
 
 /**
- * TestPanel — the parent-zone TEST INSTRUMENT for theme + grade (TRACKER Now #10).
+ * TestPanel — the parent-zone TEST INSTRUMENTS: theme and warm-up steps (TRACKER Now #10).
+ * (The class/grade control moved out to ClassPicker on 2026-10-20: it is a real setting now, not a test.)
  *
  * A test instrument, NOT a shipped feature and NOT kid-facing: it lives behind the parent gate
  * inside ParentDashboard so a parent can exercise a different theme / grade while kid-testing on
@@ -10,8 +11,6 @@ import { THEME_SLUGS, GRADES } from '../services/testSettings';
  *
  * @param {string}   theme               - active theme slug
  * @param {(s)=>void} onThemeChange
- * @param {number}   grade               - active grade (1–2 today — see `testSettings.js`'s `GRADES`)
- * @param {(n)=>void} onGradeChange
  * @param {boolean}  bridgeEnabled       - strategy-rung bridge-in walk toggle (DECISIONS
  *                                         2026-09-22), default OFF. Only affects skills opted in
  *                                         via the skill map's `strategyRungs` property — today,
@@ -42,7 +41,7 @@ function ThemeSwatch({ slug }) {
   );
 }
 
-export default function TestPanel({ theme, onThemeChange, grade, onGradeChange, bridgeEnabled, onBridgeEnabledChange }) {
+export default function TestPanel({ theme, onThemeChange, bridgeEnabled, onBridgeEnabledChange }) {
   return (
     <div className="border-t border-primary-soft pt-4 space-y-3">
       <div>
@@ -74,42 +73,6 @@ export default function TestPanel({ theme, onThemeChange, grade, onGradeChange, 
               </button>
             );
           })}
-        </div>
-      </div>
-
-      {/* ── Grade ─────────────────────────────────────────────────────────── */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-ink">Grade</p>
-        <div className="flex gap-2">
-          {GRADES.map((g) => {
-            const selected = grade === g;
-            return (
-              <button
-                key={g}
-                onClick={() => onGradeChange(g)}
-                aria-pressed={selected}
-                className={`flex-1 rounded-button border py-2 text-sm font-semibold active:scale-95 transition-transform ${
-                  selected
-                    ? 'border-primary ring-2 ring-primary text-primary-ink'
-                    : 'border-primary-soft text-muted'
-                }`}
-              >
-                Grade {g}
-              </button>
-            );
-          })}
-          {/* Grade 3 — visibly "coming soon", disabled, not silently absent (DECISIONS
-              2026-09-23, B2: matches the first-run picker's treatment of Class 3 instead of
-              this row just stopping at 2 with no trace of a third option). GRADES itself stays
-              [1, 2] — this is display-only, no curriculum exists to select into yet (Now #12). */}
-          <button
-            type="button"
-            disabled
-            aria-disabled="true"
-            className="flex-1 rounded-button border border-primary-soft py-2 text-sm font-semibold text-muted opacity-50 cursor-not-allowed"
-          >
-            Grade 3 — soon
-          </button>
         </div>
       </div>
 
