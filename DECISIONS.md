@@ -959,3 +959,13 @@ Founder go-ahead ("build the practice-date list"), completing the measurement ha
 
 **The Class (grade) control moved out of "Test settings"** into its own "Class" section in the parent zone, with "Tinku suggests skills for this class. Each class keeps its own progress." Reason (from a real-device screenshot): since suggestions became grade-scoped it decides what a child is offered, yet it sat under "TEST SETTINGS: for testing on this device". Same stored value (`testSettings.grade`), same behaviour; copy now says "Class" to match the first-run picker. **Unchanged (standing decision above, still in force):** the Test settings panel (theme, warm-up steps) stays visible to public parents, the warm-up toggle stays default OFF, and the theme picker stays a parent-zone test instrument, not kid-facing.
 
+## 2026-10-20 — Parents get "Colours"; the warm-up experiment becomes a tester tool; Deep Sea is removed
+
+Founder go-ahead ("go ahead with all three in one PR"), amending the 2026-09-23 line "the parent-zone test panel stays visible to public parents".
+
+**1. Colours.** The theme control is a real parent setting. The "Test settings" panel and its "for testing on this device" wording are gone; the control is headed "Colours" (`ThemePicker.jsx`). **Deep Sea is removed** (white button text on its primary measured 2.06:1; ink-on-amber 1.24:1): three palettes remain (Wonder, Sunset, Bubblegum). A device that had saved Deep Sea falls back to Wonder, keeping its class. The `muted` text colour was darkened in all three palettes (it sat at 4.12-4.46:1 on the screen background; now at least 4.5:1). **Guard:** `src/__tests__/themeContrast.test.js` checks 12 text/background pairs per palette (proven red against the old values) and lists the one known failure still open, white label on the correct-answer green (DS-1/DS-2, 2.28:1), asserted to still fail so the entry must be deleted when it is fixed.
+
+**2. Warm-up steps are a tester tool.** Public parents no longer see the toggle. It shows only in a build made with `VITE_TESTER_TOOLS=true` (`flags.testerTools`): the CI debug APK sets it, the release bundle and the website do not. A device that already has it ON still shows it, so it can be turned off. It stays default OFF. If the closed test shows the warm-up helps, make it the default and delete the toggle.
+
+**3. Not changed:** the Class control (its own section, 2026-10-20), practice days, and the storage key `tinku:v1:testSettings` (historical name, not renamed).
+

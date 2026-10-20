@@ -86,4 +86,10 @@ describe('android.yml', () => {
     expect(allowed).toBe('com.stringus.tinku.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION');
     expect(allowed).not.toMatch(/INTERNET|STORAGE|LOCATION|CAMERA|CONTACTS|RECORD_AUDIO/);
   });
+
+  it('turns the tester tools on for the debug APK only, never the release bundle (DECISIONS 2026-10-20)', () => {
+    const release = yml.slice(yml.indexOf('\n  release:'));
+    expect(yml.slice(0, yml.indexOf('\n  release:'))).toMatch(/VITE_TESTER_TOOLS: 'true'/);
+    expect(release).not.toContain('VITE_TESTER_TOOLS');
+  });
 });

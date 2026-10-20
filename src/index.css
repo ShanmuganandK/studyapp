@@ -93,7 +93,7 @@
      same reason (the effect layer alpha-blends it for depth shadows on light surfaces). */
   --color-ink: #1e293b;            /* slate-800 — primary body/heading text */
   --color-ink-rgb: 30, 41, 59;     /* = --color-ink, channel form */
-  --color-muted: #64748b;          /* slate-500 — secondary/muted text */
+  --color-muted: #566579;          /* slate-500 — secondary/muted text */
 
   /* Radius — soft & rounded everywhere */
   --radius-button: 1rem;
@@ -132,8 +132,8 @@
    Paired tokens (--color-primary / -ink / --color-ink) carry BOTH the hex literal AND the -rgb
    channel triple, kept in sync — the effect layer's alpha-blended shadows need the channel form
    under a scoped override (see the note above --color-primary; guarded by designTokens.test.js).
-   `theme-deepsea` inverts the -ink/-soft slots — that is what those slots are for on a dark band,
-   not a violation. (Palette values supplied by the human; not machine-derived.) */
+   (Palette values supplied by the human; not machine-derived. Deep Sea, a dark palette, was removed
+   2026-10-20: white button text on its primary was 2.06:1. It is in git history.) */
 
 /* SUNSET SANDS — warm, cosy, late-afternoon */
 .theme-sunset {
@@ -147,7 +147,7 @@
   --color-learn: #7dd3fc; --color-learn-soft: #e0f2fe; --color-learn-ink: #0369a1;
   --color-review: #0d9488;
   --color-ink: #44313d; --color-ink-rgb: 68, 49, 61;
-  --color-muted: #8a7280;
+  --color-muted: #76616e;
 }
 
 /* BUBBLEGUM — soft, sweet, high kid-appeal */
@@ -162,22 +162,7 @@
   --color-learn: #7dd3fc; --color-learn-soft: #e0f2fe; --color-learn-ink: #0369a1;
   --color-review: #14b8a6;
   --color-ink: #3b2f4a; --color-ink-rgb: 59, 47, 74;
-  --color-muted: #7c6f8a;
-}
-
-/* DEEP SEA — the dark stress test. Note the inverted -ink slots. */
-.theme-deepsea {
-  --color-bg: #0f2740; --color-bg-card: #1c3d5c;
-  --color-primary: #93b4ff; --color-primary-rgb: 147, 180, 255;
-  --color-primary-soft: #2b4f74;
-  --color-primary-ink: #dbe7ff; --color-primary-ink-rgb: 219, 231, 255;
-  --color-accent: #fcd34d; --color-accent-soft: #4a3f1c;
-  --color-success: #4ade80; --color-success-soft: #1c4532;
-  --color-encourage: #fca98f; --color-encourage-soft: #4d2a1e; --color-encourage-ink: #ffd9c9;
-  --color-learn: #7dd3fc; --color-learn-soft: #14384d; --color-learn-ink: #bae6fd;
-  --color-review: #2dd4bf;
-  --color-ink: #e8eef6; --color-ink-rgb: 232, 238, 246;
-  --color-muted: #9bb0c6;
+  --color-muted: #6b5f7a;
 }
 
 /* Tinku's soft ground shadow — a decorative ellipse that grounds the mascot "in the world"

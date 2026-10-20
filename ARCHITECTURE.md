@@ -700,11 +700,10 @@ above. Behind the parent gate, in `ParentDashboard`.
   assertions in `androidProject.test.js`. **Never run yet; the sandbox cannot build Android.** Steps for
   the human: `ANDROID-RELEASE-RUNBOOK.md`.
 
-### Test settings — parent test panel (`src/services/testSettings.js` + `src/hooks/useTestSettings.js` + `src/components/TestPanel.jsx`)
+### Test settings — parent settings (`src/services/testSettings.js` + `src/hooks/useTestSettings.js` + `src/components/ThemePicker.jsx` + `src/components/TestPanel.jsx`)
 
-A parent-zone **TEST INSTRUMENT** (TRACKER #10) — theme + grade controls for kid-testing on a real
-device. **Shipped and visible to public parents** (DECISIONS 2026-09-23 — the panel stays visible
-at launch, founder call), but **still nothing kid-facing:** there is deliberately no kid-reachable
+Parent-zone settings (TRACKER #10). **Colours** (`ThemePicker`) is a real setting for every parent; the warm-up
+experiment (`TestPanel`) is **tester-only** (DECISIONS 2026-10-20, amending 2026-09-23). **Nothing is kid-facing:** there is deliberately no kid-reachable
 theme picker (DECISIONS-level call). Lives behind the parent gate inside `ParentDashboard`.
 
 - **`testSettings.js`** — the storage seam (mirrors `progressStore.js`: own key, try/catch,
@@ -725,7 +724,7 @@ theme picker (DECISIONS-level call). Lives behind the parent gate inside `Parent
   that store is skills-only + allowlist-guarded, and export reads only the skills key — so these
   preferences **cannot ride in a progress export** (verified in-browser: exported file carries the
   skill payload and zero theme/grade data). Exports `THEME_SLUGS`
-  (`wonder`/`sunset`/`bubblegum`/`deepsea`) + `GRADES` (**1–2, which now MATCHES launch scope
+  (`wonder`/`sunset`/`bubblegum`; `deepsea` removed 2026-10-20, a saved one loads as `wonder`) + `GRADES` (**1–2, which now MATCHES launch scope
   exactly** — DECISIONS 2026-09-23 narrowed the scope itself from 1–3; Grade 3 has no curriculum yet
   (TRACKER Now #12) and launch shows it as a disabled "coming soon" rather than a real choice;
   restore `3` the day Now #12 lands); values are normalised on load/save so an out-of-range input (including a
@@ -746,14 +745,15 @@ theme picker (DECISIONS-level call). Lives behind the parent gate inside `Parent
   now extended to check every palette block). `scripts/check-raw-hex.mjs`'s token-block exemption was
   widened from `:root` to also cover `.theme-<slug>` token-definition blocks (effect-layer leaks
   outside those blocks are still caught — proven red).
-- **`TestPanel.jsx`** — presentational: theme swatches (each previews its real palette by wrapping
-  token utilities in the `.theme-<slug>` class — no raw hex) + a "Warm-up steps (test)" On/Off control (DECISIONS 2026-09-22,
-  `bridgeEnabled`) — token classes only. Calls `setTheme`/`setBridgeEnabled` from props; state lives in the hook.
-  **The Grade control is no longer here:** `ClassPicker.jsx` (2026-10-20, DECISIONS 2026-10-20) is its own parent-zone
+- **`ThemePicker.jsx`** — presentational "Colours" control: theme swatches (each previews its real palette by wrapping
+  token utilities in the `.theme-<slug>` class — no raw hex). **`TestPanel.jsx`** — the "Warm-up steps (experiment)" On/Off
+  control (DECISIONS 2026-09-22, `bridgeEnabled`), rendered by `ParentDashboard` only when `flags.testerTools`
+  (`VITE_TESTER_TOOLS=true`; set for the CI debug APK only) or the experiment is already ON. Both take state from props; state lives in the hook.
+  `src/__tests__/themeContrast.test.js` guards text contrast per palette from `index.css`. **The Grade control is no longer here:** `ClassPicker.jsx` (2026-10-20, DECISIONS 2026-10-20) is its own parent-zone
   "Class" section (Class 1, Class 2, a disabled "Class 3 — soon"; same `testSettings.grade` value), because it decides
   what is suggested and so is a real setting, not a test. Tests:
   `services/__tests__/testSettings.test.js`, `hooks/__tests__/useTestSettings.test.js`
-  (body-class application), `components/__tests__/TestPanel.test.jsx`.
+  (body-class application), `components/__tests__/ThemePicker.test.jsx`, `TestPanel.test.jsx`.
 
 ### First-run grade picker (`src/components/GradePickerScreen.jsx`)
 

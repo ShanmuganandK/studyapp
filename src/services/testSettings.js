@@ -43,7 +43,7 @@ const STORAGE_KEY = 'tinku:v1:testSettings';
 export const SCHEMA_VERSION = 1;
 
 /** Theme slugs = the `.theme-<slug>` palettes in index.css. `wonder` = no class (the :root default). */
-export const THEME_SLUGS = ['wonder', 'sunset', 'bubblegum', 'deepsea'];
+export const THEME_SLUGS = ['wonder', 'sunset', 'bubblegum'];
 
 /**
  * Selectable in the test panel TODAY. Launch scope is Grades 1–2 (DECISIONS 2026-09-23) — this

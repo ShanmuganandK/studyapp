@@ -47,8 +47,14 @@ describe('testSettings', () => {
 
   it('round-trips a saved theme + grade + bridgeEnabled', async () => {
     const { loadTestSettings, saveTestSettings } = await import('../testSettings.js');
-    saveTestSettings({ theme: 'deepsea', grade: 2, bridgeEnabled: true });
-    expect(loadTestSettings()).toEqual({ theme: 'deepsea', grade: 2, bridgeEnabled: true, gradeChosen: true });
+    saveTestSettings({ theme: 'bubblegum', grade: 2, bridgeEnabled: true });
+    expect(loadTestSettings()).toEqual({ theme: 'bubblegum', grade: 2, bridgeEnabled: true, gradeChosen: true });
+  });
+
+  it('a device that saved the removed Deep Sea theme falls back to Wonder, keeping its grade', async () => {
+    const { saveTestSettings, loadTestSettings } = await import('../testSettings.js');
+    saveTestSettings({ theme: 'deepsea', grade: 2 });
+    expect(loadTestSettings()).toEqual({ theme: 'wonder', grade: 2, bridgeEnabled: false, gradeChosen: true });
   });
 
   it('normalises an unknown theme back to the default, keeping a valid grade', async () => {
@@ -146,7 +152,7 @@ describe('testSettings', () => {
 
   it('THEME_SLUGS lists wonder + the three palettes and GRADES is 1–2 (Grade 3 has no curriculum yet)', async () => {
     const { THEME_SLUGS, GRADES } = await import('../testSettings.js');
-    expect(THEME_SLUGS).toEqual(['wonder', 'sunset', 'bubblegum', 'deepsea']);
+    expect(THEME_SLUGS).toEqual(['wonder', 'sunset', 'bubblegum']);
     expect(GRADES).toEqual([1, 2]);
   });
 });
