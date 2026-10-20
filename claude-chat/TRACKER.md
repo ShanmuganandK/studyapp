@@ -264,8 +264,10 @@ Decisions: `DECISIONS.md` 2026-10-16 (auto debug builds) and 2026-10-18 (three e
   screens are not on it yet (the grade picker has a known layout bug).
 - `STANDARDS.md` §5 still says "mascot yields space first"; `DECISIONS.md` 2026-10-18 supersedes it for the quiz
   screen, but the document itself is Chat's to reword.
-- Grade 2 suggested path fixed 2026-10-19 (composer skips planned prerequisites; DECISIONS 2026-10-19). Not yet seen on a
-  real phone. The recommendation is still not grade-aware (Grade 1 skills are suggested first even for a Class 2 child).
+- Grade 2 suggested path **patched** 2026-10-19 (composer skips planned prerequisites; DECISIONS 2026-10-19, 2026-10-20).
+  **Interim:** the app still teaches no place value. **Real fix, not done:** build `g1.num.21-99` + `g1.place.tens-ones`
+  (needs misconception tables + the teacher review, T95), post-launch, brought forward if Class 2 children struggle on
+  2-digit work in the closed test. Not yet seen on a real phone. The recommendation is still not grade-aware (Grade 1 skills are suggested first even for a Class 2 child).
 - `CLAUDE.md` was renamed `AGENTS.md` and refreshed (2026-10-18, DECISIONS same date); older entries in this tracker
   that say `CLAUDE.md` mean that file under its old name.
 - Founder decisions still open: haptics (T72), the Data Safety answer for auto-backup, whether Play accepts the
@@ -1043,8 +1045,9 @@ render on Home and play correctly when tapped** on both Home views — `readySki
 manually explore every Grade-2 skill during kid-testing), not a bug, and matches the exact
 pattern already logged for Now #10's Grade-3 fallback.
 
-> **Superseded 2026-10-19 (DECISIONS 2026-10-19): this is now fixed.** The composer skips prerequisites that
-> have no recipe yet, so a fresh start followed through `recommendNext` visits all 17 `ready` skills (this note
+> **Superseded 2026-10-19 (DECISIONS 2026-10-19, 2026-10-20): patched, not finally fixed.** The composer skips
+> prerequisites that have no recipe yet (an interim patch; the real fix is building `g1.num.21-99` and
+> `g1.place.tens-ones`), so a fresh start followed through `recommendNext` visits all 17 `ready` skills (this note
 > listed three blocked skills; it was six). Guarded by a reachability test in `composer.test.js`.
 
 **Verification**

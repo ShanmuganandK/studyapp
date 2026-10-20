@@ -104,6 +104,9 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
   review of their distractor rules (TRACKER #7, #12). Store copy and in-app text must describe
   what exists (counting, add/subtract, place value, the 2/5/10 tables), **not** "the CBSE
   syllabus". Count the `ready` skills from `skillMap.js`, not from memory or from `README.md`.
+  **The Grade 2 suggested path works only because the composer skips unbuilt prerequisites — an interim patch
+  (DECISIONS 2026-10-19, 2026-10-20); the app still teaches no place value.** Building numbers 21–99 and
+  tens-and-ones is the real fix.
 - **Screens on the new layout system:** only the **quiz and its summary** use the spacing budget
   (see "Quiz screen layout" below). The grade picker, skill list and parent screens do not yet;
   the first-run grade picker has a known layout bug (content stops about half-way down).
