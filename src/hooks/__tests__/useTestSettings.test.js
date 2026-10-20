@@ -35,8 +35,8 @@ describe('useTestSettings', () => {
     expect(result.current.theme).toBe('sunset');
     expect(bodyThemeClasses()).toEqual(['theme-sunset']);
 
-    act(() => result.current.setTheme('deepsea'));
-    expect(bodyThemeClasses()).toEqual(['theme-deepsea']);
+    act(() => result.current.setTheme('bubblegum'));
+    expect(bodyThemeClasses()).toEqual(['theme-bubblegum']);
 
     act(() => result.current.setTheme('wonder'));
     expect(bodyThemeClasses()).toEqual([]);

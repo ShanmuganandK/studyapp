@@ -5,17 +5,12 @@ import TestPanel from '../TestPanel';
 
 afterEach(cleanup);
 
-const base = {
-  theme: 'wonder',
-  onThemeChange: () => {},
-  bridgeEnabled: false,
-  onBridgeEnabledChange: () => {},
-};
+const base = { bridgeEnabled: false, onBridgeEnabledChange: () => {} };
 
-describe('TestPanel', () => {
-  it('renders the bridge-in toggle, defaulting to Off selected', () => {
+describe('TestPanel (tester tools)', () => {
+  it('renders the warm-up toggle, defaulting to Off selected', () => {
     render(<TestPanel {...base} />);
-    expect(screen.getByText('Warm-up steps (test)')).toBeTruthy();
+    expect(screen.getByText('Warm-up steps (experiment)')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Off' }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByRole('button', { name: 'On' }).getAttribute('aria-pressed')).toBe('false');
   });
@@ -33,30 +28,9 @@ describe('TestPanel', () => {
     expect(onBridgeEnabledChange).toHaveBeenCalledWith(true);
   });
 
-  it('renders all theme options', () => {
+  it('holds no theme or class control', () => {
     render(<TestPanel {...base} />);
-    for (const name of ['Wonder', 'Sunset', 'Bubblegum', 'Deep Sea']) {
-      expect(screen.getByRole('button', { name: new RegExp(name) })).toBeTruthy();
-    }
-  });
-
-  it('no longer holds the class/grade control: that is a real setting now (ClassPicker, DECISIONS 2026-10-20)', () => {
-    render(<TestPanel {...base} />);
-    expect(screen.queryByRole('button', { name: /Grade \d/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Wonder|Sunset|Bubblegum/ })).toBeNull();
     expect(screen.queryByRole('button', { name: /Class \d/ })).toBeNull();
-  });
-
-  it('marks the active theme as pressed', () => {
-    render(<TestPanel {...base} theme="sunset" />);
-    expect(screen.getByRole('button', { name: /Sunset/ }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByRole('button', { name: /Wonder/ }).getAttribute('aria-pressed')).toBe('false');
-  });
-
-  it('calls the handler with the chosen theme slug', () => {
-    const onThemeChange = vi.fn();
-    render(<TestPanel {...base} onThemeChange={onThemeChange} />);
-
-    fireEvent.click(screen.getByRole('button', { name: /Deep Sea/ }));
-    expect(onThemeChange).toHaveBeenCalledWith('deepsea');
   });
 });

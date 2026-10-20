@@ -24,4 +24,9 @@ export const flags = {
   /** Mastery + progression use the new spaced-repetition engine (src/engine) instead of the
    *  legacy "3-in-a-row keyed to question slots" masteryEngine.js. */
   useNewMastery: false,
+
+  /** Tester-only controls in the parent zone (the warm-up experiment). Off in every public build;
+   *  on only where the build is made with VITE_TESTER_TOOLS=true (the CI debug APK, a local run).
+   *  Not a migration flag, so it reads the build environment rather than a hand-flipped literal. */
+  testerTools: import.meta.env.VITE_TESTER_TOOLS === 'true',
 };

@@ -5,6 +5,7 @@ import ParentDashboard from '../ParentDashboard';
 import { emptySkillState } from '../../engine/mastery';
 import { saveSkillState, loadAllSkillStates } from '../../services/progressStore';
 import { SKILLS } from '../../recipes/skillMap';
+import { flags } from '../../config/flags';
 import { BACKUP_FORMAT, BACKUP_VERSION } from '../../services/progressBackup';
 
 // Mascot preloads webp assets — irrelevant to the settings footer; stub it.
@@ -268,12 +269,36 @@ describe('ParentDashboard — days practised, and the Class control (DECISIONS 2
     expect(block.textContent).toMatch(/First week:\s*3 of 7 days/);
   });
 
-  it('puts the Class control in its own section, separate from the test settings', () => {
+  it('puts the Class control in its own section, apart from Colours', () => {
     render(<ParentDashboard {...props} grade={2} />);
     expect(screen.getByRole('button', { name: 'Class 2' }).getAttribute('aria-pressed')).toBe('true');
-    // Theme and warm-up remain test instruments; the class control is not among them.
-    const testHeading = screen.getByText('Test settings');
-    expect(testHeading.parentElement.parentElement.textContent).not.toMatch(/Class 1/);
+    const colours = screen.getByText('Colours');
+    expect(colours.parentElement.textContent).not.toMatch(/Class 1/);
+    expect(screen.queryByText(/Test settings/)).toBeNull();
+  });
+
+  describe('tester tools (warm-up experiment)', () => {
+    const tools = { ...props, grade: 1, bridgeEnabled: false, onBridgeEnabledChange: () => {} };
+    afterEach(() => { flags.testerTools = false; });
+
+    it('are hidden in a public build', () => {
+      flags.testerTools = false;
+      render(<ParentDashboard {...tools} />);
+      expect(screen.queryByText(/Warm-up steps/)).toBeNull();
+      expect(screen.getByText('Colours')).toBeTruthy();
+    });
+
+    it('show in a tester build', () => {
+      flags.testerTools = true;
+      render(<ParentDashboard {...tools} />);
+      expect(screen.getByText(/Warm-up steps/)).toBeTruthy();
+    });
+
+    it('stay reachable in a public build when the experiment is already on, so it can be turned off', () => {
+      flags.testerTools = false;
+      render(<ParentDashboard {...tools} bridgeEnabled />);
+      expect(screen.getByRole('button', { name: 'Off' })).toBeTruthy();
+    });
   });
 
   it('exports the practice days along with the progress', async () => {

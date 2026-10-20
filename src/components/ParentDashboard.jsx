@@ -9,7 +9,9 @@ import { feedbackWhatsAppUrl } from '../config/constants';
 import useProgressBackup from '../hooks/useProgressBackup';
 import PrivacyNotice from './PrivacyNotice';
 import PrivacyPolicy from './PrivacyPolicy';
+import ThemePicker from './ThemePicker';
 import TestPanel from './TestPanel';
+import { flags } from '../config/flags';
 import ClassPicker from './ClassPicker';
 import { loadPracticeDays, localDateString } from '../services/practiceDays';
 import { summarisePracticeDays } from '../engine/practiceSummary';
@@ -364,13 +366,16 @@ export default function ParentDashboard({
             <ClassPicker grade={grade} onGradeChange={onGradeChange} />
           </div>
 
-          {/* Parent test panel (theme + warm-up) — TEST INSTRUMENTS, not kid-facing (TRACKER #10). */}
-          <TestPanel
-            theme={theme}
-            onThemeChange={onThemeChange}
-            bridgeEnabled={bridgeEnabled}
-            onBridgeEnabledChange={onBridgeEnabledChange}
-          />
+          <ThemePicker theme={theme} onThemeChange={onThemeChange} />
+
+          {/* Tester tools: warm-up experiment. Hidden from public parents; stays reachable when
+              already on, so it can be switched off (DECISIONS 2026-10-20). */}
+          {(flags.testerTools || bridgeEnabled) && (
+            <TestPanel
+              bridgeEnabled={bridgeEnabled}
+              onBridgeEnabledChange={onBridgeEnabledChange}
+            />
+          )}
 
           <a
             href={feedbackWhatsAppUrl()}

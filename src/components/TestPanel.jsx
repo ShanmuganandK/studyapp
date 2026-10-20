@@ -1,103 +1,43 @@
-import { THEME_SLUGS } from '../services/testSettings';
-
 /**
- * TestPanel — the parent-zone TEST INSTRUMENTS: theme and warm-up steps (TRACKER Now #10).
- * (The class/grade control moved out to ClassPicker on 2026-10-20: it is a real setting now, not a test.)
+ * TestPanel — tester-only experiments (currently the warm-up steps). Not shown to public parents:
+ * ParentDashboard renders it only in a tester build (`flags.testerTools`) or when the experiment
+ * is already on for this device, so it can always be switched off (DECISIONS 2026-10-20).
+ * Presentational; state lives in useTestSettings.js. Token styling only (lint:hex).
  *
- * A test instrument, NOT a shipped feature and NOT kid-facing: it lives behind the parent gate
- * inside ParentDashboard so a parent can exercise a different theme / grade while kid-testing on
- * a real device. Purely presentational — all state + persistence + theme application live in
- * useTestSettings.js (STANDARDS §2). Token styling only (no raw hex — lint:hex).
- *
- * @param {string}   theme               - active theme slug
- * @param {(s)=>void} onThemeChange
  * @param {boolean}  bridgeEnabled       - strategy-rung bridge-in walk toggle (DECISIONS
  *                                         2026-09-22), default OFF. Only affects skills opted in
  *                                         via the skill map's `strategyRungs` property — today,
  *                                         `g2.add.2d-nocarry` alone.
  * @param {(b)=>void} onBridgeEnabledChange
  */
-
-const THEME_LABELS = {
-  wonder: 'Wonder',
-  sunset: 'Sunset',
-  bubblegum: 'Bubblegum',
-  deepsea: 'Deep Sea',
-};
-
-// A live preview of a palette: the `.theme-<slug>` class re-themes the token utilities inside it,
-// so these dots show each palette's real colours WITHOUT any raw hex in the component. `wonder`
-// is the :root default (no class).
-function ThemeSwatch({ slug }) {
-  const themeClass = slug === 'wonder' ? '' : `theme-${slug}`;
+export default function TestPanel({ bridgeEnabled, onBridgeEnabledChange }) {
   return (
-    <span
-      aria-hidden="true"
-      className={`${themeClass} inline-flex items-center gap-1 rounded-full bg-bg border border-primary-soft px-1.5 py-1`}
-    >
-      <span className="w-3 h-3 rounded-full bg-primary" />
-      <span className="w-3 h-3 rounded-full bg-accent" />
-    </span>
-  );
-}
-
-export default function TestPanel({ theme, onThemeChange, bridgeEnabled, onBridgeEnabledChange }) {
-  return (
-    <div className="border-t border-primary-soft pt-4 space-y-3">
+    <div className="border-t border-primary-soft pt-4 space-y-2">
       <div>
         <p className="text-xs font-semibold text-muted uppercase tracking-wide">
-          Test settings
+          Tester tools
         </p>
-        <p className="text-xs text-muted">Parent only — for testing on this device.</p>
+        <p className="text-xs text-muted">For people testing this build. Not part of the app.</p>
       </div>
-
-      {/* ── Theme ─────────────────────────────────────────────────────────── */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-ink">Theme</p>
-        <div className="grid grid-cols-2 gap-2">
-          {THEME_SLUGS.map((slug) => {
-            const selected = theme === slug;
-            return (
-              <button
-                key={slug}
-                onClick={() => onThemeChange(slug)}
-                aria-pressed={selected}
-                className={`flex items-center gap-2 rounded-button border py-2 px-3 text-sm font-semibold active:scale-95 transition-transform ${
-                  selected
-                    ? 'border-primary ring-2 ring-primary text-primary-ink'
-                    : 'border-primary-soft text-muted'
-                }`}
-              >
-                <ThemeSwatch slug={slug} />
-                <span className="truncate">{THEME_LABELS[slug] ?? slug}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── Bridge-in (strategy-rung skills only) — DECISIONS 2026-09-22 ────── */}
-      <div className="space-y-2">
-        <p className="text-xs font-medium text-ink">Warm-up steps (test)</p>
-        <div className="flex gap-2">
-          {[false, true].map((value) => {
-            const selected = bridgeEnabled === value;
-            return (
-              <button
-                key={String(value)}
-                onClick={() => onBridgeEnabledChange(value)}
-                aria-pressed={selected}
-                className={`flex-1 rounded-button border py-2 text-sm font-semibold active:scale-95 transition-transform ${
-                  selected
-                    ? 'border-primary ring-2 ring-primary text-primary-ink'
-                    : 'border-primary-soft text-muted'
-                }`}
-              >
-                {value ? 'On' : 'Off'}
-              </button>
-            );
-          })}
-        </div>
+      <p className="text-xs font-medium text-ink">Warm-up steps (experiment)</p>
+      <div className="flex gap-2">
+        {[false, true].map((value) => {
+          const selected = bridgeEnabled === value;
+          return (
+            <button
+              key={String(value)}
+              onClick={() => onBridgeEnabledChange(value)}
+              aria-pressed={selected}
+              className={`flex-1 rounded-button border py-2 text-sm font-semibold active:scale-95 transition-transform ${
+                selected
+                  ? 'border-primary ring-2 ring-primary text-primary-ink'
+                  : 'border-primary-soft text-muted'
+              }`}
+            >
+              {value ? 'On' : 'Off'}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

@@ -29,7 +29,7 @@ const PAIRED_TOKENS = ['--color-primary', '--color-primary-ink', '--color-ink'];
  * hex + -rgb pairing as :root for every paired token, or the effect layer's alpha-blended
  * shadows/gradients re-theme to the wrong colour under that palette (the scoped-override rule the
  * design-system audit proved). `wonder` is the :root default and has no `.theme-` block. */
-const PALETTE_SLUGS = ['sunset', 'bubblegum', 'deepsea'];
+const PALETTE_SLUGS = ['sunset', 'bubblegum'];
 
 function hexToRgbTriple(hex) {
   const clean = hex.replace('#', '');

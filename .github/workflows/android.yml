@@ -81,6 +81,8 @@ jobs:
 
       - name: Build the Android web bundle and sync it into android/
         run: npm run build:android
+        env:
+          VITE_TESTER_TOOLS: 'true' # debug APKs are for testers: shows the tester tools. The release job below does not set it.
 
       - name: Build debug APK
         working-directory: android
