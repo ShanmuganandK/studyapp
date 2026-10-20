@@ -42,7 +42,7 @@ as a "game" was considered and rejected (see DECISIONS).
 | L5 | Phone regression walk on the new domain | Human | `phoneregressionchecklist.pdf`, section 0 first. |
 | L6 | Operator line filled → `npm run privacy:build` | ✅ **Done** — "operated by Stringus, based in the UAE", contact `tinku@stringus.com` (see `src/config/privacyPolicy.js`) | Must match the Play developer name; change both together. |
 | L7 | Store listing, Data Safety entry, content rating, target age (6–8), Designed-for-Families | Human | Answers drafted in `play-data-safety-form.md`. |
-| L8 | Success bar written down | Human | Before the public link. E.g. testers still active on day 14. |
+| L8 | Success bar written down | ✅ **Decided 2026-10-20 (DECISIONS 2026-10-20), option A** | *"At least 7 of 12 children practise on 3 or more different days in week 1, and on 2 or more different days in week 2."* **Still to decide:** what counts as "practised" (proposed: one finished 8-question session) and how the days reach us (proposed: on-device practice-date list shown as "days practised" in the parent dashboard + in the export; app keeps only one `lastSeen` per skill today). |
 | L9 | Closed test: 12 testers × 14 days = the teaser | Human | Then apply for production. |
 
 Supersedes the 2026-08-21 trip priority order (git history holds it).
@@ -267,7 +267,7 @@ Decisions: `DECISIONS.md` 2026-10-16 (auto debug builds) and 2026-10-18 (three e
 - Grade 2 suggested path **patched** 2026-10-19 (composer skips planned prerequisites; DECISIONS 2026-10-19, 2026-10-20).
   **Interim:** the app still teaches no place value. **Real fix, not done:** build `g1.num.21-99` + `g1.place.tens-ones`
   (needs misconception tables + the teacher review, T95), post-launch, brought forward if Class 2 children struggle on
-  2-digit work in the closed test. Not yet seen on a real phone. The recommendation is still not grade-aware (Grade 1 skills are suggested first even for a Class 2 child).
+  2-digit work in the closed test. Not yet seen on a real phone. **Grade-scoped suggestions landed 2026-10-20 (DECISIONS 2026-10-20):** a Class 2 child starts on Class 2 skills (Class 1 assumed cleared); each grade has its own progress; no separate profiles (one child per device). Not yet seen on a real phone.
 - `CLAUDE.md` was renamed `AGENTS.md` and refreshed (2026-10-18, DECISIONS same date); older entries in this tracker
   that say `CLAUDE.md` mean that file under its old name.
 - Founder decisions still open: haptics (T72), the Data Safety answer for auto-backup, whether Play accepts the

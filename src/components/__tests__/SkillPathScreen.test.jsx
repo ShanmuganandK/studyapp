@@ -45,6 +45,14 @@ describe('SkillPathScreen', () => {
     expect(screen.queryByText(/Review time!/)).toBeNull();
   });
 
+  it('grade 2 (fresh): Tinku suggests a Class 2 skill, not Class 1 counting (DECISIONS 2026-10-20)', () => {
+    render(<SkillPathScreen grade={2} onSelectSkill={() => {}} />);
+    const suggestedRow = screen.getByText('Tinku suggests!').parentElement;
+    // the row holding the suggestion also holds the Class 2 "Hundreds Club" (g2.num.3digit) medallion
+    expect(suggestedRow.parentElement.querySelector('[aria-label="Hundreds Club"]')).toBeTruthy();
+    expect(screen.queryByLabelText('Number Party')).toBeNull(); // Class 1 skills are not on this screen at all
+  });
+
   // Skill-state builder for the mastery/review cases.
   const mastered = (id, nextReview) => ({
     skillId: id, level: 5, difficulty: 3, maxDifficulty: 3, attempts: 20, correct: 18,

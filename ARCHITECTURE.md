@@ -546,6 +546,11 @@ states + the skill map + today's date, returns the single best skill to practise
 `skillStates` is passed in by the caller (never loaded here) so the module has zero
 side effects and is trivially testable.
 
+**Grade mode (DECISIONS 2026-10-20):** `recommendNext(states, map, today, config, { grade })` scopes reviews, frontier and
+new unlocks to that grade and counts prerequisites from EARLIER grades as met (the child is assumed to have cleared them);
+both home screens pass the chosen grade. No grade, or a grade with no `ready` skills, keeps the old unscoped order.
+Progress is stored per skill id, so each grade's progress is independent and never reset by switching.
+
 **Recommendation priority (fixed):**
 1. **review** — any mastered skill where `isDueForReview(state, today)`; most-overdue-first
    when `COMPOSER.PREFER_MOST_OVERDUE_REVIEW` is `true`.
