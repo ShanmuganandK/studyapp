@@ -973,3 +973,21 @@ Founder go-ahead ("go ahead with all three in one PR"), amending the 2026-09-23 
 
 Founder go-ahead. `--color-success` goes from `#22c55e` to `#16a34a` in Wonder (`:root`) and Bubblegum; Sunset already used it. White text on the correct tile was 2.28:1 and is now 3.30:1, which passes the 3:1 large-text floor (the tile label is large bold text). **Meaning unchanged** (green = correct); only the shade is deeper, so the reward moment looks slightly darker. `themeContrast.test.js` now asserts the floor for every palette and its known-failure list is gone (proven red against the old value). The small-text 4.5:1 target for white on green (DS-1, an `on-success` token) is not pursued: there is no small white-on-green text.
 
+## 2026-10-20 — Future monetisation is a recorded roadmap, not a build (free tier stays complete)
+
+Founder direction in conversation ("my future idea is to monetize it when it really works"), recorded so a later session neither builds toward it by accident nor rules it out. **Nothing here changes the current scope:** the MVP stays device-local with no accounts, no cloud and **no payment of any kind** (DECISIONS 2026-08-14). This entry is deferred, not cancelled, and it is not a backlog.
+
+**Intended shape, when it is time:**
+- **Free stays a complete learning product.** All practice, hints, mastery, spaced review and both classes; one default look (Wonder), possibly one more; the progress export file the parent can already download.
+- **Premium is parent conveniences, never learning:** more colour themes (including a dark mode, see below), backup to the parent's own Google Drive, a progress history and weekly summary, and more than one child on a device.
+- **The warm-up experiment is not gated.** It changes how a child learns. If the closed test shows it helps, it becomes the default for everyone (DECISIONS 2026-10-20, tester tool). A paywall on the gentler path would work against "the average learner breaks every tie".
+- **Themes:** today Wonder, Sunset and Bubblegum ship in the Colours control. Deep Sea (dark) was removed on 2026-10-20 for contrast; it returns only with the on-primary text token (DS-1) and the idle-tile fix (DS-4), and the contrast guard must cover it. More themes in premium and fewer free is compatible with how themes are built (a palette block in `index.css`).
+
+**What must change first (each is a new decision, not implied here):**
+1. Taking money reverses "no payment of any kind". It changes the privacy policy, the Play Data Safety answers and the Designed-for-Families position (a parental gate before any purchase; the existing parent gate is the starting point).
+2. **Google Drive backup needs network access and a Google sign-in.** Firebase was removed because even an idle Google SDK made "nothing leaves the device" untrue. A Drive feature needs its own published wording, would need the INTERNET permission the Android project guards forbid today (`androidProject.test.js`), and must be opt-in, off by default, and absent from the free build's network behaviour.
+3. Any purchase needs a billing integration and an entitlement check that works offline.
+4. **Ordering:** build none of it before the closed test (L9) shows whether children come back (D7 retention is the success measure). A paywall before that signal is a guess.
+
+**Cheap door-opener, not built:** a small "features available" list that the Colours control reads, instead of hard-coding the themes. It charges nobody and adds no network call. Do it only when a second paid feature exists.
+
