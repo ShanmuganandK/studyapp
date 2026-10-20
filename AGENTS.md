@@ -113,8 +113,8 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
   dashboard and included in the export); the tester protocol is still to be written. The **Class** and **Colours** controls are
   parent-zone settings; the warm-up experiment is a tester tool (`VITE_TESTER_TOOLS`, debug APK only; DECISIONS 2026-10-20).
 - **Screens on the new layout system:** only the **quiz and its summary** use the spacing budget
-  (see "Quiz screen layout" below). The grade picker, skill list and parent screens do not yet;
-  the first-run grade picker has a known layout bug (content stops about half-way down).
+  (see "Quiz screen layout" below), and from 2026-10-20 the **first-run grade picker** (Tinku sized from
+  the hero, checked by `layout:check`). The skill list and parent screens do not yet.
 - **Design work in flight.** `design-handoff/` (brief, tokens, screenshots, mascot poses,
   `capture.mjs`) and `design-system/` (recommendations **DS-1…DS-8**) are **proposals and
   reference copies, not adopted decisions** — `src/index.css` and `tailwind.config.js` stay the
@@ -202,7 +202,7 @@ The quiz screen is one **spacing budget**, not a stack of elements that shrink e
   the room the question area has, so 11–15 objects (3 rows) shrink instead of clipping.
 - When you change anything on these screens, run `npm run build && npm run layout:check` (on
   demand, **not in CI** — CI has no browser). It measures fit, hint-moves-nothing, Tinku size,
-  dead space and tap size on 5 phone sizes, plus a hardest-rung counting pass. In the cloud
+  dead space and tap size on 5 phone sizes, plus a hardest-rung counting pass and a first-run picker pass. In the cloud
   sandbox it finds Chromium via `PLAYWRIGHT_BROWSERS_PATH`.
 - Do not hardcode sizes in these components; read the variables.
 

@@ -445,6 +445,9 @@
    is full-bleed (max usable height); the desktop phone-mockup frame is 85% height (see Layout). */
 .app-shell { min-height: 100vh; min-height: 100dvh; }
 .app-frame { height: 100vh; height: 100dvh; }
+/* First-run grade picker: the hero is a size container so Tinku is sized from the room it has
+   (see GradePickerScreen.jsx), the same idea as .quiz-stage. */
+.picker-hero { container: picker / size; }
 @media (min-width: 640px) {
   .app-frame { height: 85vh; height: 85dvh; max-height: 800px; }
 }

@@ -366,7 +366,7 @@ future kid-feedback tuning is a token change, not a screen hunt.
   size for fit. Guards: `config/__tests__/quizLayout.test.js` (every profile has CSS), the "one spacing budget"
   tests in `SessionPlayer.test.jsx`, and **`npm run layout:check`** (`scripts/check-quiz-layout.mjs`, on demand,
   not in CI: plays real sessions at 5 phone sizes and asserts fit, hint-moves-nothing, Tinku ≥ 22% of the
-  stage, no dead void, tiles ≥ 44 px; proved RED). A second pass seeds progress at the hardest rung of
+  stage, no dead void, tiles ≥ 44 px; proved RED). A first-run picker pass checks the grade picker the same way. A second pass seeds progress at the hardest rung of
   'Big Number Party' and must measure a 1-, 2- and 3-row counting tray (a fresh install only ever plays
   1-row trays); `LAYOUT_QUESTIONS` / `LAYOUT_ONLY` / `LAYOUT_PORT` env knobs. The counting tray sizes itself from the
   question area's own height (`.quiz-question` is a size container, `qreg`), so a 3-row tray shrinks instead of
@@ -770,10 +770,15 @@ every device), so the grade stays changeable in the parent zone and **never ente
 export** (DECISIONS 2026-08-17 / 2026-08-21 — a different key entirely).
 
 Layout (2026-10-14): it is the app's first impression, so it is a full-viewport (`app-frame`) welcome —
-a token-tinted hero with the product name (`brand.js`), a large waving Tinku (sized once from
-`window.innerHeight`: 150/220/260 px) and a claim-free tagline, with the class question on a card
-pinned to the bottom. The old `h-full` root left the lower half blank (the "known layout bug").
-Verified at 390x844, 360x640, 320x568: no scroll.
+a token-tinted hero with the product name (`brand.js`), a large waving Tinku and a claim-free tagline,
+with the class question on a card pinned to the bottom. The old `h-full` root left the lower half blank
+(the "known layout bug", fixed 2026-10-14). **2026-10-20: on the spacing-budget idea.** The hero is a size
+container (`.picker-hero`, `container: picker / size` in `index.css`) and Tinku is sized from its room
+(`clamp(8rem, min(100cqh - 9rem, 94cqw), 24rem)`), replacing three fixed sizes (150/220/260 px) that left
+46-48% of the hero empty on tall phones. `npm run layout:check` has a first-run picker pass (no scroll, every
+choice on screen and ≥ 44 px, Tinku ≥ 30% of the screen height and no wider than the hero, ≤ 30% of the
+hero empty); proved RED against the old picker, green on the new (Tinku 40-43% of the screen on 360x780 to
+430x932).
 
 Does **not** revive `ProfileSetup.jsx` / `ProfileSelector.jsx`, which stay quarantined. Settles
 TRACKER Now #9. Tests: `components/__tests__/GradePickerScreen.test.jsx` (render/choice),

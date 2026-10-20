@@ -260,8 +260,8 @@ Decisions: `DECISIONS.md` 2026-10-16 (auto debug builds) and 2026-10-18 (three e
 - Runbook Part A device walk (share-sheet export, Back button, airplane mode, icon/splash) not ticked off.
 - The signed release AAB has never been built (needs the upload key + 4 secrets); Play account verification (L2) pending.
 - Installing through the phone's own installer failed ("App not installed"); cause unknown, `adb` works.
-- The spacing budget covers the quiz and summary screens only; welcome/grade picker, skill list and parent
-  screens are not on it yet (the grade picker has a known layout bug).
+- The spacing budget covers the quiz and summary screens and (from 2026-10-20) the first-run grade picker; the
+  skill list and parent screens are not on it yet.
 - `STANDARDS.md` §5 still says "mascot yields space first"; `DECISIONS.md` 2026-10-18 supersedes it for the quiz
   screen, but the document itself is Chat's to reword.
 - Grade 2 suggested path **patched** 2026-10-19 (composer skips planned prerequisites; DECISIONS 2026-10-19, 2026-10-20).

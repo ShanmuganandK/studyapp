@@ -13,9 +13,10 @@ import { PRODUCT_NAME } from '../config/brand';
  *
  * It is also the app's FIRST impression, so it is a welcome screen: a full-height brand hero
  * (big Tinku on a soft token-tinted field, the product name, one friendly line) with the class
- * question on a card pinned to the bottom, where a thumb reaches. Fit-one-viewport: Tinku is
- * sized once from the viewport height (smaller on short phones), everything else is fixed-size.
- * The tagline makes no content claim (AGENTS.md: never over-claim what the app teaches).
+ * question on a card pinned to the bottom, where a thumb reaches. Fit-one-viewport, on the same
+ * spacing-budget idea as the quiz screen (DECISIONS 2026-10-18): the hero is a size container
+ * (`.picker-hero` in index.css) and Tinku is sized from the room it has, so he is large on a tall
+ * phone and shrinks on a short one instead of floating in empty space. The tagline makes no content claim (AGENTS.md: never over-claim what the app teaches).
  *
  * Presentational only: no local state, no storage access — `onChoose` (wired to
  * `chooseInitialGrade`) does the writing. Parent-facing: body font throughout (NOT the
@@ -28,21 +29,20 @@ const OPTIONS = [
   { grade: 3, label: 'Class 3 — coming soon', disabled: true },
 ];
 
-// Tinku scales with viewport height: small on short phones (320x568) so the card never pushes
-// the hero off-screen, large on tall ones so the screen is a real welcome, not a form.
-const heroSize = () => {
-  const h = typeof window !== 'undefined' ? window.innerHeight : 700;
-  return h < 640 ? 150 : h < 800 ? 220 : 260;
-};
+// Tinku fills the hero: its height minus the title, tagline, ground shadow and gaps (about 9rem),
+// never wider than the hero, never smaller than a readable minimum, never absurdly large.
+const HERO_TINKU = 'clamp(8rem, min(100cqh - 9rem, 94cqw), 24rem)';
 
 export default function GradePickerScreen({ onChoose }) {
   return (
     <div className="app-frame font-body flex flex-col overflow-hidden bg-bg text-center">
-      <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-6 gap-2 bg-gradient-to-b from-primary-soft to-bg">
-        <p className="font-display text-title font-extrabold text-primary-ink">{PRODUCT_NAME}</p>
-        <Mascot emotion="waving" size={heroSize()} />
-        <div className="tinku-ground h-4 w-40 -mt-3" aria-hidden="true" />
-        <p className="text-base text-muted">Maths practice, one friendly step at a time.</p>
+      <div className="picker-hero flex-1 min-h-0 bg-gradient-to-b from-primary-soft to-bg">
+        <div className="h-full flex flex-col items-center justify-center px-6 gap-2">
+          <p className="font-display text-title font-extrabold text-primary-ink">{PRODUCT_NAME}</p>
+          <Mascot emotion="waving" size={HERO_TINKU} />
+          <div className="tinku-ground h-4 w-40 -mt-3" aria-hidden="true" />
+          <p className="text-base text-muted">Maths practice, one friendly step at a time.</p>
+        </div>
       </div>
       <div className="shrink-0 bg-bg-card rounded-t-card shadow-card px-6 pt-5 pb-6 flex flex-col items-center gap-3">
         <h1 className="text-xl font-bold text-ink">Which class is your child in?</h1>
