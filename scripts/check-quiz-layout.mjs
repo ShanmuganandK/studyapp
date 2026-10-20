@@ -21,11 +21,13 @@
  * A fresh install only ever plays the EASIEST rung (1-row counting trays), so a second pass seeds progress at the
  * hardest rung of 'Big Number Party' and plays until it has measured a 1-, 2- and 3-row tray: that is where the
  * counting tray was once clipped on a real phone (2026-10-18). It fails if it never gets to see a 3-row tray.
+ * A third pass loads a FRESH install and checks the first-run class picker: no scroll, every choice on screen and
+ * touchable, Tinku at least 30% of the screen height (and no wider than the hero), at most 30% of the hero empty.
  * Portrait only: this is a portrait app (the Android build should be locked to portrait).
  *
  * Exit code 1 if anything fails, with the offending measurement printed.
  */
-/* global document, localStorage */
+/* global document, localStorage, window */
 import { chromium } from 'playwright';
 import { spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
@@ -81,7 +83,9 @@ const measure = () => {
 
 const failures = [];
 const fail = (where, msg, m) => failures.push(`${where}: ${msg}${m ? `  (${JSON.stringify(m)})` : ''}`);
+const pad = (s, n) => String(s).padEnd(n);
 const rows = [];
+const pickerRows = [];
 
 // Measures + asserts ONE question on the screen, then answers it so the session moves on. Returns the
 // measurement (or null when there is no quiz screen). `shot` saves screenshots for this question.
@@ -181,17 +185,57 @@ async function checkPhone(phone) {
     if (traySizes.size < 3) fail(`${phone.name} ${phone.w}x${phone.h}`, `hard-counting pass only saw tray rows [${[...traySizes]}]: it must see 1, 2 and 3 rows or it proves nothing`);
     await ctx.close();
   }
+
+  // FIRST-RUN PICKER PASS: a fresh install (no saved settings) shows the class picker. It must fit with no
+  // scrolling, keep every choice on screen, and give Tinku real room instead of floating in empty space
+  // (the picker once used a fixed Tinku size, which left a big void on tall phones).
+  {
+    const ctx = await browser.newContext({ viewport: { width: phone.w, height: phone.h }, deviceScaleFactor: 2, reducedMotion: 'reduce' });
+    const page = await ctx.newPage();
+    await page.clock.install({ time: 1760000000000 });
+    await page.goto(URL); await page.clock.runFor(1500);
+    const m = await page.evaluate(() => {
+      if (!document.querySelector('h1')) return null;   // the picker's question
+      const hero = document.querySelector('.app-frame').firstElementChild;   // brand hero, above the question card
+      const hr = hero.getBoundingClientRect();
+      const img = hero.querySelector('img').getBoundingClientRect();
+      const kids = [...hero.querySelectorAll('p, img')].map((c) => c.getBoundingClientRect());   // title, Tinku, tagline
+      const span = Math.max(...kids.map((k) => k.bottom)) - Math.min(...kids.map((k) => k.top));
+      const buttons = [...document.querySelectorAll('button')].map((b) => b.getBoundingClientRect());
+      return {
+        vh: window.innerHeight, heroH: hr.height, tinku: img.height, tinkuW: img.width, heroW: hr.width,
+        void: 1 - span / hr.height,
+        scrolls: document.documentElement.scrollHeight > window.innerHeight + 1,
+        lowest: Math.max(...buttons.map((b) => b.bottom)),
+        shortest: Math.min(...buttons.map((b) => b.height)),
+      };
+    });
+    const where = `${phone.name} ${phone.w}x${phone.h} first-run picker`;
+    if (!m) fail(where, 'the picker did not show on a fresh install');
+    else {
+      if (m.scrolls) fail(where, 'the page scrolls', m);
+      if (m.lowest > m.vh + 0.5) fail(where, 'a choice is off the bottom of the screen', m);
+      if (m.shortest < 44) fail(where, 'a choice is under 44 px tall', m);
+      if (m.tinkuW > m.heroW + 0.5) fail(where, 'Tinku is wider than the hero', m);
+      if (!phone.cramped && m.tinku / m.vh < 0.3) fail(where, 'Tinku is under 30% of the screen height', m);
+      if (!phone.cramped && m.void > 0.3) fail(where, 'more than 30% of the hero is empty', m);
+      pickerRows.push(`${pad(phone.name, 24)}${pad(`${phone.w}x${phone.h}`, 11)}${pad(`${Math.round(m.tinku)} px`, 10)}${pad(`${Math.round((100 * m.tinku) / m.vh)}%`, 17)}${phone.cramped ? 'n/a' : `${Math.round(m.void * 100)}%`}`);
+    }
+    if (shotsDir) await page.screenshot({ path: join(shotsDir, `picker-${phone.w}x${phone.h}.png`) });
+    await ctx.close();
+  }
   rows.push({ phone, stats });
 }
 
 await Promise.all(PHONES.filter((p) => !ONLY || p.name.includes(ONLY)).map(checkPhone));
 await browser.close(); stop();
 
-const pad = (s, n) => String(s).padEnd(n);
 console.log(`${pad('phone', 24)}${pad('stage', 11)}${pad('Tinku px (min-max)', 20)}${pad('Tinku % of stage', 18)}${pad('worst void', 12)}${pad('hints', 7)}checked`);
 for (const { phone, stats: s } of PHONES.filter((p) => !ONLY || p.name.includes(ONLY)).map((p) => rows.find((r) => r.phone === p))) {
   console.log(`${pad(phone.name, 24)}${pad(`${phone.w}x${Math.round(s.stageH)}`, 11)}${pad(`${Math.round(s.mascotMin)}-${Math.round(s.mascotMax)}`, 20)}${pad(`${Math.round((100 * s.mascotMax) / s.stageH)}%`, 18)}${pad(phone.cramped ? 'n/a' : `${Math.round(s.voidMax * 100)}%`, 12)}${pad(s.hints, 7)}${s.measured}`);
 }
+console.log(`\n${pad('first-run picker', 24)}${pad('size', 11)}${pad('Tinku', 10)}${pad('Tinku % of screen', 17)}hero void`);
+pickerRows.forEach((r) => console.log(r));
 if (failures.length) {
   const uniq = [...new Set(failures)];
   console.log(`\n${uniq.length} FAILURE(S):\n - ${uniq.join('\n - ')}`);

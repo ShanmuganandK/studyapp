@@ -48,4 +48,12 @@ describe('GradePickerScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /Class 3/ }));
     expect(onChoose).not.toHaveBeenCalled();
   });
+
+  it('has a size-container hero for Tinku to be sized from (the sizing itself is measured by layout:check)', async () => {
+    const { container } = render(<GradePickerScreen onChoose={() => {}} />);
+    expect(container.querySelector('.picker-hero')).toBeTruthy();
+    const { readFileSync } = await import('node:fs');
+    const css = readFileSync('src/index.css', 'utf8');
+    expect(css).toMatch(/\.picker-hero\s*\{\s*container:\s*picker\s*\/\s*size/);
+  });
 });
