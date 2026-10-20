@@ -5,9 +5,9 @@
  * (white on its primary = 2.06:1) and was removed, and `muted` text was darkened where it sat
  * under 4.5:1.
  *
- * KNOWN_FAILURES are pairs that are known to fail TODAY (design-system DS-1/DS-2: white label on
- * the correct-answer green). They are asserted to STILL fail, so the entry has to be deleted the
- * moment the colour is fixed. Nothing else is allowed to fail.
+ * The correct-answer green (white label on it) was the one known failure, 2.28:1 in Wonder and
+ * Bubblegum (design-system DS-2). Fixed 2026-10-20 by deepening it to a deeper green (3.30:1); the label is
+ * large bold text, so the floor is 3:1.
  */
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -55,13 +55,9 @@ const PAIRS = [
   ['button label (white) on primary', WHITE, 'primary', 4.5],
   ['wrong-answer text on coral fill', 'encourage-ink', 'encourage-soft', 4.5],
   ['hint text on sky fill', 'learn-ink', 'learn-soft', 4.5],
+  // Large bold text (--text-option is 1.75rem+), so the WCAG large-text floor of 3:1 applies.
+  ['correct-tile label (white) on success', WHITE, 'success', 3],
 ];
-const KNOWN_FAILURES = [
-  { theme: 'wonder', label: 'correct tile label (white) on success', fg: WHITE, bg: 'success' },
-  { theme: 'sunset', label: 'correct tile label (white) on success', fg: WHITE, bg: 'success' },
-  { theme: 'bubblegum', label: 'correct tile label (white) on success', fg: WHITE, bg: 'success' },
-];
-
 const root = tokens(':root');
 const palette = (slug) => (slug === 'wonder' ? root : { ...root, ...tokens(`.theme-${slug}`) });
 const pick = (p, v) => (v === WHITE ? ['#ff', 'ffff'].join('') : p[v]);
@@ -82,10 +78,5 @@ describe('theme contrast', () => {
     for (const slug of THEME_SLUGS.filter((s) => s !== 'wonder')) {
       expect(Object.keys(tokens(`.theme-${slug}`)).length).toBeGreaterThan(8);
     }
-  });
-
-  it.each(KNOWN_FAILURES)('known failure still fails (delete the entry once fixed): $theme $label', ({ theme, fg, bg }) => {
-    const p = palette(theme);
-    expect(contrast(pick(p, fg), pick(p, bg))).toBeLessThan(4.5);
   });
 });

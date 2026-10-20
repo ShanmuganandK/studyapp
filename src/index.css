@@ -68,7 +68,7 @@
   --color-accent-soft: #fef3c7;     /* light amber tint — achievement card backgrounds */
 
   /* Color — feedback: correct */
-  --color-success: #22c55e;
+  --color-success: #16a34a;
   --color-success-soft: #dcfce7;
 
   /* Color — feedback: wrong (never punish → soft coral, kid-gentle, never red/amber) */
@@ -157,7 +157,7 @@
   --color-primary-soft: #f3e8ff;
   --color-primary-ink: #581c87; --color-primary-ink-rgb: 88, 28, 135;
   --color-accent: #fbbf24; --color-accent-soft: #fef3c7;
-  --color-success: #22c55e; --color-success-soft: #dcfce7;
+  --color-success: #16a34a; --color-success-soft: #dcfce7;
   --color-encourage: #fb9a7d; --color-encourage-soft: #ffede6; --color-encourage-ink: #c2410c;
   --color-learn: #7dd3fc; --color-learn-soft: #e0f2fe; --color-learn-ink: #0369a1;
   --color-review: #14b8a6;
