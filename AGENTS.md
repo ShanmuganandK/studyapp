@@ -118,8 +118,8 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
 - **Design work in flight.** `design-handoff/` (brief, tokens, screenshots, mascot poses,
   `capture.mjs`) and `design-system/` (recommendations **DS-1…DS-8**) are **proposals and
   reference copies, not adopted decisions** — `src/index.css` and `tailwind.config.js` stay the
-  source of truth. Biggest real finding: correct-green with white text is 2.28:1 in the default
-  palette; Deep Sea CTA text is 2.06:1. A redesign must keep the **locked colour grammar**
+  source of truth. Biggest real finding (correct-green with white text was 2.28:1) was fixed
+  2026-10-20 (DS-2, now 3.30:1); Deep Sea, whose CTA text was 2.06:1, was removed. A redesign must keep the **locked colour grammar**
   (amber = reward only, green = correct, soft coral = wrong, sky = hint, teal = review-due).
 
 ---

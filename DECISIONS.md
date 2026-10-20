@@ -969,3 +969,7 @@ Founder go-ahead ("go ahead with all three in one PR"), amending the 2026-09-23 
 
 **3. Not changed:** the Class control (its own section, 2026-10-20), practice days, and the storage key `tinku:v1:testSettings` (historical name, not renamed).
 
+## 2026-10-20 — Correct-answer green deepened to #16a34a (DS-2)
+
+Founder go-ahead. `--color-success` goes from `#22c55e` to `#16a34a` in Wonder (`:root`) and Bubblegum; Sunset already used it. White text on the correct tile was 2.28:1 and is now 3.30:1, which passes the 3:1 large-text floor (the tile label is large bold text). **Meaning unchanged** (green = correct); only the shade is deeper, so the reward moment looks slightly darker. `themeContrast.test.js` now asserts the floor for every palette and its known-failure list is gone (proven red against the old value). The small-text 4.5:1 target for white on green (DS-1, an `on-success` token) is not pursued: there is no small white-on-green text.
+
