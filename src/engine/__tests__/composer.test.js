@@ -568,3 +568,85 @@ describe('real skill map: the suggested path reaches every ready skill', () => {
     expect(unreachable, `ready skills the suggested path never reaches: ${unreachable.join(', ')}`).toEqual([]);
   });
 });
+
+// ─── Grade mode (DECISIONS 2026-10-20) ────────────────────────────────────────
+
+describe('grade mode: a Class 2 child is assumed to have cleared Class 1', () => {
+  const GMAP = {
+    'g1.a': { id: 'g1.a', name: 'G1 A', grade: 1, order: 1, prereqs: [], recipe: 'a', status: 'ready' },
+    'g1.b': { id: 'g1.b', name: 'G1 B', grade: 1, order: 2, prereqs: ['g1.a'], recipe: 'b', status: 'ready' },
+    'g2.x': { id: 'g2.x', name: 'G2 X', grade: 2, order: 10, prereqs: ['g1.b'], recipe: 'x', status: 'ready' },
+    'g2.y': { id: 'g2.y', name: 'G2 Y', grade: 2, order: 11, prereqs: ['g2.x'], recipe: 'y', status: 'ready' },
+  };
+  const at2 = { grade: 2 };
+
+  it('earlier-grade prereqs count as met in grade mode, same-grade prereqs still gate', () => {
+    expect(isPrereqsMet('g2.x', {}, GMAP)).toBe(false);          // unscoped: Class 1 not done
+    expect(isPrereqsMet('g2.x', {}, GMAP, 2)).toBe(true);        // grade 2: assumed cleared
+    expect(isPrereqsMet('g2.y', {}, GMAP, 2)).toBe(false);       // g2.x is the SAME grade: still required
+    expect(isPrereqsMet('g2.y', states(['g2.x', MASTERY.UNLOCK_LEVEL]), GMAP, 2)).toBe(true);
+  });
+
+  it('a fresh Class 2 start suggests a Class 2 skill, not Class 1', () => {
+    expect(recommendNext({}, GMAP, TODAY, COMPOSER, at2)).toEqual({ skillId: 'g2.x', reason: 'new' });
+    // unchanged without a grade: Class 1 first
+    expect(recommendNext({}, GMAP, TODAY, COMPOSER).skillId).toBe('g1.a');
+  });
+
+  it('Class 1 mode only ever suggests Class 1 skills', () => {
+    const done = states(['g1.a', masteredState('g1.a', TOMORROW)], ['g1.b', masteredState('g1.b', TOMORROW)]);
+    const rec = recommendNext(done, GMAP, TODAY, COMPOSER, { grade: 1 });
+    expect(rec.reason).toBe('all_caught_up'); // g2.x is unlocked but belongs to Class 2
+    expect(rec.skillId).not.toBe('g2.x');
+  });
+
+  it('a due Class 1 review is not suggested in Class 2 mode, and is again in Class 1 mode', () => {
+    const st = states(['g1.a', masteredState('g1.a', YESTERDAY)]);
+    expect(recommendNext(st, GMAP, TODAY, COMPOSER, at2).skillId).toBe('g2.x');
+    expect(recommendNext(st, GMAP, TODAY, COMPOSER, { grade: 1 })).toEqual({ skillId: 'g1.a', reason: 'review' });
+  });
+
+  it('a Class 1 skill in progress is not the Class 2 frontier', () => {
+    const st = states(['g1.a', 2]);
+    expect(getFrontierSkills(st, GMAP, 2)).toEqual([]);
+    expect(getFrontierSkills(st, GMAP, 1)).toEqual(['g1.a']);
+  });
+
+  it('a grade with no ready skills falls back to the unscoped behaviour (never an empty home)', () => {
+    expect(recommendNext({}, GMAP, TODAY, COMPOSER, { grade: 3 }).skillId).toBe('g1.a');
+  });
+
+  it('switching grade never changes anything stored: Class 1 progress is simply resumed when you go back', () => {
+    const st = states(['g1.a', 2]);
+    const before = JSON.stringify(st);
+    recommendNext(st, GMAP, TODAY, COMPOSER, at2);
+    expect(JSON.stringify(st)).toBe(before); // pure: nothing mutated
+    expect(recommendNext(st, GMAP, TODAY, COMPOSER, { grade: 1 })).toEqual({ skillId: 'g1.a', reason: 'frontier' });
+  });
+});
+
+describe('real skill map in grade mode', () => {
+  function walk(grade) {
+    let st = {};
+    const visited = [];
+    for (let i = 0; i < 200; i++) {
+      const rec = recommendNext(st, SKILLS, TODAY, COMPOSER, { grade });
+      if (rec.reason === 'all_caught_up' || !rec.skillId) break;
+      visited.push(rec.skillId);
+      st = { ...st, [rec.skillId]: masteredState(rec.skillId, TOMORROW) };
+    }
+    return visited;
+  }
+  const readyOf = (g) => Object.values(SKILLS).filter((s) => s.status === 'ready' && s.grade === g).map((s) => s.id);
+
+  for (const g of [1, 2]) {
+    it(`Class ${g}: the suggested path reaches every ready Class ${g} skill and nothing from the other grade`, () => {
+      const visited = walk(g);
+      expect([...visited].sort()).toEqual(readyOf(g).sort());
+    });
+  }
+
+  it('a fresh Class 2 child starts on 3-digit numbers, not Class 1 counting', () => {
+    expect(walk(2)[0]).toBe('g2.num.3digit');
+  });
+});

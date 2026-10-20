@@ -106,7 +106,10 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
   syllabus". Count the `ready` skills from `skillMap.js`, not from memory or from `README.md`.
   **The Grade 2 suggested path works only because the composer skips unbuilt prerequisites — an interim patch
   (DECISIONS 2026-10-19, 2026-10-20); the app still teaches no place value.** Building numbers 21–99 and
-  tens-and-ones is the real fix.
+  tens-and-ones is the real fix. **Suggestions are grade-scoped** (DECISIONS 2026-10-20): a Class 2 child starts on
+  Class 2 skills with Class 1 assumed cleared; progress is per skill id; there are no separate profiles (one child per
+  device). **The closed-test success bar (L8) is decided** (7 of 12 children on 3+ days in week 1 and 2+ in week 2); what
+  counts as "practised" and how the days are measured are still open.
 - **Screens on the new layout system:** only the **quiz and its summary** use the spacing budget
   (see "Quiz screen layout" below). The grade picker, skill list and parent screens do not yet;
   the first-run grade picker has a known layout bug (content stops about half-way down).

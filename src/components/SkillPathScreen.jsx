@@ -52,7 +52,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
   const [{ allStates, recommendation }] = useState(() => {
     const states = loadAllSkillStates();
     const nowDate = new Date().toISOString().slice(0, 10);
-    return { allStates: states, recommendation: recommendNext(states, SKILLS, nowDate) };
+    return { allStates: states, recommendation: recommendNext(states, SKILLS, nowDate, undefined, { grade }) };
   });
   const today = new Date().toISOString().slice(0, 10);
 

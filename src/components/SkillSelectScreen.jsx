@@ -38,7 +38,7 @@ export default function SkillSelectScreen({ grade = 1, onSelectSkill }) {
   const today = new Date().toISOString().slice(0, 10);
   const [{ allStates, recommendation }] = useState(() => {
     const states = loadAllSkillStates();
-    return { allStates: states, recommendation: recommendNext(states, SKILLS, today) };
+    return { allStates: states, recommendation: recommendNext(states, SKILLS, today, undefined, { grade }) };
   });
 
   // Grade filter via the shared readySkills() — parent test-panel grade (TRACKER #10). It has a

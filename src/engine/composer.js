@@ -12,6 +12,12 @@
  *   3. new-unlock  — unlocked but not yet started (next progression step)
  *   4. all_caught_up — everything available mastered and nothing due (fallback / celebrate)
  *
+ * GRADE MODE (DECISIONS 2026-10-20): `recommendNext(..., { grade })` scopes everything to that grade's skills
+ * (due reviews, the frontier, new unlocks) and ASSUMES every earlier grade is already cleared, so a prereq that
+ * belongs to an earlier grade counts as met. A Class 2 child therefore starts on Class 2 skills; Class 1
+ * progress is never touched (it is stored per skill id) and is simply not suggested in Class 2 mode. With no
+ * grade, or a grade that has no `ready` skills yet, behaviour is the old, unscoped one.
+ *
  * Only `status:'ready'` skills are ever recommended — planned skills have no recipe.
  * Prereqs are checked via `isUnlockedLevel` on the prereq's stored state; a missing
  * state counts as locked — EXCEPT a prereq whose own skill is `planned`: it has no recipe, so no child
@@ -34,15 +40,18 @@ import { COMPOSER } from '../config/composerConfig.js';
  * @param {string} skillId
  * @param {{ [skillId: string]: SkillState }} skillStates
  * @param {{ [skillId: string]: Skill }} skillMap
+ * @param {number|null} [grade] - grade mode: prereqs from EARLIER grades are assumed cleared
  * @returns {boolean}
  */
-export function isPrereqsMet(skillId, skillStates, skillMap) {
+export function isPrereqsMet(skillId, skillStates, skillMap, grade = null) {
   const skill = skillMap[skillId];
   if (!skill) return false;
   return skill.prereqs.every((prereqId) => {
     // A prereq with no recipe yet can never be satisfied by practice, so it cannot gate anything.
     const prereqSkill = skillMap[prereqId];
     if (prereqSkill && prereqSkill.status !== 'ready') return true;
+    // Grade mode: the child is assumed to have cleared every earlier grade.
+    if (grade != null && prereqSkill && prereqSkill.grade < grade) return true;
     const state = skillStates[prereqId];
     return state ? isUnlockedLevel(state) : false;
   });
@@ -70,13 +79,15 @@ export function getReviewsDue(skillStates, today) {
  *
  * @param {{ [skillId: string]: SkillState }} skillStates
  * @param {{ [skillId: string]: Skill }} skillMap
+ * @param {number|null} [grade] - grade mode: only that grade's skills; earlier-grade prereqs assumed cleared
  * @returns {string[]}
  */
-export function getFrontierSkills(skillStates, skillMap) {
+export function getFrontierSkills(skillStates, skillMap, grade = null) {
   return Object.values(skillMap)
     .filter((skill) => {
       if (skill.status !== 'ready') return false;
-      if (!isPrereqsMet(skill.id, skillStates, skillMap)) return false;
+      if (grade != null && skill.grade !== grade) return false;
+      if (!isPrereqsMet(skill.id, skillStates, skillMap, grade)) return false;
       const state = skillStates[skill.id];
       return state && state.level > 0 && !isMastered(state);
     })
@@ -93,14 +104,22 @@ export function getFrontierSkills(skillStates, skillMap) {
  * @param {{ [skillId: string]: Skill }} skillMap - the SKILLS object from skillMap.js
  * @param {string} today - ISO date string (YYYY-MM-DD), injected by caller
  * @param {object} [config] - defaults to COMPOSER; pass override in tests
+ * @param {{ grade?: number|null }} [options] - grade mode (see file header); omitted = unscoped
  * @returns {{ skillId: string | null, reason: 'review' | 'frontier' | 'new' | 'all_caught_up' }}
  */
-export function recommendNext(skillStates, skillMap, today, config = COMPOSER) {
+export function recommendNext(skillStates, skillMap, today, config = COMPOSER, { grade = null } = {}) {
+  // Grade mode only applies when that grade actually has ready skills (a grade with none, e.g. Class 3
+  // today, falls back to the unscoped behaviour so the child is never left with nothing to do).
+  const scope = grade != null && Object.values(skillMap).some((sk) => sk.status === 'ready' && sk.grade === grade)
+    ? grade
+    : null;
+  const inScope = (id) => scope == null || skillMap[id]?.grade === scope;
+
   // ── 1. DUE REVIEW ────────────────────────────────────────────────────────
   // Catch forgetting before advancing. Only recommend ready skills (a mastered
   // skill must have been practiced, so this guard is defensive but harmless).
   const dueIds = getReviewsDue(skillStates, today).filter(
-    (id) => skillMap[id]?.status === 'ready'
+    (id) => skillMap[id]?.status === 'ready' && inScope(id)
   );
 
   if (dueIds.length > 0) {
@@ -116,7 +135,7 @@ export function recommendNext(skillStates, skillMap, today, config = COMPOSER) {
 
   // ── 2. FRONTIER ──────────────────────────────────────────────────────────
   // The child's active learning edge: unlocked, started, not yet mastered.
-  const frontierIds = getFrontierSkills(skillStates, skillMap);
+  const frontierIds = getFrontierSkills(skillStates, skillMap, scope);
 
   if (frontierIds.length > 0) {
     let chosen = frontierIds[0]; // already in curriculum order
@@ -137,7 +156,8 @@ export function recommendNext(skillStates, skillMap, today, config = COMPOSER) {
     .filter(
       (skill) =>
         skill.status === 'ready' &&
-        isPrereqsMet(skill.id, skillStates, skillMap) &&
+        inScope(skill.id) &&
+        isPrereqsMet(skill.id, skillStates, skillMap, scope) &&
         !(skillStates[skill.id]?.level > 0)
     )
     .sort((a, b) => a.grade - b.grade || a.order - b.order);
@@ -152,7 +172,7 @@ export function recommendNext(skillStates, skillMap, today, config = COMPOSER) {
   // nudge toward (or celebrate). skillId is null if nothing is mastered yet
   // (an edge case that shouldn't happen in practice at this branch).
   const masteredByNextReview = Object.entries(skillStates)
-    .filter(([, state]) => isMastered(state) && state.nextReview !== null)
+    .filter(([id, state]) => inScope(id) && isMastered(state) && state.nextReview !== null)
     .sort(([, a], [, b]) => a.nextReview.localeCompare(b.nextReview));
 
   return {
