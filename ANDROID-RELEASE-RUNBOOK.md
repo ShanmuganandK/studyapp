@@ -5,6 +5,29 @@
 > step names a Play screen, check the wording against what you see. Never paste a password, the keystore, or
 > its base64 into a chat, an issue, a commit or a PR.
 
+## The short version (2026-10-21)
+
+Parts A-D below hold the detail; this is the order. **You** do every step: Claude Code cannot make the key, set
+the secrets or use Play Console, and no secret should ever be pasted into a chat.
+
+| # | Step | Where | Needs |
+|---|---|---|---|
+| 1 | Walk the latest **debug** APK on a phone (Part A) | GitHub Actions + `adb install -r` | nothing |
+| 2 | Make the **upload key** and back it up in two places (Part B) | your computer, outside the repo | a JDK |
+| 3 | Create the `android-release` **environment** and its **4 secrets** (Part C) | GitHub → Settings → Environments | step 2 |
+| 4 | **Run workflow → `build_type: release`**, approve it, download `tinku-release-aab` (Part D 1-2) | GitHub Actions | step 3 |
+| 5 | **Create the app** in Play Console, upload the AAB to **Internal testing**, install from the Play link, repeat the Part A checklist (Part D 3) | Play Console | L2 (account verified) |
+| 6 | Store listing, **Data Safety**, content rating, target audience, Families declarations (TRACKER L7) | Play Console | step 5 |
+| 7 | **Closed testing**: 12+ testers for 14 days; run it with `TESTER-PROTOCOL.md` (TRACKER L9) | Play Console + WhatsApp | step 6 |
+
+Steps 1-4 do not need Play verification (L2), so do them while it is pending. **Not verified yet:** the
+workflow has only ever built the **debug** APK. `bundleRelease` (signing, release build type) has **never been
+run**, so the first release run may fail for a reason nobody has seen; if it does, send the failing step's log
+text (not any secret) to Claude Code. The Play Console wording is also unconfirmed (screens change).
+
+The **release** bundle is built without `VITE_TESTER_TOOLS`, so it has no warm-up toggle (only the debug APK has
+it; `androidWorkflow.test.js` checks this). Everything else (Class, Colours, practice days) is in both.
+
 ## Part A: Test the app on a phone first (no key needed)
 
 1. GitHub → **Actions** → **Android build** → **Run workflow** → `build_type: debug`.
@@ -25,6 +48,11 @@
    - [ ] A quiz plays, sound works, Tinku shows. **No Home/Parent bar during a question** (it returns on the
      "Great job!" summary), and **rotating the phone does not rotate the app** (portrait lock).
    - [ ] A counting question with 11-15 objects (3 rows) fits without clipping.
+   - [ ] **First launch (fresh install):** the class picker shows a large Tinku with nothing cut off (2026-10-20 layout).
+   - [ ] A **correct** answer tile reads clearly in the deeper green (2026-10-20).
+   - [ ] Parent zone shows **Class** and **Colours** sections (no "Test settings"), and **"Days practised"** after you
+     finish one round. The **Warm-up** toggle shows **only in this debug APK**, never in a Play build.
+   - [ ] A fresh install set to **Class 2** suggests **Hundreds Club** first (2026-10-20).
    - [ ] Parent zone → **export progress** opens the phone's share sheet and a file can be saved.
    - [ ] The **Back** button: closes the parent PIN box; leaves a quiz or the parent zone for the skill
      list; only leaves the app from the skill list.
