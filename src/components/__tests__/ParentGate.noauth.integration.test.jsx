@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { useState } from 'react';
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor, configure } from '@testing-library/react';
 import { AuthProvider, useAuth } from '../../contexts/AuthContext';
 import ParentGateModal from '../ParentGateModal';
 import ParentDashboard from '../ParentDashboard';
@@ -21,6 +21,11 @@ vi.mock('../Mascot', () => ({ default: () => null }));
  * on cold CI runs (transform+import alone cost ~8s). Splitting gives each stage its own 5s budget
  * and names the failing stage instead of failing an opaque 20-step test.
  */
+
+// Testing Library's findBy/waitFor give up after 1 s by default. This test drives a real passcode hash and several
+// re-renders per step, so on a cold or starved machine one step can take longer than that. Ceiling only: a step that
+// finishes at once still returns at once.
+configure({ asyncUtilTimeout: 8000 });
 
 const SETTINGS_KEY = 'math_kids_settings_anon';
 const passHash = () => JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}').passcodeHash ?? null;
