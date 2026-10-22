@@ -101,7 +101,7 @@ ask, and the rule gets sharper.
 | `branding/` | Brand assets that are **not shipped** (outside `public/` and `src/`): `play-store-icon-512.png`, the Play Console listing icon, generated with the app icons by `scripts/build-icons.py` from the Tinku mascot art; and `mascot-originals/`, the 2000 px white-background pose originals that `scripts/build-mascot.sh` turns into the shipped 1024 px WebPs. Not a document — listed so nobody moves it into `public/`. | Live (2026-10-14) |
 | `ANDROID-BUILD-PLAN.md` | Capacitor Android build plan (TRACKER L4): phases, guards, signing, store facts, open founder decisions. A **plan**, not status; TRACKER L4 holds status. | Live (2026-10-14) |
 | `ANDROID-RELEASE-RUNBOOK.md` | The founder's steps for the Android build: test the debug APK, create the Play upload key, add the four GitHub secrets, first signed AAB. Steps, not status. | Live (2026-10-16) |
-| `TESTER-PROTOCOL.md` | The closed test (TRACKER L9) step by step: what the app measures, the scoring rule for the L8 bar, timeline, and WhatsApp-ready messages for testers. Steps, not status. **Draft**: the Play Console steps are unconfirmed. | Live (2026-10-20) |
+| `TESTER-PROTOCOL.md` | The closed test (TRACKER L9) step by step: what the app measures, the scoring rule for the L8 bar, timeline, and ready-to-paste messages for testers (by email). Steps, not status. **Draft**: the Play Console steps are unconfirmed. | Live (2026-10-20) |
 
 ## Feature specs — written by Chat, consumed by Code
 

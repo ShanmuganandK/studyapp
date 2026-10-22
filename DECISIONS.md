@@ -991,3 +991,11 @@ Founder direction in conversation ("my future idea is to monetize it when it rea
 
 **Cheap door-opener, not built:** a small "features available" list that the Colours control reads, instead of hard-coding the themes. It charges nobody and adds no network call. Do it only when a second paid feature exists.
 
+## 2026-10-22 — Parent-zone feedback goes to email, not WhatsApp (the founder's number must not be exposed)
+
+Founder instruction: the parent-zone "Report a bug / Give feedback" link opened WhatsApp to the founder's **personal** phone number, and there is no dedicated number for the product. It is now a `mailto:` link to the **published contact address `tinku@stringus.com`** (`CONTACT_EMAIL` in `src/config/privacyPolicy.js`, the same address the privacy policy and store listing name), with the subject "Tinku Math feedback". It opens the parent's own email app and the app sends nothing; there is no off-device host behind it any more (the `wa.me` host was the app's only external one). **Never put a personal phone number or personal address in the repo** (AGENTS.md already says so for addresses; this extends it to numbers and messenger links).
+
+**Guard:** `src/config/__tests__/feedbackLink.test.js` fails if `src/` or `public/` holds a messenger link or a bare phone number (proved red against the old code). **Tester protocol** now uses email too (`TESTER-PROTOCOL.md`). **Play Data Safety notes** (`claude-chat/play-data-safety-form.md` §3) updated: the answer is unchanged (No collection).
+
+**What this does NOT undo:** the number was already in the public source history and in every web bundle and debug APK built so far. Removing it from the current source stops new builds carrying it, but git history, old APKs and any cached copy of the website still hold it. Scrubbing history is a separate, destructive step (a rewrite of `master`) and is not done here.
+

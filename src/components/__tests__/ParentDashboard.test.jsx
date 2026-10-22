@@ -314,3 +314,15 @@ describe('ParentDashboard — days practised, and the Class control (DECISIONS 2
     vi.unstubAllGlobals();
   });
 });
+
+describe('ParentDashboard: feedback link', () => {
+  afterEach(() => { cleanup(); localStorage.clear(); });
+
+  it('opens the parent\'s email app to the published contact address, not WhatsApp', () => {
+    render(<ParentDashboard {...baseProps} hasPasscode={false} />);
+    const link = screen.getByRole('link', { name: /Report a bug \/ Give feedback/ });
+    expect(link.getAttribute('href')).toBe('mailto:tinku@stringus.com?subject=Tinku%20Math%20feedback');
+    expect(link.getAttribute('href')).not.toMatch(/wa\.me|whatsapp/i);
+    expect(link.getAttribute('target')).toBeNull();
+  });
+});

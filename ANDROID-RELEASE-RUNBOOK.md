@@ -18,7 +18,7 @@ the secrets or use Play Console, and no secret should ever be pasted into a chat
 | 4 | **Run workflow → `build_type: release`**, approve it, download `tinku-release-aab` (Part D 1-2) | GitHub Actions | step 3 |
 | 5 | **Create the app** in Play Console, upload the AAB to **Internal testing**, install from the Play link, repeat the Part A checklist (Part D 3) | Play Console | L2 (account verified) |
 | 6 | Store listing, **Data Safety**, content rating, target audience, Families declarations (TRACKER L7) | Play Console | step 5 |
-| 7 | **Closed testing**: 12+ testers for 14 days; run it with `TESTER-PROTOCOL.md` (TRACKER L9) | Play Console + WhatsApp | step 6 |
+| 7 | **Closed testing**: 12+ testers for 14 days; run it with `TESTER-PROTOCOL.md` (TRACKER L9) | Play Console + email | step 6 |
 
 Steps 1-4 do not need Play verification (L2), so do them while it is pending. **Not verified yet:** the
 workflow has only ever built the **debug** APK. `bundleRelease` (signing, release build type) has **never been
