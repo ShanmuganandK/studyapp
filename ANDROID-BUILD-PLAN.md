@@ -1,8 +1,12 @@
 # Android build plan: Capacitor (TRACKER L4)
 
-> **Status: plan only. No `android/` project or Capacitor dependency exists yet.** The route is
-> **decided: Capacitor from the first build**, recorded in `DECISIONS.md` (2026-10-15), which also holds
-> the TWA alternatives considered and the binding constraints. `TRACKER.md` L4 is the status source.
+> **Status (2026-10-22): Phases 1 and 2 are done; Phase 3 is half done; Phase 4 is not started.** The `android/`
+> project and Capacitor exist; a **debug APK builds in CI on every push to master and has run on a real phone**.
+> The signed **release AAB has never been built** (it needs the upload key and 4 secrets; steps in
+> `ANDROID-RELEASE-RUNBOOK.md`), and Play account verification (L2) is pending. The route is **decided: Capacitor
+> from the first build**, recorded in `DECISIONS.md` (2026-10-15), which also holds the TWA alternatives considered
+> and the binding constraints. `TRACKER.md` L4 is the status source; if this header and the tracker disagree,
+> the tracker wins.
 
 ## Why this is the long pole
 The closed test (L9: 12 testers x 14 days, personal Play account) needs an **uploaded build**, so the
@@ -54,7 +58,7 @@ parallel with L2 (account verification) and L7 (listing).
    child data on the device; the privacy policy says nothing leaves the device, and cloud backup would
    contradict that unless the policy says so).
 
-## Phase 3: Build, sign, ship to the closed test — workflow WRITTEN 2026-10-16, never run (founder steps: ANDROID-RELEASE-RUNBOOK.md)
+## Phase 3: Build, sign, ship to the closed test — debug build runs in CI and on a phone; **release AAB never built** (founder steps: ANDROID-RELEASE-RUNBOOK.md)
 1. **GitHub Actions** `android.yml`: Node 22, JDK 21 (Capacitor 8 compiles at Java 21), Android SDK, `npm ci`, `npm run build`,
    `npx cap sync android`, `./gradlew bundleRelease`. Upload the AAB as an artifact. The debug build runs on every push to
    master (never on a PR or fork); the signed release build is manual dispatch only.
