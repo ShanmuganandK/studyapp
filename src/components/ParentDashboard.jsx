@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Lock, MessageCircle, Download, Upload } from 'lucide-react';
+import { Lock, Mail, Download, Upload } from 'lucide-react';
 import Mascot from './Mascot';
 import MasteryPips from './MasteryPips';
 import { loadAllSkillStates } from '../services/progressStore';
 import { progressSummary } from '../engine/progressSummary';
 import { MASTERY } from '../config/masteryConfig';
-import { feedbackWhatsAppUrl } from '../config/constants';
+import { feedbackMailtoUrl } from '../config/constants';
 import useProgressBackup from '../hooks/useProgressBackup';
 import PrivacyNotice from './PrivacyNotice';
 import PrivacyPolicy from './PrivacyPolicy';
@@ -378,12 +378,10 @@ export default function ParentDashboard({
           )}
 
           <a
-            href={feedbackWhatsAppUrl()}
-            target="_blank"
-            rel="noopener noreferrer"
+            href={feedbackMailtoUrl()}
             className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-muted hover:text-learn-ink transition-colors"
           >
-            <MessageCircle size={16} />
+            <Mail size={16} />
             Report a bug / Give feedback
           </a>
 

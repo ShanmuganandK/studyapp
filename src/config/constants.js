@@ -1,10 +1,13 @@
-// E.164 format without the '+'. Swap to change the feedback recipient.
-export const FEEDBACK_WHATSAPP_NUMBER = '919941230649';
+import { CONTACT_EMAIL } from './privacyPolicy';
 
-const FEEDBACK_PREFILL = 'Tinku Math feedback: ';
+// Parent-zone feedback goes to the PUBLISHED contact address (privacyPolicy.js CONTACT_EMAIL, the one address the
+// privacy policy and the store listing name). It is a mailto: link, so the phone opens the parent's own email app
+// with the address and subject filled in and the app sends nothing. Never put a personal phone number or personal
+// address here (founder, DECISIONS 2026-10-22; AGENTS.md "keep personal addresses out of the repo").
+const FEEDBACK_SUBJECT = 'Tinku Math feedback';
 
-export function feedbackWhatsAppUrl() {
-  return `https://wa.me/${FEEDBACK_WHATSAPP_NUMBER}?text=${encodeURIComponent(FEEDBACK_PREFILL)}`;
+export function feedbackMailtoUrl() {
+  return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(FEEDBACK_SUBJECT)}`;
 }
 
 // Privacy reassurance shown to parents. SINGLE SOURCE OF TRUTH — edited here only; the parent

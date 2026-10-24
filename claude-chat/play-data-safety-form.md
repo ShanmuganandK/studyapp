@@ -34,9 +34,9 @@ policy violation in its own right, independent of whether the data practice itse
    no CDN.
 6. **All progress is device-local**, written by `services/progressStore` under the key
    `tinku:v1:skills`. Never keyed to a user. Never transmitted.
-7. **The one outbound link** is a parent-initiated WhatsApp feedback link (`wa.me`) in the parent
-   zone. It is a link the parent chooses to tap, which hands off to WhatsApp; the app sends
-   nothing. See §3 for how this is declared.
+7. **The one outbound link** is a parent-initiated feedback link in the parent zone: a `mailto:` link to
+   `tinku@stringus.com` (changed from WhatsApp on 2026-10-22, DECISIONS 2026-10-22). It opens the parent's own email
+   app; the app sends nothing. See §3 for how this is declared.
 8. **What we DO receive, automatically and outside our control:** Play Console vitals
    (crash/ANR/install data, aggregated by Google) and Netlify request logs for the web/PWA build
    (IP, user agent). Neither is collected *by the app*, and neither is what the Data Safety form
@@ -96,17 +96,19 @@ precisely so that this distinction stays honest (DECISIONS 2026-08-14, amended 2
 
 ---
 
-## §3 — The WhatsApp feedback link
+## §3 — The feedback link (email)
 
-The parent zone contains a `wa.me` link that opens WhatsApp with a pre-filled subject line
-("Tinku Math feedback: "). What to know when answering the form:
+The parent zone contains a `mailto:tinku@stringus.com` link with the subject "Tinku Math feedback". (Until
+2026-10-22 this was a `wa.me` WhatsApp link; it was replaced so the founder's personal number is not exposed.)
+What to know when answering the form:
 
-- The app **sends nothing**. Tapping the link hands off to WhatsApp or the browser; whatever the
-  parent then chooses to type and send is a message from the parent to us, in WhatsApp.
+- The app **sends nothing**. Tapping the link hands off to the parent's own email app; whatever the parent then
+  chooses to write and send is a message from the parent to us.
 - It is **parent-initiated**, in the parent zone, behind the parent gate. It is not reachable from
   any kid-facing screen.
-- If we ever reply, we then hold a phone number and a message — **received**, not collected by the
+- If we ever reply, we then hold an email address and a message — **received**, not collected by the
   app. That is ordinary correspondence, not an app data practice.
+- It no longer opens a web page, so there is **no off-device host** behind it any more.
 - **Data Safety answer is unchanged: No collection.**
 - ⚠️ **Designed for Families check this against:** the programme's rules on links out of the app.
   The link leaves the app, so it must stay behind the parent gate (it is) and must not be
@@ -131,7 +133,7 @@ We target under-13s, so the programme applies. This task settles the **policy** 
 - Target-age declaration in the Play Console content rating questionnaire.
 - Content rating questionnaire itself.
 - App content compliance (the DFF content policy) and the store-listing assets.
-- The external-link rule as it applies to the WhatsApp feedback link (§3).
+- The external-link rule as it applies to the email feedback link (§3).
 - ~~**App name mismatch**~~ — **RESOLVED 2026-08-16.** `PRODUCT_NAME` is **Tinku Math** across
   manifest, launcher, title, `package.json`, README and the policy, derived from
   `src/config/brand.js` and guarded. **Play listing title: `Tinku Math: Maths for Kids`** (26/30).
