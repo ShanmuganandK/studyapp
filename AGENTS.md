@@ -92,7 +92,7 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
   `android-release` environment) and it gates the closed test (L9). The Android activity is
   **locked to portrait**. A sideload through the phone's own installer failed once ("App not
   installed", cause unknown); `adb` works. Steps: `ANDROID-RELEASE-RUNBOOK.md`.
-- **Still open (mostly human):** Play account verification (L2), phone regression walk on the new
+- **Still open (mostly human):** Play identity verification (L2: account created, document check in progress per the founder, 2026-10-26), phone regression walk on the new
   domain (L5), store listing + Data Safety + Designed-for-Families (L7), a written success bar
   (L8), the 12-tester × 14-day closed test (L9).
 - **Content coverage is partial — do not imply otherwise.** `src/recipes/skillMap.js` plans 35
