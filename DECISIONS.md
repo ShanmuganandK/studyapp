@@ -999,3 +999,20 @@ Founder instruction: the parent-zone "Report a bug / Give feedback" link opened 
 
 **What this does NOT undo:** the number was already in the public source history and in every web bundle and debug APK built so far. Removing it from the current source stops new builds carrying it, but git history, old APKs and any cached copy of the website still hold it. Scrubbing history is a separate, destructive step (a rewrite of `master`) and is not done here.
 
+## 2026-10-27 — No tip, donation or "Buy me a coffee" link in the app until Google's rules are confirmed
+
+Founder asked whether a Buy Me a Coffee link could go in the app and whether Google allows it. **Decision: no such link in the app, and none on the Play store listing, for now.** Not cancelled: revisit after the closed test (L9) and once Google's position is confirmed in writing.
+
+**Why:**
+- **Google's rules are not clear on this.** The Play payments policy (https://support.google.com/googleplay/android-developer/answer/9858738) says apps generally may not lead users to a payment method other than Google Play billing, and lists tax-exempt donations among the things Play billing must not be used for. A tip jar for an individual developer is neither case, and no source found names it. A web search on 2026-10-27 did not settle it, and the Families Policy text itself could not be retrieved. It is a policy question, not a code question.
+- **The app is a Designed for Families app (children under 13)**, where links out and anything payment-related get the strictest reading. A parental gate may not be enough.
+- **It reverses standing decisions:** no payment of any kind (DECISIONS 2026-08-14), and money only after the closed test shows retention (DECISIONS 2026-10-20, monetisation roadmap). The privacy policy and Data Safety answers currently say there is no off-device link other than the parent's email link (DECISIONS 2026-10-22); a payment link would need new wording in both.
+- **Account risk:** a policy warning on a brand-new Play account that is still being verified (L2) costs more than a missing tip jar.
+
+**Options when this is revisited (not built):**
+1. A support page on a separate website for adults, outside the app and outside the store listing (the store listing is also covered by the payment rules).
+2. Ask Google's Play Console policy support for a written answer first; only that is certain.
+3. Any in-app route would also need: behind the parent gate, off every child-facing screen, new privacy policy and Data Safety wording, and a Families Policy check.
+
+**Guard:** the existing `src/config/__tests__/feedbackLink.test.js` (no messenger link, no phone number in `src/` or `public/`) does not cover payment links. If one is ever proposed, add a guard with it.
+
