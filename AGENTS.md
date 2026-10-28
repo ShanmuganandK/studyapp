@@ -73,7 +73,7 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
 
 ---
 
-## Where things stand — orientation snapshot (2026-10-18)
+## Where things stand — orientation snapshot (2026-10-28)
 
 > **This is a snapshot for orientation, not a status document.** `claude-chat/TRACKER.md` is the
 > only status source; if this section and the tracker disagree, **the tracker wins** — and fix
@@ -88,11 +88,11 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
   repo).
 - **Android (TRACKER L4):** Capacitor (DECISIONS 2026-10-15). A **debug APK builds in CI on every
   merge to master and has run on a real phone** (Samsung S25 Ultra, installed with `adb install
-  -r`), with **no INTERNET permission** — it loads and plays quizzes without one (verified on that phone). The **signed release AAB has never been built** (needs the upload key + 4 secrets in the
-  `android-release` environment) and it gates the closed test (L9). The Android activity is
+  -r`), with **no INTERNET permission** — it loads and plays quizzes without one (verified on that phone). The **signed release AAB was built 2026-10-28** (upload key + 4 secrets in the
+  `android-release` environment; `jarsigner` verified) but is **not yet uploaded to Play or installed from Play**, and it gates the closed test (L9). The Android activity is
   **locked to portrait**. A sideload through the phone's own installer failed once ("App not
-  installed", cause unknown); `adb` works. Steps: `ANDROID-RELEASE-RUNBOOK.md`.
-- **Still open (mostly human):** Play identity verification (L2: account created, document check in progress per the founder, 2026-10-26), phone regression walk on the new
+  installed"); the likely cause is that each CI debug APK is signed with a different key, so `adb install -r` over an older copy also fails until it is uninstalled (not confirmed for the installer case). Steps: `ANDROID-RELEASE-RUNBOOK.md`.
+- **Still open (mostly human):** Play app creation and upload (L2 identity verification done 2026-10-27), phone regression walk on the new
   domain (L5), store listing + Data Safety + Designed-for-Families (L7), a written success bar
   (L8), the 12-tester × 14-day closed test (L9).
 - **Content coverage is partial — do not imply otherwise.** `src/recipes/skillMap.js` plans 35
