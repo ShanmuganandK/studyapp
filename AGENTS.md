@@ -115,6 +115,7 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
 - **Screens on the new layout system:** only the **quiz and its summary** use the spacing budget
   (see "Quiz screen layout" below), and from 2026-10-20 the **first-run grade picker** (Tinku sized from
   the hero, checked by `layout:check`). The skill list and parent screens do not yet.
+  **Known follow-ups (TRACKER F1–F4, 2026-11-08):** some buttons are under 48 dp (the question screen's "← Skills" and mute, the summary's "Pick another skill", several parent-screen controls), and at 640 px wide and up (tablets) the app draws a desktop phone-shaped frame. Not built or decided.
 - **Design work in flight.** `design-handoff/` (brief, tokens, screenshots, mascot poses,
   `capture.mjs`) and `design-system/` (recommendations **DS-1…DS-8**) are **proposals and
   reference copies, not adopted decisions** — `src/index.css` and `tailwind.config.js` stay the

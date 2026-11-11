@@ -122,6 +122,25 @@ hex values; none were measured on a phone yet.
 Owner: human (accept, change or drop each one; DS-2 and DS-6 are look-and-feel calls), Code
 (build whatever is accepted, with guards proven red first).
 
+### Follow-ups found in the closed test (opened 2026-11-08) — fix later / areas to look at
+
+**Nothing here is built or decided.** Two sources: (1) a generic Play closed-test feedback email (praised offline and
+ad-free; suggested having the Families policy declarations and target age ready, and checking large touch targets on
+compact phones *and tablets*); (2) a measurement run on 2026-11-08 with Playwright at **360x640 and 412x915**. The numbers
+are the **visible element boxes** (CSS px = dp), **not real taps, and not yet checked on a device**. The guideline used is
+the common Android 48 dp. The existing `layout:check` asserts only that **answer tiles** are at least 44 px; nothing asserts
+the other buttons.
+
+| # | Item | Status | Detail |
+|---|---|---|---|
+| F1 | **Child-facing buttons under 48 dp** | 📋 Fix wanted, not started. Suggest P2 | On the question screen: **"← Skills" 52x20** and **"Mute sound" 32x32**; on the summary: **"Pick another skill" 280x40 (360 px) / 320x40**. A child can miss, or hit by accident, the small ones. **Fix idea:** enlarge the hit area to at least 48x48 without moving the layout (padding or a `min-h`/`min-w`), read the quiz CSS variables rather than hardcoding sizes, then run `npm run build && npm run layout:check`. **Guard idea:** extend `layout:check` to assert these buttons too, proved red first. Related: DS-5 (the 48 px tap size as a token). |
+| F2 | **Parent-screen controls under 48 dp** (adults, lower priority) | 📋 P3 | At 412x915: Class buttons **38** high, Colours buttons **40**, Export progress / Import backup **42**, the feedback link **40**, "Read the full privacy policy" link **20**. |
+| F3 | **Parent screen at 360x640 not measured** | 📋 To re-measure | The measuring script did not reach it at that size, so there is no number. Do this with F2. |
+| F4 | **Tablets: the phone-shaped frame** | 📋 Decision needed | At **640 CSS px wide and up**, `Layout.jsx` draws the desktop "phone mockup" (border, ring, fake notch) on a dark background. A 10-inch tablet and a Chromebook are above that; a 7-inch tablet in portrait (about 600 px) probably is not. Not tested on a real tablet. **Options:** show the frame only on real desktop browsers (a mouse and a wide screen), so a tablet gets a plain centred phone-width layout; or exclude tablets in Play Console (device catalog); or leave it. **Knock-on:** the store listing's tablet screenshot slots (7-inch, 10-inch) would show the frame, so none were made (they look optional in Play Console; check). Landscape and foldables are still not targets (AGENTS.md). |
+| F5 | **Families declarations and target age (L7)** | ⏳ Human, already on the launch list | The reviewer's third point. See L7 and `claude-chat/play-data-safety-form.md`. Not a code item. |
+
+Owner: human (priorities, and the F4 decision), Code (F1-F3 once accepted, with guards proven red first).
+
 ## Deploy verification (standing step — added 2026-08-15)
 
 A cache/deploy scare on 2026-08-15 cost real confidence: the live app appeared to be
