@@ -1016,3 +1016,17 @@ Founder asked whether a Buy Me a Coffee link could go in the app and whether Goo
 
 **Guard:** the existing `src/config/__tests__/feedbackLink.test.js` (no messenger link, no phone number in `src/` or `public/`) does not cover payment links. If one is ever proposed, add a guard with it.
 
+
+## 2026-11-11 — Closed-test scoring: only parents with a real child count toward the "7 of 12" bar
+
+Founder decision after day 1 of the closed test (12 testers started). At least some testers come from testing-swap services (a Play screenshot showed an "Install verified by TestCircle" banner), not from parents with a real child. Their use says whether the app installs and runs; it says little about whether **children come back**, which is what the L8 bar measures.
+
+**Rule:**
+- **Crashes, bugs, install and layout problems:** count every tester.
+- **The retention bar (3+ days in week 1 and 2+ in week 2, DECISIONS 2026-10-20):** count **only testers who say a real child in Class 1 or 2 is using it** (tester code, one child per phone). Swap-service and developer testers are reported separately and never counted toward the 7 of 12.
+- **The cohort is fixed up front** (the first parents who start), never picked after the results (TESTER-PROTOCOL A4).
+- **Play's own requirement is unchanged:** 12 opted in for 14 continuous days (DECISIONS 2026-09-23) counts everyone.
+
+**Consequence, stated plainly:** with few or no real-child testers, the retention bar **cannot be scored** from this test. That is a "not enough signal" result, not a pass. Recruit real parents (family, friends, school and parent groups) for it. Swap testers rarely send the export file, so expect no practice-day data from them.
+
+**Not built or changed in the app:** the app does not know who is a tester or whether a child exists; the split is made from the tester's own reply.

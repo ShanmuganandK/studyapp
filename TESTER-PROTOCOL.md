@@ -65,6 +65,8 @@ For each tester, from the **export file** (`practiceDays`, a list of dates) or t
 - **Week 2 days** = number of dates in the next 7 days.
 - A child **passes** with week 1 ≥ 3 **and** week 2 ≥ 2.
 
+**Who counts (DECISIONS 2026-11-11).** Only testers who tell you a **real child in Class 1 or 2** is using the app count towards the bar. Testers from swap services or developer testers help with crashes and layout, but are reported separately and never counted here. If you have fewer than 12 real-child testers, the bar **cannot be scored**: report it as "not enough signal", not a pass or a fail. Ask each tester in message 1 (or on first contact) whether a child will use it, and note the answer next to their code.
+
 The test **meets the bar** if **7 or more of 12** pass. With more than 12 testers, score the 12 you would have had
 if you decide the cohort up front (say, the first 12 who started); do not pick the best 12 afterwards. Write
 the decision rule down before day 0.
