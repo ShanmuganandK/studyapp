@@ -100,27 +100,10 @@ describe('skill map — graph validity', () => {
       );
   });
 
-  it('marks exactly the built foundational skills ready', () => {
+  it('marks all 36 Grade 1–2 skills ready', () => {
     const ready = allSkills.filter((s) => s.status === 'ready').map((s) => s.id).sort();
-    expect(ready).toEqual([
-      'g1.add.within10',
-      'g1.add.within20',
-      'g1.count.1-20',
-      'g1.count.1-9',
-      'g1.num.compare20',
-      'g1.sub.within10',
-      'g1.sub.within20',
-      'g2.add.2d-carry',
-      'g2.add.2d-nocarry',
-      'g2.mul.intro',
-      'g2.mul.table10',
-      'g2.mul.table2',
-      'g2.mul.table5',
-      'g2.num.3digit',
-      'g2.num.compare999',
-      'g2.sub.2d-borrow',
-      'g2.sub.2d-noborrow',
-    ]);
+    expect(ready).toHaveLength(36);
+    expect(ready).toEqual(allSkills.map((s) => s.id).sort());
   });
 });
 

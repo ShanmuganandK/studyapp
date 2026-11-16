@@ -19,11 +19,55 @@ import subtraction2d from '../recipes/subtraction2d';
 import mulIntro from '../recipes/mulIntro';
 import mulTable from '../recipes/mulTable';
 import counting3digit from '../recipes/counting3digit';
+import numbers21to99 from '../recipes/numbers21to99';
+import placeValue from '../recipes/placeValue';
+import placeValue3 from '../recipes/placeValue3';
+import moneyAmounts from '../recipes/moneyAmounts';
+import ordinal from '../recipes/ordinal';
+import timeBasic from '../recipes/timeBasic';
+import patterns from '../recipes/patterns';
+import sorting from '../recipes/sorting';
+import measureLength from '../recipes/measureLength';
+import compare from '../recipes/compare';
+import shapes2d from '../recipes/shapes2d';
+import spatial from '../recipes/spatial';
+import measureWeight from '../recipes/measureWeight';
+import moneyCoins from '../recipes/moneyCoins';
+import measureCapacity from '../recipes/measureCapacity';
+import timeClock from '../recipes/timeClock';
+import pictograph from '../recipes/pictograph';
+import fractionsBasic from '../recipes/fractionsBasic';
 
 // Recipe registry keyed by the skill map's `recipe` field. Only the ready recipes are needed
 // (planned skills are never selected). Add entries here as the factory builds more.
 const RECIPES = {
-  addition, counting, subtraction, compareNumbers, addition2d, subtraction2d, mulIntro, mulTable, counting3digit,
+  addition,
+  counting,
+  subtraction,
+  compareNumbers,
+  addition2d,
+  subtraction2d,
+  mulIntro,
+  mulTable,
+  counting3digit,
+  numbers21to99,
+  placeValue,
+  placeValue3,
+  moneyAmounts,
+  ordinal,
+  timeBasic,
+  patterns,
+  sorting,
+  measureLength,
+  compare,
+  shapes2d,
+  spatial,
+  measureWeight,
+  moneyCoins,
+  measureCapacity,
+  timeClock,
+  pictograph,
+  fractionsBasic,
 };
 
 const DEFAULT_LENGTH = 8;

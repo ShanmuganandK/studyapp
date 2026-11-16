@@ -3,26 +3,12 @@ import { progressSummary, formatRelativeDate } from '../progressSummary.js';
 import { emptySkillState } from '../mastery.js';
 import { MASTERY } from '../../config/masteryConfig.js';
 
-// All 17 ready skill IDs (reflects skillMap.js `status:'ready'` set)
-const READY_IDS = [
-  'g1.count.1-9',
-  'g1.count.1-20',
-  'g1.num.compare20',
-  'g1.add.within10',
-  'g1.add.within20',
-  'g1.sub.within10',
-  'g1.sub.within20',
-  'g2.num.compare999',
-  'g2.add.2d-nocarry',
-  'g2.add.2d-carry',
-  'g2.sub.2d-noborrow',
-  'g2.sub.2d-borrow',
-  'g2.mul.intro',
-  'g2.mul.table2',
-  'g2.mul.table5',
-  'g2.mul.table10',
-  'g2.num.3digit',
-];
+import { SKILLS } from '../../recipes/skillMap.js';
+
+// All ready skill IDs (derived from skillMap.js `status:'ready'` set)
+const READY_IDS = Object.values(SKILLS)
+  .filter((s) => s.status === 'ready')
+  .map((s) => s.id);
 const TOTAL_READY = READY_IDS.length;
 
 const TODAY = '2026-01-15';
