@@ -41,6 +41,11 @@ const recipe = {
     if (pos < N) {
       candidates.push({ value: pos + 1, tag: 'off-by-one' });
     }
+    for (let p = 1; p <= N; p++) {
+      if (p !== pos) {
+        candidates.push({ value: p, tag: 'off-by-one' });
+      }
+    }
 
     const distractors = selectDistractors({
       candidates,

@@ -66,7 +66,16 @@ export default function Mascot({ emotion = 'happy', size = 120, className = '' }
 
   useEffect(() => {
     const nextSrc = POSES[emotion] ?? POSES.happy;
-    if (nextSrc === activeSrc) return;
+    if (nextSrc === activeSrc) {
+      clearTimeout(timerRef.current);
+      if (
+        lastGoodSrcRef.current === activeSrc ||
+        (imgRef.current?.complete && imgRef.current?.naturalWidth > 0)
+      ) {
+        setOpacity(1);
+      }
+      return;
+    }
 
     clearTimeout(timerRef.current);
     setOpacity(0);
