@@ -132,8 +132,8 @@ describe('skill map — helpers', () => {
   });
 
   it('frontierSkill returns the lowest-order unlocked skill for the grade', () => {
-    // Empty mastery: lowest-order grade-1 skill with no prereqs is order 10.
-    expect(frontierSkill({}, 1).id).toBe('g1.prenum.compare');
+    // Empty mastery: lowest-order grade-1 skill with no prereqs is g1.count.1-9 (order 30).
+    expect(frontierSkill({}, 1).id).toBe('g1.count.1-9');
     // No grade-3 skills exist.
     expect(frontierSkill({}, 3)).toBeNull();
   });

@@ -49,24 +49,24 @@ Ordered as a learning path. `maxDifficulty` is the curriculum ceiling for that s
 
 | order | id | name | strand | maxDiff | prereqs | recipe |
 |---|---|---|---|---|---|---|
-| 10 | g1.prenum.compare | Big/small, more/less, tall/short | prenumber | 2 | — | compare |
-| 11 | g1.prenum.sort | Sorting & classification | prenumber | 2 | — | sorting |
-| 12 | g1.prenum.patterns | Simple patterns (AB, AAB) | prenumber | 2 | — | patterns |
-| 20 | g1.shapes.2d | 2D shapes (circle, square, triangle, rectangle) | shapes | 2 | — | shapes2d |
-| 21 | g1.shapes.space | Spatial: inside/outside, near/far, top/bottom | shapes | 2 | — | spatial |
 | 30 | g1.count.1-9 | Counting & numbers 1–9 | numbers | 3 | — | counting |
 | 31 | g1.count.1-20 | Counting & numbers up to 20 | numbers | 3 | g1.count.1-9 | counting |
 | 32 | g1.num.compare20 | Compare numbers up to 20 (>, <, =) | numbers | 3 | g1.count.1-20 | compareNumbers |
-| 33 | g1.num.ordinal | Ordinal numbers (1st–10th) | numbers | 2 | g1.count.1-9 | ordinal |
 | 40 | g1.add.within10 | Addition within 10 | addition | 3 | g1.count.1-9 | addition |
 | 41 | g1.add.within20 | Addition within 20 | addition | 3 | g1.add.within10 | addition |
 | 50 | g1.sub.within10 | Subtraction within 10 | subtraction | 3 | g1.count.1-9 | subtraction |
 | 51 | g1.sub.within20 | Subtraction within 20 | subtraction | 3 | g1.sub.within10 | subtraction |
+| 55 | g1.num.ordinal | Ordinal numbers (1st–10th) | numbers | 2 | g1.count.1-9 | ordinal |
 | 60 | g1.num.21-99 | Numbers 21–99 (read, write, count) | numbers | 3 | g1.count.1-20 | numbers21to99 *(was `counting`)* |
 | 61 | g1.place.tens-ones | Tens & ones (place value intro) | placevalue | 3 | g1.num.21-99 | placeValue |
+| 65 | g1.prenum.compare | Big/small, more/less, tall/short | prenumber | 2 | g1.count.1-9 | compare |
+| 66 | g1.prenum.sort | Sorting & classification | prenumber | 2 | g1.count.1-9 | sorting |
+| 67 | g1.prenum.patterns | Simple patterns (AB, AAB) | prenumber | 2 | g1.count.1-9 | patterns |
+| 68 | g1.shapes.2d | 2D shapes (circle, square, triangle, rectangle) | shapes | 2 | g1.count.1-9 | shapes2d |
+| 69 | g1.shapes.space | Spatial: inside/outside, near/far, top/bottom | shapes | 2 | g1.shapes.2d | spatial |
 | 70 | g1.measure.length | Length: longer/shorter, non-standard units | measurement | 2 | g1.prenum.compare | measureLength |
 | 71 | g1.measure.weight | Heavy/light | measurement | 2 | g1.prenum.compare | measureWeight |
-| 80 | g1.time.daynight | Day/night, days of week, sequence | time | 2 | — | timeBasic |
+| 80 | g1.time.daynight | Day/night, days of week, sequence | time | 2 | g1.count.1-9 | timeBasic |
 | 81 | g1.money.coins | Indian coins recognition (₹1, ₹2, ₹5, ₹10) | money | 2 | g1.count.1-20 | moneyCoins |
 
 ## The skills — Grade 2
