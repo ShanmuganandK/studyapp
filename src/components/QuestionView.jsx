@@ -90,6 +90,226 @@ export default function QuestionView({ question, blankFill = null }) {
     );
   }
 
+  if (question.format === 'unit-length') {
+    const { objectGlyph, unitGlyph, count } = question.render;
+    return (
+      <div className="text-center">
+        <p className="text-prompt font-extrabold text-ink mb-2">{question.questionText}</p>
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-4 py-2 shadow-card">
+          <div className="text-2xl mb-1 select-none" aria-label="Object to measure">
+            {Array.from({ length: count }).map(() => objectGlyph).join('')}
+          </div>
+          <div className="flex items-center justify-center gap-1 select-none" aria-label={`${count} unit blocks`}>
+            {Array.from({ length: count }).map((_, i) => (
+              <span key={i} className="text-xl leading-none">{unitGlyph}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (question.format === 'shape-mcq') {
+    const { shape, rotated } = question.render;
+    return (
+      <div className="text-center">
+        <p className="text-prompt font-extrabold text-ink mb-2">{question.questionText}</p>
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card p-3 shadow-card">
+          <svg
+            viewBox="0 0 100 100"
+            className="w-20 h-20 text-primary mx-auto"
+            style={{ transform: rotated ? 'rotate(45deg)' : undefined }}
+            role="img"
+            aria-label={shape}
+          >
+            {shape === 'circle' && (
+              <circle cx="50" cy="50" r="36" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="6" />
+            )}
+            {shape === 'square' && (
+              <rect x="18" y="18" width="64" height="64" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="6" />
+            )}
+            {shape === 'rectangle' && (
+              <rect x="10" y="26" width="80" height="48" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="6" />
+            )}
+            {shape === 'triangle' && (
+              <polygon points="50,14 86,82 14,82" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="6" />
+            )}
+          </svg>
+        </div>
+      </div>
+    );
+  }
+
+  if (question.format === 'spatial-mcq') {
+    const { relation, itemGlyph, anchorGlyph } = question.render;
+    return (
+      <div className="text-center">
+        <p className="text-prompt font-extrabold text-ink mb-2">{question.questionText}</p>
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-5 py-2 shadow-card flex items-center justify-center gap-3 text-2xl select-none">
+          {relation === 'inside' && (
+            <span className="rounded-button border-2 border-primary px-3 py-1">{anchorGlyph} {itemGlyph}</span>
+          )}
+          {relation === 'outside' && (
+            <>
+              <span className="rounded-button border-2 border-primary px-3 py-1">{anchorGlyph}</span>
+              <span>{itemGlyph}</span>
+            </>
+          )}
+          {relation === 'top' && (
+            <div className="flex flex-col items-center leading-tight">
+              <span>{itemGlyph}</span>
+              <span>{anchorGlyph}</span>
+            </div>
+          )}
+          {relation === 'bottom' && (
+            <div className="flex flex-col items-center leading-tight">
+              <span>{anchorGlyph}</span>
+              <span>{itemGlyph}</span>
+            </div>
+          )}
+          {relation === 'near' && (
+            <div className="flex items-center gap-1">
+              <span>{anchorGlyph}</span>
+              <span>{itemGlyph}</span>
+            </div>
+          )}
+          {relation === 'far' && (
+            <div className="flex items-center gap-8">
+              <span>{anchorGlyph}</span>
+              <span>{itemGlyph}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (question.format === 'balance-mcq') {
+    const { leftItem, rightItem, heavier } = question.render;
+    return (
+      <div className="text-center">
+        <p className="text-prompt font-extrabold text-ink mb-2">{question.questionText}</p>
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-5 py-2 shadow-card flex items-center justify-center gap-4 text-xl select-none">
+          <span className={heavier === 'left' ? 'translate-y-1 font-bold text-primary-ink' : '-translate-y-1 text-muted'}>
+            [{leftItem}]
+          </span>
+          <span className="text-primary font-bold">⚖️</span>
+          <span className={heavier === 'right' ? 'translate-y-1 font-bold text-primary-ink' : '-translate-y-1 text-muted'}>
+            [{rightItem}]
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  if (question.format === 'coins-mcq') {
+    const { coins } = question.render;
+    return (
+      <div className="text-center">
+        <p className="text-prompt font-extrabold text-ink mb-2">{question.questionText}</p>
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-4 py-2 shadow-card flex items-center justify-center gap-2 select-none">
+          {coins.map((c, i) => (
+            <span
+              key={i}
+              className="w-11 h-11 rounded-full border-2 border-primary bg-primary-soft text-primary-ink font-display font-extrabold flex items-center justify-center text-base"
+            >
+              ₹{c}
+            </span>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (question.format === 'clock') {
+    const { hours, minutes } = question.render;
+    const minAngle = (minutes / 60) * 360;
+    const hourAngle = ((hours % 12) / 12) * 360 + (minutes / 60) * 30;
+    return (
+      <div className="text-center">
+        <p className="text-prompt font-extrabold text-ink mb-2">What time does the clock show?</p>
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card p-2 shadow-card">
+          <svg viewBox="0 0 100 100" className="w-20 h-20 text-primary-ink mx-auto" role="img" aria-label={`${hours}:${String(minutes).padStart(2, '0')}`}>
+            <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="4" />
+            <text x="50" y="18" textAnchor="middle" fontSize="10" fill="currentColor" fontWeight="bold">12</text>
+            <text x="84" y="53" textAnchor="middle" fontSize="10" fill="currentColor" fontWeight="bold">3</text>
+            <text x="50" y="90" textAnchor="middle" fontSize="10" fill="currentColor" fontWeight="bold">6</text>
+            <text x="16" y="53" textAnchor="middle" fontSize="10" fill="currentColor" fontWeight="bold">9</text>
+            <line
+              x1="50"
+              y1="50"
+              x2="50"
+              y2="28"
+              stroke="currentColor"
+              strokeWidth="5"
+              strokeLinecap="round"
+              transform={`rotate(${hourAngle} 50 50)`}
+            />
+            <line
+              x1="50"
+              y1="50"
+              x2="50"
+              y2="18"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeLinecap="round"
+              transform={`rotate(${minAngle} 50 50)`}
+            />
+            <circle cx="50" cy="50" r="3" fill="currentColor" />
+          </svg>
+        </div>
+      </div>
+    );
+  }
+
+  if (question.format === 'pictograph') {
+    const { rows, scale } = question.render;
+    return (
+      <div className="text-center">
+        <p className="text-prompt font-extrabold text-ink mb-1">{question.questionText}</p>
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-3 py-1.5 shadow-card text-left text-xs">
+          {rows.map((r) => (
+            <div key={r.label} className="flex items-center gap-2 py-0.5">
+              <span className="font-bold text-ink w-16">{r.label}</span>
+              <span className="tracking-widest select-none">{Array.from({ length: r.count }).map(() => r.glyph).join('')}</span>
+            </div>
+          ))}
+          {scale > 1 && (
+            <div className="text-muted font-semibold mt-0.5 border-t border-primary-soft pt-0.5">
+              Key: 1 picture = {scale}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (question.format === 'fraction-mcq') {
+    const { totalParts, shadedParts } = question.render;
+    return (
+      <div className="text-center">
+        <p className="text-prompt font-extrabold text-ink mb-2">{question.questionText}</p>
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card p-3 shadow-card">
+          <div
+            className="grid gap-1 w-24 h-12 mx-auto"
+            style={{ gridTemplateColumns: `repeat(${totalParts}, 1fr)` }}
+            role="img"
+            aria-label={`${shadedParts} of ${totalParts} parts shaded`}
+          >
+            {Array.from({ length: totalParts }).map((_, i) => (
+              <div
+                key={i}
+                className={`border-2 border-primary rounded-xs ${
+                  i < shadedParts ? 'bg-primary' : 'bg-bg-card'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // mcq — fluid size. Compact equations ("27 + 1 = ?") use the large `text-question` token so
   // they scale up on tall phones and down on short ones. Longer sentence-style prompts (e.g.
   // counting3digit.js's place-value decomposition, "1 hundred, 3 tens and 0 ones make ?") would

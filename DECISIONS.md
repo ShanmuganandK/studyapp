@@ -1030,3 +1030,17 @@ Founder decision after day 1 of the closed test (12 testers started). At least s
 **Consequence, stated plainly:** with few or no real-child testers, the retention bar **cannot be scored** from this test. That is a "not enough signal" result, not a pass. Recruit real parents (family, friends, school and parent groups) for it. Swap testers rarely send the export file, so expect no practice-day data from them.
 
 **Not built or changed in the app:** the app does not know who is a tester or whether a child exists; the split is made from the tester's own reply.
+
+## 2026-11-16 — Second syllabus & misconception pass for remaining Grades 1–2 skills; Basic Fractions added to Grade 2
+
+Founder instruction: complete a second-pass syllabus and misconception specification for all remaining `planned` skills across Class 1 and Class 2, and include **Basic Fractions (`1/2`, `1/4`) in Grade 2** rather than keeping it parked.
+
+**Decisions & doc updates (no code built yet):**
+1. **Basic Fractions added to Grade 2 (`g2.frac.halves-quarters`):** promoted from the `PARKED` section of `misconceptions-reference.md` into the Grade 2 curriculum (`claude-chat/specs/skill-map-spec.md`, strand `fractions`, order `175`, `maxDifficulty: 2`, prereq `g1.shapes.2d`, recipe `fractionsBasic`). The planned Grade 1–2 curriculum is now **36 skills** (**19 Grade 1, 17 Grade 2**; 17 built `ready`, **19 pending `planned`**).
+2. **`g1.num.21-99` mapped to `numbers21to99` (format `mcq`):** separated from `counting.js` (`count-objects`, which caps at 15 objects) so 21–99 uses counting-on/next-number `mcq` prompts with decade-transition misconceptions.
+3. **Full 36-skill coverage in `misconceptions-reference.md` (Second Update, 2026-11-16):** every pending Grade 1 and Grade 2 skill now has a computable distractor table with collision guards, and all newly authored rules, formula-collision fixes and guards are recorded in `TEACHER-REVIEW.md` as items **☐ 5 – ☐ 15**.
+4. **Tiered implementation order (`claude-chat/specs/skill-map-spec.md`):**
+   - **Tier 1 (4 skills, immediate numeric `mcq`, zero UI changes):** `g1.num.21-99`, `g1.place.tens-ones`, `g2.place.hundreds`, `g2.money.amounts` — retires the 2026-10-19 interim composer prerequisite-skip patch for place value.
+   - **Tier 2 (5 skills, string/numeric `mcq`):** `g1.num.ordinal`, `g1.time.daynight`, `g1.prenum.patterns`, `g1.prenum.sort`, `g2.measure.length-std`.
+   - **Tier 3 (10 skills, compact visual/SVG `render` trays in `QuestionView.jsx`):** `g1.prenum.compare`, `g1.shapes.2d`, `g1.shapes.space`, `g1.measure.length`, `g1.measure.weight`, `g1.money.coins`, `g2.measure.capacity`, `g2.time.clock`, `g2.data.pictograph`, `g2.frac.halves-quarters`.
+

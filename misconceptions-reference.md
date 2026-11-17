@@ -10,8 +10,9 @@
 
 **Notation:** for a question with operands `a`, `b`, correct answer `ans`. `tens(n)`/`ones(n)` = digit extraction. `swapDigits(n)` = swap tens/ones of a 2-digit number.
 
-> Source: distilled from *Early Childhood Mathematics Misconception Index (CBSE/NCERT)*, 68 misconceptions across 17 skills. Math formulae lost in doc conversion were reconstructed from the intact prose descriptions.
-> **Review status:** (1) cross-LLM review done — collision guards added (palindrome/zero), `exponentiation-confusion` removed in favour of `skip-count-misstep`, 3 place-value hints rewritten to conceptual "houses/bundles" language, fractions + shape-orientation gaps added (parked). See `claude-chat/archive/llm-review.md`. (2) **Human primary-math teacher review still pending** before launch — see `TEACHER-REVIEW.md` for the running list of items needing sign-off (incl. `regroup-ignored` rule, `g1.num.21-99` tags/format, `ones-addition-ignored` hint wording).
+> Source: distilled from *Early Childhood Mathematics Misconception Index (CBSE/NCERT)*, originally 68 misconceptions across 17 skills. Math formulae lost in doc conversion were reconstructed from the intact prose descriptions.
+> **Second Update (2026-11-16):** Expanded from 17 skills to all **36 skills** across Grade 1 (19 skills) and Grade 2 (17 skills, including `g2.frac.halves-quarters` promoted from PARKED into Grade 2 per founder decision). Added computable distractor tables for all 19 pending (`status: 'planned'`) skills, promoted `g1.shapes.2d` and `g2.frac.halves-quarters` out of PARKED into their grade sections with full 4-option distractor coverage, and added collision guards uncovered in the 2026-11-16 syllabus audit (`g1.place.tens-ones` formula duplicate + palindrome guard, `g1.num.ordinal` end/middle guards, `g2.time.clock` 12:00/6:30 hand-swap guard).
+> **Review status:** (1) cross-LLM review #1 done (`claude-chat/archive/llm-review.md`); (2) **Second-pass syllabus & misconception audit done (2026-11-16)** — all new/updated tables and collision guards logged as items **☐ 5–☐ 15** in `TEACHER-REVIEW.md`; (3) **Human primary-math teacher review still pending** (tracked in `TEACHER-REVIEW.md`, not a launch gate per DECISIONS 2026-09-23).
 
 ---
 
@@ -36,6 +37,42 @@ Skill-specific tags are listed per skill below.
 ---
 
 ## GRADE 1
+
+### Pre-number — big/small, more/less, tall/short — skill: `g1.prenum.compare`, recipe: `compare`, format `mcq` *(added 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `opposite-attribute-confusion` | picks the minimum/smaller group when asked for more/bigger/taller (or vice versa) | asked "Which has MORE?" (6 vs 3) → picks 3 | "Check the question word carefully: MORE means the bigger count, FEWER means the smaller count!" | always |
+| `quantity-size-illusion` | picks the group with physically larger objects over the group with a larger count | 3 big elephants vs 5 small ants → picks elephants | "Big animals take up space, but count how MANY there are in each group!" | contrasting object sizes |
+| `off-by-one` | `ans ± 1` on close group counts | 5 vs 6 → miscount by 1 | "Touch and count each group slowly, one by one!" | `|countA - countB| == 1` |
+
+### Pre-number — sorting & classification — skill: `g1.prenum.sort`, recipe: `sorting`, format `mcq` *(added 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `odd-one-out-inversion` | picks one of the 3 matching category items when asked "Which does NOT belong?" | 🍎 🍌 🍇 🚗 → picks 🍎 | "Three of these belong to the same family — find the ONE that is different!" | odd-one-out prompt |
+| `surface-feature-distraction` | matches by surface colour/size instead of functional category | "What goes with 🍎 🍓?" → picks red car 🚗 over 🍌 | "Think about what these things ARE (fruits!), not just their colour!" | category-match prompt |
+
+### Pre-number — simple patterns (AB, AAB) — skill: `g1.prenum.patterns`, recipe: `patterns`, format `mcq` *(added 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `last-item-echo` | repeats the immediately preceding symbol when the cycle switches (`seq.at(-1)`) — **guard: only when `seq.at(-1) != ans`** | `🍎 🍌 🍎 🍌 ?` → `🍌` | "Look at the whole pattern from the start — does the same one repeat, or does it take turns?" | `seq.at(-1) != ans` |
+| `ab-assumed-on-aab` | alternates `AB` on an `AAB` or `ABB` pattern (picks `B` at index 4 of `A, A, B, A, ?`) | `🔴 🔴 🔵 🔴 ?` → `🔵` | "Count how many of the first kind appear together before the pattern switches!" | `AAB` / `ABB` pattern |
+| `first-item-restart` | picks `seq[0]` when the next slot in the cycle is not `seq[0]` — **guard: only when `seq[0] != ans`** | `🍎 🍌 🍇 🍎 ?` → `🍎` | "Say the pattern out loud from the beginning to hear what comes next!" | `seq[0] != ans` |
+
+### Shapes — 2D shapes (circle, square, triangle, rectangle) — skill: `g1.shapes.2d`, recipe: `shapes2d`, format `shape-mcq` *(promoted & expanded 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `rotation-blindness` | fails to identify a square rotated 45° (calls it a "diamond" / picks non-square) | rotated square → not square | "Turn your head! A square is still a square even when it's tilted — count the 4 equal sides." | square shown rotated |
+| `square-rectangle-confusion` | picks `rectangle` for `square` (or `square` for `rectangle`) because both have 4 sides and 4 corners | rectangle → "square" | "A square has all 4 sides the EXACT same length; a rectangle has 2 long sides and 2 short sides!" | target is square or rectangle |
+| `side-corner-count-slip` | `sides ± 1` on side/corner counting prompts | triangle corners (3) → 4 | "Touch each corner one by one as you count!" | side/corner count asked |
+| `curved-straight-mixup` | answers `1` instead of `0` for straight sides of a circle | circle straight sides → 1 | "A circle goes round and round — it has 0 straight sides and 0 corners!" | circle side/corner count |
+| `orientation-dependent-naming` *(hint-only)* | names a shape only in its standard horizontal orientation | — | "Shapes keep their name no matter which way they turn!" | rotated shapes |
+
+### Shapes — spatial (inside/outside, near/far, top/bottom) — skill: `g1.shapes.space`, recipe: `spatial`, format `spatial-mcq` *(added 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `opposite-spatial-term` | picks the antonym of the target spatial relation (`inside`↔`outside`, `top`↔`bottom`, `near`↔`far`) | cat inside box → "outside" | "Inside means surrounded by the box walls; outside means out in the open!" | always |
+| `vertical-horizontal-confusion` | picks a vertical relation (`top`/`bottom`) for a containment/distance prompt (`inside`/`near`), or vice versa | near the tree → "on top" | "Check whether the question asks about high/low (top/bottom) or close/far (near/far)!" | always |
+| `reference-anchor-swap` | judges position relative to the distractor object instead of the named landmark | — | "Find the landmark named in the question first, then look from there!" | two landmarks shown |
 
 ### Counting & number sense (1–20) — recipe: `counting`, format `count-objects`
 | tag | rule (computable) | example | hint | condition |
@@ -88,31 +125,60 @@ Skill-specific tags are listed per skill below.
 | `operator-mixup` | `a + b` | 15-4 → 19 | "Minus means take away, not add!" | always |
 | `off-by-one` | `ans ± 1` | — | "Recount backward past ten carefully." | crosses 10 |
 
-### Place value intro — tens & ones — recipe: `placeValue`, format `mcq`
-| tag | rule | example | hint | condition |
+### Numbers 21–99 (read, write, count) — skill: `g1.num.21-99`, recipe: `numbers21to99`, format `mcq` *(added 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
 |---|---|---|---|---|
-| `separate-digit-reading` | concatenate `tens·10` written-out, e.g. 4 tens 2 ones → 402 | → 402 | "4 tens makes 40. When the 2 ones join, they take the zero's place to make 42!" | always |
-| `digit-reversal` | `swapDigits(value)` (3 tens 5 ones → 53) | 35 → 53 | "Tens on the left, ones on the right!" | always |
-| `expanded-addition` | `tensDigit + onesDigit` (face values) | 3 tens 4 ones → 7 | "3 tens is 30, 4 ones is 4 → 34!" | value-asked |
-| `unit-counting-only` | count bundles as 1 each → `tensDigit + onesDigit` | 3 rods 4 cubes → 7 | "Each rod is 10! Count by tens: 10, 20, 30." | block representation |
+| `decade-transition-stall` | `tens(n) * 10` (resets ones to 0 after 9, but forgets to increment tens) | after 29 → 20 | "After 9 ones comes a brand new ten! 29 jumps up to 30." | `n % 10 == 9` |
+| `decade-ten-overshoot` | `n + 10` (increments tens digit at decade boundary but keeps the 9 ones) | after 29 → 39 | "When 29 rolls over to the next ten, the 9 ones reset to 0 → 30!" | `n % 10 == 9` |
+| `before-instead-of-after` | `n - 1` (gives the number before `n` instead of after `n`) | after 34 → 33 | "We are counting forward! What number comes NEXT after this one?" | always |
+| `place-value-swap` | `swapDigits(ans)` (swaps tens and ones of the target number) — **guard: only when `ans % 11 != 0 && ans % 10 != 0`** | after 24 (25) → 52 | "Tens go on the left, ones go on the right!" | `ans % 11 != 0 && ans % 10 != 0` |
+| `off-by-one` | `ans + 1` (skips the target number) | after 34 → 36 | "Go one step at a time — don't skip a number!" | always |
 
-### Ordinal numbers (1st–10th) — recipe: `ordinal`, format `mcq`
+### Place value intro — tens & ones — recipe: `placeValue`, format `mcq` *(updated 2026-11-16)*
 | tag | rule | example | hint | condition |
 |---|---|---|---|---|
-| `cardinal-confusion` | output total count instead of position | → total | "We want the position — is it 3rd or 4th?" | always |
-| `right-to-left-start` | `(N+1) - position` (counts from other end) | 5 items, 2nd→4th | "Start counting from the front of the line!" | always |
+| `separate-digit-reading` | concatenate `tens·10` written-out, e.g. 4 tens 2 ones → 402 (`t * 100 + o`) | → 402 | "4 tens makes 40. When the 2 ones join, they take the zero's place to make 42!" | always |
+| `digit-reversal` | `swapDigits(value)` (3 tens 5 ones → 53) — **guard (2026-11-16): only when `t != o && o != 0` (skip palindromes like 33, and skip `o == 0` where `swapDigits(40) = 4` collides with `expanded-addition`)** | 35 → 53 | "Tens on the left, ones on the right!" | `t != o && o != 0` |
+| `expanded-addition` | `tensDigit + onesDigit` (face values) — **guard (2026-11-16): `o != 0`** | 3 tens 4 ones → 7 | "3 tens is 30, 4 ones is 4 → 34!" | value-asked, `o != 0` |
+| `tens-only-counted` *(added 2026-11-16)* | `tensDigit * 10` (counts the tens bundles as `t * 10` but forgets to add the ones; or `t` when `o == 0`) | 3 tens 4 ones → 30 | "You got the tens right! Now add the ones too." | `o != 0` (or `o == 0` → `t`) |
+| `unit-counting-only` *(visual block representation only — shares `t + o` formula with `expanded-addition`; see TEACHER-REVIEW ☐ 5)* | count bundles as 1 each → `tensDigit + onesDigit` | 3 rods 4 cubes → 7 | "Each rod is 10! Count by tens: 10, 20, 30." | block representation |
+
+### Ordinal numbers (1st–10th) — recipe: `ordinal`, format `mcq` *(updated 2026-11-16)*
+| tag | rule | example | hint | condition |
+|---|---|---|---|---|
+| `cardinal-confusion` | output total count `N` instead of position `p` — **guard (2026-11-16): only when `position < N` (otherwise `N == position` collides with the correct answer)** | → total | "We want the position — is it 3rd or 4th?" | `position < N` |
+| `right-to-left-start` | `(N+1) - position` (counts from other end) — **guard (2026-11-16): only when `2 * position != N + 1` (skip the middle item where left and right positions are equal)** | 5 items, 2nd→4th | "Start counting from the front of the line!" | `2 * position != N + 1` |
 | `off-by-one` | `position ± 1` | 4th → 3rd/5th | "Tap and count: 1st, 2nd, 3rd, 4th. Stop!" | always |
 | `irregular-ordinal-naming` *(hint-only)* | appends "-th" to 1/2/3 | 2→"twoth" | "1st, 2nd, 3rd are special words!" | position ≤ 3 |
 
-### Time — day/night, days of week — recipe: `timeBasic`, format `mcq` — *hint-only set* (sequence errors; use ±1 in sequence)
-| tag | rule | hint |
-|---|---|---|
-| `sequence-off-by-one` | next/prev day or part wrong by one | "What comes right after Monday?" |
-
-### Money — Indian coins — recipe: `moneyCoins`, format `mcq`
-| tag | rule | example | hint | condition |
+### Measurement — length (longer/shorter, non-standard units) — skill: `g1.measure.length`, recipe: `measureLength`, format `unit-length` *(added 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
 |---|---|---|---|---|
-| `size-value-bias` | pick coin by larger diameter not value | ₹2 over ₹5 | "Coin size doesn't tell value — read the printed number!" | always |
+| `count-marks-not-units` | `ans + 1` (counts block edges/corners from 0 instead of the blocks themselves) | 5 blocks → 6 | "Count the blocks themselves, one by one!" | always |
+| `skip-count-sequence` | `ans - 1` (skips one unit block while counting) | 6 blocks → 5 | "Touch each block along the object as you count!" | `ans >= 3` |
+| `operator-mixup` | `a + b` when asked "How many blocks longer is A than B?" (`a - b`) | 7 vs 4 blocks → 11 | "To find how many blocks LONGER, compare and take away the smaller length!" | comparison prompt |
+
+### Measurement — weight (heavy/light) — skill: `g1.measure.weight`, recipe: `measureWeight`, format `balance-mcq` *(added 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `up-pan-is-heavier` | picks the item on the *higher* pan of the balance scale as heavier | pan A down, pan B up → picks B | "On a seesaw or balance scale, the HEAVIER side pushes DOWN!" | pan-balance prompt |
+| `size-weight-illusion` | picks a large light object (🎈) as heavier than a smaller dense object (🍎/🔒) | balloon vs apple → balloon | "A balloon is big, but it is filled with air — so it is very light!" | contrasting size/density |
+| `opposite-attribute-confusion` | picks the lighter item when asked for heavier (or vice versa) | — | "Check whether the question asks for HEAVIER or LIGHTER!" | always |
+
+### Time — day/night, days of week, sequence — recipe: `timeBasic`, format `mcq` *(expanded 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `before-after-reversal` *(added 2026-11-16)* | picks the preceding day/stage (`index - 1`) when asked for *after*, or `index + 1` when asked for *before* | "After Tuesday?" → Monday | "After means moving FORWARD to the next day; before means the day that came earlier!" | always |
+| `sequence-off-by-one` | skips one day/stage in the direction asked (`(index ± 2 + N) % N`) | "After Monday?" → Wednesday | "Say the days in order slowly — what comes right after Monday?" | always |
+| `cycle-wrap-error` *(added 2026-11-16)* | fails Sunday→Monday or Night→Morning wrap-around (picks start/end of list instead of wrapping) | "After Sunday?" → Saturday | "After Sunday, a brand new week starts with Monday!" | boundary item |
+
+### Money — Indian coins (₹1, ₹2, ₹5, ₹10) — recipe: `moneyCoins`, format `coins-mcq` *(expanded 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `size-value-bias` | pick coin by larger diameter not value (or read ₹5 as ₹2) | ₹2 over ₹5 | "Coin size doesn't tell value — read the printed number!" | always |
+| `coin-count-as-value` *(added 2026-11-16)* | outputs the number of coins `coins.length` instead of summing their rupee values — **guard: only when `coins.length != ans`** | two ₹5 coins → ₹2 | "Look at the number printed on each coin — two ₹5 coins make 5 + 5 = ₹10!" | `coins.length >= 2 && coins.length != ans` |
+| `sum-as-concatenation` *(added 2026-11-16)* | concatenates two coin values as digits (`c1 * 10 + c2`) | ₹1 and ₹2 → ₹12 | "Add the rupee numbers on the coins together: 1 + 2 = ₹3!" | 2 single-digit coins |
+| `off-by-one` *(added 2026-11-16)* | `ans ± 1` | ₹7 → ₹6 or ₹8 | "Count the rupee values carefully!" | always |
 
 ---
 
@@ -125,6 +191,14 @@ Skill-specific tags are listed per skill below.
 | `zero-placeholder-ignored` | drop middle zero (309→39) | 309 → 39 | "Keep the zero in the tens place: 309." | has zero column |
 | `digit-value-blindness` | face value not place value (3 in 372 → 3) | → 3 | "The 3 is in the hundreds house → 300!" | value-asked |
 | `reverse-period-reading` | `reverseDigits(n)` (235→532) — **guard: only when first digit ≠ last digit (skip palindromes like 353)** | 235 → 532 | "Read left to right, hundreds first!" | first≠last digit |
+
+### Place value — hundreds, tens, ones (expanded form) — skill: `g2.place.hundreds`, recipe: `placeValue3`, format `mcq` *(added 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `zero-placeholder-ignored` | drops a zero tens or ones column when combining expanded form (`h * 10 + o` for `h*100 + o`) | `300 + 8 → 38` | "300 has three digits! Keep a 0 in the tens house so the 8 stays in the ones house → 308." | `t == 0 && o > 0` |
+| `digit-value-blindness` | sums only the non-zero leading face digits (`h + t + o`) | `300 + 40 + 5 → 12` | "Those are hundreds and tens! Put each digit into its own house: hundreds, tens, ones." | always |
+| `reverse-period-reading` | `o * 100 + t * 10 + h` — **guard: only when `h != o && o > 0`** | `300 + 40 + 5 → 543` | "Hundreds go on the left, tens in the middle, ones on the right!" | `h != o && o > 0` |
+| `place-column-shift` | swaps tens and ones houses (`h * 100 + o * 10 + t`) — **guard: only when `t != o`** | `300 + 40 + 5 → 354` | "Check the tens and ones houses — 40 means 4 in the tens place!" | `t != o` |
 
 ### 2-digit addition without carry — recipe: `addition2d`, format `mcq`
 | tag | rule | example | hint | condition |
@@ -175,38 +249,63 @@ Skill-specific tags are listed per skill below.
 | `multiplication-by-one-identity` | if factor 1: `other + 1` | 7×1 → 8 | "×1 means one group — it stays the same!" | a==1 or b==1 |
 | `zero-identity-error` | if factor 0: returns other factor | 7×0 → 7 | "Any number times zero is zero!" | a==0 or b==0 |
 
-### Money — amounts & change (₹) — recipe: `moneyAmounts`, format `mcq`
+### Measurement — length in standard units (cm, m) — skill: `g2.measure.length-std`, recipe: `measureLength`, format `mcq` *(added 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `ruler-one-start-error` | `ans + 1` (counts ruler marks starting at 1 instead of 0 cm jumps) | 0 cm to 8 cm → 9 cm | "Start measuring at the 0 cm mark and count the centimetre jumps!" | always |
+| `end-mark-only-read` | outputs `end` instead of `end - start` when object starts at `start > 0` | 2 cm to 9 cm → 9 cm | "The object starts at {start} cm, not 0 cm! Subtract the starting mark from the end mark." | `start > 0` |
+| `operator-mixup` | `end + start` on offset ruler, or `|a - b|` when adding two lengths | 2 cm to 9 cm → 11 cm | "Subtract the start mark to find the length between two points, or add when joining two lengths!" | two numbers in prompt |
+| `off-by-one` | `ans - 1` | 7 cm → 6 cm | "Count the centimetre spaces carefully!" | `ans >= 2` |
+
+### Measurement — capacity (litres) — skill: `g2.measure.capacity`, recipe: `measureCapacity`, format `mcq` *(added 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `container-count-confusion` | outputs `m` or `k + m` instead of `k * m` when filling `m` jugs of `k` cups/litres each | 3 jugs × 2 L → 3 or 5 | "Each jug holds the same amount — add {k} for every jug!" | multi-vessel prompt |
+| `tall-thin-illusion` *(hint-only / visual vessel comparison)* | picks tall narrow vessel over wide vessel of greater litre capacity | — | "Read the litre numbers! A wide bucket can hold more than a tall thin glass." | vessel comparison |
+| `operator-mixup` | `a + b` when asked "how many more litres", or `|a - b|` when combining | 15 L vs 6 L → 21 L | "Check whether we are pouring together (add) or finding how much more (subtract)!" | two-vessel arithmetic |
+| `off-by-one` | `ans ± 1` | 12 L → 11 L | "Recount the litres carefully!" | always |
+
+### Money — amounts & change (₹) — recipe: `moneyAmounts`, format `mcq` *(expanded 2026-11-16)*
 | tag | rule | example | hint | condition |
 |---|---|---|---|---|
-| `smaller-from-larger-force-money` | per-column abs subtraction across zero | ₹100−₹75 → ₹35 | "Can't do 0−5 — borrow from hundreds!" | minuend has zeros |
+| `smaller-from-larger-force-money` | per-column abs subtraction across zero (`(tens(a)-tens(b))*10 + ones(b)` or for `100 - b`, `(10 - tens(b))*10 + ones(b)`) | ₹100−₹75 → ₹35 | "Can't do 0−5 — borrow from hundreds!" | minuend has zeros (`ones(a) == 0 && ones(b) > 0`) |
+| `ten-across-zero-borrow` *(added 2026-11-16)* | `ans + 10` (borrows 10 for the ones column but forgets to reduce the tens column) | ₹50−₹18 → ₹42 | "When you exchange one ₹10 note for ten ₹1 coins, you have one less ₹10 note!" | subtraction with borrow |
+| `operator-mixup` *(added 2026-11-16)* | `a + b` on change subtraction, or `|a - b|` on rupee addition | ₹50−₹20 → ₹70 | "Spending money takes rupees away — subtract the price to find the change!" | `a != b` |
+| `off-by-one` *(added 2026-11-16)* | `ans ± 1` | ₹25 → ₹24 | "Count the rupee coins carefully!" | always |
 | `rupee-paise-mismatch` *(hint-only — formatting)* | adds ₹ to paise as ints | ₹5+50p → ₹55 | "1 rupee = 100 paise — can't add directly!" | mixed units |
 | `decimal-place-error` *(hint-only — formatting)* | mis-places paise decimal | 5p → ₹5.5 | "5 paise is .05; ₹5.5 means 5 rupees 50 paise!" | paise present |
 
-### Time — reading the clock — recipe: `timeClock`, format `mcq`
+### Time — reading the clock — recipe: `timeClock`, format `clock` *(updated 2026-11-16)*
 | tag | rule | example | hint | condition |
 |---|---|---|---|---|
-| `hand-size-reversal` | swap hour/minute hand reading | 3:00 → 12:15 | "Short hand = hour, read it first!" | always |
-| `hour-hand-proximity` | round hour up to nearest → `hour+1` | 4:30 → 5:30 | "Hour hand is past 4 but not at 5 — still 4!" | minutes=30 |
-| `minute-numeric-literal` | read minute as literal digit not ×5 | hand at 6 → "6 min" | "For minutes, count by 5s around the clock!" | always |
-| `half-hour-as-fifty` | half → :50 not :30 | half past 3 → 3:50 | "An hour is 60 min — half is 30, not 50!" | half-hour |
+| `hand-size-reversal` | swap hour/minute hand reading — **guard (2026-11-16): skip at `12:00` (both hands on 12) and `6:30` (both hands at 6), where swapping produces the correct time** | 3:00 → 12:15 | "Short hand = hour, read it first!" | `!(hour == 12 && minutes == 0) && !(hour == 6 && minutes == 30)` |
+| `hour-hand-proximity` | round hour up to nearest → `(hour % 12) + 1` | 4:30 → 5:30 | "Hour hand is past 4 but not at 5 — still 4!" | minutes=30 |
+| `minute-numeric-literal` | read minute hand's clock number as literal minutes (`:12` for `:00`, `:06` for `:30`) | hand at 6 → "4:06" | "For minutes, count by 5s around the clock!" | always |
+| `half-hour-as-fifty` | half → :50 not :30 | half past 3 → 3:50 | "An hour is 60 min — half is 30, not 50!" | half-hour (minutes=30) |
+| `off-by-one-hour` *(added 2026-11-16)* | reads hour hand off by 1 hour (`(hour % 12) + 1` at `:00`, or `((hour + 10) % 12) + 1`) | 3:00 → 4:00 | "Look closely at the short hour hand — which number is it pointing right at?" | always |
+
+### Data handling — simple pictographs — skill: `g2.data.pictograph`, recipe: `pictograph`, format `pictograph` *(added 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `adjacent-row-read` | returns the value of a different row in the pictograph — **guard: only when that row's count `!= ans`** | asked Apples (4), reads Mangoes (6) → 6 | "Follow the row for the picture asked in the question across with your finger!" | adjacent row count `!= ans` |
+| `total-instead-of-difference` | `countA + countB` when asked "How many MORE A than B?" (`countA - countB`) | 6 vs 4 → 10 | "To find 'how many more', subtract the smaller row from the bigger row!" | comparison prompt |
+| `scale-factor-ignored` | returns raw symbol count `c` instead of `c * scale` when `scale == 2` | 4 symbols (×2 = 8) → 4 | "Check the key: each picture stands for 2, so count by twos!" | `scale > 1` |
+| `off-by-one` | `ans ± 1` | 5 → 4 or 6 | "Count each picture in the row carefully!" | always |
+
+### Fractions — basic halves & quarters (1/2, 1/4, 3/4) — skill: `g2.frac.halves-quarters`, recipe: `fractionsBasic`, format `fraction-mcq` *(promoted from PARKED & expanded 2026-11-16)*
+| tag | rule (computable) | example | hint | condition |
+|---|---|---|---|---|
+| `denominator-magnitude-bias` | picks the fraction with the larger denominator as "bigger" (thinks `1/4 > 1/2` because `4 > 2`), or confuses `1/2` and `1/4` | 1/2 vs 1/4 → "1/4" | "More pieces means each piece is SMALLER! Half a roti (1/2) is bigger than a quarter (1/4)." | comparing unit fractions or naming `1/2` vs `1/4` |
+| `shaded-to-unshaded-ratio` *(added 2026-11-16)* | writes `shaded / unshaded` instead of `shaded / totalParts` (e.g. 1 shaded, 3 unshaded → `1/3` instead of `1/4`) | 1 of 4 shaded → `1/3` | "The bottom number counts ALL the equal parts in the whole shape, including the shaded one!" | `totalParts == 4 && shadedParts == 1` |
+| `unshaded-complement-picked` *(added 2026-11-16)* | picks `(totalParts - shadedParts) / totalParts` (counts unshaded parts instead of shaded parts) — **guard: only when `shadedParts * 2 != totalParts`** | 1 of 4 shaded → `3/4` | "Count the SHADED parts for the top number!" | `shadedParts * 2 != totalParts` |
+| `double-instead-of-half` *(added 2026-11-16)* | outputs `2 * n` instead of `n / 2` on "What is half of {n}?" prompts | half of 6 → 12 | "Half means sharing equally into 2 groups, not doubling!" | half-of-number prompt |
+| `numerator-only-focus` *(hint-only)* | compares only numerators, ignores denominator | — | "Look at the whole picture — how big is each piece?" | comparing fractions |
 
 ---
 
-## PARKED — for `planned` skills not yet built (add when their recipes are built)
+## PARKED — for future grades (Grade 3+, not in the Grade 1–2 map)
 
-These are real, important misconceptions for skills that exist in the skill map as `planned`. Documented now so they're ready when those recipes are built — do NOT build these skills early just because the misconceptions exist.
-
-### Fractions (Grade 2, basic 1/2 & 1/4) — skill not yet in ready set — recipe: TBD, format `mcq` or `compare`
-| tag | rule | example | hint | condition |
-|---|---|---|---|---|
-| `denominator-magnitude-bias` | picks the fraction with the larger denominator as "bigger" (thinks 1/4 > 1/2 because 4>2) | 1/2 vs 1/4 → "1/4 bigger" | "More pieces means each piece is SMALLER! Half a roti is bigger than a quarter." | comparing unit fractions |
-| `numerator-only-focus` *(hint-only)* | compares only numerators, ignores denominator | — | "Look at the whole picture — how big is each piece?" | comparing fractions |
-
-### Shape orientation (Grade 1, 2D shapes) — `g1.shapes.2d` is planned — recipe: `shapes2d`, format `mcq`
-| tag | rule | example | hint | condition |
-|---|---|---|---|---|
-| `rotation-blindness` | fails to identify a square rotated 45° (calls it a "diamond"); picks the non-square | rotated square → "diamond/not square" | "Turn your head! A square is still a square even when it's tilted — count the 4 equal sides." | square shown rotated |
-| `orientation-dependent-naming` *(hint-only)* | names a shape only in its "standard" orientation | — | "Shapes keep their name no matter which way they turn!" | rotated shapes |
+*(As of the 2026-11-16 second update, both previously parked entries — `g1.shapes.2d` shape orientation and `g2.frac.halves-quarters` basic fractions — have been promoted into the active Grade 1 and Grade 2 sections above.)*
 
 ---
 

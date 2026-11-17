@@ -73,7 +73,7 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
 
 ---
 
-## Where things stand — orientation snapshot (2026-10-28)
+## Where things stand — orientation snapshot (2026-11-16)
 
 > **This is a snapshot for orientation, not a status document.** `claude-chat/TRACKER.md` is the
 > only status source; if this section and the tracker disagree, **the tracker wins** — and fix
@@ -95,18 +95,7 @@ describe that tier as though it were next; `DOCMAP.md` flags which.
 - **Still open (mostly human):** Play app creation and upload (L2 identity verification done 2026-10-27), phone regression walk on the new
   domain (L5), store listing + Data Safety + Designed-for-Families (L7), a written success bar
   (L8), the 12-tester × 14-day closed test (L9).
-- **Content coverage is partial — do not imply otherwise.** `src/recipes/skillMap.js` plans 35
-  skills (Grade 1: 19, Grade 2: 16, Grade 3: none). **17 are `ready`: Grade 1: 7, Grade 2: 10**,
-  all in the number/arithmetic strands (counting, comparing, add/subtract, 2-digit with
-  carry/borrow, 3-digit numbers, ×-tables of 2/5/10). **Not built:** shapes, measurement, time,
-  money, data/pictographs, patterns, sorting, ordinals, tens-and-ones, hundreds, numbers 21–99.
-  Roughly half of those need question formats and art that don't exist yet, plus a teacher
-  review of their distractor rules (TRACKER #7, #12). Store copy and in-app text must describe
-  what exists (counting, add/subtract, place value, the 2/5/10 tables), **not** "the CBSE
-  syllabus". Count the `ready` skills from `skillMap.js`, not from memory or from `README.md`.
-  **The Grade 2 suggested path works only because the composer skips unbuilt prerequisites — an interim patch
-  (DECISIONS 2026-10-19, 2026-10-20); the app still teaches no place value.** Building numbers 21–99 and
-  tens-and-ones is the real fix. **Suggestions are grade-scoped** (DECISIONS 2026-10-20): a Class 2 child starts on
+- **Content coverage (updated 2026-11-16):** `src/recipes/skillMap.js` defines **36 skills** across Grades 1–2 (**Grade 1: 19, Grade 2: 17** including `g2.frac.halves-quarters` Basic Fractions; Grade 3: none), and **all 36 are `ready`** as of the 2026-11-16 3-batch build (`DECISIONS.md` 2026-11-16, `claude-chat/specs/skill-map-spec.md`, `misconceptions-reference.md`, `TEACHER-REVIEW.md` ☐ 5–☐ 15). Because `g1.num.21-99` and `g1.place.tens-ones` are now `ready`, the Grade 1→2 place-value prerequisite chain is live in unscoped mode while the composer's skip-unbuilt-prereqs rule remains as a safety net. Human primary-math teacher review of `TEACHER-REVIEW.md` (☐ 1–☐ 15) remains open (not a launch gate per DECISIONS 2026-09-23). Count the `ready` skills from `skillMap.js`, not from memory or from `README.md`. **Suggestions are grade-scoped** (DECISIONS 2026-10-20): a Class 2 child starts on
   Class 2 skills with Class 1 assumed cleared; progress is per skill id; there are no separate profiles (one child per
   device). **The closed-test success bar (L8) is decided** (7 of 12 children on 3+ days in week 1 and 2+ in week 2); what
   counts as "practised" is decided (a finished session) and **measured on the device** (`practiceDays`, shown in the parent

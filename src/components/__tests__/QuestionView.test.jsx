@@ -32,3 +32,93 @@ describe('QuestionView — mcq font sizing', () => {
     expect(el.className).not.toContain('text-question');
   });
 });
+
+describe('QuestionView — visual format trays (Batch 3)', () => {
+  it('renders unit-length block tray', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'unit-length',
+          questionText: 'How many blocks long is the pencil?',
+          render: { objectGlyph: '✏️', unitGlyph: '🟦', count: 4 },
+        }}
+      />,
+    );
+    expect(screen.getByLabelText('4 unit blocks')).toBeTruthy();
+  });
+
+  it('renders shape-mcq SVG with rotation when rotated=true', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'shape-mcq',
+          questionText: 'This shape is tilted! Which 2D shape is it?',
+          render: { shape: 'square', rotated: true },
+        }}
+      />,
+    );
+    const svg = screen.getByRole('img', { name: 'square' });
+    expect(svg.style.transform).toBe('rotate(45deg)');
+  });
+
+  it('renders clock SVG with time label', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'clock',
+          questionText: 'What time does the clock show?',
+          render: { hours: 4, minutes: 30 },
+        }}
+      />,
+    );
+    expect(screen.getByRole('img', { name: '4:30' })).toBeTruthy();
+  });
+
+  it('renders coins-mcq with rupee coins', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'coins-mcq',
+          questionText: 'Count the coins',
+          render: { coins: [5, 2, 1] },
+        }}
+      />,
+    );
+    expect(screen.getByText('₹5')).toBeTruthy();
+    expect(screen.getByText('₹2')).toBeTruthy();
+    expect(screen.getByText('₹1')).toBeTruthy();
+  });
+
+  it('renders pictograph rows and scale key when scale > 1', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'pictograph',
+          questionText: 'Each picture stands for 2. How many Apples are there?',
+          render: {
+            rows: [
+              { label: 'Apples', glyph: '🍎', count: 3 },
+              { label: 'Bananas', glyph: '🍌', count: 2 },
+            ],
+            scale: 2,
+          },
+        }}
+      />,
+    );
+    expect(screen.getByText('Apples')).toBeTruthy();
+    expect(screen.getByText('Key: 1 picture = 2')).toBeTruthy();
+  });
+
+  it('renders fraction-mcq partitioned bar', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'fraction-mcq',
+          questionText: '1 of 4 equal parts is shaded. What fraction is shaded?',
+          render: { totalParts: 4, shadedParts: 1 },
+        }}
+      />,
+    );
+    expect(screen.getByRole('img', { name: '1 of 4 parts shaded' })).toBeTruthy();
+  });
+});

@@ -543,12 +543,17 @@ describe('isPrereqsMet: a prerequisite with no recipe yet cannot gate anything',
 });
 
 describe('real skill map: the suggested path reaches every ready skill', () => {
-  it('2-digit add/subtract and 3-digit numbers are not walled off by the unbuilt place-value skills', () => {
-    const base = states(['g1.add.within20', MASTERY.UNLOCK_LEVEL], ['g1.sub.within20', MASTERY.UNLOCK_LEVEL]);
+  it('place value (g1.place.tens-ones) is now ready and properly gates 2-digit add/subtract and 3-digit numbers in unscoped mode', () => {
+    const base = states(
+      ['g1.add.within20', MASTERY.UNLOCK_LEVEL],
+      ['g1.sub.within20', MASTERY.UNLOCK_LEVEL],
+      ['g1.place.tens-ones', MASTERY.UNLOCK_LEVEL],
+    );
     expect(isPrereqsMet('g2.add.2d-nocarry', base, SKILLS)).toBe(true);
     expect(isPrereqsMet('g2.sub.2d-noborrow', base, SKILLS)).toBe(true);
-    expect(isPrereqsMet('g2.num.3digit', {}, SKILLS)).toBe(true);
-    // the Grade 1 basics are still required
+    expect(isPrereqsMet('g2.num.3digit', base, SKILLS)).toBe(true);
+    // without g1.place.tens-ones cleared, unscoped mode requires it
+    expect(isPrereqsMet('g2.num.3digit', {}, SKILLS)).toBe(false);
     expect(isPrereqsMet('g2.add.2d-nocarry', {}, SKILLS)).toBe(false);
   });
 

@@ -192,6 +192,9 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   split. **Also deliberately absent from
   `KIND_BY_RECIPE`** — it's `mcq`, not `count-objects`, so the `'count'` kind would read a
   `render.count` that doesn't exist on this skill's questions.
+- **`numbers21to99.js`**, **`placeValue.js`**, **`placeValue3.js`**, **`moneyAmounts.js`** (Batch 1, 2026-11-16) — numeric `mcq` recipes serving `g1.num.21-99` (counting on across decades 21–99), `g1.place.tens-ones` (tens and ones bundles), `g2.place.hundreds` (expanded form `300 + 40 + 5 = ?`), and `g2.money.amounts` (whole-rupee combinations and change from round notes). All route through `selectDistractors` (`_plausibility.js`).
+- **`ordinal.js`**, **`timeBasic.js`**, **`patterns.js`**, **`sorting.js`**, **`measureLength.js`** (Batch 2, 2026-11-16) — recipes serving `g1.num.ordinal` (positions 1st–10th from the left), `g1.time.daynight` (days of the week & daily cycle), `g1.prenum.patterns` (AB, AAB, ABB, ABC patterns), `g1.prenum.sort` (odd-one-out & category matching), and multi-skill `measureLength` (`g1.measure.length` in non-standard block units + `g2.measure.length-std` in cm/m).
+- **`compare.js`**, **`shapes2d.js`**, **`spatial.js`**, **`measureWeight.js`**, **`moneyCoins.js`**, **`measureCapacity.js`**, **`timeClock.js`**, **`pictograph.js`**, **`fractionsBasic.js`** (Batch 3, 2026-11-16) — recipes completing the remaining Grade 1–2 strands (`g1.prenum.compare`, `g1.shapes.2d`, `g1.shapes.space`, `g1.measure.weight`, `g1.money.coins`, `g2.measure.capacity`, `g2.time.clock`, `g2.data.pictograph`, and `g2.frac.halves-quarters` Basic Fractions 1/2, 1/4, 3/4). Visual formats (`unit-length`, `shape-mcq`, `spatial-mcq`, `balance-mcq`, `coins-mcq`, `clock`, `pictograph`, `fraction-mcq`) render via token-styled trays in `QuestionView.jsx`.
 - **`__tests__/validator.test.js`** — the shared validator (STANDARDS §3). For each recipe and
   each skill it serves (`skillIds ?? [skillId]`), runs `generate` 100× per difficulty and
   asserts the full contract; branches on `format` (numeric vs `compare`). Every recipe must
@@ -224,13 +227,10 @@ reads it to know which recipes to build.
   `extras` (`displayName`/`subtitle`/`icon`, and — as of DECISIONS 2026-09-22 — `strategyRungs:
   true`, the skill-map opt-in for the bridge-in walk; `g2.add.2d-nocarry` only today, a property
   never a skillId literal, so #13 can add skills here as their rungs convert to a strategy order).
-  `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). Seventeen skills
-  are `ready` today — `g1.count.1-9`, `g1.count.1-20`, `g1.num.compare20`, `g1.add.within10`,
-  `g1.add.within20`, `g1.sub.within10`, `g1.sub.within20`, `g2.num.compare999`,
-  `g2.add.2d-nocarry`, `g2.add.2d-carry`, `g2.sub.2d-noborrow`, `g2.sub.2d-borrow`,
-  `g2.mul.intro`, `g2.mul.table2`, `g2.mul.table5`, `g2.mul.table10`, `g2.num.3digit` (these are
-  exactly what `SkillSelectScreen` lists); all others `planned`. Several skills share one
-  parameterised recipe (e.g. `counting`, `addition`, `addition2d`).
+  `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). All **36 skills**
+  across Grades 1–2 (19 in Grade 1, 17 in Grade 2 including `g2.frac.halves-quarters`) are
+  `ready` as of 2026-11-16 (`SkillSelectScreen` and `SkillPathScreen` list them per grade). Several skills share one
+  parameterised recipe (`counting`, `addition`, `subtraction`, `compareNumbers`, `addition2d`, `subtraction2d`, `mulTable`, `measureLength`).
 - **Helpers** — `getSkill` (throws on unknown), `prereqsMet(id, masteryMap)`,
   `unlockedSkills(masteryMap)`, `frontierSkill(masteryMap, grade)`, `nextSkills(id)`.
   Unlock = prereqs at mastery ≥ `MASTERY_THRESHOLD` (3). These are status-agnostic graph
