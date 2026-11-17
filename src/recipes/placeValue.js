@@ -73,6 +73,13 @@ const recipe = {
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',
       misconceptions: optionPairs.map((opt) => opt.tag),
+      render: {
+        kind: 'place-houses',
+        columns: [
+          { label: 'Tens', count: t },
+          { label: 'Ones', count: o },
+        ],
+      },
     };
   },
 };

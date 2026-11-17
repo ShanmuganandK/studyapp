@@ -92,6 +92,14 @@ const recipe = {
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',
       misconceptions: optionPairs.map((opt) => opt.tag),
+      render: {
+        kind: 'place-houses',
+        columns: [
+          { label: 'Hundreds', count: h },
+          { label: 'Tens', count: t },
+          { label: 'Ones', count: o },
+        ],
+      },
     };
   },
 };

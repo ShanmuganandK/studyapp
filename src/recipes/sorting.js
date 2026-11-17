@@ -44,6 +44,7 @@ const recipe = {
         options: optionPairs.map((opt) => opt.value),
         format: 'mcq',
         misconceptions: optionPairs.map((opt) => opt.tag),
+        render: { kind: 'sorting-tray', mode: 'odd-one-out', items: shown },
       };
     }
 
@@ -76,6 +77,7 @@ const recipe = {
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',
       misconceptions: optionPairs.map((opt) => opt.tag),
+      render: { kind: 'sorting-tray', mode: 'belongs-with', items: promptGroup },
     };
   },
 };

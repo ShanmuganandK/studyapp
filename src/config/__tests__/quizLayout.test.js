@@ -7,10 +7,17 @@ import { QUIZ_PROFILES, quizProfileForGrade } from '../quizLayout.js';
 const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'index.css'), 'utf8');
 
 describe('quizProfileForGrade', () => {
-  it('gives the young grades the roomy profile (big Tinku, short questions)', () => {
+  it('gives the young grades the roomy profile by default (short equations)', () => {
     expect(quizProfileForGrade(1)).toBe('roomy');
     expect(quizProfileForGrade(2)).toBe('roomy');
     expect(quizProfileForGrade('2')).toBe('roomy');
+  });
+  it('picks the skill-specific layoutProfile (story or stage) for Classes 1–2 when skillId is provided', () => {
+    expect(quizProfileForGrade(1, 'g1.add.within20')).toBe('roomy');
+    expect(quizProfileForGrade(1, 'g1.num.ordinal')).toBe('story');
+    expect(quizProfileForGrade(1, 'g1.place.tens-ones')).toBe('story');
+    expect(quizProfileForGrade(2, 'g2.time.clock')).toBe('stage');
+    expect(quizProfileForGrade(2, 'g2.data.pictograph')).toBe('stage');
   });
   it('gives Class 3 and up the standard profile', () => {
     expect(quizProfileForGrade(3)).toBe('standard');

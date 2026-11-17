@@ -95,8 +95,8 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
 
   // ONE spacing budget (see `.quiz-stage` in index.css, DECISIONS 2026-10-18). Tinku is NOT resized when
   // a hint shows: the hint has its own reserved slot, so Tinku, the question and the tiles stay put and
-  // only his pose changes. The profile is chosen per grade, never per question.
-  const profile = quizProfileForGrade(grade);
+  // only his pose changes. The profile is chosen per skill/grade, never per question.
+  const profile = quizProfileForGrade(grade, skillId);
   const showPips = !s.isBridgeQuestion && !s.isBonusQuestion;
 
   // Compare blank fills with the CORRECT sign so the statement completes: green on a correct
@@ -105,7 +105,7 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
   const blankFill = s.phase === 'correct' ? 'correct' : s.phase === 'reveal' ? 'reveal' : null;
 
   return (
-    <div className="quiz-stage h-full overflow-hidden bg-bg px-5 pt-1 pb-2">
+    <div className="quiz-stage h-full overflow-hidden bg-bg px-3.5 sm:px-5 pt-1 pb-2">
      <div className="quiz-grid" data-profile={profile}>
       {/* Top bar: back · progress counter · mute toggle */}
       <div data-q="bar" className="flex items-center justify-between">

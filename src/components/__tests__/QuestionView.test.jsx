@@ -121,4 +121,51 @@ describe('QuestionView — visual format trays (Batch 3)', () => {
     );
     expect(screen.getByRole('img', { name: '1 of 4 parts shaded' })).toBeTruthy();
   });
+
+  it('renders ordinal-strip single-row animal strip instead of inline sentence', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: 'From the left, 🐶 is at position ? in: 🐼 🐮 🐶 🐯',
+          render: { kind: 'ordinal-strip', items: ['🐼', '🐮', '🐶', '🐯'], target: '🐶' },
+        }}
+      />,
+    );
+    expect(screen.getByText('← Start (1st)')).toBeTruthy();
+  });
+
+  it('renders place-houses card for tens & ones and 3-digit numbers', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: '3 tens and 4 ones make ?',
+          render: {
+            kind: 'place-houses',
+            columns: [
+              { label: 'Tens', count: 3 },
+              { label: 'Ones', count: 4 },
+            ],
+          },
+        }}
+      />,
+    );
+    expect(screen.getByText('What number do these houses make?')).toBeTruthy();
+    expect(screen.getByText('Tens')).toBeTruthy();
+    expect(screen.getByText('Ones')).toBeTruthy();
+  });
+
+  it('renders SVG tilted balance scale for balance-mcq', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'balance-mcq',
+          questionText: 'Which one is HEAVIER?',
+          render: { leftItem: '🍉', rightItem: '🎈', heavier: 'left' },
+        }}
+      />,
+    );
+    expect(screen.getByRole('img', { name: 'Balance scale with 🍉 and 🎈' })).toBeTruthy();
+  });
 });

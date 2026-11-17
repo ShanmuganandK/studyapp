@@ -352,24 +352,32 @@ future kid-feedback tuning is a token change, not a screen hunt.
 - **Reskinned so far (Screen 1 — quiz):** `SessionPlayer.jsx`, `QuestionView.jsx`,
   `HintBubble.jsx` are now fully token-based (no raw hex). `QuestionView` takes a
   `blankFill` prop (`SessionPlayer` derives `'correct'`/`'reveal'`/`null` from `phase`, existing
-  view-state — no new hook/recipe data) to fill the compare blank with the correct sign
-  (`animate-slot-fill`): green on a correct answer, sky/learn on the wrong-#2 reveal.
-- **Quiz spacing budget (2026-10-18)** — `SessionPlayer` is a size container (`.quiz-stage`, `container: quiz /
+  view-state — no new hook/recipe data) to fill the compare/strip/story blank with the correct answer
+  (`animate-slot-fill`): green on a correct answer, sky/learn on the wrong-#2 reveal. `QuestionView`
+  renders 4 visual archetypes (`equation`/`compare`, `strip`, `story`, `stage`), replacing inline-emoji
+  and prose paragraphs with tactile strips (`ordinal-strip`, `pattern-strip`, `sorting-tray`,
+  `number-step`, `time-sequence`), concept cards (`place-houses`, `money-add`, `money-change`,
+  `ruler-cm`, `length-add`, `capacity-jugs`, `capacity-tanks`), and `qreg`-sized visual trays
+  (`count-objects`, `unit-length`, `ribbon-compare`, `group-compare`, `shape-mcq`, `spatial-mcq`,
+  `balance-mcq`, `coins-mcq`, `clock`, `pictograph`, `fraction-mcq`, `half-collection`).
+- **Quiz spacing budget (2026-10-18, extended 2026-11-17)** — `SessionPlayer` is a size container (`.quiz-stage`, `container: quiz /
   size`) with one grid child (`.quiz-grid[data-profile]`) in `src/index.css`:
   `bar | Tinku + ground | hint slot | question (the only elastic row) | answer tiles`. Every size in it
   (Tinku, hint slot, type tokens, tiles, counted objects, compare numbers) is a CSS variable computed from the
   stage's own height/width (`cqh`/`cqw`) in that ONE place; `QuestionView`/`KidButton`/`HintBubble` read the
   variables (with their old values as fallbacks). **Nothing resizes or moves anything else:** the hint has a
   reserved slot (holds `QuizPips` when there is no hint), so Tinku keeps his size and only his pose changes.
-  The profile is picked per GRADE by `config/quizLayout.js` (`roomy` = Classes 1-2, big Tinku; `standard` =
-  Class 3+, bigger question area), never per question. Two container-query tiers (≤600 px, ≤440 px stage) trade
-  size for fit. Guards: `config/__tests__/quizLayout.test.js` (every profile has CSS), the "one spacing budget"
-  tests in `SessionPlayer.test.jsx`, and **`npm run layout:check`** (`scripts/check-quiz-layout.mjs`, on demand,
-  not in CI: plays real sessions at 5 phone sizes and asserts fit, hint-moves-nothing, Tinku ≥ 22% of the
-  stage, no dead void, tiles ≥ 44 px; proved RED). A first-run picker pass checks the grade picker the same way. A second pass seeds progress at the hardest rung of
+  The profile is picked per SKILL/GRADE by `config/quizLayout.js` (`roomy` = short equations & pure trays, 29% Tinku;
+  `story` = strip & structured concept cards, 26% Tinku; `stage` = rich visual trays, 25% Tinku; `standard` =
+  Class 3+, bigger question area), never per question, so Tinku never changes size mid-session. Three container-query
+  tiers (`≤600px`, `≤540px` in-browser small phone, `≤440px` tiny window) trade size for fit while keeping the hint slot
+  tall enough (`≥52px`) for two-line hints. Guards: `config/__tests__/quizLayout.test.js` (every profile has CSS), the
+  "one spacing budget" tests in `SessionPlayer.test.jsx`, and **`npm run layout:check`** (`scripts/check-quiz-layout.mjs`, on demand,
+  not in CI: plays real sessions at 6 phone sizes including `360×540` in-browser and asserts fit, hint-moves-nothing,
+  Tinku ≥ 22% of the stage, no dead void, tiles ≥ 44 px; proved RED). A first-run picker pass checks the grade picker the same way. A second pass seeds progress at the hardest rung of
   'Big Number Party' and must measure a 1-, 2- and 3-row counting tray (a fresh install only ever plays
-  1-row trays); `LAYOUT_QUESTIONS` / `LAYOUT_ONLY` / `LAYOUT_PORT` env knobs. The counting tray sizes itself from the
-  question area's own height (`.quiz-question` is a size container, `qreg`), so a 3-row tray shrinks instead of
+  1-row trays); `LAYOUT_QUESTIONS` / `LAYOUT_SKILLS` / `LAYOUT_ONLY` / `LAYOUT_PORT` env knobs. All visual trays size themselves from the
+  question area's own height/width (`.quiz-question` is a size container, `qreg`), so a 3-row tray or SVG stage shrinks instead of
   clipping. The bottom nav is hidden while a question is showing and returns on the summary (see
   `CelebrationScreen`). The Android activity is locked to portrait (`screenOrientation` in the manifest, guarded by
   `androidProject.test.js`), because this layout is built and measured for portrait only. Supersedes the "mascot yields space first" clause of
