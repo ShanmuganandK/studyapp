@@ -70,6 +70,7 @@ const recipe = {
         options: optionPairs.map((opt) => opt.value),
         format: 'mcq',
         misconceptions: optionPairs.map((opt) => opt.tag),
+        render: { kind: 'ribbon-compare', a, b },
       };
     }
 
@@ -94,6 +95,7 @@ const recipe = {
         options: optionPairs.map((opt) => opt.value),
         format: 'mcq',
         misconceptions: optionPairs.map((opt) => opt.tag),
+        render: { kind: 'ruler-cm', start: 0, end: length },
       };
     }
 
@@ -121,6 +123,7 @@ const recipe = {
         options: optionPairs.map((opt) => opt.value),
         format: 'mcq',
         misconceptions: optionPairs.map((opt) => opt.tag),
+        render: { kind: 'ruler-cm', start, end },
       };
     }
 
@@ -150,6 +153,7 @@ const recipe = {
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',
       misconceptions: optionPairs.map((opt) => opt.tag),
+      render: { kind: 'length-add', a, b, unit },
     };
   },
 };

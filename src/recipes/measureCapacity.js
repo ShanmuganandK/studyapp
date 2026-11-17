@@ -48,6 +48,7 @@ const recipe = {
         options: optionPairs.map((opt) => opt.value),
         format: 'mcq',
         misconceptions: optionPairs.map((opt) => opt.tag),
+        render: { kind: 'capacity-jugs', perJug: k, jugs: m },
       };
     }
 
@@ -77,6 +78,7 @@ const recipe = {
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',
       misconceptions: optionPairs.map((opt) => opt.tag),
+      render: { kind: 'capacity-tanks', tankA: a, tankB: b },
     };
   },
 };

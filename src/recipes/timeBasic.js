@@ -81,6 +81,7 @@ const recipe = {
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',
       misconceptions: optionPairs.map((opt) => opt.tag),
+      render: { kind: 'time-sequence', current, direction: dir === 1 ? 'after' : 'before', noun },
     };
   },
 };

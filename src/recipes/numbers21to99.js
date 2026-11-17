@@ -80,6 +80,7 @@ const recipe = {
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',
       misconceptions: optionPairs.map((opt) => opt.tag),
+      render: { kind: 'number-step', sequence: [n - 1, n] },
     };
   },
 };

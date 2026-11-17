@@ -53,6 +53,7 @@ const recipe = {
         options: optionPairs.map((opt) => opt.value),
         format: 'mcq',
         misconceptions: optionPairs.map((opt) => opt.tag),
+        render: { kind: 'money-add', a, b },
       };
     }
 
@@ -93,6 +94,7 @@ const recipe = {
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',
       misconceptions: optionPairs.map((opt) => opt.tag),
+      render: { kind: 'money-change', have: a, spend: b },
     };
   },
 };

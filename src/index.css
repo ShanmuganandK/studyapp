@@ -214,14 +214,36 @@
 }
 .quiz-grid[data-profile='roomy'] {
   --q-gap: clamp(0.375rem, 1.3cqh, 0.75rem);
-  --q-mascot: clamp(6.5rem, min(29cqh, 84cqw), 20rem);   /* Tinku: the emotion carries the moment */
+  --q-mascot: clamp(6.5rem, min(29cqh, 84cqw), 20rem);   /* Hero Tinku for short equations & pure trays */
   --q-hint: clamp(3.25rem, 10.5cqh, 5.75rem);            /* reserved speech slot: up to 3 lines */
   --q-hint-font: clamp(0.8rem, min(2.5cqh, 4.4cqw), 1.05rem);
   --q-tile: clamp(3.25rem, 11cqh, 5.5rem);               /* answer tile height */
-  --q-glyph: clamp(1.75rem, min(6.5cqh, 13cqw), 3.5rem);  /* a counted object */
+  --q-glyph: clamp(1.75rem, min(6.5cqh, 13cqw), 3.5rem); /* a counted object */
   --q-num: clamp(2.25rem, min(8.5cqh, 13cqw), 4.25rem);  /* compare numbers */
   --q-sign-box: clamp(3rem, 8cqh, 4.5rem);               /* the blank sign box */
-  --text-prompt: clamp(1.3rem, min(3.8cqh, 7.2cqw), 2rem);  /* young kids: a bigger question sentence */
+  --text-prompt: clamp(1.3rem, min(3.8cqh, 7.2cqw), 2rem);
+}
+.quiz-grid[data-profile='story'] {
+  --q-gap: clamp(0.35rem, 1.2cqh, 0.7rem);
+  --q-mascot: clamp(5.75rem, min(26cqh, 78cqw), 17.5rem); /* Big expressive Tinku, room for strips & cards */
+  --q-hint: clamp(3.25rem, 10cqh, 5.5rem);
+  --q-hint-font: clamp(0.8rem, min(2.4cqh, 4.2cqw), 1rem);
+  --q-tile: clamp(3.1rem, 10.2cqh, 5rem);
+  --q-glyph: clamp(1.5rem, min(5.8cqh, 11.5cqw), 3rem);
+  --q-num: clamp(2rem, min(7.8cqh, 12cqw), 3.75rem);
+  --q-sign-box: clamp(2.75rem, 7.5cqh, 4rem);
+  --text-prompt: clamp(1.1rem, min(3.2cqh, 5.8cqw), 1.5rem);
+}
+.quiz-grid[data-profile='stage'] {
+  --q-gap: clamp(0.3rem, 1.1cqh, 0.65rem);
+  --q-mascot: clamp(5.5rem, min(25cqh, 76cqw), 16.5rem);  /* Big Tinku (>=25% stage), generous room for visual stage */
+  --q-hint: clamp(3.25rem, 9.8cqh, 5.25rem);
+  --q-hint-font: clamp(0.8rem, min(2.35cqh, 4.1cqw), 1rem);
+  --q-tile: clamp(3rem, 9.8cqh, 4.85rem);
+  --q-glyph: clamp(1.5rem, min(6.2cqh, 12.5cqw), 3.25rem);
+  --q-num: clamp(2rem, min(7.5cqh, 12cqw), 3.75rem);
+  --q-sign-box: clamp(2.75rem, 7.2cqh, 4rem);
+  --text-prompt: clamp(1.05rem, min(3cqh, 5.4cqw), 1.4rem);
 }
 .quiz-grid[data-profile='standard'] {
   --q-gap: clamp(0.375rem, 1.2cqh, 0.75rem);
@@ -233,25 +255,43 @@
   --q-num: clamp(2rem, min(7.5cqh, 12cqw), 3.75rem);
   --q-sign-box: clamp(2.75rem, 7.5cqh, 4rem);
 }
-/* Short stage (a 640 px-tall budget phone): a little less Tinku and tile, so a 3-row counting tray still
-   fits without scrolling. Same rules, smaller numbers. */
+/* Compact / medium-short stage (<=600px: a 360x640 budget phone): a little less Tinku and tile,
+   so a 3-row counting tray and rich visual cards fit without scrolling while keeping hint >=52px. */
 @container quiz (max-height: 600px) {
   .quiz-grid[data-profile] {
-    --q-mascot: clamp(5rem, min(23cqh, 84cqw), 20rem);
-    --q-tile: clamp(3rem, 10.5cqh, 5rem);
-    --q-glyph: clamp(1.5rem, min(5cqh, 10cqw), 3rem);
+    --q-gap: clamp(0.25rem, 0.9cqh, 0.45rem);
+    --q-mascot: clamp(4.75rem, min(22.5cqh, 76cqw), 14rem);
+    --q-hint: clamp(3.25rem, 10.5cqh, 4.5rem);
+    --q-hint-font: clamp(0.76rem, min(2.3cqh, 4cqw), 0.92rem);
+    --q-tile: clamp(2.85rem, 9.6cqh, 4.25rem);
+    --q-glyph: clamp(1.35rem, min(5cqh, 10cqw), 2.6rem);
+    --text-prompt: clamp(0.95rem, min(2.8cqh, 5cqw), 1.25rem);
   }
 }
-/* Very short stage (a tiny window): trade size for fit, same rules. */
+/* Short stage (<=540px: a 360x640 budget phone with mobile browser address + nav bars visible):
+   prioritise question legibility and zero-scroll fit while keeping Tinku expressive and tiles >=44px. */
+@container quiz (max-height: 540px) {
+  .quiz-grid[data-profile] {
+    --q-gap: 0.2rem;
+    --q-mascot: clamp(4rem, min(18cqh, 64cqw), 8.25rem);
+    --q-hint: clamp(3.85rem, 12.4cqh, 4.25rem);
+    --q-hint-font: clamp(0.68rem, min(2.1cqh, 3.6cqw), 0.82rem);
+    --q-tile: clamp(2.75rem, 9.2cqh, 3.25rem);
+    --q-glyph: clamp(1.25rem, min(4.8cqh, 9.5cqw), 2.15rem);
+    --text-prompt: clamp(0.9rem, min(2.7cqh, 4.8cqw), 1.15rem);
+  }
+}
+/* Very short stage (a tiny window <=440px): trade size for fit, same rules. */
 @container quiz (max-height: 440px) {
   .quiz-grid[data-profile] {  /* same specificity as the profile blocks, and later, so it wins */
-    --q-gap: 0.25rem;
-    --q-mascot: clamp(4rem, 22cqh, 7rem);
-    --q-hint: clamp(2.5rem, 13cqh, 3.5rem);
-    --q-tile: clamp(2.75rem, 15cqh, 3.5rem);
-    --q-glyph: clamp(1.25rem, 6cqh, 2rem);
-    --q-num: clamp(1.75rem, 9cqh, 2.75rem);
-    --q-sign-box: clamp(2.5rem, 9cqh, 3.25rem);
+    --q-gap: 0.2rem;
+    --q-mascot: clamp(3.5rem, 19cqh, 6.5rem);
+    --q-hint: clamp(2.9rem, 12cqh, 3.5rem);
+    --q-hint-font: clamp(0.7rem, min(2.2cqh, 3.8cqw), 0.82rem);
+    --q-tile: clamp(2.75rem, 13.5cqh, 3.25rem);
+    --q-glyph: clamp(1.15rem, 5.5cqh, 1.85rem);
+    --q-num: clamp(1.65rem, 8.5cqh, 2.5rem);
+    --q-sign-box: clamp(2.35rem, 8.5cqh, 3rem);
   }
 }
 .quiz-hint-slot { display: flex; align-items: center; justify-content: center; min-height: 0; }

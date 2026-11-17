@@ -92,6 +92,7 @@ const recipe = {
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',
       misconceptions: optionPairs.map((opt) => opt.tag),
+      render: { kind: 'pattern-strip', sequence: seq },
     };
   },
 };

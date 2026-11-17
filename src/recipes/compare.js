@@ -76,6 +76,14 @@ const recipe = {
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',
       misconceptions: optionPairs.map((opt) => opt.tag),
+      render: {
+        kind: 'group-compare',
+        countA,
+        glyphA: pair.bigGlyph,
+        countB,
+        glyphB: pair.smallGlyph,
+        word,
+      },
     };
   },
 };

@@ -45,9 +45,10 @@ const PHONES = [
   { name: 'iPhone Pro Max', w: 430, h: 932 },
   { name: 'Galaxy A-series', w: 360, h: 780 },
   { name: 'small floor', w: 360, h: 640, cramped: true },
+  { name: 'small browser', w: 360, h: 540, cramped: true },
 ];
 const GRADES = [1, 2];
-const SKILLS_PER_GRADE = 3;
+const SKILLS_PER_GRADE = Number(process.env.LAYOUT_SKILLS) || 3;
 const HARD_COUNTING_SKILL = /Big Number Party/i;   // g1.count.1-20, the skill with 1-, 2- and 3-row trays
 const HARD_QUESTIONS_MAX = 60;
 const ONLY = process.env.LAYOUT_ONLY;   // e.g. LAYOUT_ONLY=Galaxy to run one phone while iterating

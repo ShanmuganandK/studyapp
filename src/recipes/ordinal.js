@@ -14,15 +14,16 @@ import { selectDistractors } from './_plausibility';
 
 const OPTION_COUNT = 4;
 const ITEMS = ['🐶', '🐱', '🐰', '🐼', '🦊', '🐸', '🐵', '🐯', '🦁', '🐮'];
-const LINE_CAP = { 1: 5, 2: 10 };
+// Cap at 7 so every animal sits on ONE non-wrapping horizontal row even on a 320px-wide phone.
+const LINE_CAP = { 1: 5, 2: 7 };
 
 const recipe = {
   skillId: 'g1.num.ordinal',
   maxDifficulty: 2,
 
   generate(difficulty, rng) {
-    const maxN = LINE_CAP[difficulty] ?? 10;
-    const minN = difficulty === 1 ? 4 : 6;
+    const maxN = LINE_CAP[difficulty] ?? 7;
+    const minN = difficulty === 1 ? 4 : 5;
     const N = rng.int(minN, maxN);
     const line = rng.shuffle(ITEMS).slice(0, N);
     const pos = rng.int(1, N);
@@ -63,6 +64,7 @@ const recipe = {
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',
       misconceptions: optionPairs.map((opt) => opt.tag),
+      render: { kind: 'ordinal-strip', items: line, target },
     };
   },
 };
