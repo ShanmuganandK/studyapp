@@ -1,20 +1,19 @@
 /**
- * Recipe: capacity in litres — jugs, mugs & buckets (Grade 2).
+ * Recipe: capacity in litres — jugs, mugs, buckets & tanks (Grade 2).
  * Serves g2.measure.capacity. Format `mcq`.
  *
- * Rung 1 (cap 20 L): filling m jugs of k litres each ("1 jug holds k litres. How many litres in m jugs?")
- * Rung 2 (cap 50 L): comparing two tanks/buckets in litres ("Tank A holds a L. Tank B holds b L. How many more litres in Tank A?")
- *
- * Distractors encode canonical misconceptions from misconceptions-reference.md
- * ("Measurement — capacity (litres)"):
- *   - container-count-confusion : outputs m or k + m instead of k * m
- *   - operator-mixup            : adds on difference prompt or subtracts on total prompt
- *   - off-by-one                : ans ± 1
+ * Upgraded for Grade 2 difficulty parity & 8-question session variety:
+ *   - Rung 1 (cap 30 L):
+ *       (a) Equal containers multiplication (`1 jug/bucket/pot/bottle holds k litres. How many litres in m ...?` with k in 2..6, m in 2..5)
+ *       (b) Combining two containers (`Jug A holds a L and Jug B holds b L. Total = ? L`)
+ *   - Rung 2 (cap 60 L):
+ *       2-digit tank difference (`Tank A holds a L. Tank B holds b L. How many more litres in Tank A?`)
  */
 
 import { selectDistractors } from './_plausibility';
 
 const OPTION_COUNT = 4;
+const CONTAINERS = ['jug', 'bucket', 'watering can', 'water pot'];
 
 const recipe = {
   skillId: 'g2.measure.capacity',
@@ -22,8 +21,9 @@ const recipe = {
 
   generate(difficulty, rng) {
     if (difficulty === 1) {
-      const k = rng.int(2, 5);
-      const m = rng.int(2, 4);
+      const container = rng.pick(CONTAINERS);
+      const k = rng.int(2, 6);
+      const m = rng.int(2, 5);
       const answer = k * m;
 
       const candidates = [
@@ -43,18 +43,18 @@ const recipe = {
 
       const optionPairs = rng.shuffle([{ value: answer, tag: null }, ...distractors]);
       return {
-        questionText: `1 jug holds ${k} litres. How many litres in ${m} jugs?`,
+        questionText: `1 ${container} holds ${k} litres. How many litres in ${m} ${container}s?`,
         correctAnswer: answer,
         options: optionPairs.map((opt) => opt.value),
         format: 'mcq',
         misconceptions: optionPairs.map((opt) => opt.tag),
-        render: { kind: 'capacity-jugs', perJug: k, jugs: m },
+        render: { kind: 'capacity-jugs', perJug: k, jugs: m, container },
       };
     }
 
-    // Difficulty 2: comparing capacities (cap 50 L on the larger tank a)
-    const a = rng.int(15, 50);
-    const b = rng.int(5, a - 3);
+    // Difficulty 2: comparing capacities (cap 60 L on the larger tank a)
+    const a = rng.int(22, 60);
+    const b = rng.int(8, a - 5);
     const answer = a - b;
 
     const candidates = [

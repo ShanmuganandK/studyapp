@@ -86,7 +86,7 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   `subtraction2d.js`, `mulIntro.js`, `mulTable.js`, `counting3digit.js` — every numeric-option
   recipe except `counting.js` (out of scope) and `compareNumbers.js` (non-numeric options, N/A).
 - **`addition.js`** — reference recipe, **multi-skill** (`skillIds: g1.add.within10,
-  g1.add.within20`), sums capped 3/6/10 (within10) or 5/10/20 (within20, unchanged) by
+  g1.add.within20`), sums capped 5/8/10 (within10) or 5/10/20 (within20, unchanged) by
   difficulty. Distractors (canonical tags, see `misconceptions-reference.md`):
   `crossing-ten-misstep` and `add-tens-to-ones` are **within20 only** (gated on `skillId` — the
   within-10 table has no such tag and a sum of exactly 10 doesn't "cross" 10); `operator-mixup`,
