@@ -1044,3 +1044,49 @@ Founder instruction: complete a second-pass syllabus and misconception specifica
    - **Tier 2 (5 skills, string/numeric `mcq`):** `g1.num.ordinal`, `g1.time.daynight`, `g1.prenum.patterns`, `g1.prenum.sort`, `g2.measure.length-std`.
    - **Tier 3 (10 skills, compact visual/SVG `render` trays in `QuestionView.jsx`):** `g1.prenum.compare`, `g1.shapes.2d`, `g1.shapes.space`, `g1.measure.length`, `g1.measure.weight`, `g1.money.coins`, `g2.measure.capacity`, `g2.time.clock`, `g2.data.pictograph`, `g2.frac.halves-quarters`.
 
+
+## 2026-11-17 — Archetype-driven quiz UI (`roomy`, `story`, `stage`, `standard`), 4 `QuestionView` archetypes, and `360×540` in-browser budget-phone support
+
+After all 36 Grade 1–2 skills shipped (`PR #76`, `a3203a1`), phone testing surfaced two UI problems:
+1. **A generic one-size-fits-all layout (`roomy`) cramped visual/story prompts while leaving short equations fine:** sentences with inline emojis (ordinal animal lines, pattern strips, sorting groups, shopping change, length/capacity comparisons) wrapped awkwardly in 3D display font (`Baloo 2` + `.kid-num-3d`).
+2. **Rapid wrong-answer taps caused Tinku to disappear (`PR #78`, `d9968b9`):** in `Mascot.jsx`, when `emotion` flipped away and back to the same source within `FADE_MS` (120 ms), cancelling the pending cross-fade timer left `opacity = 0` when the early-return `if (nextSrc === activeSrc) return;` fired. Fixed by restoring `setOpacity(1)` on early return.
+
+**Decisions locked (`PR #79`, `6cdc002`):**
+1. **Skill-level spacing profiles (`src/config/quizLayout.js`, `src/recipes/skillMap.js`, `src/index.css`):**
+   - `QUIZ_PROFILES = ['roomy', 'story', 'stage', 'standard']`.
+   - Every Grade 1–2 skill declares a fixed `layoutProfile` in `skillMap.js` so Tinku never resizes mid-session:
+     - `roomy` (14 skills): 29% Tinku for short equations (`3 + 4 = ?`), number comparisons, and pure counting trays.
+     - `story` (11 skills): 26% Tinku + expanded question region for tactile single-row strips and structured concept cards.
+     - `stage` (11 skills): 25% Tinku + generous visual stage for SVG trays, clocks, balance scales, pictographs, and fraction shapes.
+2. **Four visual question archetypes in `src/components/QuestionView.jsx`:**
+   - **Archetype A (`equation` / `compare`):** Hero `Baloo 2` 3D equations and comparison sign box (`≤ 14 chars`).
+   - **Archetype B (`strip`):** Tactile single-row strips for `ordinal-strip` (numbered podium badges + highlighted target, Rung 2 capped at `N = 7` so every animal fits on one non-wrapping row on 320–360 px phones), `pattern-strip` (framed tiles + animated `?` slot), `sorting-tray` (2×2 tray / belongs-with card), `number-step` (stepping-stone arrows), and `time-sequence`.
+   - **Archetype C (`story`):** Structured concept cards for `place-houses` (`H | T | O` and `T | O` houses), `money-add` & `money-change` (wallet vs price-tag cards), `ruler-cm` & `length-add`, and `capacity-jugs` & `capacity-tanks`.
+   - **Archetype D (`stage`):** Self-sizing `qreg` (`cqh`/`cqw`) visual trays & SVGs for `count-objects`, `unit-length`, `ribbon-compare`, `group-compare` (side-by-side Group A vs Group B cards), `shape-mcq`, `spatial-mcq`, `balance-mcq` (tilted SVG balance beam), `coins-mcq`, `clock` (12-tick SVG clock), `pictograph`, `fraction-mcq`, and `half-collection`.
+3. **Small-phone in-browser viewport floor (`360×540` in `scripts/check-quiz-layout.mjs`):**
+   - Added three container-query tiers (`≤ 600 px`, `≤ 540 px` budget phone with mobile browser address/navigation bars visible, `≤ 440 px` tiny window) that preserve `≥ 44 px` touchable answer tiles and a reserved hint slot tall enough (`≥ 52–60 px`) for 2–3 line hints without moving anything on screen.
+
+## 2026-11-18 — Global currency-neutral money (`🪙`), dual `Grade N (Class N)` labels, 8-question session variety guard, and cross-skill difficulty parity
+
+Founder decisions after testing the full 36-skill build on a phone (`PR #80` `f4cbcd2` and `PR #81` `622d37e`):
+
+1. **Global reach — currency-neutral money & region-neutral labels (`PR #80`, `f4cbcd2`):**
+   - **Why:** An Android release reaches families across many countries; hardcoding `Indian Coins`, `₹`, and `rupees` biases non-Indian users even though the underlying `1, 2, 5, 10, 20, 50, 100` decimal denominations are universal.
+   - **Rule:**
+     - `g1.money.coins` is named **Count the Coins** (`1, 2, 5 and 10 value coins`), and `g2.money.amounts` is **Shopping Maths** (`Add money and find change`).
+     - Coin and money prompts/visuals use currency-neutral badges (`🪙 1`, `🪙 2`, `🪙 5`, `🪙 10`, `🪙 20`, etc.) and generic wording (*"What is the total value of these coins?"*, *"Add the money together:"*, *"How much money is left?"*); remediation hints in `src/engine/hints.js` use `10-note`, `1-coins`, and `coin values` with zero mention of rupees or dollars.
+     - `GradePickerScreen.jsx`, `ClassPicker.jsx`, and `ParentDashboard.jsx` display **`Grade 1 (Class 1)`**, **`Grade 2 (Class 2)`**, and **`Grade 3 (Class 3) — coming soon`** so both "Grade" (US/Middle East/international) and "Class" (India/Commonwealth) families recognise their level immediately.
+     - `DESCRIPTION` in `src/config/brand.js` is `'Friendly, step-by-step maths practice for Grades 1-2'` (guarded by `brand.test.js` so `"CBSE"` stays out of both the name and manifest description).
+2. **The 8-Question Session Variety Rule (`validateSessionVariety` in `src/recipes/__tests__/validator.test.js`, `PR #81`, `622d37e`):**
+   - **Inference:** Every session asks **8 questions** (with `REPEAT_GAP = 6` in `sessionLite.js`). Any skill or difficulty rung whose generator has fewer than 8 distinct questions forces obvious repeats within a single sitting (most severely `g2.frac.halves-quarters`, which originally had only 2 questions on Rung 1 — `1/2` bar and `1/4` bar — repeating 4 times each in one session).
+   - **Rule:** Every skill and difficulty rung must generate **at least 8 distinct question prompts** over 80 seeded draws (enforced by `validateSessionVariety` in `validator.test.js`), and in practice 13–60+ distinct questions per rung:
+     - `fractionsBasic.js` (`g2.frac.halves-quarters`): expanded from 2 static bars to **60+ distinct questions** across 3 modes — (A) visual partitioned shapes (`circle`, `2×2 grid`, `bar`) across 8 contexts (`pizza`, `pie`, `cake`, `window`, `waffle`, `chocolate bar`, etc.) testing `1/2, 1/3, 2/3, 1/4, 3/4` with varied shaded offsets and both `SHADED` and `UNSHADED` prompts on Rung 2; (B) finding `1/2`, `1/4`, or `3/4` of a collection (`4..24` items); (C) whole-part equivalence (*"How many quarters (1/4) make N whole pizzas?"*).
+     - Expanded `shapes2d.js` (5 shapes including Pentagon, real-world object matching, reverse property clues, side/corner counts), `spatial.js` (8 items × 6 relations × dynamic anchors), `measureLength.js` (8 objects × `3..8` blocks on G1 Rung 1), `measureWeight.js` (12 object pairs × both `HEAVIER` and `LIGHTER` + 8 block-balance items), `moneyCoins.js` (22 multi-coin Rung 1 combinations + 2–4 coin Rung 2 combinations, removing single-coin text giveaways), `timeBasic.js` (`AFTER`, `BEFORE`, `TOMORROW`, `YESTERDAY`, `2 days AFTER`), `counting.js` (`g1.count.1-9` Rung 1/2/3 caps `5/7/9`), `addition.js` (`g1.add.within10` Rung 1/2/3 caps `5/8/10`), and `mulTable.js` (both factor orders `T × m` and `m × T`, Rung 1 multiplier cap `6`).
+3. **Cross-skill difficulty parity & progressive strategy rungs across Grade 1 and Grade 2 (`PR #81`, `622d37e`):**
+   - **Inference:** `g2.sub.2d-noborrow`, `g2.sub.2d-borrow`, and `g2.add.2d-carry` previously drew arbitrary 2-digit operands on Rung 1 (throwing `43 − 28` on Question 1), whereas non-arithmetic Grade 2 skills (`pictograph`, `measureLength`, `measureCapacity`, `timeClock`) asked kindergarten-level counting on Rung 1.
+   - **Rule:**
+     - `subtraction2d.js` and `addition2d.js` (`g2.add.2d-carry`) use progressive strategy rungs: **Rung 1** = `2-digit ± 1-digit` (`28 − 5`, `23 − 7`, `18 + 5`), **Rung 2** = `2-digit ± multiple of 10 / teen` (`56 − 20`, `42 − 17`, `26 + 17`), **Rung 3** = full `2-digit ± 2-digit` (`78 − 34`, `73 − 28`, `48 + 37`).
+     - Grade 2 `pictograph.js` uses 6 themes and requires scaled reading (`1 picture = 2` or `5`), difference (`MORE`), or two-row total (`ALTOGETHER`) from Rung 1; `measureLength.js` (`g2.measure.length-std`) uses offset ruler subtraction + 2-digit length addition from Rung 1; `measureCapacity.js` scales to 30 L / 60 L across 4 container types; `timeClock.js` tests `:00`/`:30` on Rung 1, `:15`/`:30`/`:45` on Rung 2, and elapsed time (`1..3 hours later`) on Rung 3.
+4. **Pedagogical skill ordering (`src/recipes/skillMap.js`, `PR #81`, `622d37e`):**
+   - Grade 1 (`orders 10..52`): Counting & Comparison Foundations (`10..14`) → Core Addition & Subtraction (`20..23`) → 2-Digit Numbers, Place Value & Coins (`30..32`) → Patterns, Sorting & Geometry (`40..43`) → Measurement & Time (`50..52`).
+   - Grade 2 (`orders 100..160`): 3-Digit Numbers & Place Value (`100..102`) → 2-Digit Addition, Subtraction & Shopping Maths (`110..125`) → Multiplication & Halves/Quarters (`130..135`) → Measurement, Time & Picture Charts (`140..160`).

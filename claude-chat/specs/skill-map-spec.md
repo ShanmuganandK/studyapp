@@ -1,9 +1,15 @@
-# Skill Map Specification — Grades 1–2 CBSE Math (T61)
+# Skill Map Specification — Grades 1–2 Math (T61)
 
+> **Third Update (2026-11-18 — All 36 Skills `ready`, Archetype UI, Global Currency & Variety/Parity):**
+> 1. **All 36 of 36 skills are now `status: 'ready'` (`PR #76` `a3203a1`):** Every Grade 1 (19 skills) and Grade 2 (17 skills) recipe is built, wired into `sessionLite.js`, and validated by `validator.test.js` (`135/135` tests green).
+> 2. **Skill-Level Spacing Profiles & 4 `QuestionView` Archetypes (`PR #79` `6cdc002`):** Each skill in `src/recipes/skillMap.js` declares `layoutProfile: 'roomy' | 'story' | 'stage'`, pairing with the 4 visual archetypes (`equation`, `strip`, `story`, `stage`) in `src/components/QuestionView.jsx`.
+> 3. **Global Currency-Neutral Money (`🪙`) & Dual `Grade N (Class N)` Labels (`PR #80` `f4cbcd2`):** `g1.money.coins` (`Count the Coins`) and `g2.money.amounts` (`Shopping Maths`) use currency-neutral `🪙` coin/money values rather than `₹`/rupees so the Android app works worldwide without regional bias.
+> 4. **8-Question Session Variety Guard (`validateSessionVariety`) & Cross-Skill Difficulty Parity (`PR #81` `622d37e`):** Every skill and difficulty rung is guarded to generate `>= 8` distinct question prompts (in practice `13–60+` per rung). `subtraction2d.js` and `addition2d.js` (`g2.add.2d-carry`) use progressive strategy rungs (`2d ± 1d` → `2d ± 10s/teens` → `2d ± 2d`), and both Grade 1 (`10..52`) and Grade 2 (`100..160`) follow the cleaned-up pedagogical progression below.
+>
 > **Second Update (2026-11-16):**
-> 1. **Basic Fractions added to Grade 2:** `g2.frac.halves-quarters` (*"Fractions: halves & quarters (1/2, 1/4)"*, strand `fractions`, order `175`, `maxDifficulty: 2`, prereq `g1.shapes.2d`, recipe `fractionsBasic`) promoted from `misconceptions-reference.md`'s parked section into the active Grade 2 curriculum per founder decision (DECISIONS 2026-11-16). Total Grade 1–2 curriculum is now **36 skills** (**19 Grade 1, 17 Grade 2**; 17 built `ready`, **19 pending `planned`**).
+> 1. **Basic Fractions added to Grade 2:** `g2.frac.halves-quarters` (*"Fractions: halves & quarters (1/2, 1/4)"*, strand `fractions`, order `135`, `maxDifficulty: 2`, prereqs `['g1.shapes.2d', 'g2.mul.intro']`, recipe `fractionsBasic`) promoted from `misconceptions-reference.md`'s parked section into the active Grade 2 curriculum per founder decision (DECISIONS 2026-11-16). Total Grade 1–2 curriculum is **36 skills** (**19 Grade 1, 17 Grade 2**).
 > 2. **`g1.num.21-99` recipe module separated from `counting.js`:** `g1.num.21-99` maps to `numbers21to99` (format `mcq`) rather than `counting` (`count-objects`, which caps at 15 objects).
-> 3. **Complete Second-Pass Syllabus & Recipe Agendas (Tiers 1–3):** Added full question formats, difficulty rungs, curriculum ceilings, validator checks, and canonical misconception tag mappings for all 19 pending skills below (paired with the 2026-11-16 second update to `misconceptions-reference.md` and `TEACHER-REVIEW.md`).
+> 3. **Complete Second-Pass Syllabus & Recipe Agendas (Tiers 1–3):** Added full question formats, difficulty rungs, curriculum ceilings, validator checks, and canonical misconception tag mappings for all 19 skills below (paired with `misconceptions-reference.md` and `TEACHER-REVIEW.md`).
 
 The curriculum backbone. Defines every **skill** as an atomic unit with a difficulty ceiling, prerequisites, and the recipe that powers it. This is what the session composer reads to decide what to teach, and what the "recipe factory" reads to know which recipes to build.
 
@@ -43,53 +49,53 @@ Create `src/recipes/skillMap.js` (pure data + small helpers, no UI/Firebase). It
 
 ---
 
-## The skills — Grade 1
+## The skills — Grade 1 (All 19 `status: 'ready'`)
 
-Ordered as a learning path. `maxDifficulty` is the curriculum ceiling for that skill (harder = a different, later skill).
+Ordered as a smooth pedagogical progression (`orders 10..52`). `maxDifficulty` is the curriculum ceiling for that skill; `profile` is its quiz spacing profile (`roomy`, `story`, `stage`).
 
-| order | id | name | strand | maxDiff | prereqs | recipe |
-|---|---|---|---|---|---|---|
-| 30 | g1.count.1-9 | Counting & numbers 1–9 | numbers | 3 | — | counting |
-| 31 | g1.count.1-20 | Counting & numbers up to 20 | numbers | 3 | g1.count.1-9 | counting |
-| 32 | g1.num.compare20 | Compare numbers up to 20 (>, <, =) | numbers | 3 | g1.count.1-20 | compareNumbers |
-| 40 | g1.add.within10 | Addition within 10 | addition | 3 | g1.count.1-9 | addition |
-| 41 | g1.add.within20 | Addition within 20 | addition | 3 | g1.add.within10 | addition |
-| 50 | g1.sub.within10 | Subtraction within 10 | subtraction | 3 | g1.count.1-9 | subtraction |
-| 51 | g1.sub.within20 | Subtraction within 20 | subtraction | 3 | g1.sub.within10 | subtraction |
-| 55 | g1.num.ordinal | Ordinal numbers (1st–10th) | numbers | 2 | g1.count.1-9 | ordinal |
-| 60 | g1.num.21-99 | Numbers 21–99 (read, write, count) | numbers | 3 | g1.count.1-20 | numbers21to99 *(was `counting`)* |
-| 61 | g1.place.tens-ones | Tens & ones (place value intro) | placevalue | 3 | g1.num.21-99 | placeValue |
-| 65 | g1.prenum.compare | Big/small, more/less, tall/short | prenumber | 2 | g1.count.1-9 | compare |
-| 66 | g1.prenum.sort | Sorting & classification | prenumber | 2 | g1.count.1-9 | sorting |
-| 67 | g1.prenum.patterns | Simple patterns (AB, AAB) | prenumber | 2 | g1.count.1-9 | patterns |
-| 68 | g1.shapes.2d | 2D shapes (circle, square, triangle, rectangle) | shapes | 2 | g1.count.1-9 | shapes2d |
-| 69 | g1.shapes.space | Spatial: inside/outside, near/far, top/bottom | shapes | 2 | g1.shapes.2d | spatial |
-| 70 | g1.measure.length | Length: longer/shorter, non-standard units | measurement | 2 | g1.prenum.compare | measureLength |
-| 71 | g1.measure.weight | Heavy/light | measurement | 2 | g1.prenum.compare | measureWeight |
-| 80 | g1.time.daynight | Day/night, days of week, sequence | time | 2 | g1.count.1-9 | timeBasic |
-| 81 | g1.money.coins | Indian coins recognition (₹1, ₹2, ₹5, ₹10) | money | 2 | g1.count.1-20 | moneyCoins |
+| order | id | name | displayName | strand | maxDiff | profile | prereqs | recipe |
+|---|---|---|---|---|---|---|---|---|
+| 10 | g1.count.1-9 | Counting & numbers 1–9 | Number Party | numbers | 3 | roomy | — | counting |
+| 11 | g1.count.1-20 | Counting & numbers up to 20 | Big Number Party | numbers | 3 | roomy | g1.count.1-9 | counting |
+| 12 | g1.prenum.compare | Big/small, more/less, tall/short | Bigger or Smaller? | prenumber | 2 | stage | g1.count.1-9 | compare |
+| 13 | g1.num.compare20 | Compare numbers up to 20 (>, <, =) | Big or Small? | numbers | 3 | roomy | g1.count.1-20 | compareNumbers |
+| 14 | g1.num.ordinal | Ordinal numbers (1st–10th) | First to Tenth! | numbers | 2 | story | g1.count.1-9 | ordinal |
+| 20 | g1.add.within10 | Addition within 10 | Add a Little | addition | 3 | roomy | g1.count.1-9 | addition |
+| 21 | g1.add.within20 | Addition within 20 | Add it Up! | addition | 3 | roomy | g1.add.within10 | addition |
+| 22 | g1.sub.within10 | Subtraction within 10 | Pop the Balloons! | subtraction | 3 | roomy | g1.count.1-9 | subtraction |
+| 23 | g1.sub.within20 | Subtraction within 20 | Pop More Balloons! | subtraction | 3 | roomy | g1.sub.within10 | subtraction |
+| 30 | g1.num.21-99 | Numbers 21–99 (read, write, count) | Big Numbers 21–99 | numbers | 3 | story | g1.count.1-20 | numbers21to99 |
+| 31 | g1.place.tens-ones | Tens & ones (place value intro) | Tens and Ones | placevalue | 3 | story | g1.num.21-99 | placeValue |
+| 32 | g1.money.coins | Coins recognition & values (1, 2, 5, 10) | Count the Coins | money | 2 | stage | g1.count.1-20 | moneyCoins |
+| 40 | g1.prenum.patterns | Simple patterns (AB, AAB) | What Comes Next? | prenumber | 2 | story | g1.count.1-9 | patterns |
+| 41 | g1.prenum.sort | Sorting & classification | Sort & Group | prenumber | 2 | story | g1.count.1-9 | sorting |
+| 42 | g1.shapes.2d | 2D shapes (circle, square, triangle, rectangle) | Meet the Shapes | shapes | 2 | stage | g1.count.1-9 | shapes2d |
+| 43 | g1.shapes.space | Spatial: inside/outside, near/far, top/bottom | Where Is It? | shapes | 2 | stage | g1.shapes.2d | spatial |
+| 50 | g1.measure.length | Length: longer/shorter, non-standard units | How Many Blocks Long? | measurement | 2 | stage | g1.prenum.compare | measureLength |
+| 51 | g1.measure.weight | Heavy/light | Heavy or Light? | measurement | 2 | stage | g1.prenum.compare | measureWeight |
+| 52 | g1.time.daynight | Day/night, days of week, sequence | Days & Daily Time | time | 2 | story | g1.count.1-9 | timeBasic |
 
-## The skills — Grade 2
+## The skills — Grade 2 (All 17 `status: 'ready'`)
 
-| order | id | name | strand | maxDiff | prereqs | recipe |
-|---|---|---|---|---|---|---|
-| 100 | g2.num.3digit | Numbers up to 999 (read, write, place value) | numbers | 3 | g1.place.tens-ones | counting3digit |
-| 101 | g2.place.hundreds | Hundreds, tens, ones | placevalue | 3 | g2.num.3digit | placeValue3 |
-| 102 | g2.num.compare999 | Compare/order numbers to 999 | numbers | 3 | g2.num.3digit | compareNumbers |
-| 110 | g2.add.2d-nocarry | 2-digit addition, no carry | addition | 3 | g1.add.within20, g1.place.tens-ones | addition2d |
-| 111 | g2.add.2d-carry | 2-digit addition with carry | addition | 3 | g2.add.2d-nocarry | addition2d |
-| 120 | g2.sub.2d-noborrow | 2-digit subtraction, no borrow | subtraction | 3 | g1.sub.within20, g1.place.tens-ones | subtraction2d |
-| 121 | g2.sub.2d-borrow | 2-digit subtraction with borrow | subtraction | 3 | g2.sub.2d-noborrow | subtraction2d |
-| 130 | g2.mul.intro | Multiplication as repeated addition | multiplication | 2 | g1.add.within20 | mulIntro |
-| 131 | g2.mul.table2 | Table of 2 | multiplication | 3 | g2.mul.intro | mulTable |
-| 132 | g2.mul.table5 | Table of 5 | multiplication | 3 | g2.mul.intro | mulTable |
-| 133 | g2.mul.table10 | Table of 10 | multiplication | 3 | g2.mul.intro | mulTable |
-| 140 | g2.measure.length-std | Length in standard units (cm, m) | measurement | 3 | g1.measure.length | measureLength |
-| 141 | g2.measure.capacity | Capacity (litres) | measurement | 2 | g1.prenum.compare | measureCapacity |
-| 150 | g2.time.clock | Reading clock (hour, half-hour) | time | 3 | g1.time.daynight | timeClock |
-| 160 | g2.money.amounts | Money: making amounts, simple change | money | 3 | g1.money.coins, g2.add.2d-carry | moneyAmounts |
-| 170 | g2.data.pictograph | Data handling: simple pictographs | data | 2 | g1.count.1-20 | pictograph |
-| 175 | g2.frac.halves-quarters | Fractions: halves & quarters (1/2, 1/4) *(added 2026-11-16)* | fractions | 2 | g1.shapes.2d | fractionsBasic |
+| order | id | name | displayName | strand | maxDiff | profile | prereqs | recipe |
+|---|---|---|---|---|---|---|---|---|
+| 100 | g2.num.3digit | Numbers up to 999 (read, write, place value) | Hundreds Club | numbers | 3 | story | g1.place.tens-ones | counting3digit |
+| 101 | g2.place.hundreds | Hundreds, tens, ones | Hundreds, Tens, Ones | placevalue | 3 | roomy | g2.num.3digit | placeValue3 |
+| 102 | g2.num.compare999 | Compare/order numbers to 999 | Which is Bigger? | numbers | 3 | roomy | g2.num.3digit | compareNumbers |
+| 110 | g2.add.2d-nocarry | 2-digit addition, no carry | Two-Digit Adds | addition | 3 | roomy | g1.add.within20, g1.place.tens-ones | addition2d |
+| 111 | g2.add.2d-carry | 2-digit addition with carry | Carry the Ten | addition | 3 | roomy | g2.add.2d-nocarry | addition2d |
+| 120 | g2.sub.2d-noborrow | 2-digit subtraction, no borrow | Two-Digit Take-Away | subtraction | 3 | roomy | g1.sub.within20, g1.place.tens-ones | subtraction2d |
+| 121 | g2.sub.2d-borrow | 2-digit subtraction with borrow | Borrow a Ten | subtraction | 3 | roomy | g2.sub.2d-noborrow | subtraction2d |
+| 125 | g2.money.amounts | Money: making amounts, simple change | Shopping Maths | money | 3 | story | g1.money.coins, g2.add.2d-carry | moneyAmounts |
+| 130 | g2.mul.intro | Multiplication as repeated addition | Groups of Things | multiplication | 2 | roomy | g1.add.within20 | mulIntro |
+| 131 | g2.mul.table2 | Table of 2 | Table of 2 | multiplication | 3 | roomy | g2.mul.intro | mulTable |
+| 132 | g2.mul.table5 | Table of 5 | Table of 5 | multiplication | 3 | roomy | g2.mul.intro | mulTable |
+| 133 | g2.mul.table10 | Table of 10 | Table of 10 | multiplication | 3 | roomy | g2.mul.intro | mulTable |
+| 135 | g2.frac.halves-quarters | Fractions: halves & quarters (1/2, 1/4) | Halves and Quarters | fractions | 2 | stage | g1.shapes.2d, g2.mul.intro | fractionsBasic |
+| 140 | g2.measure.length-std | Length in standard units (cm, m) | Centimetres & Metres | measurement | 3 | story | g1.measure.length | measureLength |
+| 141 | g2.measure.capacity | Capacity (litres) | Jugs and Mugs | measurement | 2 | story | g1.prenum.compare | measureCapacity |
+| 150 | g2.time.clock | Reading clock (hour, half-hour) | Read the Clock | time | 3 | stage | g1.time.daynight | timeClock |
+| 160 | g2.data.pictograph | Data handling: simple pictographs | Picture Charts | data | 2 | stage | g1.count.1-20 | pictograph |
 
 ---
 
