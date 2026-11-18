@@ -146,6 +146,21 @@ needs human confirmation:
   - `double-instead-of-half` (outputs `2 * n` instead of `n / 2` on "half of a collection" prompts)
 - **Teacher to decide:** confirm the 4 fraction tags and whether Rung 2 should include "half of an even collection (`2..12`)" alongside visual shape fractions (`1/2`, `1/4`, `3/4`).
 
+### ☐ 16. 8-question session variety & multi-mode expansion (`2026-11-18`, `PR #81`)
+- **Context:** Every session asks 8 questions (`REPEAT_GAP = 6`), so any skill with fewer than 8 distinct questions on Rung 1 repeated the same prompts multiple times per session (most starkly `g2.frac.halves-quarters`, which had only 2 questions on Rung 1).
+- **2026-11-18 Update:** Added `validateSessionVariety` in `src/recipes/__tests__/validator.test.js` (`>= 8` distinct prompts per rung) and expanded:
+  - `g2.frac.halves-quarters` (`fractionsBasic.js`): 3 modes — (A) visual partitioned `circle`, `2×2 grid`, and `bar` across 8 contexts testing `1/2, 1/3, 2/3, 1/4, 3/4` (both `SHADED` and `UNSHADED` on Rung 2); (B) `1/2`, `1/4`, and `3/4` of a group up to 24; (C) whole-part equivalence (*"How many quarters make N whole pizzas?"*).
+  - `g1.shapes.2d` (`shapes2d.js`): added Pentagon (5 sides) on Rung 2, real-world object shape matching, and reverse property clues (*"Which 2D shape has 3 corners / 4 equal straight sides?"*).
+  - `g1.money.coins` (`moneyCoins.js`) & `g2.money.amounts` (`moneyAmounts.js`): switched to currency-neutral `🪙` coin/money values (`Count the Coins` & `Shopping Maths`) and multi-coin Rung 1 combinations (`2..12`) with no single-coin text giveaway.
+- **Teacher to decide:** confirm the expanded fraction modes (`1/3`, `2/3`, unshaded complement, `3/4` of a group) and Pentagon on `g1.shapes.2d` Rung 2.
+
+### ☐ 17. Cross-skill difficulty parity & progressive strategy rungs on `subtraction2d` / `addition2d` (`2026-11-18`, `PR #81`)
+- **Context:** `g2.sub.2d-noborrow`, `g2.sub.2d-borrow`, and `g2.add.2d-carry` previously drew full 2-digit operands (`43 − 28`) on Rung 1, whereas Grade 2 non-arithmetic skills (`pictograph`, `measureLength`, `measureCapacity`, `timeClock`) asked Grade 1 counting on Rung 1.
+- **2026-11-18 Update:**
+  - `subtraction2d.js` and `addition2d.js` (`g2.add.2d-carry`) now step by strategy rung: **Rung 1** = `2-digit ± 1-digit` (`28 − 5`, `23 − 7`, `18 + 5`), **Rung 2** = `2-digit ± 10s / teens` (`56 − 20`, `42 − 17`), **Rung 3** = full `2-digit ± 2-digit`.
+  - Grade 2 `pictograph` uses scale `2` or `5` + `MORE` + `ALTOGETHER` from Rung 1; `g2.measure.length-std` uses offset ruler subtraction + 2-digit length addition from Rung 1; `g2.time.clock` tests `:00/:30` on Rung 1, `:15/:30/:45` on Rung 2, and elapsed time (`1..3 hours later`) on Rung 3.
+- **Teacher to decide:** confirm the Rung 1 → 2 → 3 progression across Grade 2 skills.
+
 ---
 
 ## Signed off

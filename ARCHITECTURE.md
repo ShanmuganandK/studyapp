@@ -95,7 +95,7 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   was brought into the plausibility fix alongside the Grade-2 skills rather than deferred; 0%
   residual at every difficulty for both skills.
 - **`counting.js`** — **multi-skill** (`skillIds: g1.count.1-9, g1.count.1-20`), count
-  objects, ranges per skill. Distractors: `double-count-object`, `skip-count-sequence`,
+  objects, ranges per skill (`5/7/9` for `g1.count.1-9`, `5/10/15` for `g1.count.1-20`). Distractors: `double-count-object`, `skip-count-sequence`,
   `count-from-zero`, `random-slip`. Format `count-objects` (carries a `render: { glyph, count }`
   payload).
 - **`subtraction.js`** — **multi-skill** (`skillIds: g1.sub.within10, g1.sub.within20`),
@@ -115,7 +115,7 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   construction. Format `compare` (3 operator options + `render: { left, right }`).
 - **`addition2d.js`** — **multi-skill** (`skillIds: g2.add.2d-nocarry, g2.add.2d-carry`),
   no-carry sums capped at 99 flat (its rungs are a STRATEGY, not a magnitude — DECISIONS
-  2026-08-27) and carry sums capped 49/79/99. The operand builders rejection-sample the
+  2026-08-27) and carry sums capped 49/79/99 with progressive strategy shaping (Rung 1 = `2d + 1d` with carry, Rungs 2–3 = `2d + 2d` with carry — DECISIONS 2026-11-18). The operand builders rejection-sample the
   pair so the ones column is STRUCTURALLY carry-free or carry-required (never a coincidence) —
   asserted by a dedicated test, not just a comment. Distractors: no-carry —
   `column-alignment-shift`, `add-across-columns`, `operator-mixup`, `place-value-swap` (guarded
@@ -134,7 +134,8 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   across 20,000 seeded questions per rung, both `add-across-columns` and `operator-mixup` appear
   at roughly 40–50%.
 - **`subtraction2d.js`** — **multi-skill** (`skillIds: g2.sub.2d-noborrow, g2.sub.2d-borrow`),
-  minuend capped 39/69/99 (no-borrow) or 49/79/99 (borrow). Same `buildOperands`
+  minuend capped 39/69/99 (no-borrow) or 49/79/99 (borrow), stepped progressively by strategy rung
+  (Rung 1 = `2d - 1d`, Rung 2 = `2d - 10s/teens`, Rung 3 = full `2d - 2d` — DECISIONS 2026-11-18). Same `buildOperands`
   rejection-sampling pattern as `addition2d.js` — structurally borrow-free or borrow-required,
   asserted by a dedicated test. Distractors (entirely disjoint tag sets, per the doc's two
   tables): no-borrow — `operator-mixup`, `column-alignment-shift`, `digit-subtraction-isolation`
@@ -159,8 +160,8 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   reported (not patched) gap: when the zero-factor branch fires (product=0), the magnitude-ratio
   rule makes every nonzero distractor implausible — no selection order fixes a zero answer.
 - **`mulTable.js`** — **multi-skill** (`skillIds: g2.mul.table2, g2.mul.table5,
-  g2.mul.table10`), fixed table value T (2/5/10) × a multiplier m; ceiling is on the
-  MULTIPLIER (5/8/10 by difficulty), not the product. A multiplier of 0 is deliberately drawn
+  g2.mul.table10`), fixed table value T (2/5/10) × a multiplier m (in either factor order `T × m` or `m × T`); ceiling is on the
+  MULTIPLIER (6/8/10 by difficulty), not the product. A multiplier of 0 is deliberately drawn
   ~10% of the time so `zero-identity-error` is reachable. Distractors: `skip-count-misstep`
   (product ± T), and — mutually exclusive by construction, since "T + m" collapses to the same
   number as the identity cases when m is 0 or 1 — `add-instead-of-multiply` (m ∉ {0,1}),
@@ -193,12 +194,14 @@ one skill from `(difficulty, rng)`, conforming to **the recipe contract**
   `KIND_BY_RECIPE`** — it's `mcq`, not `count-objects`, so the `'count'` kind would read a
   `render.count` that doesn't exist on this skill's questions.
 - **`numbers21to99.js`**, **`placeValue.js`**, **`placeValue3.js`**, **`moneyAmounts.js`** (Batch 1, 2026-11-16; currency-neutral 2026-11-18) — numeric `mcq` recipes serving `g1.num.21-99` (counting on across decades 21–99), `g1.place.tens-ones` (tens and ones bundles), `g2.place.hundreds` (expanded form `300 + 40 + 5 = ?`), and `g2.money.amounts` (currency-neutral whole-unit combinations `🪙 a + 🪙 b = ?` and change from round notes). All route through `selectDistractors` (`_plausibility.js`).
-- **`ordinal.js`**, **`timeBasic.js`**, **`patterns.js`**, **`sorting.js`**, **`measureLength.js`** (Batch 2, 2026-11-16) — recipes serving `g1.num.ordinal` (positions 1st–10th from the left), `g1.time.daynight` (days of the week & daily cycle), `g1.prenum.patterns` (AB, AAB, ABB, ABC patterns), `g1.prenum.sort` (odd-one-out & category matching), and multi-skill `measureLength` (`g1.measure.length` in non-standard block units + `g2.measure.length-std` in cm/m).
-- **`compare.js`**, **`shapes2d.js`**, **`spatial.js`**, **`measureWeight.js`**, **`moneyCoins.js`**, **`measureCapacity.js`**, **`timeClock.js`**, **`pictograph.js`**, **`fractionsBasic.js`** (Batch 3, 2026-11-16; currency-neutral 2026-11-18) — recipes completing the remaining Grade 1–2 strands (`g1.prenum.compare`, `g1.shapes.2d`, `g1.shapes.space`, `g1.measure.weight`, `g1.money.coins` currency-neutral `🪙 1, 2, 5, 10`, `g2.measure.capacity`, `g2.time.clock`, `g2.data.pictograph`, and `g2.frac.halves-quarters` Basic Fractions 1/2, 1/4, 3/4). Visual formats (`unit-length`, `shape-mcq`, `spatial-mcq`, `balance-mcq`, `coins-mcq`, `clock`, `pictograph`, `fraction-mcq`) render via token-styled trays in `QuestionView.jsx`.
+- **`ordinal.js`**, **`timeBasic.js`**, **`patterns.js`**, **`sorting.js`**, **`measureLength.js`** (Batch 2, 2026-11-16; variety & parity expanded 2026-11-18) — recipes serving `g1.num.ordinal` (positions 1st–7th from the left so strips fit on one row on 320 px phones), `g1.time.daynight` (days of the week & daily cycle across `AFTER`, `BEFORE`, `TOMORROW`, `YESTERDAY`, and `2 days AFTER`), `g1.prenum.patterns` (AB, AAB, ABB, ABC patterns), `g1.prenum.sort` (odd-one-out & category matching), and multi-skill `measureLength` (`g1.measure.length` across 8 everyday objects in `3..8` non-standard block units + `g2.measure.length-std` offset ruler subtraction & 2-digit length addition in cm/m).
+- **`compare.js`**, **`shapes2d.js`**, **`spatial.js`**, **`measureWeight.js`**, **`moneyCoins.js`**, **`measureCapacity.js`**, **`timeClock.js`**, **`pictograph.js`**, **`fractionsBasic.js`** (Batch 3, 2026-11-16; currency-neutral & variety/parity expanded 2026-11-18) — recipes completing the remaining Grade 1–2 strands (`g1.prenum.compare`, `g1.shapes.2d` across 5 shapes + real objects + property clues + side/corner counts, `g1.shapes.space` across 8 items × 6 relations × dynamic anchors, `g1.measure.weight` across 12 pairs × both `HEAVIER`/`LIGHTER` + 8 block-balance items, `g1.money.coins` currency-neutral `🪙 1, 2, 5, 10` multi-coin combinations, `g2.measure.capacity` up to 30/60 L across 4 container types, `g2.time.clock` with hours/half-hours/quarters & elapsed time, `g2.data.pictograph` across 6 themes with scale 2/5 + `MORE` + `ALTOGETHER`, and `g2.frac.halves-quarters` across partitioned `circle`/`grid`/`bar` shapes, `1/2, 1/3, 2/3, 1/4, 3/4` shaded/unshaded, `1/2`/`1/4`/`3/4` of a group up to 24, and whole-part equivalence). Visual formats (`unit-length`, `shape-mcq`, `spatial-mcq`, `balance-mcq`, `coins-mcq`, `clock`, `pictograph`, `fraction-mcq`) render via token-styled trays in `QuestionView.jsx`.
 - **`__tests__/validator.test.js`** — the shared validator (STANDARDS §3). For each recipe and
   each skill it serves (`skillIds ?? [skillId]`), runs `generate` 100× per difficulty and
   asserts the full contract; branches on `format` (numeric vs `compare`). Every recipe must
-  pass it before merge. **Plausibility guard** (added for the kid-test fix): asserts at most one
+  pass it before merge. **Session variety guard** (`validateSessionVariety`, added 2026-11-18):
+  asserts that every skill and difficulty rung generates at least 8 distinct question prompts over
+  80 seeded draws so an 8-question session never loops on 2–4 questions. **Plausibility guard** (added for the kid-test fix): asserts at most one
   implausible distractor per question (`isImplausible` from `_plausibility.js`), for every skill
   with a `PLAUSIBILITY_KIND` entry (`add`/`sub`/`mul`/`place` — `compare` and `count-objects`
   have no monotonic rule defined, out of scope). **No small-answer skip.** An earlier version of
@@ -224,12 +227,12 @@ reads it to know which recipes to build.
 
 - **`SKILLS`** — object keyed by `skillId`; each entry
   `{ id, name, grade, strand, order, maxDifficulty, prereqs[], recipe, status }`, plus optional
-  `extras` (`displayName`/`subtitle`/`icon`, and — as of DECISIONS 2026-09-22 — `strategyRungs:
+  `extras` (`displayName`/`subtitle`/`icon`/`layoutProfile`, and — as of DECISIONS 2026-09-22 — `strategyRungs:
   true`, the skill-map opt-in for the bridge-in walk; `g2.add.2d-nocarry` only today, a property
   never a skillId literal, so #13 can add skills here as their rungs convert to a strategy order).
   `status` is `'ready'` (recipe file exists) or `'planned'` (recipe to build). All **36 skills**
-  across Grades 1–2 (19 in Grade 1, 17 in Grade 2 including `g2.frac.halves-quarters`) are
-  `ready` as of 2026-11-16 (`SkillSelectScreen` and `SkillPathScreen` list them per grade). Several skills share one
+  across Grades 1–2 (19 in Grade 1 ordered `10..52`, 17 in Grade 2 ordered `100..160` including `g2.frac.halves-quarters`) are
+  `ready` as of 2026-11-16 (`SkillSelectScreen` and `SkillPathScreen` list them per grade), with per-skill `layoutProfile: 'roomy' | 'story' | 'stage'` added 2026-11-17. Several skills share one
   parameterised recipe (`counting`, `addition`, `subtraction`, `compareNumbers`, `addition2d`, `subtraction2d`, `mulTable`, `measureLength`).
 - **Helpers** — `getSkill` (throws on unknown), `prereqsMet(id, masteryMap)`,
   `unlockedSkills(masteryMap)`, `frontierSkill(masteryMap, grade)`, `nextSkills(id)`.
