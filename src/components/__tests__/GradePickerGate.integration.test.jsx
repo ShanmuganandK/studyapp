@@ -68,7 +68,7 @@ describe('first-run grade picker — the gate in ThemeManager', () => {
 
   it('choosing a class dismisses the picker with no extra step, and persists the choice', async () => {
     renderApp();
-    fireEvent.click(await screen.findByRole('button', { name: 'Class 2' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Class 2/ }));
     // No separate "continue" — the very next render is the app proper, already on that grade.
     await appProperRendered();
     expect(screen.queryByRole('heading', { name: PICKER_HEADING })).toBeNull();
@@ -79,7 +79,7 @@ describe('first-run grade picker — the gate in ThemeManager', () => {
 
   it('and it stays dismissed on the NEXT launch (a remount reading only storage)', async () => {
     renderApp();
-    fireEvent.click(await screen.findByRole('button', { name: 'Class 1' }));
+    fireEvent.click(await screen.findByRole('button', { name: /Class 1/ }));
     await appProperRendered();
     cleanup();
 

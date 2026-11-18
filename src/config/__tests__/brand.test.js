@@ -75,12 +75,12 @@ describe('brand — the name is coherent', () => {
     expect(SHORT_NAME.length).toBeLessThanOrEqual(12);
   });
 
-  it('keeps "CBSE" out of the NAME but allows it in the DESCRIPTION', () => {
+  it('keeps "CBSE" out of the NAME and DESCRIPTION for region-neutral global reach', () => {
     // CBSE is a statutory board: a NAME implying affiliation risks Play's impersonation policy,
-    // while describing the app as CBSE-*aligned* is an ordinary descriptive claim.
+    // and keeping DESCRIPTION region-neutral avoids biasing global Android users.
     expect(PRODUCT_NAME).not.toMatch(/CBSE/i);
     expect(SHORT_NAME).not.toMatch(/CBSE/i);
-    expect(DESCRIPTION).toMatch(/CBSE/);
+    expect(DESCRIPTION).not.toMatch(/CBSE/i);
   });
 
   it('claims Grades 1-2, not 1-3 (DECISIONS 2026-09-23 — no Grade 3 content exists yet)', () => {

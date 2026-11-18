@@ -37,7 +37,7 @@ export default function ClassPicker({ grade, onGradeChange }) {
                   : 'border-primary-soft text-muted'
               }`}
             >
-              Class {g}
+              Grade {g} (Class {g})
             </button>
           );
         })}
@@ -47,7 +47,7 @@ export default function ClassPicker({ grade, onGradeChange }) {
           aria-disabled="true"
           className="flex-1 rounded-button border border-primary-soft py-2 text-sm font-semibold text-muted opacity-50 cursor-not-allowed"
         >
-          Class 3 — soon
+          Grade 3 (Class 3) — soon
         </button>
       </div>
     </div>

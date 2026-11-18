@@ -73,8 +73,8 @@ const HINTS = {
   'place-column-shift': 'Check the tens and ones houses carefully before putting them together!',
 
   // money: amounts & change (moneyAmounts)
-  'smaller-from-larger-force-money': 'Can’t subtract from 0 ones? Exchange one ₹10 note for ten ₹1 coins first!',
-  'ten-across-zero-borrow': 'When you exchange one ₹10 note for ones, you have one less ₹10 note!',
+  'smaller-from-larger-force-money': 'Can’t subtract from 0 ones? Exchange one 10-note for ten 1-coins first!',
+  'ten-across-zero-borrow': 'When you exchange one 10-note for ones, you have one less 10-note!',
 
   // ordinal numbers (ordinal)
   'cardinal-confusion': 'We want the position in line, not how many there are in all!',
@@ -112,9 +112,9 @@ const HINTS = {
   'vertical-horizontal-confusion': 'Check whether the question is about high/low or inside/near!',
 
   // coins (moneyCoins)
-  'size-value-bias': 'Coin size doesn’t tell the value — read the ₹ number on the coin!',
-  'coin-count-as-value': 'Add the ₹ numbers printed on the coins, not just how many coins there are!',
-  'sum-as-concatenation': 'Add the rupee numbers together instead of putting the digits side by side!',
+  'size-value-bias': 'Coin size doesn’t tell the value — read the number on the coin!',
+  'coin-count-as-value': 'Add the numbers printed on the coins, not just how many coins there are!',
+  'sum-as-concatenation': 'Add the coin values together instead of putting the digits side by side!',
 
   // capacity, clock, pictograph & basic fractions (measureCapacity, timeClock, pictograph, fractionsBasic)
   'container-count-confusion': 'Each jug holds the same number of litres — add that amount for every jug!',

@@ -259,14 +259,14 @@ export default function QuestionView({ question, blankFill = null }) {
     );
   }
 
-  // ── Archetype D: Indian Coins Tray (`coins-mcq`) ───────────────────────────
+  // ── Archetype D: Coins Value Tray (`coins-mcq`) ────────────────────────────
   if (question.format === 'coins-mcq') {
     const { coins } = question.render;
     const coinSize = 'clamp(2.4rem, min(26cqh, 15cqw), 3.4rem)';
     return (
       <div className="text-center">
         <p className="text-prompt font-body font-extrabold text-ink mb-1.5">
-          {coins.length === 1 ? 'How many rupees is this coin worth?' : 'Count the coins — how many rupees in all?'}
+          {coins.length === 1 ? 'What is the value of this coin?' : 'What is the total value of these coins?'}
         </p>
         <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-4 py-2.5 shadow-card flex items-center justify-center gap-2 select-none">
           {coins.map((c, i) => (
@@ -274,9 +274,9 @@ export default function QuestionView({ question, blankFill = null }) {
               {i > 0 && <span className="font-display font-bold text-muted text-sm">+</span>}
               <span
                 className="rounded-full border-3 border-primary bg-primary-soft text-primary-ink font-display font-extrabold flex items-center justify-center shadow-button"
-                style={{ width: coinSize, height: coinSize, fontSize: `calc(${coinSize} * 0.42)` }}
+                style={{ width: coinSize, height: coinSize, fontSize: `calc(${coinSize} * 0.36)` }}
               >
-                ₹{c}
+                🪙{c}
               </span>
             </div>
           ))}
@@ -586,13 +586,13 @@ export default function QuestionView({ question, blankFill = null }) {
     const { a, b } = question.render;
     return (
       <div className="text-center">
-        <p className="text-prompt font-body font-extrabold text-ink mb-1.5">Add the rupees together:</p>
+        <p className="text-prompt font-body font-extrabold text-ink mb-1.5">Add the money together:</p>
         <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-4 py-2 shadow-card flex items-center justify-center gap-2.5 font-display font-extrabold text-primary-ink">
-          <span className="rounded-button border-2 border-primary bg-primary-soft px-3 py-1 text-lg">₹{a}</span>
+          <span className="rounded-button border-2 border-primary bg-primary-soft px-3 py-1 text-lg">🪙 {a}</span>
           <span className="text-primary text-lg">+</span>
-          <span className="rounded-button border-2 border-primary bg-primary-soft px-3 py-1 text-lg">₹{b}</span>
+          <span className="rounded-button border-2 border-primary bg-primary-soft px-3 py-1 text-lg">🪙 {b}</span>
           <span className="text-primary text-lg">=</span>
-          <TargetSlot blankFill={blankFill} answer={`₹${question.correctAnswer}`} />
+          <TargetSlot blankFill={blankFill} answer={`🪙 ${question.correctAnswer}`} />
         </div>
       </div>
     );
@@ -602,16 +602,16 @@ export default function QuestionView({ question, blankFill = null }) {
     const { have, spend } = question.render;
     return (
       <div className="text-center">
-        <p className="text-prompt font-body font-extrabold text-ink mb-1.5">How many rupees are left?</p>
+        <p className="text-prompt font-body font-extrabold text-ink mb-1.5">How much money is left?</p>
         <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-3.5 py-2 shadow-card flex items-center justify-center gap-2.5 select-none">
           <div className="rounded-button border-2 border-primary-soft bg-bg px-3 py-1 text-center">
             <div className="text-xs font-body font-bold text-muted">👛 Have</div>
-            <div className="font-display font-extrabold text-primary-ink text-lg leading-tight">₹{have}</div>
+            <div className="font-display font-extrabold text-primary-ink text-lg leading-tight">🪙 {have}</div>
           </div>
           <span className="font-display font-extrabold text-primary text-xl">−</span>
           <div className="rounded-button border-2 border-primary-soft bg-bg px-3 py-1 text-center">
             <div className="text-xs font-body font-bold text-muted">🏷️ Spend</div>
-            <div className="font-display font-extrabold text-primary-ink text-lg leading-tight">₹{spend}</div>
+            <div className="font-display font-extrabold text-primary-ink text-lg leading-tight">🪙 {spend}</div>
           </div>
         </div>
       </div>

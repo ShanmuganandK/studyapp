@@ -74,7 +74,7 @@ describe('QuestionView — visual format trays (Batch 3)', () => {
     expect(screen.getByRole('img', { name: '4:30' })).toBeTruthy();
   });
 
-  it('renders coins-mcq with rupee coins', () => {
+  it('renders coins-mcq with currency-neutral coins', () => {
     render(
       <QuestionView
         question={{
@@ -84,9 +84,9 @@ describe('QuestionView — visual format trays (Batch 3)', () => {
         }}
       />,
     );
-    expect(screen.getByText('₹5')).toBeTruthy();
-    expect(screen.getByText('₹2')).toBeTruthy();
-    expect(screen.getByText('₹1')).toBeTruthy();
+    expect(screen.getByText('🪙5')).toBeTruthy();
+    expect(screen.getByText('🪙2')).toBeTruthy();
+    expect(screen.getByText('🪙1')).toBeTruthy();
   });
 
   it('renders pictograph rows and scale key when scale > 1', () => {
