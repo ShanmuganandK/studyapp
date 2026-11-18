@@ -44,7 +44,7 @@ const OPTION_COUNT = 4;
 // Per-skill curriculum ceiling: largest possible sum, per difficulty rung.
 // g1.add.within20's caps are the pre-existing, unchanged values (shipped behaviour).
 const SUM_CAP = {
-  'g1.add.within10': { 1: 3, 2: 6, 3: 10 },
+  'g1.add.within10': { 1: 5, 2: 8, 3: 10 },
   'g1.add.within20': { 1: 5, 2: 10, 3: 20 },
 };
 const SKILL_IDS = ['g1.add.within10', 'g1.add.within20'];

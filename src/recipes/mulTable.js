@@ -47,7 +47,7 @@ const SKILL_IDS = ['g2.mul.table2', 'g2.mul.table5', 'g2.mul.table10'];
 const DEFAULT_SKILL = 'g2.mul.table2';
 
 // Curriculum ceiling per rung: largest possible multiplier.
-const MULTIPLIER_CAP = { 1: 5, 2: 8, 3: 10 };
+const MULTIPLIER_CAP = { 1: 6, 2: 8, 3: 10 };
 
 const recipe = {
   skillIds: SKILL_IDS,
@@ -82,12 +82,15 @@ const recipe = {
     // Shuffle the {value, tag} pairs together so misconceptions stay index-aligned with options.
     const optionPairs = rng.shuffle([{ value: product, tag: null }, ...distractors]);
 
+    const swapOrder = m !== table && rng.int(0, 1) === 1;
+
     return {
-      questionText: `${table} × ${m} = ?`,
+      questionText: swapOrder ? `${m} × ${table} = ?` : `${table} × ${m} = ?`,
       correctAnswer: product,
       options: optionPairs.map((o) => o.value),
       format: 'mcq',
       misconceptions: optionPairs.map((o) => o.tag),
+      render: { table, multiplier: m },
     };
   },
 };

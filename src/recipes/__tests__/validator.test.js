@@ -130,7 +130,7 @@ function expectedAnswerFor(skillId, q) {
     const token = q.questionText.split(isAfter ? 'AFTER ' : 'BEFORE ')[1].replace('?', '');
     const seq = DAYS.includes(token) ? DAYS : DAY_PARTS;
     const idx = seq.indexOf(token);
-    const dir = isAfter ? 1 : -1;
+    const dir = q.questionText.includes('2 days AFTER') ? 2 : isAfter ? 1 : -1;
     return seq[(idx + dir + seq.length) % seq.length];
   }
   if (skillId === 'g1.prenum.patterns') {
@@ -186,28 +186,31 @@ function expectedAnswerFor(skillId, q) {
     if (typeof q.correctAnswer === 'string') {
       return s.charAt(0).toUpperCase() + s.slice(1);
     }
-    return { circle: 0, triangle: 3, square: 4, rectangle: 4 }[s];
+    return { circle: 0, triangle: 3, square: 4, rectangle: 4, pentagon: 5 }[s];
   }
   if (skillId === 'g1.shapes.space') {
     return q.render.relation;
   }
   if (skillId === 'g1.measure.weight') {
     if (q.render.unitCount) return q.render.unitCount;
-    return q.render.heavier === 'left' ? q.render.leftItem : q.render.rightItem;
+    const heavyItem = q.render.heavier === 'left' ? q.render.leftItem : q.render.rightItem;
+    const lightItem = q.render.heavier === 'left' ? q.render.rightItem : q.render.leftItem;
+    return q.render.askLighter ? lightItem : heavyItem;
   }
   if (skillId === 'g1.money.coins') {
     return q.render.coins.reduce((sum, c) => sum + c, 0);
   }
   if (skillId === 'g2.measure.capacity') {
     const nums = numbersIn(q.questionText);
-    if (q.questionText.startsWith('1 jug holds')) {
+    if (q.questionText.startsWith('1 ')) {
       return nums[1] * nums[2];
     }
     return nums[0] - nums[1];
   }
   if (skillId === 'g2.time.clock') {
-    const { hours, minutes } = q.render;
-    return `${hours}:${String(minutes).padStart(2, '0')}`;
+    const { hours, minutes, deltaHours = 0 } = q.render;
+    const h = deltaHours > 0 ? ((hours - 1 + deltaHours + 12) % 12) + 1 : hours;
+    return `${h}:${String(minutes).padStart(2, '0')}`;
   }
   if (skillId === 'g2.data.pictograph') {
     const { rows, scale } = q.render;
@@ -215,15 +218,24 @@ function expectedAnswerFor(skillId, q) {
       const matched = rows.filter((r) => q.questionText.includes(r.label));
       return Math.abs(matched[0].count - matched[1].count) * scale;
     }
+    if (q.questionText.includes('ALTOGETHER')) {
+      const matched = rows.filter((r) => q.questionText.includes(r.label));
+      return (matched[0].count + matched[1].count) * scale;
+    }
     const target = rows.find((r) => q.questionText.includes(r.label));
     return target.count * scale;
   }
   if (skillId === 'g2.frac.halves-quarters') {
     if (q.format === 'fraction-mcq') {
-      return `${q.render.shadedParts}/${q.render.totalParts}`;
+      const top = q.render.askUnshaded
+        ? q.render.totalParts - q.render.shadedParts
+        : q.render.shadedParts;
+      return `${top}/${q.render.totalParts}`;
     }
-    const nums = numbersIn(q.questionText);
-    return nums[nums.length - 1] / 2;
+    if (q.render.kind === 'fraction-whole') {
+      return q.render.wholes * q.render.partsPerWhole;
+    }
+    return (q.render.total / (q.render.den ?? 2)) * (q.render.num ?? 1);
   }
   if (skillId.startsWith('g1.count')) {
     return q.render.count; // the set drawn for the child has exactly `correctAnswer` objects
@@ -328,9 +340,9 @@ function validateRecipe(recipe) {
 // 5. Difficulty respects the ceiling. `value(q)` extracts the magnitude that must stay capped
 //    (the answer for add/count, the minuend for subtraction, the larger operand for compare).
 const CEILINGS = {
-  'g1.add.within10': { caps: { 1: 3, 2: 6, 3: 10 }, value: (q) => q.correctAnswer },
+  'g1.add.within10': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => q.correctAnswer },
   'g1.add.within20': { caps: { 1: 5, 2: 10, 3: 20 }, value: (q) => q.correctAnswer },
-  'g1.count.1-9': { caps: { 1: 3, 2: 6, 3: 9 }, value: (q) => q.correctAnswer },
+  'g1.count.1-9': { caps: { 1: 5, 2: 7, 3: 9 }, value: (q) => q.correctAnswer },
   'g1.count.1-20': { caps: { 1: 5, 2: 10, 3: 20 }, value: (q) => q.correctAnswer },
   'g1.sub.within10': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => numbersIn(q.questionText)[0] },
   'g1.sub.within20': { caps: { 1: 10, 2: 15, 3: 20 }, value: (q) => numbersIn(q.questionText)[0] },
@@ -342,9 +354,9 @@ const CEILINGS = {
   'g2.sub.2d-noborrow': { caps: { 1: 39, 2: 69, 3: 99 }, value: (q) => numbersIn(q.questionText)[0] },
   'g2.sub.2d-borrow': { caps: { 1: 49, 2: 79, 3: 99 }, value: (q) => numbersIn(q.questionText)[0] },
   'g2.mul.intro': { caps: { 1: 12, 2: 20 }, value: (q) => q.correctAnswer },
-  'g2.mul.table2': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => numbersIn(q.questionText)[1] },
-  'g2.mul.table5': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => numbersIn(q.questionText)[1] },
-  'g2.mul.table10': { caps: { 1: 5, 2: 8, 3: 10 }, value: (q) => numbersIn(q.questionText)[1] },
+  'g2.mul.table2': { caps: { 1: 6, 2: 8, 3: 10 }, value: (q) => q.render?.multiplier ?? numbersIn(q.questionText)[1] },
+  'g2.mul.table5': { caps: { 1: 6, 2: 8, 3: 10 }, value: (q) => q.render?.multiplier ?? numbersIn(q.questionText)[1] },
+  'g2.mul.table10': { caps: { 1: 6, 2: 8, 3: 10 }, value: (q) => q.render?.multiplier ?? numbersIn(q.questionText)[1] },
   'g2.num.3digit': { caps: { 1: 199, 2: 599, 3: 999 }, value: (q) => q.correctAnswer },
   'g1.num.21-99': { caps: { 1: 50, 2: 80, 3: 99 }, value: (q) => q.correctAnswer },
   'g1.place.tens-ones': { caps: { 1: 39, 2: 69, 3: 99 }, value: (q) => q.correctAnswer },
@@ -355,10 +367,10 @@ const CEILINGS = {
   'g1.prenum.patterns': { caps: { 1: 4, 2: 4 }, value: (q) => q.options.length },
   'g1.prenum.sort': { caps: { 1: 4, 2: 4 }, value: (q) => q.options.length },
   'g1.measure.length': {
-    caps: { 1: 5, 2: 9, 3: 9 },
+    caps: { 1: 8, 2: 9, 3: 9 },
     value: (q) => (q.format === 'unit-length' ? q.render.count : numbersIn(q.questionText)[0]),
   },
-  'g2.measure.length-std': { caps: { 1: 15, 2: 30, 3: 99 }, value: (q) => q.correctAnswer },
+  'g2.measure.length-std': { caps: { 1: 25, 2: 30, 3: 99 }, value: (q) => q.correctAnswer },
   'g1.prenum.compare': { caps: { 1: 8, 2: 8 }, value: (q) => Math.max(...numbersIn(q.questionText)) },
   'g1.shapes.2d': { caps: { 1: 4, 2: 4 }, value: (q) => q.options.length },
   'g1.shapes.space': { caps: { 1: 4, 2: 4 }, value: (q) => q.options.length },
@@ -366,12 +378,12 @@ const CEILINGS = {
     caps: { 1: 4, 2: 9 },
     value: (q) => (typeof q.correctAnswer === 'number' ? q.correctAnswer : q.options.length),
   },
-  'g1.money.coins': { caps: { 1: 10, 2: 20 }, value: (q) => q.correctAnswer },
-  'g2.measure.capacity': { caps: { 1: 20, 2: 50 }, value: (q) => q.correctAnswer },
+  'g1.money.coins': { caps: { 1: 12, 2: 30 }, value: (q) => q.correctAnswer },
+  'g2.measure.capacity': { caps: { 1: 30, 2: 60 }, value: (q) => q.correctAnswer },
   'g2.time.clock': { caps: { 1: 12, 2: 12, 3: 12 }, value: (q) => q.render.hours },
-  'g2.data.pictograph': { caps: { 1: 6, 2: 12 }, value: (q) => q.correctAnswer },
+  'g2.data.pictograph': { caps: { 1: 12, 2: 30 }, value: (q) => q.correctAnswer },
   'g2.frac.halves-quarters': {
-    caps: { 1: 4, 2: 6 },
+    caps: { 1: 12, 2: 24 },
     value: (q) => (typeof q.correctAnswer === 'number' ? q.correctAnswer : q.render.totalParts),
   },
 };
@@ -485,6 +497,28 @@ function validateDeterminism(recipe) {
   }
 }
 
+// Guard against shallow 2–4 question loops (e.g., the old fractionsBasic Rung 1 only had 2
+// questions for an 8-question session). Every skill and difficulty rung must generate at least
+// 8 distinct question prompts over 80 draws so an 8-question session can always present variety.
+function validateSessionVariety(recipe) {
+  for (const skillId of skillIdsOf(recipe)) {
+    for (let difficulty = 1; difficulty <= recipe.maxDifficulty; difficulty++) {
+      const seen = new Set();
+      for (let run = 0; run < 80; run++) {
+        const q = recipe.generate(difficulty, makeRng(`variety:${skillId}:${difficulty}:${run}`), skillId);
+        const key = q.format === 'count-objects'
+          ? `${q.questionText}:${q.render.count}`
+          : q.questionText;
+        seen.add(key);
+      }
+      expect(
+        seen.size,
+        `${skillId} difficulty ${difficulty} only generated ${seen.size} distinct questions (need >= 8 for an 8-question session)`,
+      ).toBeGreaterThanOrEqual(8);
+    }
+  }
+}
+
 describe.each([
   ['addition (g1.add.within10, within20)', additionRecipe],
   ['counting (g1.count.1-9, 1-20)', countingRecipe],
@@ -528,5 +562,9 @@ describe.each([
 
   it('is deterministic — same seed produces the same question', () => {
     validateDeterminism(recipe);
+  });
+
+  it('generates at least 8 distinct questions per difficulty rung for an 8-question session', () => {
+    validateSessionVariety(recipe);
   });
 });

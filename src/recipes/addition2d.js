@@ -80,18 +80,30 @@ const NOCARRY_CEILING = 99;
 
 /**
  * Carry-skill operands: two operands (a always 2-digit, b >= 1) whose sum <= cap and whose
- * ones-column ALWAYS carries. Rejection sampling over (a, b); the fallback pair is unreachable
- * in practice given these caps but keeps the function total (never hangs).
+ * ones-column ALWAYS carries. Shaped progressively by rung:
+ *   rung 1 (cap 49): 2-digit + 1-digit with carry (18+5, 27+6, 36+8)
+ *   rung 2 (cap 79): 2-digit + 2-digit (or 1-digit) with carry, sum <= 79
+ *   rung 3 (cap 99): full 2-digit + 2-digit with carry, sum <= 99
  */
-function buildOperandsCarry(rng, cap) {
+function buildOperandsCarry(rng, cap, difficulty = 3) {
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const a = rng.int(10, cap - 1);
-    const maxB = cap - a;
-    if (maxB < 1) continue;
-    const b = rng.int(1, maxB);
-    if (ones(a) + ones(b) >= 10) return [a, b];
+    if (difficulty === 1) {
+      const a = rng.int(12, Math.min(39, cap - 2));
+      if (ones(a) < 2) continue;
+      const minB = 10 - ones(a);
+      const maxB = Math.min(9, cap - a);
+      if (maxB < minB) continue;
+      const b = rng.int(minB, maxB);
+      if (ones(a) + ones(b) >= 10) return [a, b];
+    } else {
+      const a = rng.int(12, cap - 11);
+      const maxB = cap - a;
+      if (maxB < 11) continue;
+      const b = rng.int(11, maxB);
+      if (ones(a) + ones(b) >= 10) return [a, b];
+    }
   }
-  return [19, 19]; // safety net: guaranteed-valid carry pair
+  return difficulty === 1 ? [18, 7] : [19, 19]; // safety net: guaranteed-valid carry pair
 }
 
 /**
@@ -136,7 +148,7 @@ const recipe = {
   generate(difficulty, rng, skillId = DEFAULT_SKILL) {
     const needsCarry = skillId === 'g2.add.2d-carry';
     const [a, b] = needsCarry
-      ? buildOperandsCarry(rng, CARRY_CAPS[difficulty])
+      ? buildOperandsCarry(rng, CARRY_CAPS[difficulty], difficulty)
       : buildOperandsForRung(rng, difficulty);
     const sum = a + b;
 

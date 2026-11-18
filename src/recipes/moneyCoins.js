@@ -1,9 +1,10 @@
 /**
- * Recipe: Coins recognition & small coin sums — 1, 2, 5, 10 (Grade 1).
+ * Recipe: Coins recognition & coin combinations — 1, 2, 5, 10 (Grade 1).
  * Serves g1.money.coins. Format `coins-mcq`.
  *
- * Rung 1 (cap 10): single coin value recognition or 2 identical 1/2/5 coins.
- * Rung 2 (cap 20): summing 2 or 3 coins from {1, 2, 5, 10}.
+ * Upgraded to 35+ distinct coin combinations (no single-coin giveaway where the answer is printed in text):
+ *   - Rung 1 (cap 12): summing 2 or 3 coins from {1, 2, 5} totaling 2..12.
+ *   - Rung 2 (cap 25): summing 2 to 4 coins from {1, 2, 5, 10} totaling 6..25.
  *
  * Distractors encode canonical misconceptions from misconceptions-reference.md:
  *   - size-value-bias        : confuses 5 and 2 by physical coin size
@@ -16,6 +17,31 @@ import { selectDistractors } from './_plausibility';
 
 const OPTION_COUNT = 4;
 
+const RUNG1_COMBOS = [
+  [1, 1],
+  [2, 1],
+  [1, 2],
+  [2, 2],
+  [5, 1],
+  [1, 5],
+  [5, 2],
+  [2, 5],
+  [5, 5],
+  [1, 1, 1],
+  [2, 1, 1],
+  [1, 2, 1],
+  [2, 2, 1],
+  [2, 1, 2],
+  [2, 2, 2],
+  [5, 1, 1],
+  [5, 2, 1],
+  [2, 5, 1],
+  [5, 2, 2],
+  [2, 5, 2],
+  [5, 5, 1],
+  [5, 5, 2],
+];
+
 const recipe = {
   skillId: 'g1.money.coins',
   maxDifficulty: 2,
@@ -23,34 +49,34 @@ const recipe = {
   generate(difficulty, rng) {
     let coins;
     if (difficulty === 1) {
-      const single = rng.int(0, 1) === 0;
-      if (single) {
-        coins = [rng.pick([1, 2, 5, 10])];
-      } else {
-        const denom = rng.pick([1, 2, 5]);
-        coins = [denom, denom];
-      }
+      coins = rng.pick(RUNG1_COMBOS);
     } else {
-      const count = rng.int(2, 3);
+      const count = rng.int(2, 4);
       if (count === 2) {
-        const c1 = rng.pick([2, 5, 10]);
-        const c2 = rng.pick([1, 2, 5]);
+        const c1 = rng.pick([5, 10]);
+        const c2 = rng.pick([2, 5, 10]);
         coins = [c1, c2];
-      } else {
+      } else if (count === 3) {
         const c1 = rng.pick([2, 5, 10]);
-        const c2 = rng.pick([1, 2, 5]);
+        const c2 = rng.pick([2, 5, 10]);
         const c3 = rng.pick([1, 2, 5]);
         coins = [c1, c2, c3];
+      } else {
+        const c1 = rng.pick([5, 10]);
+        const c2 = rng.pick([2, 5]);
+        const c3 = rng.pick([1, 2, 5]);
+        const c4 = rng.pick([1, 2]);
+        coins = [c1, c2, c3, c4];
       }
     }
 
     const answer = coins.reduce((sum, c) => sum + c, 0);
     const candidates = [];
 
-    if (coins.length === 1 && coins[0] === 5) {
-      candidates.push({ value: 2, tag: 'size-value-bias' });
-    } else if (coins.length === 1 && coins[0] === 2) {
-      candidates.push({ value: 5, tag: 'size-value-bias' });
+    if (coins.includes(5)) {
+      candidates.push({ value: answer - 3, tag: 'size-value-bias' });
+    } else if (coins.includes(2)) {
+      candidates.push({ value: answer + 3, tag: 'size-value-bias' });
     }
 
     if (coins.length >= 2 && coins.length !== answer) {
@@ -76,9 +102,7 @@ const recipe = {
     const labelList = coins.map((c) => `🪙 ${c}`).join(' + ');
 
     return {
-      questionText: coins.length === 1
-        ? `What is the value of this 🪙 ${coins[0]} coin?`
-        : `Count the coins: ${labelList} = ?`,
+      questionText: `Count the coins: ${labelList} = ?`,
       correctAnswer: answer,
       options: optionPairs.map((opt) => opt.value),
       format: 'coins-mcq',

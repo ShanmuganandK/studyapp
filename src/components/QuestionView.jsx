@@ -161,6 +161,9 @@ export default function QuestionView({ question, blankFill = null }) {
             {shape === 'triangle' && (
               <polygon points="50,14 86,82 14,82" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" />
             )}
+            {shape === 'pentagon' && (
+              <polygon points="50,12 88,40 73,84 27,84 12,40" fill="currentColor" fillOpacity="0.2" stroke="currentColor" strokeWidth="6" strokeLinejoin="round" />
+            )}
           </svg>
         </div>
       </div>
@@ -223,11 +226,11 @@ export default function QuestionView({ question, blankFill = null }) {
 
   // ── Archetype D: SVG Pan-Balance Scale (`balance-mcq`) ─────────────────────
   if (question.format === 'balance-mcq') {
-    const { leftItem, rightItem, heavier, unitCount } = question.render;
+    const { leftItem, rightItem, heavier, unitCount, askLighter } = question.render;
     const tilt = heavier === 'left' ? -9 : heavier === 'right' ? 9 : 0;
     const prompt = unitCount
       ? `1 ${leftItem} balances ${unitCount} blocks. How many blocks heavy is ${leftItem}?`
-      : 'Look at the balance scale — which one is HEAVIER?';
+      : `Look at the balance scale — which one is ${askLighter ? 'LIGHTER' : 'HEAVIER'}?`;
     return (
       <div className="text-center">
         <p className="text-prompt font-body font-extrabold text-ink mb-1.5">{prompt}</p>
@@ -287,12 +290,15 @@ export default function QuestionView({ question, blankFill = null }) {
 
   // ── Archetype D: Analogue Clock SVG (`clock`) ──────────────────────────────
   if (question.format === 'clock') {
-    const { hours, minutes } = question.render;
+    const { hours, minutes, deltaHours = 0 } = question.render;
     const minAngle = (minutes / 60) * 360;
     const hourAngle = ((hours % 12) / 12) * 360 + (minutes / 60) * 30;
+    const header = deltaHours > 0
+      ? `What time will it be ${deltaHours} ${deltaHours === 1 ? 'hour' : 'hours'} later?`
+      : 'What time does the clock show?';
     return (
       <div className="text-center">
-        <p className="text-prompt font-body font-extrabold text-ink mb-1.5">What time does the clock show?</p>
+        <p className="text-prompt font-body font-extrabold text-ink mb-1.5">{header}</p>
         <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card p-2 shadow-card">
           <svg
             viewBox="0 0 100 100"
@@ -379,21 +385,29 @@ export default function QuestionView({ question, blankFill = null }) {
     );
   }
 
-  // ── Archetype D: Partitioned Fraction Bar (`fraction-mcq`) ─────────────────
+  // ── Archetype D: Partitioned Fraction Shape (`fraction-mcq`) ────────────────
   if (question.format === 'fraction-mcq') {
-    const { totalParts, shadedParts } = question.render;
+    const { totalParts, shadedParts, visualShape = 'bar', offset = 0, askUnshaded = false } = question.render;
+    const isCellShaded = (i) => {
+      for (let k = 0; k < shadedParts; k++) {
+        if ((offset + k) % totalParts === i) return true;
+      }
+      return false;
+    };
+    const isGrid = visualShape === 'grid' && totalParts === 4;
     return (
       <div className="text-center">
         <p className="text-prompt font-body font-extrabold text-ink mb-1.5">
-          {shadedParts} of {totalParts} equal parts shaded — what fraction?
+          {shadedParts} of {totalParts} equal parts shaded — what fraction is{' '}
+          <span className="text-primary underline">{askUnshaded ? 'UNSHADED' : 'SHADED'}</span>?
         </p>
         <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card p-2.5 shadow-card">
           <div
             className="grid gap-1 mx-auto"
             style={{
-              gridTemplateColumns: `repeat(${totalParts}, 1fr)`,
-              width: 'clamp(6.5rem, min(56cqw, 85cqh), 11rem)',
-              height: 'clamp(2.5rem, min(28cqh, 22cqw), 4rem)',
+              gridTemplateColumns: `repeat(${isGrid ? 2 : totalParts}, 1fr)`,
+              width: isGrid ? 'clamp(4.5rem, min(38cqw, 52cqh), 6.5rem)' : 'clamp(6.5rem, min(56cqw, 85cqh), 11rem)',
+              height: isGrid ? 'clamp(4.5rem, min(38cqw, 52cqh), 6.5rem)' : 'clamp(2.5rem, min(28cqh, 22cqw), 4rem)',
             }}
             role="img"
             aria-label={`${shadedParts} of ${totalParts} parts shaded`}
@@ -402,7 +416,7 @@ export default function QuestionView({ question, blankFill = null }) {
               <div
                 key={i}
                 className={`border-2 border-primary rounded-xs ${
-                  i < shadedParts ? 'bg-primary' : 'bg-bg-card'
+                  isCellShaded(i) ? 'bg-primary' : 'bg-bg-card'
                 }`}
               />
             ))}
@@ -528,14 +542,19 @@ export default function QuestionView({ question, blankFill = null }) {
   // Archetype B.5: Days & Daily Time Sequence Card (`time-sequence`)
   if (kind === 'time-sequence') {
     const { current, direction, noun } = question.render;
-    const isAfter = direction === 'after';
+    const isForward = direction === 'after' || direction === 'tomorrow' || direction === '2 days after';
+    const headerText = direction === 'tomorrow'
+      ? `Today is ${current} — what day is TOMORROW?`
+      : direction === 'yesterday'
+        ? `Today is ${current} — what day was YESTERDAY?`
+        : direction === '2 days after'
+          ? `What day comes 2 days AFTER ${current}?`
+          : `What ${noun} comes right ${isForward ? 'AFTER' : 'BEFORE'}?`;
     return (
       <div className="text-center">
-        <p className="text-prompt font-body font-extrabold text-ink mb-1.5">
-          What {noun} comes right <span className="text-primary underline">{isAfter ? 'AFTER' : 'BEFORE'}</span>?
-        </p>
+        <p className="text-prompt font-body font-extrabold text-ink mb-1.5">{headerText}</p>
         <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-3.5 py-2 shadow-card flex items-center justify-center gap-2.5 select-none">
-          {!isAfter && (
+          {!isForward && (
             <>
               <TargetSlot blankFill={blankFill} answer={question.correctAnswer} />
               <span className="text-primary font-extrabold text-lg">←</span>
@@ -544,9 +563,11 @@ export default function QuestionView({ question, blankFill = null }) {
           <span className="rounded-button border-2 border-primary bg-primary-soft font-display font-extrabold text-primary-ink px-3.5 py-1.5 text-base sm:text-lg">
             {current}
           </span>
-          {isAfter && (
+          {isForward && (
             <>
-              <span className="text-primary font-extrabold text-lg">→</span>
+              <span className="text-primary font-extrabold text-lg">
+                {direction === '2 days after' ? '+2 →' : '→'}
+              </span>
               <TargetSlot blankFill={blankFill} answer={question.correctAnswer} />
             </>
           )}
@@ -736,22 +757,52 @@ export default function QuestionView({ question, blankFill = null }) {
     );
   }
 
-  // Archetype D.2: Half of an Even Collection (`half-collection` for Fractions Rung 2)
+  // Archetype D.2: Fraction of a Collection & Whole-Part Equivalence (`half-collection`, `fraction-whole`)
   if (kind === 'half-collection') {
-    const { total } = question.render;
-    const half = total / 2;
+    const { total, num = 1, den = 2, glyph = '🍎', word = 'items' } = question.render;
+    const fracStr = `${num}/${den}`;
+    const groupSize = total / den;
     return (
       <div className="text-center">
         <p className="text-prompt font-body font-extrabold text-ink mb-1.5">
-          Share {total} equally into 2 groups — what is half (1/2)?
+          What is <span className="text-primary underline">{fracStr}</span> of {total} {word}?
         </p>
-        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-3.5 py-2 shadow-card flex items-center justify-center gap-3 select-none">
-          <div className="rounded-button border-2 border-primary bg-primary-soft px-2.5 py-1 flex gap-1 text-base">
-            {Array.from({ length: half }).map((_, i) => <span key={i}>🍎</span>)}
-          </div>
-          <div className="rounded-button border-2 border-primary-soft bg-bg px-2.5 py-1 flex gap-1 text-base">
-            {Array.from({ length: half }).map((_, i) => <span key={i}>🍎</span>)}
-          </div>
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-3 py-2 shadow-card flex flex-wrap items-center justify-center gap-2 select-none">
+          {Array.from({ length: den }).map((_, gIdx) => (
+            <div
+              key={gIdx}
+              className={`rounded-button border-2 px-2 py-1 flex items-center gap-0.5 text-sm ${
+                gIdx < num ? 'border-primary bg-primary-soft' : 'border-primary-soft bg-bg'
+              }`}
+            >
+              {Array.from({ length: Math.min(groupSize, 6) }).map((__, i) => (
+                <span key={i}>{glyph}</span>
+              ))}
+              {groupSize > 6 && (
+                <span className="font-display font-extrabold text-primary-ink text-xs ml-0.5">({groupSize})</span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (kind === 'fraction-whole') {
+    const { wholes, partsPerWhole } = question.render;
+    const fracStr = `1/${partsPerWhole}`;
+    return (
+      <div className="text-center">
+        <p className="text-prompt font-body font-extrabold text-ink mb-1.5">
+          {question.questionText}
+        </p>
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-3.5 py-2 shadow-card flex items-center justify-center gap-2 select-none">
+          {Array.from({ length: wholes }).map((_, i) => (
+            <div key={i} className="rounded-button border-2 border-primary bg-primary-soft px-2.5 py-1 text-center">
+              <div className="text-base leading-none">🍕</div>
+              <div className="text-xs font-display font-extrabold text-primary-ink mt-0.5">{partsPerWhole} × {fracStr}</div>
+            </div>
+          ))}
         </div>
       </div>
     );

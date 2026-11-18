@@ -30,7 +30,7 @@ const OPTION_COUNT = 4;
 // g1.count.1-20 difficulty-3 is capped at 15 (3 ten-frame rows of 5) — fits all target phones
 // without scroll. Counts 16-20 need a numeral/grouped tray presentation before being enabled.
 const COUNT_MAX = {
-  'g1.count.1-9': { 1: 3, 2: 6, 3: 9 },
+  'g1.count.1-9': { 1: 5, 2: 7, 3: 9 },
   'g1.count.1-20': { 1: 5, 2: 10, 3: 15 },
 };
 const SKILL_IDS = ['g1.count.1-9', 'g1.count.1-20'];

@@ -10,7 +10,7 @@
 > artifact behind it. Three claims were checked on 2026-08-15 and three were false
 > (CI wiring, questionnaire v2, the 296 test count). See "Open questions / to trace".
 
-_Last synced: 2026-11-18 (Global currency-neutral money `🪙` & `Grade 1 (Class 1)` / `Grade 2 (Class 2)` labels + region-neutral manifest `DESCRIPTION`, after 2026-11-17 Elite Archetype-Driven Quiz UI)_
+_Last synced: 2026-11-18 (Skill variety expansion across 9 skills + Grade 1/2 cross-skill difficulty parity + progressive strategy rungs on `subtraction2d`/`addition2d` + curriculum order cleanup, after currency-neutral money `🪙` & `Grade 1 (Class 1)` labels)_
 
 ---
 

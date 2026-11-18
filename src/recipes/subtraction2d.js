@@ -64,18 +64,67 @@ const DEFAULT_SKILL = 'g2.sub.2d-noborrow';
 
 /**
  * Two operands (a always 2-digit, 0 < b < a) whose minuend a <= cap and whose ones-column
- * borrow status matches `needsBorrow` exactly. Rejection sampling; the fallback pairs are
- * unreachable in practice given these caps but keep the function total (never hangs).
+ * borrow status matches `needsBorrow` exactly, stepped progressively by difficulty rung:
+ *   no-borrow:
+ *     rung 1 (cap 39): 2-digit - 1-digit (28 - 5, 37 - 4)
+ *     rung 2 (cap 69): 2-digit - multiple of 10 (56 - 20) or 2-digit - teen (48 - 15)
+ *     rung 3 (cap 99): full 2-digit - 2-digit no-borrow (78 - 34)
+ *   borrow:
+ *     rung 1 (cap 49): 2-digit - 1-digit with borrow (23 - 7, 34 - 8, 42 - 5)
+ *     rung 2 (cap 79): 2-digit - teen with borrow (42 - 17, 63 - 18) or round-ten minus 2-digit
+ *     rung 3 (cap 99): full 2-digit - 2-digit with borrow (73 - 28, 92 - 47)
  */
-function buildOperands(rng, cap, needsBorrow) {
+function buildOperands(rng, cap, needsBorrow, difficulty = 3) {
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const a = rng.int(10, cap);
-    const maxB = a - 1;
-    if (maxB < 1) continue;
-    const b = rng.int(1, maxB);
-    if ((ones(a) < ones(b)) === needsBorrow) return [a, b];
+    if (!needsBorrow) {
+      if (difficulty === 1) {
+        const a = rng.int(12, cap);
+        if (ones(a) < 1) continue;
+        const b = rng.int(1, ones(a));
+        return [a, b];
+      }
+      if (difficulty === 2) {
+        const a = rng.int(22, cap);
+        if (rng.int(0, 1) === 0 && tens(a) >= 2) {
+          const b = rng.int(1, tens(a) - 1) * 10;
+          if (ones(a) >= ones(b)) return [a, b];
+        } else if (ones(a) >= 1) {
+          const b = 10 + rng.int(1, ones(a));
+          if (b < a && ones(a) >= ones(b)) return [a, b];
+        }
+      } else {
+        const a = rng.int(25, cap);
+        if (tens(a) < 2) continue;
+        const bTens = rng.int(1, tens(a) - 1);
+        const bOnes = rng.int(0, ones(a));
+        const b = bTens * 10 + bOnes;
+        if (b >= 10 && b < a && ones(a) >= ones(b)) return [a, b];
+      }
+    } else {
+      if (difficulty === 1) {
+        const a = rng.int(12, cap);
+        if (ones(a) >= 8) continue;
+        const b = rng.int(ones(a) + 1, 9);
+        if (b < a && ones(a) < ones(b)) return [a, b];
+      } else if (difficulty === 2) {
+        const a = rng.int(22, cap);
+        if (ones(a) >= 8) continue;
+        const b = 10 + rng.int(ones(a) + 1, 9);
+        if (b < a && ones(a) < ones(b)) return [a, b];
+      } else {
+        const a = rng.int(31, cap);
+        if (ones(a) >= 8 || tens(a) < 2) continue;
+        const bTens = rng.int(1, tens(a) - 1);
+        const bOnes = rng.int(ones(a) + 1, 9);
+        const b = bTens * 10 + bOnes;
+        if (b < a && ones(a) < ones(b)) return [a, b];
+      }
+    }
   }
-  return needsBorrow ? [21, 19] : [39, 15]; // safety net: guaranteed-valid pairs
+  if (needsBorrow) {
+    return difficulty === 1 ? [23, 7] : [32, 18];
+  }
+  return difficulty === 1 ? [28, 5] : [39, 15];
 }
 
 const recipe = {
@@ -85,7 +134,7 @@ const recipe = {
   generate(difficulty, rng, skillId = DEFAULT_SKILL) {
     const needsBorrow = skillId === 'g2.sub.2d-borrow';
     const cap = (CAPS[skillId] ?? CAPS[DEFAULT_SKILL])[difficulty];
-    const [a, b] = buildOperands(rng, cap, needsBorrow);
+    const [a, b] = buildOperands(rng, cap, needsBorrow, difficulty);
     const answer = a - b;
 
     // Candidate wrong answers, most-specific first so random-slip is only ever a fallback.
