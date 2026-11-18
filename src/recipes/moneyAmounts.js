@@ -1,13 +1,12 @@
 /**
- * Recipe: money — making amounts & simple change in whole rupees (Grade 2).
+ * Recipe: money — making amounts & simple change in whole units (Grade 2).
  * Serves g2.money.amounts. Format `mcq`.
  *
- * Rung 1 combines whole-rupee notes/coins ("₹20 + ₹15 = ₹?").
- * Rungs 2 and 3 compute change from a round note (₹20..₹50 on rung 2; ₹60..₹100 on rung 3)
+ * Rung 1 combines whole notes/coins ("🪙 20 + 🪙 15 = ?").
+ * Rungs 2 and 3 compute change from a round note (20..50 on rung 2; 60..100 on rung 3)
  * with a non-zero ones digit in the cost so borrowing across zero is structurally required.
  *
- * Distractors encode canonical misconceptions from misconceptions-reference.md
- * ("Money — amounts & change (₹)"):
+ * Distractors encode canonical misconceptions from misconceptions-reference.md:
  *   - smaller-from-larger-force-money : per-column abs subtraction across zero ((tens(a)-tens(b))*10 + ones(b))
  *   - ten-across-zero-borrow          : borrows 10 for ones without reducing the tens column (ans + 10)
  *   - operator-mixup                  : subtracts on addition or adds on change subtraction
@@ -48,7 +47,7 @@ const recipe = {
       const optionPairs = rng.shuffle([{ value: answer, tag: null }, ...distractors]);
 
       return {
-        questionText: `₹${a} + ₹${b} = ₹?`,
+        questionText: `🪙 ${a} + 🪙 ${b} = ?`,
         correctAnswer: answer,
         options: optionPairs.map((opt) => opt.value),
         format: 'mcq',
@@ -89,7 +88,7 @@ const recipe = {
     const optionPairs = rng.shuffle([{ value: answer, tag: null }, ...distractors]);
 
     return {
-      questionText: `Have ₹${a}, spend ₹${b}. ₹ left = ?`,
+      questionText: `Have 🪙 ${a}, spend 🪙 ${b}. Left = ?`,
       correctAnswer: answer,
       options: optionPairs.map((opt) => opt.value),
       format: 'mcq',

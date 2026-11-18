@@ -23,7 +23,7 @@ describe('GradePickerScreen', () => {
 
   it('offers Class 1 and Class 2 as real, enabled choices', () => {
     render(<GradePickerScreen onChoose={() => {}} />);
-    for (const label of ['Class 1', 'Class 2']) {
+    for (const label of [/Grade 1 \(Class 1\)/, /Grade 2 \(Class 2\)/]) {
       expect(screen.getByRole('button', { name: label }).disabled).toBe(false);
     }
   });
@@ -38,7 +38,7 @@ describe('GradePickerScreen', () => {
   it('calls onChoose with the chosen grade as a NUMBER (the shape the store normalises against)', () => {
     const onChoose = vi.fn();
     render(<GradePickerScreen onChoose={onChoose} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Class 2' }));
+    fireEvent.click(screen.getByRole('button', { name: /Class 2/ }));
     expect(onChoose).toHaveBeenCalledWith(2);
   });
 

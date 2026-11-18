@@ -88,8 +88,8 @@ const ALL_SKILLS = [
     { displayName: 'Heavy or Light?', subtitle: 'Balance scale fun', icon: '⚖️', layoutProfile: 'stage' }),
   skill('g1.time.daynight', 'Day/night, days of week, sequence', 1, 'time', 80, 2, ['g1.count.1-9'], 'timeBasic', 'ready',
     { displayName: 'Days & Daily Time', subtitle: 'Days of the week', icon: '🌤️', layoutProfile: 'story' }),
-  skill('g1.money.coins', 'Indian coins recognition (₹1, ₹2, ₹5, ₹10)', 1, 'money', 81, 2, ['g1.count.1-20'], 'moneyCoins', 'ready',
-    { displayName: 'Indian Coins', subtitle: '₹1, ₹2, ₹5 and ₹10 coins', icon: '🪙', layoutProfile: 'stage' }),
+  skill('g1.money.coins', 'Coins recognition & values (1, 2, 5, 10)', 1, 'money', 81, 2, ['g1.count.1-20'], 'moneyCoins', 'ready',
+    { displayName: 'Count the Coins', subtitle: '1, 2, 5 and 10 value coins', icon: '🪙', layoutProfile: 'stage' }),
 
   // ── Grade 2 ───────────────────────────────────────────────────────────────────────────
   skill('g2.num.3digit', 'Numbers up to 999 (read, write, place value)', 2, 'numbers', 100, 3, ['g1.place.tens-ones'], 'counting3digit', 'ready',
@@ -125,7 +125,7 @@ const ALL_SKILLS = [
   skill('g2.time.clock', 'Reading clock (hour, half-hour)', 2, 'time', 150, 3, ['g1.time.daynight'], 'timeClock', 'ready',
     { displayName: 'Read the Clock', subtitle: 'Hours and half-hours', icon: '🕒', layoutProfile: 'stage' }),
   skill('g2.money.amounts', 'Money: making amounts, simple change', 2, 'money', 160, 3, ['g1.money.coins', 'g2.add.2d-carry'], 'moneyAmounts', 'ready',
-    { displayName: 'Shopping Maths', subtitle: 'Add ₹ and find change', icon: '🛍️', layoutProfile: 'story' }),
+    { displayName: 'Shopping Maths', subtitle: 'Add money and find change', icon: '🛍️', layoutProfile: 'story' }),
   skill('g2.data.pictograph', 'Data handling: simple pictographs', 2, 'data', 170, 2, ['g1.count.1-20'], 'pictograph', 'ready',
     { displayName: 'Picture Charts', subtitle: 'Read fun pictographs', icon: '📊', layoutProfile: 'stage' }),
   skill('g2.frac.halves-quarters', 'Fractions: halves & quarters (1/2, 1/4)', 2, 'fractions', 175, 2, ['g1.shapes.2d', 'g2.mul.intro'], 'fractionsBasic', 'ready',

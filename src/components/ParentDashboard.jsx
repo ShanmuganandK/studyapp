@@ -145,7 +145,7 @@ export default function ParentDashboard({
         <h1 className="font-display text-xl font-extrabold text-primary-ink mt-3">
           Your child's progress
         </h1>
-        <p className="text-sm text-muted mt-0.5">Tinku Math{grade ? ` · Class ${grade}` : ''}</p>
+        <p className="text-sm text-muted mt-0.5">Tinku Math{grade ? ` · Grade ${grade} (Class ${grade})` : ''}</p>
       </div>
 
       <div className="px-4 pb-8 space-y-4">

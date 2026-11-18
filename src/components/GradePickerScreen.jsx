@@ -24,9 +24,9 @@ import { PRODUCT_NAME } from '../config/brand';
  */
 
 const OPTIONS = [
-  { grade: 1, label: 'Class 1', disabled: false },
-  { grade: 2, label: 'Class 2', disabled: false },
-  { grade: 3, label: 'Class 3 — coming soon', disabled: true },
+  { grade: 1, label: 'Grade 1 (Class 1)', disabled: false },
+  { grade: 2, label: 'Grade 2 (Class 2)', disabled: false },
+  { grade: 3, label: 'Grade 3 (Class 3) — coming soon', disabled: true },
 ];
 
 // Tinku fills the hero: its height minus the title, tagline, ground shadow and gaps (about 9rem),

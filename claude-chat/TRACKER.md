@@ -10,7 +10,7 @@
 > artifact behind it. Three claims were checked on 2026-08-15 and three were false
 > (CI wiring, questionnaire v2, the 296 test count). See "Open questions / to trace".
 
-_Last synced: 2026-11-17 (Elite Archetype-Driven Quiz UI (`roomy`/`story`/`stage` profiles + 4 `QuestionView` archetypes + `360×540` in-browser small-phone layout check), after 2026-11-16 Second syllabus & misconception update for all 36 Grade 1–2 skills)_
+_Last synced: 2026-11-18 (Global currency-neutral money `🪙` & `Grade 1 (Class 1)` / `Grade 2 (Class 2)` labels + region-neutral manifest `DESCRIPTION`, after 2026-11-17 Elite Archetype-Driven Quiz UI)_
 
 ---
 

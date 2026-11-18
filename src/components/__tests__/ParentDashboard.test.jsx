@@ -271,7 +271,7 @@ describe('ParentDashboard — days practised, and the Class control (DECISIONS 2
 
   it('puts the Class control in its own section, apart from Colours', () => {
     render(<ParentDashboard {...props} grade={2} />);
-    expect(screen.getByRole('button', { name: 'Class 2' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: /Class 2/ }).getAttribute('aria-pressed')).toBe('true');
     const colours = screen.getByText('Colours');
     expect(colours.parentElement.textContent).not.toMatch(/Class 1/);
     expect(screen.queryByText(/Test settings/)).toBeNull();

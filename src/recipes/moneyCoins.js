@@ -1,14 +1,13 @@
 /**
- * Recipe: Indian coins recognition & small coin sums — ₹1, ₹2, ₹5, ₹10 (Grade 1).
+ * Recipe: Coins recognition & small coin sums — 1, 2, 5, 10 (Grade 1).
  * Serves g1.money.coins. Format `coins-mcq`.
  *
- * Rung 1 (cap 10): single coin value recognition or 2 identical ₹1/₹2/₹5 coins.
- * Rung 2 (cap 20): summing 2 or 3 coins from {₹1, ₹2, ₹5, ₹10}.
+ * Rung 1 (cap 10): single coin value recognition or 2 identical 1/2/5 coins.
+ * Rung 2 (cap 20): summing 2 or 3 coins from {1, 2, 5, 10}.
  *
- * Distractors encode canonical misconceptions from misconceptions-reference.md
- * ("Money — Indian coins (₹1, ₹2, ₹5, ₹10)"):
- *   - size-value-bias        : confuses ₹5 and ₹2 by physical coin size
- *   - coin-count-as-value    : outputs number of coins instead of summing rupee values (guard: coins.length !== ans)
+ * Distractors encode canonical misconceptions from misconceptions-reference.md:
+ *   - size-value-bias        : confuses 5 and 2 by physical coin size
+ *   - coin-count-as-value    : outputs number of coins instead of summing coin values (guard: coins.length !== ans)
  *   - sum-as-concatenation   : concatenates two single-digit coin values (c1*10 + c2)
  *   - off-by-one             : ans ± 1
  */
@@ -74,12 +73,12 @@ const recipe = {
     });
 
     const optionPairs = rng.shuffle([{ value: answer, tag: null }, ...distractors]);
-    const labelList = coins.map((c) => `₹${c}`).join(' + ');
+    const labelList = coins.map((c) => `🪙 ${c}`).join(' + ');
 
     return {
       questionText: coins.length === 1
-        ? `How many rupees is this ₹${coins[0]} coin worth?`
-        : `Count the coins: ${labelList} = ₹?`,
+        ? `What is the value of this 🪙 ${coins[0]} coin?`
+        : `Count the coins: ${labelList} = ?`,
       correctAnswer: answer,
       options: optionPairs.map((opt) => opt.value),
       format: 'coins-mcq',
