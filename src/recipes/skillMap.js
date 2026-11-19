@@ -1,5 +1,5 @@
 /**
- * Skill map — the curriculum backbone for Grades 1–2 (see claude-chat/specs/skill-map-spec.md).
+ * Skill map — the curriculum backbone for Grades 1–2 (canonical source of truth; historical spec in archive/specs/skill-map-spec.md).
  *
  * Pure data + small helpers, no UI/Firebase. Every skill is an atomic unit with a difficulty
  * ceiling, prerequisites, and the recipe that powers it. The session composer reads this map

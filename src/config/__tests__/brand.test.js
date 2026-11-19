@@ -38,13 +38,10 @@ const RETIRED_NAMES = ['CBSE Math Kids', 'Math Kids', 'CBSC'];
  * The exclusions are an explicit, reasoned list — never a silent skip (same principle as
  * `scripts/frozen-legacy.mjs`):
  *
- *   - `documents/*.md` — historical planning records. Rewriting them would falsify what was true
- *     when they were written. (They also carry stale `f:/AI Programming/CBSC App/` Windows paths,
- *     which is its own cleanup, tracked separately.)
- *   - `DECISIONS.md`, `claude-chat/TRACKER.md`, `claude-chat/GUIDE.md`,
- *     `claude-chat/play-data-safety-form.md` — these must QUOTE the retired names in order to
- *     record the rename. Without this exclusion the guard would fail on the very DECISIONS entry
- *     that locks the decision.
+ *   - `archive/**` — historical planning records, archived decisions (`archive/decisions/DECISIONS.md`),
+ *     archived trackers (`archive/trackers/TRACKER.md`), and pre-launch drafts
+ *     (`archive/ops/play-data-safety-form.md`) that intentionally preserve historical wording or quote
+ *     retired names to record the rename.
  *   - `dist/` — build output, gitignored.
  *   - this test file, and `src/config/brand.js` — both must name the retired strings to do their
  *     job (one defines the replacement and explains the drift, the other detects it). Excluding

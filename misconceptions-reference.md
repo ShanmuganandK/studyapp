@@ -1,19 +1,17 @@
-# Misconceptions Reference — Computable Rules (Grades 1–2 CBSE)
+# Misconceptions Reference — Computable Rules (Grades 1–2)
 
 **Purpose:** The build input for recipe distractors and remediation hints. Every entry has a **computable rule** (so a recipe can generate the wrong answer) OR is marked **hint-only** (a real misconception that doesn't reduce to "answer ± X" — usable by the remediation system but not as a generated distractor).
 
 **How recipes use this:**
 - `tag` → goes in the recipe's `misconceptions[]` array (kebab-case, must match exactly).
 - `rule` → the recipe's distractor function applies this to produce the wrong option.
-- `hint` → the remediation ladder shows this when a child picks that distractor.
+- `hint` → the remediation ladder shows this when a child picks that distractor (`src/engine/hints.js` holds the 85 emitted tags in 1:1 parity with live recipes).
 - `condition` → when the distractor is valid (e.g. only when a carry is required).
 
 **Notation:** for a question with operands `a`, `b`, correct answer `ans`. `tens(n)`/`ones(n)` = digit extraction. `swapDigits(n)` = swap tens/ones of a 2-digit number.
 
-> Source: distilled from *Early Childhood Mathematics Misconception Index (CBSE/NCERT)*, originally 68 misconceptions across 17 skills. Math formulae lost in doc conversion were reconstructed from the intact prose descriptions.
-> **Second Update (2026-11-16):** Expanded from 17 skills to all **36 skills** across Grade 1 (19 skills) and Grade 2 (17 skills, including `g2.frac.halves-quarters` promoted from PARKED into Grade 2 per founder decision). Added computable distractor tables for all 19 pending (`status: 'planned'`) skills, promoted `g1.shapes.2d` and `g2.frac.halves-quarters` out of PARKED into their grade sections with full 4-option distractor coverage, and added collision guards uncovered in the 2026-11-16 syllabus audit (`g1.place.tens-ones` formula duplicate + palindrome guard, `g1.num.ordinal` end/middle guards, `g2.time.clock` 12:00/6:30 hand-swap guard).
-> **Third Update (2026-11-18):** All 36 skills are now `status: 'ready'` and guarded by `validateSessionVariety` (`>= 8` distinct prompts per rung). Money skills (`g1.money.coins` and `g2.money.amounts`) and their hints in `src/engine/hints.js` use currency-neutral `🪙` coin/money values rather than `₹`/rupees for global reach (`DECISIONS.md` 2026-11-18); canonical tag strings are unchanged.
-> **Review status:** (1) cross-LLM review #1 done (`claude-chat/archive/llm-review.md`); (2) **Second-pass syllabus & misconception audit done (2026-11-16)** and **Third-pass variety & parity update done (2026-11-18)** — logged as items **☐ 5–☐ 17** in `TEACHER-REVIEW.md`; (3) **Human primary-math teacher review still pending** (tracked in `TEACHER-REVIEW.md`, not a launch gate per DECISIONS 2026-09-23).
+> **Current status:** All **36 / 36** Grade 1–2 skills are `status: 'ready'` (`src/recipes/skillMap.js`) and guarded by `validateSessionVariety` (`>= 8` distinct prompts per rung). Money skills (`g1.money.coins`, `g2.money.amounts`) and `src/engine/hints.js` use currency-neutral `🪙` coins/notes with zero `₹`/rupee strings.
+> **Teacher review:** Open primary-math teacher sign-off items (`☐ 1–☐ 17`) are tracked in [`ROADMAP.md`](ROADMAP.md) (historical review logs live in `archive/claude-chat/llm-review.md` and `archive/reviews/TEACHER-REVIEW.md`). Tags marked `*(not currently emitted in code)*` are preserved in this reference awaiting teacher confirmation or removal.
 
 ---
 
@@ -73,7 +71,7 @@ Skill-specific tags are listed per skill below.
 |---|---|---|---|---|
 | `opposite-spatial-term` | picks the antonym of the target spatial relation (`inside`↔`outside`, `top`↔`bottom`, `near`↔`far`) | cat inside box → "outside" | "Inside means surrounded by the box walls; outside means out in the open!" | always |
 | `vertical-horizontal-confusion` | picks a vertical relation (`top`/`bottom`) for a containment/distance prompt (`inside`/`near`), or vice versa | near the tree → "on top" | "Check whether the question asks about high/low (top/bottom) or close/far (near/far)!" | always |
-| `reference-anchor-swap` | judges position relative to the distractor object instead of the named landmark | — | "Find the landmark named in the question first, then look from there!" | two landmarks shown |
+| `reference-anchor-swap` *(not currently emitted in code)* | judges position relative to the distractor object instead of the named landmark | — | "Find the landmark named in the question first, then look from there!" | two landmarks shown |
 
 ### Counting & number sense (1–20) — recipe: `counting`, format `count-objects`
 | tag | rule (computable) | example | hint | condition |
@@ -98,7 +96,7 @@ Skill-specific tags are listed per skill below.
 |---|---|---|---|---|
 | `operator-mixup` | `a - b` (subtracts instead) | 5+3 → 2 | "Look at the plus (+) sign — we put the groups together!" | a>b |
 | `off-by-one` | `ans ± 1` | 4+3 → 6 or 8 | "Count on from 4: 5, 6, 7. What's the last jump?" | always |
-| `identity-error-zero` | if `b==0`: `a + 1` | 7+0 → 8 | "Adding zero means adding nothing! 7 stays 7." | b==0 (or a==0) |
+| `identity-error-zero` *(not currently emitted in code)* | if `b==0`: `a + 1` | 7+0 → 8 | "Adding zero means adding nothing! 7 stays 7." | b==0 (or a==0) |
 | `count-all-instead-of-on` *(hint-only)* | tracking slip (`ans ± 1`) | — | "Put 5 in your head and count forward 3: 6, 7, 8!" | always |
 
 ### Addition within 20 — recipe: `addition`, format `mcq`
@@ -116,13 +114,13 @@ Skill-specific tags are listed per skill below.
 | `operator-mixup` | `a + b` (adds instead) | 7-3 → 10 | "Minus (−) means take away! Cross out 3." | always |
 | `smaller-from-larger-force` | `10 + |ones(a)-b|` (teen minuend borrow case ONLY; **do NOT emit on single-digit within-10 where `|a-b|` = the answer**) | 13-5 → 12 | "Can't do 2−7 — regroup a ten first!" | teen minuend, borrow needed |
 | `off-by-one` | `ans ± 1` | — | "Count backward 3 from 7: 6, 5, 4." | always |
-| `subtract-zero-error` | if `b==0`: `a - 1` (or 0) | 7-0 → 6 | "Subtracting zero takes away nothing! Stays the same." | b==0 |
+| `subtract-zero-error` *(not currently emitted in code)* | if `b==0`: `a - 1` (or 0) | 7-0 → 6 | "Subtracting zero takes away nothing! Stays the same." | b==0 |
 
 ### Subtraction within 20 — recipe: `subtraction`, format `mcq`
 | tag | rule | example | hint | condition |
 |---|---|---|---|---|
 | `tens-ignored` | `ones(a) - b` (drops the ten) | 15-4 → 1 | "Don't forget the ten! 15 is 10 and 5." | a teen |
-| `regroup-ignored` | `10 + (ones(a) - b)` when borrow needed | 13-5 → 18-ish err | "Regroup properly across the ten." | borrow needed |
+| `regroup-ignored` *(not currently emitted in code — formula collides with correct answer; see `ROADMAP.md` ☐ 1)* | `10 + (ones(a) - b)` when borrow needed | 13-5 → 18-ish err | "Regroup properly across the ten." | borrow needed |
 | `operator-mixup` | `a + b` | 15-4 → 19 | "Minus means take away, not add!" | always |
 | `off-by-one` | `ans ± 1` | — | "Recount backward past ten carefully." | crosses 10 |
 
@@ -142,7 +140,7 @@ Skill-specific tags are listed per skill below.
 | `digit-reversal` | `swapDigits(value)` (3 tens 5 ones → 53) — **guard (2026-11-16): only when `t != o && o != 0` (skip palindromes like 33, and skip `o == 0` where `swapDigits(40) = 4` collides with `expanded-addition`)** | 35 → 53 | "Tens on the left, ones on the right!" | `t != o && o != 0` |
 | `expanded-addition` | `tensDigit + onesDigit` (face values) — **guard (2026-11-16): `o != 0`** | 3 tens 4 ones → 7 | "3 tens is 30, 4 ones is 4 → 34!" | value-asked, `o != 0` |
 | `tens-only-counted` *(added 2026-11-16)* | `tensDigit * 10` (counts the tens bundles as `t * 10` but forgets to add the ones; or `t` when `o == 0`) | 3 tens 4 ones → 30 | "You got the tens right! Now add the ones too." | `o != 0` (or `o == 0` → `t`) |
-| `unit-counting-only` *(visual block representation only — shares `t + o` formula with `expanded-addition`; see TEACHER-REVIEW ☐ 5)* | count bundles as 1 each → `tensDigit + onesDigit` | 3 rods 4 cubes → 7 | "Each rod is 10! Count by tens: 10, 20, 30." | block representation |
+| `unit-counting-only` *(not currently emitted in code — visual block representation only; shares `t + o` formula with `expanded-addition`; see `ROADMAP.md` ☐ 5)* | count bundles as 1 each → `tensDigit + onesDigit` | 3 rods 4 cubes → 7 | "Each rod is 10! Count by tens: 10, 20, 30." | block representation |
 
 ### Ordinal numbers (1st–10th) — recipe: `ordinal`, format `mcq` *(updated 2026-11-16)*
 | tag | rule | example | hint | condition |
@@ -173,13 +171,13 @@ Skill-specific tags are listed per skill below.
 | `sequence-off-by-one` | skips one day/stage in the direction asked (`(index ± 2 + N) % N`) | "After Monday?" → Wednesday | "Say the days in order slowly — what comes right after Monday?" | always |
 | `cycle-wrap-error` *(added 2026-11-16)* | fails Sunday→Monday or Night→Morning wrap-around (picks start/end of list instead of wrapping) | "After Sunday?" → Saturday | "After Sunday, a brand new week starts with Monday!" | boundary item |
 
-### Money — Indian coins (₹1, ₹2, ₹5, ₹10) — recipe: `moneyCoins`, format `coins-mcq` *(expanded 2026-11-16)*
+### Money — coins (🪙1, 🪙2, 🪙5, 🪙10) — recipe: `moneyCoins`, format `coins-mcq`
 | tag | rule (computable) | example | hint | condition |
 |---|---|---|---|---|
-| `size-value-bias` | pick coin by larger diameter not value (or read ₹5 as ₹2) | ₹2 over ₹5 | "Coin size doesn't tell value — read the printed number!" | always |
-| `coin-count-as-value` *(added 2026-11-16)* | outputs the number of coins `coins.length` instead of summing their rupee values — **guard: only when `coins.length != ans`** | two ₹5 coins → ₹2 | "Look at the number printed on each coin — two ₹5 coins make 5 + 5 = ₹10!" | `coins.length >= 2 && coins.length != ans` |
-| `sum-as-concatenation` *(added 2026-11-16)* | concatenates two coin values as digits (`c1 * 10 + c2`) | ₹1 and ₹2 → ₹12 | "Add the rupee numbers on the coins together: 1 + 2 = ₹3!" | 2 single-digit coins |
-| `off-by-one` *(added 2026-11-16)* | `ans ± 1` | ₹7 → ₹6 or ₹8 | "Count the rupee values carefully!" | always |
+| `size-value-bias` | pick coin by larger diameter not value (or read 🪙5 as 🪙2) | 🪙2 over 🪙5 | "Coin size doesn't tell value — read the printed number!" | always |
+| `coin-count-as-value` | outputs the number of coins `coins.length` instead of summing their coin values — **guard: only when `coins.length != ans`** | two 🪙5 coins → 🪙2 | "Look at the number printed on each coin — two 🪙5 coins make 5 + 5 = 🪙10!" | `coins.length >= 2 && coins.length != ans` |
+| `sum-as-concatenation` | concatenates two coin values as digits (`c1 * 10 + c2`) | 🪙1 and 🪙2 → 🪙12 | "Add the numbers on the coins together: 1 + 2 = 🪙3!" | 2 single-digit coins |
+| `off-by-one` | `ans ± 1` | 🪙7 → 🪙6 or 🪙8 | "Count the coin values carefully!" | always |
 
 ---
 
@@ -266,15 +264,15 @@ Skill-specific tags are listed per skill below.
 | `operator-mixup` | `a + b` when asked "how many more litres", or `|a - b|` when combining | 15 L vs 6 L → 21 L | "Check whether we are pouring together (add) or finding how much more (subtract)!" | two-vessel arithmetic |
 | `off-by-one` | `ans ± 1` | 12 L → 11 L | "Recount the litres carefully!" | always |
 
-### Money — amounts & change (₹) — recipe: `moneyAmounts`, format `mcq` *(expanded 2026-11-16)*
+### Money — amounts & change (🪙) — recipe: `moneyAmounts`, format `mcq`
 | tag | rule | example | hint | condition |
 |---|---|---|---|---|
-| `smaller-from-larger-force-money` | per-column abs subtraction across zero (`(tens(a)-tens(b))*10 + ones(b)` or for `100 - b`, `(10 - tens(b))*10 + ones(b)`) | ₹100−₹75 → ₹35 | "Can't do 0−5 — borrow from hundreds!" | minuend has zeros (`ones(a) == 0 && ones(b) > 0`) |
-| `ten-across-zero-borrow` *(added 2026-11-16)* | `ans + 10` (borrows 10 for the ones column but forgets to reduce the tens column) | ₹50−₹18 → ₹42 | "When you exchange one ₹10 note for ten ₹1 coins, you have one less ₹10 note!" | subtraction with borrow |
-| `operator-mixup` *(added 2026-11-16)* | `a + b` on change subtraction, or `|a - b|` on rupee addition | ₹50−₹20 → ₹70 | "Spending money takes rupees away — subtract the price to find the change!" | `a != b` |
-| `off-by-one` *(added 2026-11-16)* | `ans ± 1` | ₹25 → ₹24 | "Count the rupee coins carefully!" | always |
-| `rupee-paise-mismatch` *(hint-only — formatting)* | adds ₹ to paise as ints | ₹5+50p → ₹55 | "1 rupee = 100 paise — can't add directly!" | mixed units |
-| `decimal-place-error` *(hint-only — formatting)* | mis-places paise decimal | 5p → ₹5.5 | "5 paise is .05; ₹5.5 means 5 rupees 50 paise!" | paise present |
+| `smaller-from-larger-force-money` | per-column abs subtraction across zero (`(tens(a)-tens(b))*10 + ones(b)` or for `100 - b`, `(10 - tens(b))*10 + ones(b)`) | 🪙100−🪙75 → 🪙35 | "Can't do 0−5 — borrow from hundreds!" | minuend has zeros (`ones(a) == 0 && ones(b) > 0`) |
+| `ten-across-zero-borrow` | `ans + 10` (borrows 10 for the ones column but forgets to reduce the tens column) | 🪙50−🪙18 → 🪙42 | "When you exchange one 10-coin note for ten 1-coins, you have one less ten!" | subtraction with borrow |
+| `operator-mixup` | `a + b` on change subtraction, or `|a - b|` on coin addition | 🪙50−🪙20 → 🪙70 | "Spending coins takes money away — subtract the price to find the change!" | `a != b` |
+| `off-by-one` | `ans ± 1` | 🪙25 → 🪙24 | "Count the coin values carefully!" | always |
+| `rupee-paise-mismatch` *(hint-only — legacy sub-unit formatting)* | adds whole units to sub-units as ints | 5 + 50 cents → 55 | "100 small units make 1 whole unit — don't add them directly!" | mixed units |
+| `decimal-place-error` *(hint-only — legacy sub-unit formatting)* | mis-places decimal hundredths | 5 hundredths → 5.5 | "5 hundredths is .05; .5 means 50!" | decimals present |
 
 ### Time — reading the clock — recipe: `timeClock`, format `clock` *(updated 2026-11-16)*
 | tag | rule | example | hint | condition |

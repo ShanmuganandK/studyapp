@@ -466,7 +466,7 @@ const isMain = process.argv[1] && import.meta.url === pathToFileURL(process.argv
 
 if (isMain) {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  const reportPath = path.join(repoRoot, 'claude-chat', 'mastery-simulation-report.md');
+  const reportPath = path.join(repoRoot, 'archive', 'simulation', 'mastery-simulation-report.md');
   const blocks = renderBlocks();
 
   if (process.argv.includes('--stdout')) {

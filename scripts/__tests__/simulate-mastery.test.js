@@ -163,7 +163,7 @@ describe('report splicing', () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
     const path = await import('node:path');
-    const file = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../claude-chat/mastery-simulation-report.md');
+    const file = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../archive/simulation/mastery-simulation-report.md');
     const top = readFileSync(file, 'utf8').split('\n').slice(0, 12).join('\n');
     expect(top).toContain('DECISIONS 2026-09-02');
     expect(top).toMatch(/REJECTED/);
@@ -173,7 +173,7 @@ describe('report splicing', () => {
     const { readFileSync } = await import('node:fs');
     const { fileURLToPath } = await import('node:url');
     const path = await import('node:path');
-    const file = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../claude-chat/mastery-simulation-report.md');
+    const file = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../archive/simulation/mastery-simulation-report.md');
     const committed = readFileSync(file, 'utf8');
     expect(spliceAll(committed, renderBlocks())).toBe(committed);
   });

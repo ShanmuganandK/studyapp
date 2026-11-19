@@ -41,6 +41,9 @@ graphify-out
 *.sln
 *.sw?
 
+# Local tool-specific agent configuration (never committed)
+.claude/
+
 # Python bytecode (scripts/build-icons.py is a dev tool)
 __pycache__
 *.pyc

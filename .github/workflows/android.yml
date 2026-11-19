@@ -12,7 +12,7 @@ name: Android build
 #
 #   push to master        -> debug APK (no secrets). Docs-only pushes are skipped.
 #   build_type = debug    -> the same, started by hand (e.g. to retry).
-#   build_type = release  -> a SIGNED .aab for Play (see ANDROID-RELEASE-RUNBOOK.md).
+#   build_type = release  -> a SIGNED .aab for Play (see CURRENT_STATE.md).
 #
 # The debug APK is built in ALL modes, and its permissions are MEASURED from the real merged manifest
 # (aapt2), not inferred from the source manifest: this is the evidence for the Play Data Safety form.
@@ -21,8 +21,7 @@ on:
     branches: [master]
     paths-ignore:
       - '**/*.md'
-      - 'design-handoff/**'
-      - 'design-system/**'
+      - 'archive/**'
   workflow_dispatch:
     inputs:
       build_type:
@@ -182,7 +181,7 @@ jobs:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
           if [ -z "$KEYSTORE_B64" ]; then
-            echo "::error::ANDROID_KEYSTORE_BASE64 is not set on the android-release environment. See ANDROID-RELEASE-RUNBOOK.md."
+            echo "::error::ANDROID_KEYSTORE_BASE64 is not set on the android-release environment. See CURRENT_STATE.md."
             exit 1
           fi
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"

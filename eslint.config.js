@@ -19,8 +19,8 @@ import { FROZEN_GLOBS, LOGGER_PATH } from './scripts/frozen-legacy.mjs';
  */
 export default [
   {
-    // Build output, deps, and the generated knowledge graph are not our code.
-    ignores: ['dist/**', 'node_modules/**', 'graphify-out/**', 'coverage/**', 'design-handoff/**', 'dist-android/**', 'android/**'],
+    // Build output, deps, archived historical snapshots, and the generated knowledge graph are not our code.
+    ignores: ['dist/**', 'node_modules/**', 'graphify-out/**', 'coverage/**', 'archive/**', 'dist-android/**', 'android/**'],
   },
 
   js.configs.recommended,

@@ -1,33 +1,23 @@
-# GLOSSARY.md — project vocabulary
+# GLOSSARY.md — Project Vocabulary
 
-> **Purpose.** Some terms in this repo mean more than one thing depending on context — "rung" is
-> the sharpest example: it names both a difficulty stage and a remediation step, and a session
-> once acted on the wrong one. **Resolve an ambiguous term against this table before acting on
-> it.** If a term you need is not here, ask the human rather than assuming — do not guess from
-> context.
+> **Purpose:** Disambiguate overloaded project terms (especially `rung`, `bridge`, `level`, and `format`) before writing code or specs. If a term you need is not here, confirm with the project owner rather than guessing.
 
-| Term | Means | Canonical file |
+| Term | Meaning | Canonical Source |
 |---|---|---|
-| rung (difficulty) | One of 3 strategy stages within a skill; NOT a magnitude band as of DECISIONS 2026-08-27. | `src/recipes/*`, `src/config/masteryConfig.js` |
-| rung (remediation) | One of 3 steps in the wrong-answer ladder: hint → reveal + advance → park (any reveal) + one unscored bonus question at session end (DECISIONS 2026-09-22). | `src/hooks/useQuizSession.js` |
-| bridge (session) | Unscored warm-up questions at each rung below the working rung, played before the 8 scored questions on strategy-rung skills (DECISIONS 2026-09-22, bridge-in). Never measured. Behind a parent-zone test toggle. | `src/hooks/useQuizSession.js` |
-| level | 0–5 per-skill counter gating prereq unlock and mastery. Separate axis from difficulty as of DECISIONS 2026-08-27. One strong session promotes it (`LEVEL_UP_REQUIRES_HARD` gates the 4→5 hop) and one weak session drops it by 1 — a consecutive-session rule for `level` was tried and rejected (DECISIONS 2026-09-02). Level 0 = not started. | `src/engine/mastery.js`, `src/config/masteryConfig.js` |
-| session | One run of 8 questions on one skill. | `src/hooks/useQuizSession.js` |
-| strong session | A session scoring ≥ `STRONG_RATIO` (7/8 at the fixed session length of 8). One strong session promotes `level` on its own; `difficulty` needs consecutive ones (`DIFFICULTY_UP_STREAK`). | `src/config/masteryConfig.js` |
-| mastery | Level 5 reached at the skill's `maxDifficulty`. | `src/engine/mastery.js` |
-| skill / skillId | An atomic curriculum unit with a difficulty ceiling, prerequisites, and a recipe. | `src/recipes/skillMap.js` |
-| recipe | A generator function producing questions from `difficulty` + a seeded RNG — never a stored question. | `RECIPE_TEMPLATE.md` |
-| format | The render shape a question requests: `mcq`, `compare`, `count-objects` are shipped; `text-input` is named in DECISIONS 2026-07-04 as a future blank-bearing format, not yet used by any recipe. | `src/recipes/*`, `src/components/QuestionView.jsx` |
-| misconception tag | A kebab-case tag on a distractor, e.g. `forgot-carry`. `misconceptions-reference.md` is canonical for tags and rules; when a recipe and the doc disagree, the doc wins. | `misconceptions-reference.md` |
-| frontier | The skill the app suggests next. | `src/engine/composer.js`, `src/config/composerConfig.js` |
-| review-due | Spaced-repetition state; rendered teal (`--color-review`), never amber (DECISIONS 2026-07-05). | `src/index.css`, `src/components/skillStateVisual.jsx` |
-| band | Wonder (G1–3, launch) or Explorer (G4–5, Phase 2). | `DECISIONS.md` |
-| progressStore | The `localStorage` persistence seam. Keys prefixed `tinku:v1:`. | `src/services/progressStore.js` |
-| Layer 2 | The deferred tier: accounts, cloud sync, paywall, analytics. Not a backlog — do not build toward it. | DECISIONS 2026-08-14 |
-| teach mode | **Proposed, not decided, not built.** Referenced only as a boundary case in DECISIONS 2026-08-27 ("teach mode remains real work, not a coat of paint") — no spec exists. | — |
-
-## Omitted
-
-The task instruction listed `src/config/skillMap.js` as the canonical file for **skill / skillId**.
-That file does not exist — the skill map lives at `src/recipes/skillMap.js`. The table above uses
-the verified path.
+| **rung (difficulty)** | One of up to 3 difficulty/strategy stages within a skill (e.g. `addition2d` / `subtraction2d` step by strategy across rungs 1–3, not purely by magnitude). | `src/recipes/*`, `src/config/masteryConfig.js` |
+| **rung (remediation)** | One of 3 steps in the wrong-answer ladder: targeted hint → warm reveal + advance → park (on any reveal) + one unscored bonus question at session end. | `src/hooks/useQuizSession.js` |
+| **bridge (session)** | Optional unscored warm-up questions at rungs below the working rung before the 8 scored questions on `strategyRungs: true` skills (`g2.add.2d-nocarry`). Behind the debug-only Parent Zone toggle (`VITE_TESTER_TOOLS`). | `src/hooks/useQuizSession.js`, `src/recipes/skillMap.js` |
+| **level** | `0..5` per-skill mastery counter gating prerequisite unlock (`>= 3`) and mastery (`5`). Decoupled from `difficulty`: one strong session promotes `level` (`LEVEL_UP_REQUIRES_HARD` gates `4 → 5`) and one weak session drops it by 1. `0` = not started. | `src/engine/mastery.js`, `src/config/masteryConfig.js` |
+| **session** | One scored run of 8 questions on a single skill. | `src/hooks/useQuizSession.js` |
+| **strong session** | A session scoring `>= STRONG_RATIO` (`7/8`). One strong session promotes `level`; `difficulty` requires consecutive strong sessions (`DIFFICULTY_UP_STREAK`). | `src/config/masteryConfig.js` |
+| **mastery** | `level === 5` reached at the skill's `maxDifficulty`. | `src/engine/mastery.js` |
+| **skill / skillId** | Atomic curriculum unit with a `grade`, `order`, `maxDifficulty`, `prereqs`, `status`, and `recipe`. | `src/recipes/skillMap.js` |
+| **recipe** | Pure generator function producing questions from `(difficulty, rng, skillId)` — never stored questions. | `RECIPE_TEMPLATE.md` |
+| **format** | Top-level render shape requested by a question. **11 shipping:** `mcq` (plus 16 `render.kind` sub-archetypes), `count-objects`, `compare`, `unit-length`, `shape-mcq`, `spatial-mcq`, `balance-mcq`, `coins-mcq`, `clock`, `pictograph`, `fraction-mcq`. **Reserved:** `text-input`, `true-false`. | `RECIPE_TEMPLATE.md`, `src/components/QuestionView.jsx` |
+| **misconception tag** | Kebab-case tag on a wrong option (e.g. `forgot-carry`). Canonical tags live in `misconceptions-reference.md` and map 1:1 to `src/engine/hints.js`. | `misconceptions-reference.md`, `src/engine/hints.js` |
+| **frontier** | The next unlocked skill the composer recommends for the active grade. | `src/engine/composer.js`, `src/config/composerConfig.js` |
+| **review-due** | Spaced-repetition state rendered in teal (`--color-review`), never amber (amber is rewards-only). | `src/index.css`, `src/components/skillStateVisual.jsx` |
+| **band** | **Wonder** (Grades 1–2 at launch; Grade 3 planned) or **Explorer** (Grades 4–5, post-launch). | `ARCHITECTURE.md`, `ROADMAP.md` |
+| **progressStore** | Device-local `localStorage` persistence seam (`tinku:v1:skills`). | `src/services/progressStore.js` |
+| **Layer 2** | Deferred post-MVP tier (accounts, cloud sync, paywall, analytics). Not an active backlog; revisit only on retention/willingness-to-pay trigger. | `ROADMAP.md`, `archive/decisions/DECISIONS.md` |
+| **teach mode** | Proposed concept only — not decided, not specified, not built. | — |
