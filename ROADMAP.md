@@ -81,7 +81,7 @@ Layer 1 (automated unit/integration/guard suite) is live. Planned calibration lo
 
 ## 6. Post-Launch Scope & Layer 2 Revisit Triggers
 
-> **Future improvements blueprint:** Concrete post-L9 proposals across voice-first UX, tactile manipulatives, parent misconception coaching, persistent star world, branding, organic audience growth, and account-free ethical IAP live in [`IMPROVEMENT_PLAN.md`](IMPROVEMENT_PLAN.md).
+> **Future improvements blueprint:** Concrete post-L9 proposals across voice-first UX, tactile manipulatives, parent misconception coaching, one unified Wonder World, branding, zero-analytics growth, and `2026-10-20`-compliant parent-convenience IAP live in [`IMPROVEMENT_PLAN.md`](IMPROVEMENT_PLAN.md).
 
 **Deliberately out of MVP (revisit only after real retention signal or unprompted willingness to pay):**
 - **Curriculum expansion:** Grade 3 (needs full skill map + misconception authoring first), KG1/KG2 band, Explorer band (Grades 4–5).
