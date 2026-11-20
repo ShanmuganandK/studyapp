@@ -1,6 +1,7 @@
 # ROADMAP.md — Future Product, Curriculum & Design Direction
 
 > **Scope (Single Source of Truth):** Future product features, open closed-test UX follow-ups, design-system proposals, open primary-math teacher pedagogy sign-offs, testing framework evolution, and deferred post-launch scope.
+> - Detailed post-L9 future improvements (product differentiation, UI/UX upgrades, brand positioning, organic audience growth, ethical IAP strategy, and pre-2027 child age-signal compliance planning) are documented in [`IMPROVEMENT_PLAN.md`](IMPROVEMENT_PLAN.md).
 > - Live release status & closed-test ops live in [`CURRENT_STATE.md`](CURRENT_STATE.md).
 > - Code-level defects, stale flags, boundary breaches, lint warnings, and automated test gaps live in [`TECH_DEBT.md`](TECH_DEBT.md).
 
@@ -80,12 +81,15 @@ Layer 1 (automated unit/integration/guard suite) is live. Planned calibration lo
 
 ## 6. Post-Launch Scope & Layer 2 Revisit Triggers
 
+> **Future improvements blueprint:** Concrete post-L9 proposals across voice-first UX, tactile manipulatives, parent misconception coaching, persistent star world, branding, organic audience growth, and account-free ethical IAP live in [`IMPROVEMENT_PLAN.md`](IMPROVEMENT_PLAN.md).
+
 **Deliberately out of MVP (revisit only after real retention signal or unprompted willingness to pay):**
 - **Curriculum expansion:** Grade 3 (needs full skill map + misconception authoring first), KG1/KG2 band, Explorer band (Grades 4–5).
 - **Feel-layer polish (`T99`):** Non-option tap sounds, celebration sub-beat audio, additional haptics, wiring `sleeping` pose (or dropping from preload).
-- **Monetisation (undecided):** Play Billing only (free learning loop stays complete; never paywall gentler learning). Requires Families policy check, parent gate before purchase, `INTERNET` permission impact review, and updated privacy policy + Data Safety form.
-- **Layer 2 (accounts, cloud sync, consent-gated analytics, weekly parent summaries):** Requires DPDP legal counsel review (including Gazette PDF `G.S.R. 846(E)` verification) and re-auditing all privacy/Data Safety claims.
+- **Monetisation (undecided):** Play Billing only (free learning loop stays complete; never paywall gentler learning). Requires Families policy check, parent gate before purchase, `INTERNET` permission impact review, updated privacy policy + Data Safety form, and **Google Play Age Signals API compliance review** if U.S./Brazil (or other mandatory age-signal jurisdictions) remain enabled.
+- **Layer 2 (accounts, cloud sync, consent-gated analytics, weekly parent summaries):** Requires DPDP legal counsel review (including Gazette PDF `G.S.R. 846(E)` verification), **Google Play Age Signals API compliance review** (if shipping in U.S./Brazil or other mandatory age-signal jurisdictions), and re-auditing all privacy/Data Safety claims.
 - **Desktop/web responsive & B2B/schools:** Same codebase once mobile retention is proven.
 
-### Non-Code Operational Reminder (Active)
+### Non-Code Operational Reminders (Active)
+- **Play Age Signals API & mandatory regional child-signal laws (Pre-January 2027 gate):** Before **January 2027** (when **CA AB 1043**, **AL HB 161**, and **Brazil Digital ECA** mandatory signal-sharing take effect) — **ONLY if** Tinku Math ships in U.S./Brazil (or other mandatory jurisdictions) **AND** introduces Layer 2 / minor-affecting features (Play Billing IAP, accounts, cloud sync, analytics, or significant updates affecting minors): add a **Google Play Age Signals API review** (handling age bands, parental approval / revocation callbacks, Play Console significant-change reporting, and the new mandatory-jurisdiction check method) alongside the existing DPDP legal, `INTERNET` permission, Data Safety, and Designed-for-Families gates. See [`IMPROVEMENT_PLAN.md`](IMPROVEMENT_PLAN.md) (§7.2) for the full compliance gate checklist.
 - **UAE ↔ India residency & CA/tax check:** Section D1 (India day-count tracking before UAE-source income is exposed to Indian residence taxation) in `archive/ops/questionnaire-ca-tax-uae-india.md` remains time-sensitive and independent of Layer 2 deferral.

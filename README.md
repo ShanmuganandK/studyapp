@@ -90,6 +90,7 @@ Netlify builds with `npm run build` and publishes `dist/` to `https://tinku.stri
 | [`GLOSSARY.md`](GLOSSARY.md) | Project vocabulary disambiguation |
 | [`CURRENT_STATE.md`](CURRENT_STATE.md) | Live release status, Play Data Safety & closed-test protocol |
 | [`ROADMAP.md`](ROADMAP.md) | Future product, curriculum, design & teacher-review direction |
+| [`IMPROVEMENT_PLAN.md`](IMPROVEMENT_PLAN.md) | Post-L9 product, UI/UX, brand, audience-growth, IAP & Age Signals plan |
 | [`TECH_DEBT.md`](TECH_DEBT.md) | Identified code, stale-flag, boundary, lint & test gaps |
 | [`SECURITY.md`](SECURITY.md) | Vulnerability disclosure policy |
 

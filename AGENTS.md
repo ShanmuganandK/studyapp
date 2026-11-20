@@ -20,6 +20,7 @@ Every retained topic has **one** owner. Do not duplicate content across files.
 | `GLOSSARY.md` | Disambiguation of overloaded project vocabulary (`rung`, `bridge`, `level`, `format`, etc.) |
 | `CURRENT_STATE.md` | Live release status, web/Android deploy ops, Play Data Safety answers, and closed-test protocol |
 | `ROADMAP.md` | Future product, curriculum, design-system, teacher-review, and post-launch direction |
+| `IMPROVEMENT_PLAN.md` | Strategic post-L9 product, UI/UX, brand, audience-growth, ethical IAP, and pre-2027 Age Signals compliance blueprint |
 | `TECH_DEBT.md` | Identified code issues, stale flags, boundary breaches, lint warnings, and test blind spots |
 
 - **Start here:** `AGENTS.md` → `ARCHITECTURE.md` → `CURRENT_STATE.md` → `ROADMAP.md` / `TECH_DEBT.md`.
