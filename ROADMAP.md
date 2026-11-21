@@ -29,7 +29,7 @@ Measured via Playwright at `360×640` and `412×915` CSS px (not yet verified on
 |---|---|---|---|
 | `DS-1` | `--color-on-primary` & `--color-on-success` text tokens | P1 (required before any dark palette / Explorer band) | Replace the 6 hardcoded `text-white` exceptions in `scripts/frozen-legacy.mjs` (`COLOR_CLASS_EXCEPTIONS`) so primary buttons and correct tiles re-theme cleanly on inverted/dark palettes. |
 | `DS-5` | Motion duration, easing & `48px` tap-size tokens | P3 (post-launch) | Extract hardcoded `@keyframes` durations/easing and `48px` tap size into CSS variables (`--dur-*`, `--ease-spring`, `--size-tap-min`). |
-| `DS-6` | Bundled SVG icon set | v1 shipped (`2026-11-21`); refine individually | Token-coloured bespoke flat-2D SVG medallions shipped for all `36/36` ready skills (`src/components/SkillIcon.jsx`) across Home & Parent Dashboard; individual icons can be tuned or refined with commissioned art. |
+| `DS-6` | Bundled SVG icon set | v2 kid-first shipped (`2026-11-21`) | Token-coloured bespoke flat-2D kid-first SVG medallions shipped for all `36/36` ready skills (`src/components/SkillIcon.jsx`, `viewBox 48×48`) across Home & Parent Dashboard; individual icons can still be refined with commissioned art later. |
 | `DS-7` | Tinku poses for loading / empty / error states | P3 | Map existing mascot poses (`Tinku_Sleeping`, `Tinku_Think3`, `Tinku_Encourage_2`) to empty, loading, and error states so Tinku hosts every child-facing screen. |
 | `DS-8` | Token mirror sync hygiene | P2 (process) | If external design-tool token mirrors are adopted again, keep them strictly derived from `src/index.css` in the same PR. |
 

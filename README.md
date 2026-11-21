@@ -57,11 +57,11 @@ CI (`.github/workflows/ci.yml`) runs `lint` → `lint:hex` → `privacy:check` �
 ```text
 src/
 ├── recipes/       # 27 pure question generators + skillMap.js (36 G1–2 skills)
-├── engine/        # Pure mastery, spaced repetition, session composer & 85-tag hints
+├── engine/        # Pure mastery, spaced repetition, composer, 85-tag hints & parent coaching
 ├── hooks/         # Session loop, test settings, backup & Android back button
 ├── services/      # localStorage persistence, JSON export/import, audio, Capacitor seams
 ├── config/        # Brand, privacy policy source, mastery/composer/layout tunables
-├── components/    # Screens (GradePicker, SkillPath, Quiz, ParentDashboard) & UI
+├── components/    # Screens (GradePicker, SkillPath, Quiz, ParentDashboard), SkillIcon & UI
 ├── index.css      # Design tokens, theme palettes, .quiz-stage container-query layout
 └── data/, utils/  # Frozen legacy path (except src/utils/logger.js) — never edited
 android/           # Capacitor 8 Android project (com.stringus.tinku)
