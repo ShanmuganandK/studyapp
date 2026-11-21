@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useQuizSession } from '../hooks/useQuizSession';
-import { playSound, playHintVoice, stopHintVoice, haptic, setSoundMuted, isSoundMuted } from '../services/sound';
+import { playSound, playHintVoice, stopHintVoice, hasHintVoice, haptic, setSoundMuted, isSoundMuted } from '../services/sound';
 import Mascot from './Mascot';
 import QuestionView from './QuestionView';
 import HintBubble from './HintBubble';
@@ -155,7 +155,7 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
               key={s.hintNonce}
               hint={s.hint}
               emotion={s.emotion}
-              onListen={s.phase === 'hint' ? () => playHintVoice(s.hintTag) : undefined}
+              onListen={s.phase === 'hint' && hasHintVoice(s.hintTag) ? () => playHintVoice(s.hintTag) : undefined}
             />
           )
           : (showPips && <QuizPips total={s.totalQuestions} current={s.questionNumber} />)}

@@ -28,10 +28,12 @@ vi.mock('../Mascot', () => ({ default: ({ size, emotion }) => <span data-testid=
 // Sound/haptics are fire-and-forget side effects.
 const playHintVoiceSpy = vi.fn();
 const stopHintVoiceSpy = vi.fn();
+const hasHintVoiceSpy = vi.fn(() => false);
 vi.mock('../../services/sound', () => ({
   playSound: () => {},
   playHintVoice: (...args) => playHintVoiceSpy(...args),
   stopHintVoice: (...args) => stopHintVoiceSpy(...args),
+  hasHintVoice: (...args) => hasHintVoiceSpy(...args),
   haptic: () => {},
   setSoundMuted: () => {},
   isSoundMuted: () => false,
@@ -249,9 +251,27 @@ describe('SessionPlayer — one-way hint voice & Listen button', () => {
     cleanup();
     playHintVoiceSpy.mockClear();
     stopHintVoiceSpy.mockClear();
+    hasHintVoiceSpy.mockReset();
+    hasHintVoiceSpy.mockReturnValue(false);
   });
 
-  it('plays hint voice for hintTag on hint phase, lets the child replay via Listen button, and stops on reveal', () => {
+  it('hides the Listen button when no voice clip is bundled for hintTag (avoids beep-only button)', () => {
+    hasHintVoiceSpy.mockReturnValue(false);
+    hookValue = baseState({
+      phase: 'hint',
+      emotion: 'encourage',
+      hint: 'Check the sign!',
+      hintTag: 'operator-mixup',
+      hintNonce: 1,
+      selectedIndex: 0,
+    });
+    render(<SessionPlayer {...props} />);
+    expect(playHintVoiceSpy).toHaveBeenCalledWith('operator-mixup');
+    expect(screen.queryByRole('button', { name: 'Listen to hint' })).toBeNull();
+  });
+
+  it('shows Listen button when a voice clip exists, replays on click, and stops on reveal', () => {
+    hasHintVoiceSpy.mockReturnValue(true);
     hookValue = baseState();
     const { rerender } = render(<SessionPlayer {...props} />);
     expect(screen.queryByRole('button', { name: 'Listen to hint' })).toBeNull();
