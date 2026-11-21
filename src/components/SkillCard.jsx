@@ -36,7 +36,7 @@ export default function SkillCard({ skill, level, isDue, isSuggested, isReviewSu
     >
       {(skill.id || skill.icon) && (
         <span className="text-4xl leading-none shrink-0 flex items-center justify-center" aria-hidden="true">
-          <SkillIcon skillId={skill.id} fallback={skill.icon} size={36} />
+          <SkillIcon skillId={skill.id} fallback={skill.icon} size={42} />
         </span>
       )}
       <span className="flex flex-col min-w-0">

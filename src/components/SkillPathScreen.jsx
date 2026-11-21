@@ -158,7 +158,7 @@ function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft,
           <span aria-hidden="true" className={`path-pulse absolute inset-[-5px] rounded-full border-[3px] ${visual.ring}`} />
         )}
         <span className="flex items-center justify-center leading-none" aria-hidden="true">
-          <SkillIcon skillId={skill.id} fallback={skill.icon} size={38} />
+          <SkillIcon skillId={skill.id} fallback={skill.icon} size={46} />
         </span>
       </button>
 

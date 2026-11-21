@@ -38,7 +38,7 @@ function SkillRow({ skill }) {
       <div className="flex items-center gap-3 min-w-0">
         {(skill.skillId || skill.icon) && (
           <span className="text-2xl shrink-0 flex items-center justify-center" aria-hidden="true">
-            <SkillIcon skillId={skill.skillId} fallback={skill.icon} size={28} />
+            <SkillIcon skillId={skill.skillId} fallback={skill.icon} size={32} />
           </span>
         )}
         <div className="min-w-0">
@@ -185,7 +185,7 @@ export default function ParentDashboard({
             <div className="flex flex-wrap gap-x-4 gap-y-1.5">
               {inProgress.map((s) => (
                 <span key={s.skillId} className="inline-flex items-center gap-1.5 text-sm text-ink font-medium">
-                  <SkillIcon skillId={s.skillId} fallback={s.icon} size={18} />
+                  <SkillIcon skillId={s.skillId} fallback={s.icon} size={20} />
                   <span>{s.displayName}</span>
                 </span>
               ))}
