@@ -31,7 +31,7 @@ export default function ClassPicker({ grade, onGradeChange }) {
               key={g}
               onClick={() => onGradeChange(g)}
               aria-pressed={selected}
-              className={`flex-1 rounded-button border py-2 text-sm font-semibold active:scale-95 transition-transform ${
+              className={`flex-1 min-h-[48px] rounded-button border py-2 px-1 text-sm font-semibold active:scale-95 transition-transform ${
                 selected
                   ? 'border-primary ring-2 ring-primary text-primary-ink'
                   : 'border-primary-soft text-muted'
@@ -45,7 +45,7 @@ export default function ClassPicker({ grade, onGradeChange }) {
           type="button"
           disabled
           aria-disabled="true"
-          className="flex-1 rounded-button border border-primary-soft py-2 text-sm font-semibold text-muted opacity-50 cursor-not-allowed"
+          className="flex-1 min-h-[48px] rounded-button border border-primary-soft py-2 px-1 text-sm font-semibold text-muted opacity-50 cursor-not-allowed"
         >
           Grade 3 (Class 3) — soon
         </button>

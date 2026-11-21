@@ -53,11 +53,11 @@ const ALL_SKILLS = [
   skill('g1.count.1-9', 'Counting & numbers 1–9', 1, 'numbers', 10, 3, [], 'counting', 'ready',
     { displayName: 'Number Party', subtitle: 'Numbers 1–9', icon: '🎉', layoutProfile: 'roomy' }),
   skill('g1.count.1-20', 'Counting & numbers up to 20', 1, 'numbers', 11, 3, ['g1.count.1-9'], 'counting', 'ready',
-    { displayName: 'Big Number Party', subtitle: 'Numbers up to 20', icon: '🎉', layoutProfile: 'roomy' }),
+    { displayName: 'Big Number Party', subtitle: 'Numbers up to 20', icon: '🎊', layoutProfile: 'roomy' }),
   skill('g1.prenum.compare', 'Big/small, more/less, tall/short', 1, 'prenumber', 12, 2, ['g1.count.1-9'], 'compare', 'ready',
-    { displayName: 'Bigger or Smaller?', subtitle: 'More, less, tall, short', icon: '🐘', layoutProfile: 'stage' }),
+    { displayName: 'More or Fewer?', subtitle: 'More, less, tall, short', icon: '🦒', layoutProfile: 'stage' }),
   skill('g1.num.compare20', 'Compare numbers up to 20 (>, <, =)', 1, 'numbers', 13, 3, ['g1.count.1-20'], 'compareNumbers', 'ready',
-    { displayName: 'Big or Small?', subtitle: 'Compare numbers (>, <, =)', icon: '⚖️', layoutProfile: 'roomy' }),
+    { displayName: 'Big or Small?', subtitle: 'Compare numbers (>, <, =)', icon: '🐊', layoutProfile: 'roomy' }),
   skill('g1.num.ordinal', 'Ordinal numbers (1st–10th)', 1, 'numbers', 14, 2, ['g1.count.1-9'], 'ordinal', 'ready',
     { displayName: 'First to Tenth!', subtitle: 'Positions in a line', icon: '🏅', layoutProfile: 'story' }),
 
@@ -65,11 +65,11 @@ const ALL_SKILLS = [
   skill('g1.add.within10', 'Addition within 10', 1, 'addition', 20, 3, ['g1.count.1-9'], 'addition', 'ready',
     { displayName: 'Add a Little', subtitle: 'Addition within 10', icon: '➕', layoutProfile: 'roomy' }),
   skill('g1.add.within20', 'Addition within 20', 1, 'addition', 21, 3, ['g1.add.within10'], 'addition', 'ready',
-    { displayName: 'Add it Up!', subtitle: 'Addition within 20', icon: '➕', layoutProfile: 'roomy' }),
+    { displayName: 'Add it Up!', subtitle: 'Addition within 20', icon: '🧩', layoutProfile: 'roomy' }),
   skill('g1.sub.within10', 'Subtraction within 10', 1, 'subtraction', 22, 3, ['g1.count.1-9'], 'subtraction', 'ready',
     { displayName: 'Pop the Balloons!', subtitle: 'Subtraction within 10', icon: '🎈', layoutProfile: 'roomy' }),
   skill('g1.sub.within20', 'Subtraction within 20', 1, 'subtraction', 23, 3, ['g1.sub.within10'], 'subtraction', 'ready',
-    { displayName: 'Pop More Balloons!', subtitle: 'Subtraction within 20', icon: '🎈', layoutProfile: 'roomy' }),
+    { displayName: 'Pop More Balloons!', subtitle: 'Subtraction within 20', icon: '🫧', layoutProfile: 'roomy' }),
 
   // 3. Two-Digit Numbers, Place Value & Coins
   skill('g1.num.21-99', 'Numbers 21–99 (read, write, count)', 1, 'numbers', 30, 3, ['g1.count.1-20'], 'numbers21to99', 'ready',
@@ -83,7 +83,7 @@ const ALL_SKILLS = [
   skill('g1.prenum.patterns', 'Simple patterns (AB, AAB)', 1, 'prenumber', 40, 2, ['g1.count.1-9'], 'patterns', 'ready',
     { displayName: 'What Comes Next?', subtitle: 'Fun patterns', icon: '🎨', layoutProfile: 'story' }),
   skill('g1.prenum.sort', 'Sorting & classification', 1, 'prenumber', 41, 2, ['g1.count.1-9'], 'sorting', 'ready',
-    { displayName: 'Sort & Group', subtitle: 'Find what belongs', icon: '🧺', layoutProfile: 'story' }),
+    { displayName: 'Sort & Group', subtitle: 'Find what belongs', icon: '🖍️', layoutProfile: 'story' }),
   skill('g1.shapes.2d', '2D shapes (circle, square, triangle, rectangle)', 1, 'shapes', 42, 2, ['g1.count.1-9'], 'shapes2d', 'ready',
     { displayName: 'Meet the Shapes', subtitle: 'Shapes, sides & corners', icon: '🔺', layoutProfile: 'stage' }),
   skill('g1.shapes.space', 'Spatial: inside/outside, near/far, top/bottom', 1, 'shapes', 43, 2, ['g1.shapes.2d'], 'spatial', 'ready',
@@ -91,7 +91,7 @@ const ALL_SKILLS = [
 
   // 5. Measurement & Time
   skill('g1.measure.length', 'Length: longer/shorter, non-standard units', 1, 'measurement', 50, 2, ['g1.prenum.compare'], 'measureLength', 'ready',
-    { displayName: 'How Many Blocks Long?', subtitle: 'Measure with blocks & spans', icon: '📏', layoutProfile: 'stage' }),
+    { displayName: 'How Many Blocks Long?', subtitle: 'Measure with blocks & spans', icon: '📐', layoutProfile: 'stage' }),
   skill('g1.measure.weight', 'Heavy/light', 1, 'measurement', 51, 2, ['g1.prenum.compare'], 'measureWeight', 'ready',
     { displayName: 'Heavy or Light?', subtitle: 'Balance scale fun', icon: '⚖️', layoutProfile: 'stage' }),
   skill('g1.time.daynight', 'Day/night, days of week, sequence', 1, 'time', 52, 2, ['g1.count.1-9'], 'timeBasic', 'ready',
@@ -104,7 +104,7 @@ const ALL_SKILLS = [
   skill('g2.place.hundreds', 'Hundreds, tens, ones', 2, 'placevalue', 101, 3, ['g2.num.3digit'], 'placeValue3', 'ready',
     { displayName: 'Hundreds, Tens, Ones', subtitle: 'Expanded form to 999', icon: '🏛️', layoutProfile: 'roomy' }),
   skill('g2.num.compare999', 'Compare/order numbers to 999', 2, 'numbers', 102, 3, ['g2.num.3digit'], 'compareNumbers', 'ready',
-    { displayName: 'Which is Bigger?', subtitle: 'Compare numbers to 999', icon: '⚖️', layoutProfile: 'roomy' }),
+    { displayName: 'Which is Bigger?', subtitle: 'Compare numbers to 999', icon: '🏆', layoutProfile: 'roomy' }),
 
   // 2. 2-Digit Addition, Subtraction & Money
   skill('g2.add.2d-nocarry', '2-digit addition, no carry', 2, 'addition', 110, 3, ['g1.add.within20', 'g1.place.tens-ones'], 'addition2d', 'ready',

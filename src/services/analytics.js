@@ -16,7 +16,6 @@
  * @param {string} name - snake_case event name (claude-chat/archive/analytics-plan.md is the source of truth)
  * @param {object} [params] - low-cardinality, non-PII properties
  */
-// eslint-disable-next-line no-unused-vars
 export function logEvent(name, params = {}) {
   // Intentionally inert — no emission of any kind (DECISIONS 2026-07-16).
 }

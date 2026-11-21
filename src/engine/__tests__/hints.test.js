@@ -91,4 +91,11 @@ describe('hints', () => {
       expect(REACHABLE_TAGS, `tag '${tag}' has no hint`).toContain(tag);
     });
   });
+
+  it('keeps every hint concise (<= 10 words) for Grade 1 early readers and voice-over', () => {
+    REACHABLE_TAGS.forEach((tag) => {
+      const words = getHint(tag).trim().split(/\s+/).length;
+      expect(words, `hint for '${tag}' is ${words} words: "${getHint(tag)}"`).toBeLessThanOrEqual(10);
+    });
+  });
 });

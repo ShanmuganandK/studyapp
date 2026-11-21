@@ -168,4 +168,57 @@ describe('QuestionView — visual format trays (Batch 3)', () => {
     );
     expect(screen.getByRole('img', { name: 'Balance scale with 🍉 and 🎈' })).toBeTruthy();
   });
+
+  it('renders group-compare without leaking counts and preserves big-vs-small visual contrast (TD-9)', () => {
+    const { container } = render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: 'Group A has 4 🐘. Group B has 6 🐜. How many are in the group with MORE?',
+          render: {
+            kind: 'group-compare',
+            countA: 4,
+            glyphA: '🐘',
+            countB: 6,
+            glyphB: '🐜',
+            word: 'MORE',
+          },
+        }}
+      />,
+    );
+    expect(screen.getByText('Group A')).toBeTruthy();
+    expect(screen.getByText('Group B')).toBeTruthy();
+    expect(screen.queryByText(/\(4\)/)).toBeNull();
+    expect(screen.queryByText(/\(6\)/)).toBeNull();
+    expect(container.textContent).not.toContain('Group A (4)');
+    expect(container.textContent).not.toContain('Group B (6)');
+    // Big glyph group renders visually larger than small glyph group (Piaget conservation).
+    const groupAGlyphs = screen.getAllByText('🐘');
+    const groupBGlyphs = screen.getAllByText('🐜');
+    expect(groupAGlyphs).toHaveLength(4);
+    expect(groupBGlyphs).toHaveLength(6);
+    expect(groupAGlyphs[0].parentElement.className).toContain('text-xl');
+    expect(groupBGlyphs[0].parentElement.className).toContain('text-xs');
+  });
+
+  it('renders half-collection without leaking groupSize numerals when groupSize > 6 (TD-9)', () => {
+    const { container } = render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: 'What is 1/2 of 16 apples?',
+          render: {
+            kind: 'half-collection',
+            total: 16,
+            num: 1,
+            den: 2,
+            glyph: '🍎',
+            word: 'apples',
+          },
+        }}
+      />,
+    );
+    expect(container.textContent).not.toContain('(8)');
+    expect(screen.getAllByText('🍎')).toHaveLength(16);
+  });
 });

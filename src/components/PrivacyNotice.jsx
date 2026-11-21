@@ -37,7 +37,7 @@ export default function PrivacyNotice({ variant = 'card', onReadPolicy }) {
       {onReadPolicy && (
         <button
           onClick={onReadPolicy}
-          className="text-sm font-semibold text-primary underline mt-2 hover:text-primary-ink transition-colors"
+          className="min-h-[48px] inline-flex items-center text-sm font-semibold text-primary underline mt-1 hover:text-primary-ink transition-colors"
         >
           Read the full privacy policy
         </button>

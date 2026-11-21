@@ -258,7 +258,7 @@ export default function ParentDashboard({
         <div className="border-t border-primary-soft pt-4 space-y-3">
           <button
             onClick={onSetPasscode}
-            className="w-full bg-primary text-white rounded-button shadow-button font-semibold py-3 flex items-center justify-center gap-2 active:scale-95 transition-transform"
+            className="w-full min-h-[48px] bg-primary text-white rounded-button shadow-button font-semibold py-3 flex items-center justify-center gap-2 active:scale-95 transition-transform"
           >
             <Lock size={18} />
             {hasPasscode ? 'Change Passcode' : 'Set Parent Passcode'}
@@ -271,13 +271,13 @@ export default function ParentDashboard({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => { setConfirmRemove(false); onRemovePasscode(); }}
-                  className="flex-1 bg-encourage text-encourage-ink rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+                  className="flex-1 min-h-[48px] bg-encourage text-encourage-ink rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
                 >
                   Remove passcode
                 </button>
                 <button
                   onClick={() => setConfirmRemove(false)}
-                  className="flex-1 border border-primary-soft text-muted rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+                  className="flex-1 min-h-[48px] border border-primary-soft text-muted rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
                 >
                   Cancel
                 </button>
@@ -285,7 +285,7 @@ export default function ParentDashboard({
             ) : (
               <button
                 onClick={() => setConfirmRemove(true)}
-                className="w-full py-2.5 text-sm text-muted hover:text-encourage-ink transition-colors"
+                className="w-full min-h-[48px] py-2.5 text-sm text-muted hover:text-encourage-ink transition-colors"
               >
                 Remove passcode
               </button>
@@ -312,13 +312,13 @@ export default function ParentDashboard({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={confirmImport}
-                    className="flex-1 bg-primary text-white rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+                    className="flex-1 min-h-[48px] bg-primary text-white rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
                   >
                     Replace progress
                   </button>
                   <button
                     onClick={cancelImport}
-                    className="flex-1 border border-primary-soft text-muted rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+                    className="flex-1 min-h-[48px] border border-primary-soft text-muted rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
                   >
                     Cancel
                   </button>
@@ -329,7 +329,7 @@ export default function ParentDashboard({
                 <button
                   onClick={exportProgress}
                   disabled={!hasProgress}
-                  className="w-full border border-primary-soft text-ink rounded-button font-semibold py-2.5 text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+                  className="w-full min-h-[48px] border border-primary-soft text-ink rounded-button font-semibold py-2.5 text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
                 >
                   <Download size={16} />
                   Export progress
@@ -340,7 +340,7 @@ export default function ParentDashboard({
                   </p>
                 )}
 
-                <label className="w-full border border-primary-soft text-ink rounded-button font-semibold py-2.5 text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform cursor-pointer">
+                <label className="w-full min-h-[48px] border border-primary-soft text-ink rounded-button font-semibold py-2.5 text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform cursor-pointer">
                   <Upload size={16} />
                   Import backup
                   <input
@@ -379,7 +379,7 @@ export default function ParentDashboard({
 
           <a
             href={feedbackMailtoUrl()}
-            className="w-full flex items-center justify-center gap-2 py-2.5 text-sm text-muted hover:text-learn-ink transition-colors"
+            className="w-full min-h-[48px] flex items-center justify-center gap-2 py-2.5 text-sm text-muted hover:text-learn-ink transition-colors"
           >
             <Mail size={16} />
             Report a bug / Give feedback

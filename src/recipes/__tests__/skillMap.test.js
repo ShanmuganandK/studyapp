@@ -105,6 +105,16 @@ describe('skill map — graph validity', () => {
     expect(ready).toHaveLength(36);
     expect(ready).toEqual(allSkills.map((s) => s.id).sort());
   });
+
+  it('gives every ready skill a unique icon, unique displayName, and never uses 🐘 (competing with Tinku)', () => {
+    const ready = allSkills.filter((s) => s.status === 'ready');
+    const icons = ready.map((s) => s.icon);
+    const names = ready.map((s) => s.displayName);
+    expect(icons.every(Boolean)).toBe(true);
+    expect(new Set(icons).size).toBe(ready.length);
+    expect(new Set(names).size).toBe(ready.length);
+    expect(icons).not.toContain('🐘');
+  });
 });
 
 describe('skill map — helpers', () => {

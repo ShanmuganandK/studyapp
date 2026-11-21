@@ -488,6 +488,26 @@
 /* First-run grade picker: the hero is a size container so Tinku is sized from the room it has
    (see GradePickerScreen.jsx), the same idea as .quiz-stage. */
 .picker-hero { container: picker / size; }
-@media (min-width: 640px) {
-  .app-frame { height: 85vh; height: 85dvh; max-height: 800px; }
+/* Desktop pointer preview frame: show phone bezel, notch, and 85dvh height only on fine-pointer
+   desktop viewports. Touch tablets (>= 640px, coarse pointer) get a centred full-height canvas (F4). */
+@media (min-width: 640px) and (hover: hover) and (pointer: fine) {
+  .desktop-phone-shell {
+    padding: 1rem;
+    background-color: var(--color-primary-ink);
+  }
+  .app-frame.desktop-phone-frame {
+    height: 85vh;
+    height: 85dvh;
+    max-height: 800px;
+    border-radius: 2.5rem;
+    border: 8px solid var(--color-primary-ink);
+    box-shadow: 0 0 0 4px rgba(var(--color-primary-ink-rgb), 0.5), 0 25px 50px -12px rgba(var(--color-ink-rgb), 0.25);
+  }
+  .desktop-phone-notch {
+    display: block;
+    background-color: var(--color-primary-ink);
+  }
+  .desktop-phone-content {
+    padding-top: 2.5rem;
+  }
 }

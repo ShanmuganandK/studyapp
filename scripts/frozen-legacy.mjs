@@ -110,11 +110,6 @@ export const COLOR_CLASS_EXCEPTIONS = [
     reason: 'modal scrim — dims whatever is behind it; scrims are conventionally theme-independent across most design systems, not app content',
   },
   {
-    file: 'src/components/Layout.jsx',
-    pattern: /\b(?:border|ring|bg)-indigo-(?:900|950)\b/,
-    reason: 'the desktop phone-mockup bezel + notch chrome (decorative device frame around the app, shown only sm:+) — a phone case is not app content and is not expected to re-theme with the band',
-  },
-  {
     file: 'src/components/__tests__/SkillCard.test.jsx',
     pattern: /\btext-amber-500\b/,
     reason: 'appears only inside a negative assertion (`toBeNull()`) proving the class is ABSENT — not applied styling, a false positive on a plain string scan',

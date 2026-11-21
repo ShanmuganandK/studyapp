@@ -731,7 +731,7 @@ export default function QuestionView({ question, blankFill = null }) {
     );
   }
 
-  // Archetype D.1: Side-by-side Group Compare (`group-compare` for Bigger or Smaller?)
+  // Archetype D.1: Side-by-side Group Compare (`group-compare` for More or Fewer?)
   if (kind === 'group-compare') {
     const { countA, glyphA, countB, glyphB, word } = question.render;
     return (
@@ -739,16 +739,16 @@ export default function QuestionView({ question, blankFill = null }) {
         <p className="text-prompt font-body font-extrabold text-ink mb-1.5">
           How many are in the group with <span className="text-primary underline">{word}</span>?
         </p>
-        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-3 py-2 shadow-card grid grid-cols-2 gap-2.5 select-none">
-          <div className="rounded-button border border-primary-soft bg-bg px-2.5 py-1.5 text-center">
-            <div className="text-xs font-body font-bold text-muted mb-0.5">Group A ({countA})</div>
-            <div className="flex flex-wrap justify-center gap-0.5 text-base leading-tight">
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-2.5 py-1.5 shadow-card grid grid-cols-2 gap-2 select-none">
+          <div className="rounded-button border border-primary-soft bg-bg px-2 py-1 text-center">
+            <div className="text-xs font-body font-bold text-muted mb-0.5">Group A</div>
+            <div className="flex flex-wrap items-center justify-center gap-0.5 text-xl sm:text-3xl leading-none">
               {Array.from({ length: countA }).map((_, i) => <span key={i}>{glyphA}</span>)}
             </div>
           </div>
-          <div className="rounded-button border border-primary-soft bg-bg px-2.5 py-1.5 text-center">
-            <div className="text-xs font-body font-bold text-muted mb-0.5">Group B ({countB})</div>
-            <div className="flex flex-wrap justify-center gap-0.5 text-base leading-tight">
+          <div className="rounded-button border border-primary-soft bg-bg px-2 py-1 text-center">
+            <div className="text-xs font-body font-bold text-muted mb-0.5">Group B</div>
+            <div className="flex flex-wrap items-center justify-center gap-0.5 text-xs sm:text-sm leading-tight">
               {Array.from({ length: countB }).map((_, i) => <span key={i}>{glyphB}</span>)}
             </div>
           </div>
@@ -771,16 +771,13 @@ export default function QuestionView({ question, blankFill = null }) {
           {Array.from({ length: den }).map((_, gIdx) => (
             <div
               key={gIdx}
-              className={`rounded-button border-2 px-2 py-1 flex items-center gap-0.5 text-sm ${
+              className={`rounded-button border-2 px-2 py-1.5 flex flex-wrap items-center justify-center gap-0.5 max-w-[9.5rem] text-sm leading-tight ${
                 gIdx < num ? 'border-primary bg-primary-soft' : 'border-primary-soft bg-bg'
               }`}
             >
-              {Array.from({ length: Math.min(groupSize, 6) }).map((__, i) => (
+              {Array.from({ length: groupSize }).map((__, i) => (
                 <span key={i}>{glyph}</span>
               ))}
-              {groupSize > 6 && (
-                <span className="font-display font-extrabold text-primary-ink text-xs ml-0.5">({groupSize})</span>
-              )}
             </div>
           ))}
         </div>

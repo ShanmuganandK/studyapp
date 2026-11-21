@@ -57,7 +57,7 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
     } else if (s.phase === 'complete') {
       playSound('complete');
     }
-  }, [s.phase, s.hintNonce]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [s.phase, s.hintNonce]);
 
   if (!s.ready) {
     return (
@@ -81,6 +81,7 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
       <CelebrationScreen
         score={s.score}
         total={s.totalQuestions}
+        skillName={s.skillName}
         masteryUp={s.masteryUp}
         onPlayAgain={s.restart}
         onExit={onExit}
@@ -107,9 +108,13 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
   return (
     <div className="quiz-stage h-full overflow-hidden bg-bg px-3.5 sm:px-5 pt-1 pb-2">
      <div className="quiz-grid" data-profile={profile}>
-      {/* Top bar: back · progress counter · mute toggle */}
-      <div data-q="bar" className="flex items-center justify-between">
-        <button onClick={onExit} className="text-sm font-semibold text-muted hover:text-ink transition-colors">
+      {/* Top bar: back · progress counter · mute toggle. Buttons use -my-1.5 so their 48dp hit box
+          never inflates the compact stage bar height on 360x540 phones (F1). */}
+      <div data-q="bar" className="flex items-center justify-between h-9">
+        <button
+          onClick={onExit}
+          className="min-h-[48px] min-w-[48px] -my-1.5 inline-flex items-center px-1 text-sm font-semibold text-muted hover:text-ink transition-colors"
+        >
           ← Skills
         </button>
         <span className="text-sm font-bold text-primary">
@@ -193,7 +198,7 @@ function MuteButton({ muted, onToggle }) {
     <button
       onClick={onToggle}
       aria-label={muted ? 'Unmute sound' : 'Mute sound'}
-      className="text-xl w-8 h-8 flex items-center justify-center rounded-full text-muted hover:text-ink active:scale-90 transition-transform"
+      className="text-xl w-12 h-12 -my-1.5 flex items-center justify-center rounded-full text-muted hover:text-ink active:scale-90 transition-transform"
     >
       {muted ? '🔇' : '🔊'}
     </button>

@@ -59,13 +59,16 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
   // Grade filter via the shared readySkills() — parent test-panel grade (TRACKER #10), with its
   // built-in fallback to all ready skills so a grade with none yet (Grade 3 today) is never empty.
   const skills = readySkills(grade).sort((a, b) => a.order - b.order);
+  const hasPathMascot =
+    recommendation.reason !== 'all_caught_up' &&
+    skills.some((s) => s.id === recommendation.skillId);
 
   const spine = buildSpine(skills.length);
   const pathHeight = skills.length * ROW_H;
 
   return (
     <div className="flex flex-col items-center min-h-full bg-bg px-4 py-6 text-center">
-      <Mascot emotion="waving" size={104} />
+      {!hasPathMascot && <Mascot emotion="waving" size={104} />}
       <h2 className="font-display text-2xl font-extrabold text-primary-ink mt-2">What shall we practise?</h2>
       <p className="text-muted text-sm mb-4">Follow the path with Tinku!</p>
 

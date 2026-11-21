@@ -44,7 +44,7 @@ export default function ThemePicker({ theme, onThemeChange }) {
               key={slug}
               onClick={() => onThemeChange(slug)}
               aria-pressed={selected}
-              className={`flex items-center gap-2 rounded-button border py-2 px-3 text-sm font-semibold active:scale-95 transition-transform ${
+              className={`flex items-center gap-2 min-h-[48px] rounded-button border py-2 px-3 text-sm font-semibold active:scale-95 transition-transform ${
                 selected
                   ? 'border-primary ring-2 ring-primary text-primary-ink'
                   : 'border-primary-soft text-muted'

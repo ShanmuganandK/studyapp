@@ -28,7 +28,7 @@ export default function TestPanel({ bridgeEnabled, onBridgeEnabledChange }) {
               key={String(value)}
               onClick={() => onBridgeEnabledChange(value)}
               aria-pressed={selected}
-              className={`flex-1 rounded-button border py-2 text-sm font-semibold active:scale-95 transition-transform ${
+              className={`flex-1 min-h-[48px] rounded-button border py-2 text-sm font-semibold active:scale-95 transition-transform ${
                 selected
                   ? 'border-primary ring-2 ring-primary text-primary-ink'
                   : 'border-primary-soft text-muted'

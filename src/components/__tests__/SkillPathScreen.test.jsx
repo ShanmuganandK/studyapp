@@ -16,8 +16,11 @@ let mockStates = {};
 vi.mock('../../services/progressStore', () => ({
   loadAllSkillStates: () => mockStates,
 }));
-// Mascot preloads webp assets — irrelevant to structure; stub it.
-vi.mock('../Mascot', () => ({ default: () => null }));
+// Mascot preloads webp assets — irrelevant to structure; stub with a testable marker so we can
+// verify at most one Tinku renders on Home at a time.
+vi.mock('../Mascot', () => ({
+  default: ({ emotion, size }) => <span data-testid="mascot" data-emotion={emotion} data-size={String(size)} />,
+}));
 
 // SkillPathScreen defaults to grade 1 (no grade prop passed below), so this must match the
 // same grade filter the component applies via readySkills(1) — not every ready skill overall.
@@ -43,6 +46,15 @@ describe('SkillPathScreen', () => {
     render(<SkillPathScreen onSelectSkill={() => {}} />);
     expect(screen.getByText('Tinku suggests!')).toBeTruthy();
     expect(screen.queryByText(/Review time!/)).toBeNull();
+    // Exactly one Tinku on Home when a suggested node is shown (not one in header + one on path).
+    expect(screen.getAllByTestId('mascot')).toHaveLength(1);
+  });
+
+  it('shows exactly one Tinku in the header when all skills are caught up (no suggested node)', () => {
+    mockStates = Object.fromEntries(readySkills.map((s) => [s.id, mastered(s.id, '2999-12-31')]));
+    render(<SkillPathScreen onSelectSkill={() => {}} />);
+    expect(screen.queryByText('Tinku suggests!')).toBeNull();
+    expect(screen.getAllByTestId('mascot')).toHaveLength(1);
   });
 
   it('grade 2 (fresh): Tinku suggests a Class 2 skill, not Class 1 counting (DECISIONS 2026-10-20)', () => {
