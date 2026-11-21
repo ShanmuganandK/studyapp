@@ -9,6 +9,7 @@
 
 import { SKILLS } from '../recipes/skillMap.js';
 import { MASTERY } from '../config/masteryConfig.js';
+import { pickTinkuNoticed } from './parentCoaching.js';
 
 // Stable sorted list of ready skills — computed once at module load, not per call.
 const READY_SKILLS = Object.values(SKILLS)
@@ -107,5 +108,6 @@ export function progressSummary(skillStates, today, grade) {
     masteredCount: mastered.length,
     lastActivity: latestSeen ? formatRelativeDate(latestSeen, today) : null,
     skillsPractisedCount: mastered.length + inProgress.length,
+    tinkuNoticed: pickTinkuNoticed(skillStates, { grade }),
   };
 }

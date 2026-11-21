@@ -13,10 +13,10 @@ Measured via Playwright at `360×640` and `412×915` CSS px (not yet verified on
 
 | ID | Area | Priority | Detail |
 |---|---|---|---|
-| `F1` | Child-facing controls under `48 dp` | P2 | Quiz screen `"← Skills"` (`52×20`) and `"Mute sound"` (`32×32`), plus Celebration `"Pick another skill"` (`280×40` / `320×40`). Expand hit area to `>= 48×48` using quiz layout tokens without shifting layout, and extend `scripts/check-quiz-layout.mjs` to guard them. |
-| `F2` | Parent-screen controls under `48 dp` | P3 | At `412×915`: Class (`38px`), Colours (`40px`), Export/Import (`42px`), feedback link (`40px`), privacy policy link (`20px`). |
-| `F3` | Parent screen at `360×640` | P3 | Not yet measured in Playwright; measure and address together with `F2`. |
-| `F4` | Tablet phone-frame presentation | Decision needed | At `>= 640 CSS px`, `Layout.jsx` draws the desktop phone mockup frame. Decide whether to restrict the frame to desktop pointer devices (giving tablets a centred phone-width layout), exclude tablets in Play Console, or keep as-is. Landscape and foldables remain non-targets. |
+| `F1` | Child-facing controls under `48 dp` | Done in UI; guard pending | Expanded `"← Skills"`, `MuteButton`, and Celebration buttons to `>= 48×48` hit boxes without shifting layout (`SessionPlayer.jsx`, `CelebrationScreen.jsx`). Remaining: extend `scripts/check-quiz-layout.mjs` to assert header controls. |
+| `F2` | Parent-screen controls under `48 dp` | Done (`2026-11-20`) | Added `min-h-[48px]` across `ParentDashboard`, `ClassPicker`, `ThemePicker`, `PrivacyNotice`, and `TestPanel` buttons/links. |
+| `F3` | Parent screen at `360×640` | P3 | Not yet measured in Playwright; verify in browser/Playwright alongside `Tinku Noticed` card layout. |
+| `F4` | Tablet phone-frame presentation | Done (`2026-11-20`) | Scoped phone-mockup bezel, notch, and `85dvh` frame to `@media (min-width: 640px) and (hover: hover) and (pointer: fine)` (`Layout.jsx`, `index.css`), giving touch tablets a centred full-height canvas. |
 | `F5` | Families declarations & target age | Human ops | Tracked under `L7` in [`CURRENT_STATE.md`](CURRENT_STATE.md). |
 
 ---
@@ -29,7 +29,7 @@ Measured via Playwright at `360×640` and `412×915` CSS px (not yet verified on
 |---|---|---|---|
 | `DS-1` | `--color-on-primary` & `--color-on-success` text tokens | P1 (required before any dark palette / Explorer band) | Replace the 6 hardcoded `text-white` exceptions in `scripts/frozen-legacy.mjs` (`COLOR_CLASS_EXCEPTIONS`) so primary buttons and correct tiles re-theme cleanly on inverted/dark palettes. |
 | `DS-5` | Motion duration, easing & `48px` tap-size tokens | P3 (post-launch) | Extract hardcoded `@keyframes` durations/easing and `48px` tap size into CSS variables (`--dur-*`, `--ease-spring`, `--size-tap-min`). |
-| `DS-6` | Bundled SVG icon set | P3 (needs art) | Replace platform-variant emoji medallions with a small, bundled, token-coloured SVG icon set matching Tinku's flat 2D style. |
+| `DS-6` | Bundled SVG icon set | v1 shipped (`2026-11-21`); refine individually | Token-coloured bespoke flat-2D SVG medallions shipped for all `36/36` ready skills (`src/components/SkillIcon.jsx`) across Home & Parent Dashboard; individual icons can be tuned or refined with commissioned art. |
 | `DS-7` | Tinku poses for loading / empty / error states | P3 | Map existing mascot poses (`Tinku_Sleeping`, `Tinku_Think3`, `Tinku_Encourage_2`) to empty, loading, and error states so Tinku hosts every child-facing screen. |
 | `DS-8` | Token mirror sync hygiene | P2 (process) | If external design-tool token mirrors are adopted again, keep them strictly derived from `src/index.css` in the same PR. |
 

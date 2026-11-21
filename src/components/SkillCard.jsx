@@ -1,5 +1,6 @@
 import MasteryPips from './MasteryPips';
 import { getSkillVisual, SkillStateCue } from './skillStateVisual';
+import SkillIcon from './SkillIcon';
 
 /**
  * SkillCard — presentational card for one skill on the home screen (UI overhaul, Screen 3).
@@ -33,9 +34,9 @@ export default function SkillCard({ skill, level, isDue, isSuggested, isReviewSu
       style={{ animationDelay: `${index * 45}ms` }}
       className={`${entranceClass} bg-bg-card rounded-card shadow-card py-4 px-5 flex items-center gap-4 text-left border-4 ${visual.ring} hover:scale-[1.03] active:scale-95 transition-transform`}
     >
-      {skill.icon && (
-        <span className="text-4xl leading-none shrink-0" aria-hidden="true">
-          {skill.icon}
+      {(skill.id || skill.icon) && (
+        <span className="text-4xl leading-none shrink-0 flex items-center justify-center" aria-hidden="true">
+          <SkillIcon skillId={skill.id} fallback={skill.icon} size={36} />
         </span>
       )}
       <span className="flex flex-col min-w-0">

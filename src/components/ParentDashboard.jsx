@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Lock, Mail, Download, Upload } from 'lucide-react';
 import Mascot from './Mascot';
 import MasteryPips from './MasteryPips';
+import SkillIcon from './SkillIcon';
 import { loadAllSkillStates } from '../services/progressStore';
 import { progressSummary } from '../engine/progressSummary';
 import { MASTERY } from '../config/masteryConfig';
@@ -35,9 +36,9 @@ function SkillRow({ skill }) {
   return (
     <div data-skill-id={skill.skillId} className="flex items-center justify-between py-3 border-b border-primary-soft last:border-0">
       <div className="flex items-center gap-3 min-w-0">
-        {skill.icon && (
-          <span className="text-2xl shrink-0" aria-hidden="true">
-            {skill.icon}
+        {(skill.skillId || skill.icon) && (
+          <span className="text-2xl shrink-0 flex items-center justify-center" aria-hidden="true">
+            <SkillIcon skillId={skill.skillId} fallback={skill.icon} size={28} />
           </span>
         )}
         <div className="min-w-0">
@@ -106,7 +107,7 @@ export default function ParentDashboard({
     return progressSummary(skillStates, today, grade);
   }, [skillStates, grade]);
 
-  const { mastered, inProgress, notStarted, masteredCount, lastActivity } = summary;
+  const { mastered, inProgress, notStarted, masteredCount, lastActivity, tinkuNoticed } = summary;
 
   // Days practised (DECISIONS 2026-10-20): read once on mount, same snapshot pattern as the skill states above.
   const [practiceDays] = useState(loadPracticeDays);
@@ -181,14 +182,52 @@ export default function ParentDashboard({
             <p className="text-xs font-semibold text-learn-ink uppercase tracking-wide mb-2">
               Currently working on
             </p>
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
               {inProgress.map((s) => (
-                <span key={s.skillId} className="text-sm text-ink font-medium">
-                  {s.icon} {s.displayName}
+                <span key={s.skillId} className="inline-flex items-center gap-1.5 text-sm text-ink font-medium">
+                  <SkillIcon skillId={s.skillId} fallback={s.icon} size={18} />
+                  <span>{s.displayName}</span>
                 </span>
               ))}
             </div>
           </div>
+        )}
+
+        {/* ── Tinku Noticed (parent mistake-coaching card, local only) ─────── */}
+        {tinkuNoticed?.length > 0 && (
+          <section
+            data-testid="tinku-noticed-card"
+            aria-label="Tinku Noticed"
+            className="bg-bg-card rounded-card border border-primary-soft shadow-card p-4 space-y-3"
+          >
+            <div>
+              <p className="text-xs font-semibold text-primary-ink uppercase tracking-wide">
+                Tinku Noticed
+              </p>
+              <p className="text-xs text-muted mt-0.5">
+                Helpful patterns from recent practice — plus a quick offline game to try at home.
+              </p>
+            </div>
+            <div className="space-y-3">
+              {tinkuNoticed.map((item) => (
+                <div
+                  key={item.tag}
+                  className="rounded-button bg-bg border border-primary-soft p-3 space-y-1.5"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-bold text-primary-ink">{item.title}</p>
+                    <span className="text-[11px] font-semibold text-learn-ink bg-learn-soft rounded-full px-2 py-0.5 shrink-0">
+                      {item.skillName}
+                    </span>
+                  </div>
+                  <p className="text-xs text-ink leading-relaxed">{item.observation}</p>
+                  <p className="text-xs text-primary-ink bg-primary-soft/60 rounded-button px-2.5 py-2 leading-relaxed">
+                    <span className="font-bold">Try at home (1 min):</span> {item.activity}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* ── Skills list ──────────────────────────────────────────────────── */}

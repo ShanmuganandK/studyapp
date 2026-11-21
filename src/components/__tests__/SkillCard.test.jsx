@@ -24,11 +24,11 @@ const base = {
 describe('SkillCard', () => {
   afterEach(cleanup);
 
-  it('renders the skill name, subtitle and icon', () => {
-    render(<SkillCard {...base} />);
+  it('renders the skill name, subtitle and custom SVG icon', () => {
+    const { container } = render(<SkillCard {...base} />);
     expect(screen.getByText('Add it up')).toBeTruthy();
     expect(screen.getByText('Addition within 20')).toBeTruthy();
-    expect(screen.getByText('➕')).toBeTruthy();
+    expect(container.querySelector('svg[data-skill-icon="g1.add.within20"]')).toBeTruthy();
   });
 
   it('shows the "Tinku suggests!" label when suggested (non-review)', () => {

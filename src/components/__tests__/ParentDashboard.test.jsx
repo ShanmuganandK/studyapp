@@ -326,3 +326,47 @@ describe('ParentDashboard: feedback link', () => {
     expect(link.getAttribute('target')).toBeNull();
   });
 });
+
+describe('ParentDashboard — Tinku Noticed coaching card', () => {
+  afterEach(() => { cleanup(); localStorage.clear(); });
+  const props = { ...baseProps, hasPasscode: false, onGradeChange: () => {} };
+
+  it('hides the Tinku Noticed card when no diagnostic misconceptions exist', () => {
+    saveSkillState(SKILL_ID, {
+      ...emptySkillState(SKILL_ID, 3),
+      lastSeen: '2026-11-20',
+      misconceptions: { 'random-slip': 4 },
+    });
+    render(<ParentDashboard {...props} grade={1} />);
+    expect(screen.queryByTestId('tinku-noticed-card')).toBeNull();
+  });
+
+  it('shows up to 2 recent diagnostic observations and 60-second home activities for the active class', () => {
+    saveSkillState('g1.add.within20', {
+      ...emptySkillState('g1.add.within20', 3),
+      level: 2,
+      lastSeen: '2026-11-20',
+      misconceptions: { 'crossing-ten-misstep': 3, 'operator-mixup': 2 },
+    });
+    saveSkillState('g2.add.2d-carry', {
+      ...emptySkillState('g2.add.2d-carry', 3),
+      level: 1,
+      lastSeen: '2026-11-20',
+      misconceptions: { 'forgot-carry': 5 },
+    });
+
+    const { rerender } = render(<ParentDashboard {...props} grade={1} />);
+    const card = screen.getByTestId('tinku-noticed-card');
+    expect(card.textContent).toContain('Tinku Noticed');
+    expect(card.textContent).toContain('Bridging across 10');
+    expect(card.textContent).toContain('Try at home (1 min)');
+    expect(card.textContent).not.toContain('Forgetting to carry the new ten');
+    // Never exposes raw mistake counts to parents.
+    expect(card.textContent).not.toMatch(/3 mistakes|3 times/i);
+
+    rerender(<ParentDashboard {...props} grade={2} />);
+    const g2Card = screen.getByTestId('tinku-noticed-card');
+    expect(g2Card.textContent).toContain('Forgetting to carry the new ten');
+    expect(g2Card.textContent).not.toContain('Bridging across 10');
+  });
+});

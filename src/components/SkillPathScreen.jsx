@@ -8,6 +8,7 @@ import { recommendNext } from '../engine/composer';
 import { getSkillVisual, SkillStateCue } from './skillStateVisual';
 import Mascot from './Mascot';
 import PrivacyNotice from './PrivacyNotice';
+import SkillIcon from './SkillIcon';
 
 /**
  * SkillPathScreen — EXPERIMENT (Screen 3-B): a "Journey Path" Home variant, parallel to the
@@ -156,8 +157,8 @@ function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft,
         {visual.loud && (
           <span aria-hidden="true" className={`path-pulse absolute inset-[-5px] rounded-full border-[3px] ${visual.ring}`} />
         )}
-        <span className="text-3xl leading-none" aria-hidden="true">
-          {skill.icon}
+        <span className="flex items-center justify-center leading-none" aria-hidden="true">
+          <SkillIcon skillId={skill.id} fallback={skill.icon} size={38} />
         </span>
       </button>
 
