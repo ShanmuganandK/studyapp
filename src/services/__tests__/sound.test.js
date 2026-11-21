@@ -274,3 +274,84 @@ describe('webkitAudioContext fallback (older iOS / WKWebView)', () => {
     expect(() => mod.unlockAudio()).not.toThrow();
   });
 });
+
+describe('one-way hint voice playback', () => {
+  let setSoundMuted, playHintVoice, stopHintVoice, hasHintVoice;
+  let mockCtx, audioInstances;
+
+  function makeAudioCtor({ rejectPlay = false } = {}) {
+    audioInstances = [];
+    return vi.fn(function (url) {
+      const instance = {
+        url,
+        currentTime: 0,
+        pause: vi.fn(),
+        addEventListener: vi.fn(),
+        play: vi.fn(() => (rejectPlay ? Promise.reject(new Error('blocked')) : Promise.resolve())),
+      };
+      audioInstances.push(instance);
+      return instance;
+    });
+  }
+
+  beforeEach(async () => {
+    vi.resetModules();
+    mockCtx = makeMockCtx();
+    vi.stubGlobal('AudioContext', vi.fn(function () { return mockCtx; }));
+    vi.stubGlobal('navigator', { vibrate: vi.fn() });
+    vi.stubGlobal('Audio', makeAudioCtor());
+
+    const mod = await import('../sound.js');
+    setSoundMuted = mod.setSoundMuted;
+    playHintVoice = mod.playHintVoice;
+    stopHintVoice = mod.stopHintVoice;
+    hasHintVoice = mod.hasHintVoice;
+  });
+
+  it('hasHintVoice checks whether a tag has a bundled clip', () => {
+    const map = { 'forgot-carry': '/assets/forgot-carry.opus' };
+    expect(hasHintVoice('forgot-carry', map)).toBe(true);
+    expect(hasHintVoice('off-by-one', map)).toBe(false);
+    expect(hasHintVoice(null, map)).toBe(false);
+  });
+
+  it('falls back to the soft hint chime when no clip is bundled for the tag', () => {
+    expect(playHintVoice('forgot-carry', {})).toBe(false);
+    expect(audioInstances).toHaveLength(0);
+    expect(mockCtx.createOscillator).toHaveBeenCalledTimes(2);
+  });
+
+  it('plays the bundled clip when present and cancels the previous clip on replay', () => {
+    const map = { 'forgot-carry': '/assets/forgot-carry.opus', 'off-by-one': '/assets/off-by-one.opus' };
+    expect(playHintVoice('forgot-carry', map)).toBe(true);
+    expect(audioInstances).toHaveLength(1);
+    expect(audioInstances[0].url).toBe('/assets/forgot-carry.opus');
+    expect(audioInstances[0].play).toHaveBeenCalledTimes(1);
+
+    playHintVoice('off-by-one', map);
+    expect(audioInstances[0].pause).toHaveBeenCalledTimes(1);
+    expect(audioInstances).toHaveLength(2);
+    expect(audioInstances[1].url).toBe('/assets/off-by-one.opus');
+  });
+
+  it('stops active hint voice immediately on stopHintVoice and when muted', () => {
+    const map = { 'forgot-carry': '/assets/forgot-carry.opus' };
+    playHintVoice('forgot-carry', map);
+    stopHintVoice();
+    expect(audioInstances[0].pause).toHaveBeenCalledTimes(1);
+
+    playHintVoice('forgot-carry', map);
+    setSoundMuted(true);
+    expect(audioInstances[1].pause).toHaveBeenCalledTimes(1);
+    expect(playHintVoice('forgot-carry', map)).toBe(false);
+    expect(audioInstances).toHaveLength(2);
+  });
+
+  it('falls back to the hint chime if bundled Audio.play() rejects', async () => {
+    vi.stubGlobal('Audio', makeAudioCtor({ rejectPlay: true }));
+    const map = { 'forgot-carry': '/assets/forgot-carry.opus' };
+    playHintVoice('forgot-carry', map);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(mockCtx.createOscillator).toHaveBeenCalledTimes(2);
+  });
+});

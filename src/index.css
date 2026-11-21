@@ -236,7 +236,7 @@
 }
 .quiz-grid[data-profile='stage'] {
   --q-gap: clamp(0.3rem, 1.1cqh, 0.65rem);
-  --q-mascot: clamp(5.5rem, min(25cqh, 76cqw), 16.5rem);  /* Big Tinku (>=25% stage), generous room for visual stage */
+  --q-mascot: clamp(5rem, min(20cqh, 72cqw), 14rem);    /* ~20% stage so visual trays & SVGs breathe */
   --q-hint: clamp(3.25rem, 9.8cqh, 5.25rem);
   --q-hint-font: clamp(0.8rem, min(2.35cqh, 4.1cqw), 1rem);
   --q-tile: clamp(3rem, 9.8cqh, 4.85rem);
@@ -266,6 +266,9 @@
     --q-tile: clamp(2.85rem, 9.6cqh, 4.25rem);
     --q-glyph: clamp(1.35rem, min(5cqh, 10cqw), 2.6rem);
     --text-prompt: clamp(0.95rem, min(2.8cqh, 5cqw), 1.25rem);
+  }
+  .quiz-grid[data-profile='stage'] {
+    --q-mascot: clamp(4.5rem, min(19cqh, 70cqw), 12rem);
   }
 }
 /* Short stage (<=540px: a 360x640 budget phone with mobile browser address + nav bars visible):

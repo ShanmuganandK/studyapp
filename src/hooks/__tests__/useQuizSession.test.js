@@ -91,23 +91,27 @@ describe('useQuizSession — remediation ladder (pure logic)', () => {
     expect(s.emotion).toBe('thinking');
   });
 
-  it('wrong #1 → encourage + hint, stays on the question for a retry', () => {
+  it('wrong #1 → encourage + hint + hintTag, stays on the question for a retry', () => {
     let s = initSession(makeSession());
+    expect(s.hintTag).toBeNull();
     s = applyAnswer(s, 1); // wrong (off-by-one)
     expect(s.phase).toBe('hint');
     expect(s.emotion).toBe('encourage');
     expect(typeof s.hint).toBe('string');
     expect(s.hint.length).toBeGreaterThan(0);
+    expect(s.hintTag).toBe('off-by-one');
     expect(s.attempts).toBe(1);
     expect(s.index).toBe(0); // did not advance
     expect(s.lastEvent).toMatchObject({ correct: false, tag: 'off-by-one', attemptNumber: 1, hintTag: 'off-by-one' });
   });
 
-  it('retry correct after a hint still celebrates and scores', () => {
+  it('retry correct after a hint still celebrates and scores, and clears hintTag', () => {
     let s = initSession(makeSession());
     s = applyAnswer(s, 1); // wrong #1 → hint
+    expect(s.hintTag).toBe('off-by-one');
     s = applyAnswer(s, 0); // retry correct
     expect(s.phase).toBe('correct');
+    expect(s.hintTag).toBeNull();
     expect(s.score).toBe(1);
     expect(s.lastEvent.attemptNumber).toBe(2);
   });

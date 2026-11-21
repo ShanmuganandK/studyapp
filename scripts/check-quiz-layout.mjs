@@ -71,8 +71,12 @@ const measure = () => {
   if (!grid) return null;
   const question = q('question');
   const tile = q('answers')?.querySelector('button');
+  const barButtons = [...(q('bar')?.querySelectorAll('button') ?? [])].map((b) => {
+    const br = b.getBoundingClientRect();
+    return { label: b.getAttribute('aria-label') || b.textContent.trim(), w: br.width, h: br.height };
+  });
   return {
-    grid: r(grid), bar: r(q('bar')), mascot: r(q('mascot')), mascotImg: r(q('mascot')?.querySelector('img')),
+    grid: r(grid), bar: r(q('bar')), barButtons, mascot: r(q('mascot')), mascotImg: r(q('mascot')?.querySelector('img')),
     hint: r(q('hint')), question: r(question), answers: r(q('answers')), tile: r(tile),
     questionScrolls: question ? question.scrollHeight - question.clientHeight : 0,
     questionContentH: question?.firstElementChild?.firstElementChild ? question.firstElementChild.firstElementChild.offsetHeight : 0,
@@ -99,11 +103,15 @@ async function checkQuestion(page, phone, where, stats, shot) {
   // 1. FITS
   if (rest.answers.b > rest.grid.b + 1) fail(where, 'answers overflow the stage', { answersBottom: rest.answers.b, stageBottom: rest.grid.b });
   if (rest.questionScrolls > 1) fail(where, `question area needs scrolling (${Math.round(rest.questionScrolls)} px)`, { region: rest.question.h });
-  // 5. TOUCHABLE
+  // 5. TOUCHABLE (tiles >= 44px; header controls F1 >= 48px)
   if (rest.tile.h < 44) fail(where, `answer tile only ${Math.round(rest.tile.h)} px tall`);
+  for (const btn of rest.barButtons) {
+    if (btn.w < 47.5 || btn.h < 47.5) fail(where, `header control "${btn.label}" is ${Math.round(btn.w)}x${Math.round(btn.h)} px (< 48px)`);
+  }
   // 3 + 4: only where there is room to judge
   if (!phone.cramped) {
-    if (rest.mascotImg.h < 0.22 * rest.grid.h) fail(where, `Tinku is only ${Math.round((100 * rest.mascotImg.h) / rest.grid.h)}% of the stage`, { mascot: rest.mascotImg.h, stage: rest.grid.h });
+    const minMascotRatio = rest.profile === 'stage' ? 0.18 : 0.22;
+    if (rest.mascotImg.h < minMascotRatio * rest.grid.h) fail(where, `Tinku is only ${Math.round((100 * rest.mascotImg.h) / rest.grid.h)}% of the stage`, { mascot: rest.mascotImg.h, stage: rest.grid.h });
     const dead = (rest.question.h - rest.questionContentH) / rest.grid.h;
     stats.voidMax = Math.max(stats.voidMax, dead);
     if (dead > 0.28) fail(where, `${Math.round(dead * 100)}% of the stage is empty space in the question area`, { region: rest.question.h, content: rest.questionContentH });
@@ -125,8 +133,20 @@ async function checkQuestion(page, phone, where, stats, shot) {
         if (d(m[part].y, rest[part].y) > 1.5 || d(m[part].h, rest[part].h) > 1.5) fail(where, `${part} moved or resized when the hint appeared`, { before: rest[part], after: m[part] });
       }
       if (m.hint.h < 40) fail(where, 'hint slot too small to hold a hint', { slot: m.hint.h });
-      const bubble = await page.evaluate(() => { const b = document.querySelector('[role="status"]'); const s = document.querySelector('[data-q="hint"]'); const bb = b.getBoundingClientRect(), sb = s.getBoundingClientRect(); return { over: Math.max(0, bb.height - sb.height), clipped: b.scrollHeight - b.clientHeight }; });
+      const bubble = await page.evaluate(() => {
+        const b = document.querySelector('[role="status"]');
+        const s = document.querySelector('[data-q="hint"]');
+        const listen = s?.querySelector('button')?.getBoundingClientRect();
+        const bb = b.getBoundingClientRect(), sb = s.getBoundingClientRect();
+        return {
+          over: Math.max(0, bb.height - sb.height),
+          clipped: b.scrollHeight - b.clientHeight,
+          listen: listen ? { w: listen.width, h: listen.height, over: Math.max(0, listen.height - sb.height) } : null,
+        };
+      });
       if (bubble.over > 2 || bubble.clipped > 2) fail(where, 'hint text does not fit the hint slot', bubble);
+      if (bubble.listen && (bubble.listen.w < 47.5 || bubble.listen.h < 47.5)) fail(where, `Listen button is ${Math.round(bubble.listen.w)}x${Math.round(bubble.listen.h)} px (< 48px)`);
+      if (bubble.listen && bubble.listen.over > 2) fail(where, 'Listen button overflows hint slot', bubble.listen);
       if (shotsDir && shot) await page.screenshot({ path: join(shotsDir, `${phone.w}x${phone.h}-hint.png`) });
       break;
     }
@@ -177,7 +197,11 @@ async function checkPhone(phone) {
     for (let qn = 0; qn < HARD_QUESTIONS_MAX && traySizes.size < 3; qn++) {
       const where = `${phone.name} ${phone.w}x${phone.h} hard-counting q${qn + 1}`;
       const m = await checkQuestion(page, phone, where, stats, false);
-      if (!m) { // summary: put the hardest-rung progress back (our wrong taps lower it), then play again
+      if (!m) { // summary: assert CelebrationScreen CTAs >= 48px (F1), reset progress, then play again
+        const celBtns = await page.evaluate(() => [...document.querySelectorAll('button')].map((b) => ({ text: b.textContent.trim(), h: b.getBoundingClientRect().height })));
+        for (const b of celBtns) {
+          if (b.h < 47.5) fail(`${phone.name} ${phone.w}x${phone.h} celebration`, `button "${b.text}" is ${Math.round(b.h)} px tall (< 48px)`);
+        }
         await page.evaluate((k) => localStorage.setItem('tinku:v1:skills', k), hardProgress);
         await page.getByRole('button', { name: /play again/i }).click().catch(() => {}); await page.clock.runFor(800); continue;
       }
@@ -223,6 +247,49 @@ async function checkPhone(phone) {
       pickerRows.push(`${pad(phone.name, 24)}${pad(`${phone.w}x${phone.h}`, 11)}${pad(`${Math.round(m.tinku)} px`, 10)}${pad(`${Math.round((100 * m.tinku) / m.vh)}%`, 17)}${phone.cramped ? 'n/a' : `${Math.round(m.void * 100)}%`}`);
     }
     if (shotsDir) await page.screenshot({ path: join(shotsDir, `picker-${phone.w}x${phone.h}.png`) });
+    await ctx.close();
+  }
+
+  // PARENT DASHBOARD PASS (F3): on 360x640, verify zero horizontal overflow, Tinku Noticed card, and >= 48px controls.
+  if (phone.w === 360 && phone.h === 640) {
+    const ctx = await browser.newContext({ viewport: { width: phone.w, height: phone.h }, deviceScaleFactor: 2, reducedMotion: 'reduce' });
+    const page = await ctx.newPage();
+    const seededSkills = JSON.stringify({
+      version: 1,
+      skills: {
+        'g1.add.within20': { skillId: 'g1.add.within20', level: 2, difficulty: 2, maxDifficulty: 3, attempts: 10, correct: 7, lastSeen: '2026-11-20', nextReview: null, reviewInterval: 0, recentParams: [], misconceptions: { 'crossing-ten-misstep': 4, 'operator-mixup': 2 }, difficultyStreak: 0 },
+      },
+    });
+    const seededDays = JSON.stringify({ version: 1, days: ['2026-11-19', '2026-11-20', '2026-11-21'] });
+    await page.addInitScript(([s, k, d]) => {
+      localStorage.setItem('tinku:v1:testSettings', s);
+      localStorage.setItem('tinku:v1:skills', k);
+      localStorage.setItem('tinku:v1:practiceDays', d);
+    }, [settings(1), seededSkills, seededDays]);
+    await page.clock.install({ time: 1760000000000 });
+    await page.goto(URL); await page.clock.runFor(1200);
+    await page.click('text=Parent'); await page.clock.runFor(600);
+    const parentReport = await page.evaluate(() => {
+      const noticed = document.querySelector('[data-testid="tinku-noticed-card"]')?.getBoundingClientRect();
+      const controls = [...document.querySelectorAll('button, a, label')].map((el) => {
+        const r = el.getBoundingClientRect();
+        return { text: el.textContent.trim().slice(0, 35), h: r.height, right: r.right };
+      });
+      return {
+        vw: window.innerWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        hasNoticed: !!noticed,
+        noticedRight: noticed ? noticed.right : 0,
+        under48: controls.filter((c) => c.h > 0 && c.h < 47.5),
+        overflowRight: controls.filter((c) => c.right > window.innerWidth + 1),
+      };
+    });
+    const where = `${phone.name} ${phone.w}x${phone.h} parent dashboard (F3)`;
+    if (parentReport.scrollWidth > parentReport.vw + 1) fail(where, 'horizontal overflow', parentReport);
+    if (!parentReport.hasNoticed) fail(where, 'Tinku Noticed card did not render');
+    if (parentReport.noticedRight > parentReport.vw + 1) fail(where, 'Tinku Noticed card overflows right edge', parentReport);
+    if (parentReport.under48.length) fail(where, 'parent controls under 48px', parentReport.under48);
+    if (parentReport.overflowRight.length) fail(where, 'parent controls overflow right edge', parentReport.overflowRight);
     await ctx.close();
   }
   rows.push({ phone, stats });

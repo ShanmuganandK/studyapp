@@ -1,3 +1,5 @@
+import { Volume2 } from 'lucide-react';
+
 /**
  * HintBubble — Tinku's speech bubble for the remediation hint (the core teaching moment).
  *
@@ -16,12 +18,13 @@
  *
  * @param {string|null} hint     - the hint text; renders nothing when empty
  * @param {string}      emotion  - Tinku's current emotion (for aria/future styling hooks)
+ * @param {() => void}  [onListen] - optional replay callback for one-way hint voice
  */
-export default function HintBubble({ hint, emotion = 'encourage' }) {
+export default function HintBubble({ hint, emotion = 'encourage', onListen }) {
   if (!hint) return null;
 
   return (
-    <div className="flex justify-center items-center w-full max-h-full px-1">
+    <div className="flex justify-center items-center gap-2 w-full max-h-full px-1">
       <div
         role="status"
         aria-live="polite"
@@ -38,6 +41,16 @@ export default function HintBubble({ hint, emotion = 'encourage' }) {
         />
         {hint}
       </div>
+      {onListen && (
+        <button
+          type="button"
+          onClick={onListen}
+          aria-label="Listen to hint"
+          className="animate-hint-pop shrink-0 w-12 h-12 rounded-full bg-learn-soft border-2 border-learn text-learn-ink shadow-card flex items-center justify-center hover:brightness-105 active:scale-95 transition-transform"
+        >
+          <Volume2 size={20} strokeWidth={2.5} aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }

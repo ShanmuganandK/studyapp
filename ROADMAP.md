@@ -13,9 +13,9 @@ Measured via Playwright at `360×640` and `412×915` CSS px (not yet verified on
 
 | ID | Area | Priority | Detail |
 |---|---|---|---|
-| `F1` | Child-facing controls under `48 dp` | Done in UI; guard pending | Expanded `"← Skills"`, `MuteButton`, and Celebration buttons to `>= 48×48` hit boxes without shifting layout (`SessionPlayer.jsx`, `CelebrationScreen.jsx`). Remaining: extend `scripts/check-quiz-layout.mjs` to assert header controls. |
+| `F1` | Child-facing controls under `48 dp` | Done (`2026-11-21`) | Expanded `"← Skills"`, `MuteButton`, `"Listen to hint"`, and Celebration buttons to `>= 48×48` hit boxes without shifting layout (`SessionPlayer.jsx`, `HintBubble.jsx`, `CelebrationScreen.jsx`), and asserted in `scripts/check-quiz-layout.mjs`. |
 | `F2` | Parent-screen controls under `48 dp` | Done (`2026-11-20`) | Added `min-h-[48px]` across `ParentDashboard`, `ClassPicker`, `ThemePicker`, `PrivacyNotice`, and `TestPanel` buttons/links. |
-| `F3` | Parent screen at `360×640` | P3 | Not yet measured in Playwright; verify in browser/Playwright alongside `Tinku Noticed` card layout. |
+| `F3` | Parent screen at `360×640` | Done (`2026-11-21`) | Verified in Playwright (`scripts/check-quiz-layout.mjs` `360×640` pass): zero horizontal overflow, `Tinku Noticed` card fits viewport, and all interactive controls measure `>= 48 px`. |
 | `F4` | Tablet phone-frame presentation | Done (`2026-11-20`) | Scoped phone-mockup bezel, notch, and `85dvh` frame to `@media (min-width: 640px) and (hover: hover) and (pointer: fine)` (`Layout.jsx`, `index.css`), giving touch tablets a centred full-height canvas. |
 | `F5` | Families declarations & target age | Human ops | Tracked under `L7` in [`CURRENT_STATE.md`](CURRENT_STATE.md). |
 

@@ -739,15 +739,15 @@ export default function QuestionView({ question, blankFill = null }) {
         <p className="text-prompt font-body font-extrabold text-ink mb-1.5">
           How many are in the group with <span className="text-primary underline">{word}</span>?
         </p>
-        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-2.5 py-1.5 shadow-card grid grid-cols-2 gap-2 select-none">
-          <div className="rounded-button border border-primary-soft bg-bg px-2 py-1 text-center">
-            <div className="text-xs font-body font-bold text-muted mb-0.5">Group A</div>
+        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-3 py-2.5 shadow-card grid grid-cols-2 gap-3 select-none">
+          <div className="rounded-button border border-primary-soft bg-bg px-2.5 py-2 text-center flex flex-col justify-center min-h-[4.75rem]">
+            <div className="text-xs font-body font-bold text-muted mb-1">Group A</div>
             <div className="flex flex-wrap items-center justify-center gap-0.5 text-xl sm:text-3xl leading-none">
               {Array.from({ length: countA }).map((_, i) => <span key={i}>{glyphA}</span>)}
             </div>
           </div>
-          <div className="rounded-button border border-primary-soft bg-bg px-2 py-1 text-center">
-            <div className="text-xs font-body font-bold text-muted mb-0.5">Group B</div>
+          <div className="rounded-button border border-primary-soft bg-bg px-2.5 py-2 text-center flex flex-col justify-center min-h-[4.75rem]">
+            <div className="text-xs font-body font-bold text-muted mb-1">Group B</div>
             <div className="flex flex-wrap items-center justify-center gap-0.5 text-xs sm:text-sm leading-tight">
               {Array.from({ length: countB }).map((_, i) => <span key={i}>{glyphB}</span>)}
             </div>

@@ -13,6 +13,24 @@
 let audioCtx = null;
 let muted = false;
 let unlockListenerInstalled = false;
+let activeHintAudio = null;
+
+// Bundled one-way hint voice clips (Phase 1 voice-first scaffolding).
+// Drop `<tag>.opus` / `<tag>.mp3` into `src/assets/audio/hints/` to bundle automatically;
+// empty `{}` when no clips are present yet (zero network calls, zero speechSynthesis, zero mic).
+// Note: when shipping `.opus` clips, also allow `.opus` in `distLean.test.js` and `vite.config.js`.
+const HINT_AUDIO_MODULES = import.meta.glob('../assets/audio/hints/*.{opus,webm,mp3,ogg}', {
+  eager: true,
+  query: '?url',
+  import: 'default',
+});
+
+const hintAudioMap = Object.fromEntries(
+  Object.entries(HINT_AUDIO_MODULES).map(([path, url]) => {
+    const file = path.split('/').pop() ?? '';
+    return [file.replace(/\.[^.]+$/, ''), url];
+  }),
+);
 
 // Resolve the AudioContext constructor, with the legacy webkit-prefixed fallback.
 // Older iOS Safari / WKWebView (relevant for the planned Capacitor iOS wrap) expose ONLY
@@ -148,11 +166,68 @@ const hapticMap = {
 /** Mute or unmute all sound and haptics in one call. Instant — no async. */
 export function setSoundMuted(value) {
   muted = Boolean(value);
+  if (muted) stopHintVoice();
 }
 
 /** Returns the current mute state — used to initialise the toggle button's visual state. */
 export function isSoundMuted() {
   return muted;
+}
+
+/** Whether a bundled voice clip exists for the given misconception tag. */
+export function hasHintVoice(tag, audioMap = hintAudioMap) {
+  return Boolean(tag && audioMap?.[tag]);
+}
+
+/** Stop any currently playing hint voice clip immediately. */
+export function stopHintVoice() {
+  if (!activeHintAudio) return;
+  try {
+    activeHintAudio.pause?.();
+    activeHintAudio.currentTime = 0;
+  } catch {
+    // Degrade silently on partial audio implementations.
+  }
+  activeHintAudio = null;
+}
+
+/**
+ * Play the bundled one-way voice clip for a misconception tag, falling back cleanly to the
+ * soft synthesized `'hint'` chime when no clip is bundled yet or playback is blocked.
+ * Never uses network fetches or browser speechSynthesis.
+ *
+ * @param {string|null} tag
+ * @param {Record<string, string>} [audioMap]
+ * @returns {boolean} true if a bundled voice clip started playing, false if fell back/muted
+ */
+export function playHintVoice(tag, audioMap = hintAudioMap) {
+  if (muted) return false;
+  stopHintVoice();
+  const url = tag ? audioMap?.[tag] : null;
+  const AudioCtor = typeof globalThis !== 'undefined' ? globalThis.Audio : undefined;
+  if (url && typeof AudioCtor === 'function') {
+    try {
+      const audio = new AudioCtor(url);
+      activeHintAudio = audio;
+      const clearIfActive = () => {
+        if (activeHintAudio === audio) activeHintAudio = null;
+      };
+      audio.addEventListener?.('ended', clearIfActive, { once: true });
+      audio.addEventListener?.('error', clearIfActive, { once: true });
+      const playPromise = audio.play?.();
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(() => {
+          clearIfActive();
+          if (!muted) playSound('hint');
+        });
+      }
+      return true;
+    } catch {
+      activeHintAudio = null;
+    }
+  }
+  playSound('hint');
+  return false;
 }
 
 /**

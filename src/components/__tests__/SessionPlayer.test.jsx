@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import SessionPlayer from '../SessionPlayer';
 
 /**
@@ -26,8 +26,12 @@ vi.mock('../../hooks/useQuizSession', () => ({
 // It exposes the size it was given, because "Tinku is never resized" is one of the things under test.
 vi.mock('../Mascot', () => ({ default: ({ size, emotion }) => <span data-testid="mascot" data-size={String(size)} data-emotion={emotion} /> }));
 // Sound/haptics are fire-and-forget side effects.
+const playHintVoiceSpy = vi.fn();
+const stopHintVoiceSpy = vi.fn();
 vi.mock('../../services/sound', () => ({
   playSound: () => {},
+  playHintVoice: (...args) => playHintVoiceSpy(...args),
+  stopHintVoice: (...args) => stopHintVoiceSpy(...args),
   haptic: () => {},
   setSoundMuted: () => {},
   isSoundMuted: () => false,
@@ -237,5 +241,48 @@ describe('SessionPlayer — tells the shell when the session ends (bottom nav re
 
     unmount();
     expect(calls.at(-1)).toBe(false); // leaving the quiz never leaves the shell thinking a session is done
+  });
+});
+
+describe('SessionPlayer — one-way hint voice & Listen button', () => {
+  afterEach(() => {
+    cleanup();
+    playHintVoiceSpy.mockClear();
+    stopHintVoiceSpy.mockClear();
+  });
+
+  it('plays hint voice for hintTag on hint phase, lets the child replay via Listen button, and stops on reveal', () => {
+    hookValue = baseState();
+    const { rerender } = render(<SessionPlayer {...props} />);
+    expect(screen.queryByRole('button', { name: 'Listen to hint' })).toBeNull();
+
+    hookValue = baseState({
+      phase: 'hint',
+      emotion: 'encourage',
+      hint: 'Check the sign!',
+      hintTag: 'operator-mixup',
+      hintNonce: 1,
+      selectedIndex: 0,
+    });
+    rerender(<SessionPlayer {...props} />);
+    expect(playHintVoiceSpy).toHaveBeenCalledWith('operator-mixup');
+
+    const listenBtn = screen.getByRole('button', { name: 'Listen to hint' });
+    fireEvent.click(listenBtn);
+    expect(playHintVoiceSpy).toHaveBeenCalledTimes(2);
+    expect(playHintVoiceSpy).toHaveBeenLastCalledWith('operator-mixup');
+
+    hookValue = baseState({
+      phase: 'reveal',
+      emotion: 'encourage',
+      hint: 'Here’s how — let’s see it together!',
+      hintTag: null,
+      hintNonce: 2,
+      selectedIndex: 0,
+      revealIndex: 1,
+    });
+    rerender(<SessionPlayer {...props} />);
+    expect(screen.queryByRole('button', { name: 'Listen to hint' })).toBeNull();
+    expect(stopHintVoiceSpy).toHaveBeenCalled();
   });
 });

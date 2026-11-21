@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState } from 'react';
 import { useQuizSession } from '../hooks/useQuizSession';
-import { playSound, haptic, setSoundMuted, isSoundMuted } from '../services/sound';
+import { playSound, playHintVoice, stopHintVoice, haptic, setSoundMuted, isSoundMuted } from '../services/sound';
 import Mascot from './Mascot';
 import QuestionView from './QuestionView';
 import HintBubble from './HintBubble';
@@ -44,20 +44,27 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
   }
 
   // Fire sound events on phase transitions. Also depends on hintNonce so the friendly 'hint'
-  // sound replays on each hint re-show (a wrong tap during the soft window), reinforcing it.
-  // 'solving' is the neutral phase (question loading) — no sound fires for it.
+  // voice/chime replays on each hint re-show (a wrong tap during the soft window), reinforcing it.
+  // 'solving' is the neutral phase (question loading) — stop any hint voice and play no sound.
   useEffect(() => {
     if (s.phase === 'correct') {
+      stopHintVoice();
       playSound('correct');
       haptic('light');
     } else if (s.phase === 'hint') {
-      playSound('hint'); // soft 'let me help' — Tinku is here to help, not a buzzer
+      playHintVoice(s.hintTag); // plays bundled voice clip if present, else soft 'hint' chime
     } else if (s.phase === 'reveal') {
+      stopHintVoice();
       playSound('wrong');
     } else if (s.phase === 'complete') {
+      stopHintVoice();
       playSound('complete');
+    } else {
+      stopHintVoice();
     }
-  }, [s.phase, s.hintNonce]);
+  }, [s.phase, s.hintNonce, s.hintTag]);
+
+  useEffect(() => () => stopHintVoice(), []);
 
   if (!s.ready) {
     return (
@@ -143,7 +150,14 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
           below, so React always cleanly unmounts the previous bubble (no orphaned/stacked bubble). */}
       <div data-q="hint" data-testid="hint-slot" className="quiz-hint-slot">
         {s.hint
-          ? <HintBubble key={s.hintNonce} hint={s.hint} emotion={s.emotion} />
+          ? (
+            <HintBubble
+              key={s.hintNonce}
+              hint={s.hint}
+              emotion={s.emotion}
+              onListen={s.phase === 'hint' ? () => playHintVoice(s.hintTag) : undefined}
+            />
+          )
           : (showPips && <QuizPips total={s.totalQuestions} current={s.questionNumber} />)}
       </div>
 

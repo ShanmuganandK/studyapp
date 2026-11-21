@@ -12,8 +12,8 @@
  *             place-value houses, money change, ruler/capacity). Balanced Tinku (24cqh) and
  *             tiles (9.5cqh) so the question card/strip gets ~37% of the stage height.
  *   stage     Visual & SVG tray skills (counting, shapes, spatial, length blocks, weight scale,
- *             coins, clock, pictograph, fractions, group compare). Tinku at 23cqh and tiles at
- *             9.2cqh so the visual stage gets ~41% of the stage height.
+ *             coins, clock, pictograph, fractions, group compare). Tinku at 20cqh so the visual
+ *             stage gets generous room without scrolling on compact phones.
  *   standard  Class 3 and up (not built yet).
  *
  * The numbers for each profile live in CSS (`.quiz-grid[data-profile='…']`). This module only picks
