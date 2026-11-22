@@ -16,3 +16,31 @@ export function isNativeApp() {
     return false;
   }
 }
+
+/**
+ * Registers the Capacitor Android hardware Back button listener on native builds and returns a
+ * cleanup function. A no-op on the web.
+ *
+ * @param {(exitApp: () => void) => void} onBack
+ * @returns {() => void}
+ */
+export function registerBackButtonListener(onBack) {
+  if (!isNativeApp()) return () => {};
+  let handle = null;
+  let cancelled = false;
+
+  (async () => {
+    const { App } = await import('@capacitor/app');
+    if (cancelled) return;
+    const h = await App.addListener('backButton', () => onBack(() => App.exitApp()));
+    if (cancelled) h.remove();
+    else handle = h;
+  })().catch(() => {
+    // Plugin failed to load: Back falls back to the OS default. Never crash the app over it.
+  });
+
+  return () => {
+    cancelled = true;
+    handle?.remove();
+  };
+}

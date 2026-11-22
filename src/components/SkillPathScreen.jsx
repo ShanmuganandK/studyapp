@@ -5,7 +5,8 @@ import { loadAllSkillStates } from '../services/progressStore';
 import { isDueForReview } from '../engine/mastery';
 import { MASTERY } from '../config/masteryConfig';
 import { recommendNext } from '../engine/composer';
-import { getSkillVisual, SkillStateCue } from './skillStateVisual';
+import { getSkillVisual } from './skillStateVisual';
+import { SkillStateCue } from './SkillStateCue';
 import Mascot from './Mascot';
 import PrivacyNotice from './PrivacyNotice';
 import SkillIcon from './SkillIcon';
@@ -133,7 +134,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
 // ── One stop on the path: medallion + label + (when suggested) the Tinku "go here" marker ──
 
 function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft, onClick }) {
-  // SHARED state→visual grammar (skillStateVisual.jsx) — identical mapping to SkillCard, so the two
+  // SHARED state→visual grammar (skillStateVisual.js) — identical mapping to SkillCard, so the two
   // Home views can't drift. due-but-not-suggested is NEUTRAL (never amber while due); mastered-not-
   // due is amber; the single loud element is the suggested node. (DECISIONS 2026-07-15.)
   const visual = getSkillVisual({ level, isDue, isSuggested, isReviewSuggested });

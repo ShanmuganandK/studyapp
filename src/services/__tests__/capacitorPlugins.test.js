@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
@@ -23,6 +23,16 @@ const pkg = JSON.parse(
   readFileSync(join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..', 'package.json'), 'utf8'),
 );
 
+const SRC_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+
+function walkSrc(dir) {
+  return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = join(dir, entry.name);
+    if (entry.isDirectory()) return entry.name === '__tests__' ? [] : walkSrc(full);
+    return /\.(js|jsx)$/.test(entry.name) ? [full] : [];
+  });
+}
+
 describe('Capacitor plugin allow-list', () => {
   const declared = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).filter(
     (n) => n.startsWith('@capacitor/') || n.startsWith('@capawesome') || n.startsWith('capacitor-'),
@@ -35,5 +45,13 @@ describe('Capacitor plugin allow-list', () => {
 
   it('every allow-listed plugin is actually used (no dead permissions)', () => {
     expect(Object.keys(ALLOWED).filter((n) => !declared.includes(n))).toEqual([]);
+  });
+
+  it('no source module outside src/services/ imports @capacitor/*', () => {
+    const offenders = walkSrc(SRC_DIR)
+      .filter((file) => !relative(SRC_DIR, file).startsWith('services/'))
+      .filter((file) => /@capacitor\//.test(readFileSync(file, 'utf8')))
+      .map((file) => relative(SRC_DIR, file));
+    expect(offenders).toEqual([]);
   });
 });

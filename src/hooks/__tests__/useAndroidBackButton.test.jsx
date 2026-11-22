@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, cleanup, waitFor } from '@testing-library/react';
 
 const isNativeApp = vi.fn();
-vi.mock('../../services/platform', () => ({ isNativeApp: () => isNativeApp() }));
+vi.mock('@capacitor/core', () => ({ Capacitor: { isNativePlatform: () => isNativeApp() } }));
 let listener = null;
 const remove = vi.fn();
 const exitApp = vi.fn();

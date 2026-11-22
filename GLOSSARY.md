@@ -16,7 +16,7 @@
 | **format** | Top-level render shape requested by a question. **11 shipping:** `mcq` (plus 16 `render.kind` sub-archetypes), `count-objects`, `compare`, `unit-length`, `shape-mcq`, `spatial-mcq`, `balance-mcq`, `coins-mcq`, `clock`, `pictograph`, `fraction-mcq`. **Reserved:** `text-input`, `true-false`. | `RECIPE_TEMPLATE.md`, `src/components/QuestionView.jsx` |
 | **misconception tag** | Kebab-case tag on a wrong option (e.g. `forgot-carry`). Canonical tags live in `misconceptions-reference.md` and map 1:1 to `src/engine/hints.js`. | `misconceptions-reference.md`, `src/engine/hints.js` |
 | **frontier** | The next unlocked skill the composer recommends for the active grade. | `src/engine/composer.js`, `src/config/composerConfig.js` |
-| **review-due** | Spaced-repetition state rendered in teal (`--color-review`), never amber (amber is rewards-only). | `src/index.css`, `src/components/skillStateVisual.jsx` |
+| **review-due** | Spaced-repetition state rendered in teal (`--color-review`), never amber (amber is rewards-only). | `src/index.css`, `src/components/skillStateVisual.js`, `src/components/SkillStateCue.jsx` |
 | **band** | **Wonder** (Grades 1–2 at launch; Grade 3 planned) or **Explorer** (Grades 4–5, post-launch). | `ARCHITECTURE.md`, `ROADMAP.md` |
 | **progressStore** | Device-local `localStorage` persistence seam (`tinku:v1:skills`). | `src/services/progressStore.js` |
 | **Layer 2** | Deferred post-MVP tier (accounts, cloud sync, paywall, analytics). Not an active backlog; revisit only on retention/willingness-to-pay trigger. | `ROADMAP.md`, `archive/decisions/DECISIONS.md` |
