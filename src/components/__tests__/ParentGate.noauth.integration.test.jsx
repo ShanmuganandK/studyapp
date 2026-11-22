@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useState } from 'react';
 import { render, screen, cleanup, fireEvent, waitFor, configure } from '@testing-library/react';
 import { AuthProvider } from '../../contexts/AuthContext';
@@ -11,27 +11,19 @@ import ParentDashboard from '../ParentDashboard';
 vi.mock('../Mascot', () => ({ default: () => null }));
 
 /**
- * The exact condition that hid the bug: the FULL passcode lifecycle — set, verify, forgot-reset,
- * remove — driven through the REAL ParentGateModal + ParentDashboard + AuthContext with NO signed-
- * in user (`authService` always emits `null`, everything keyed under `'anon'`). Nothing is
- * mocked except the mascot image. If the passcode ops silently no-op without an account (the
- * original bug), these persistence assertions fail.
+ * The FULL passcode lifecycle — set, verify, forgot-reset, remove — driven through the REAL
+ * ParentGateModal + ParentDashboard + AuthContext with NO signed-in user (`authService` always
+ * emits `null`, everything keyed under `'anon'`). Nothing is mocked except the mascot image.
  *
- * Staged as 4 sequential `it`s sharing one continuous render (TRACKER Now #9a): the original
- * single `it` chained ~20 waitFor/findBy calls against vitest's 5s per-test timeout, which flaked
- * on cold CI runs (transform+import alone cost ~8s). Splitting gives each stage its own 5s budget
- * and names the failing stage instead of failing an opaque 20-step test.
+ * Each stage runs in its own isolated render + clean localStorage so a failure in one stage
+ * never cascades into the rest.
  */
 
-// Testing Library's findBy/waitFor give up after 1 s by default. This test drives a real passcode hash and several
-// re-renders per step, so on a cold or starved machine one step can take longer than that. Ceiling only: a step that
-// finishes at once still returns at once.
 configure({ asyncUtilTimeout: 8000 });
 
 const SETTINGS_KEY = 'math_kids_settings_anon';
 const passHash = () => JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}').passcodeHash ?? null;
 
-// Mini ThemeManager: real gate + dashboard wired the same way, no auth mock.
 function MiniApp() {
   const { parentSettings, clearPasscode } = useAuth();
   const [gateOpen, setGateOpen] = useState(false);
@@ -64,37 +56,42 @@ function MiniApp() {
 
 const typePin = (pin) => { for (const d of pin) fireEvent.click(screen.getByRole('button', { name: d })); };
 
-describe('parent passcode lifecycle with NO auth session (integration)', () => {
-  let firstHash;
+async function bootFreshApp() {
+  render(<AuthProvider><MiniApp /></AuthProvider>);
+  await waitFor(() => expect(screen.getByText('nav-parent')).toBeTruthy());
+}
 
-  // One continuous render across all 4 stages — this is the same session a parent would drive
-  // through the gate/dashboard, just split into named checkpoints. Do not clear localStorage or
-  // unmount between stages; each stage depends on the previous stage's persisted state.
-  beforeAll(async () => {
+async function setupPasscode(pin) {
+  fireEvent.click(screen.getByText('nav-parent'));
+  fireEvent.click(await screen.findByRole('button', { name: /Set Parent Passcode/ }));
+  expect(await screen.findByText('Set a Passcode')).toBeTruthy();
+  typePin(pin);
+  expect(await screen.findByText('Confirm Passcode')).toBeTruthy();
+  typePin(pin);
+  await waitFor(() => expect(passHash()).toBeTruthy());
+  expect(await screen.findByRole('button', { name: /Change Passcode/ })).toBeTruthy();
+  return passHash();
+}
+
+describe('parent passcode lifecycle with NO auth session (integration)', () => {
+  beforeEach(async () => {
     localStorage.clear();
-    render(<AuthProvider><MiniApp /></AuthProvider>);
-    await waitFor(() => expect(screen.getByText('nav-parent')).toBeTruthy());
+    await bootFreshApp();
   });
 
-  afterAll(() => { cleanup(); vi.restoreAllMocks(); });
+  afterEach(() => {
+    cleanup();
+    vi.restoreAllMocks();
+  });
 
   it('stage 1 (set): a passcode persists even with no signed-in user', async () => {
-    // No passcode yet → entering the parent zone is ungated, lands on the dashboard.
-    fireEvent.click(screen.getByText('nav-parent'));
-    expect(await screen.findByRole('button', { name: /Set Parent Passcode/ })).toBeTruthy();
-
-    fireEvent.click(screen.getByRole('button', { name: /Set Parent Passcode/ }));
-    expect(await screen.findByText('Set a Passcode')).toBeTruthy();
-    typePin('1234');
-    expect(await screen.findByText('Confirm Passcode')).toBeTruthy();
-    typePin('1234');
-    await waitFor(() => expect(passHash()).toBeTruthy());
-    firstHash = passHash();
-    // Dashboard now recognises the code.
-    expect(await screen.findByRole('button', { name: /Change Passcode/ })).toBeTruthy();
+    await setupPasscode('1234');
+    expect(passHash()).toBeTruthy();
   });
 
   it('stage 2 (verify): wrong PIN rejected, correct PIN accepted', async () => {
+    await setupPasscode('1234');
+
     fireEvent.click(screen.getByText('nav-parent'));
     expect(await screen.findByText('For Parents Only')).toBeTruthy();
     typePin('9999');
@@ -104,6 +101,8 @@ describe('parent passcode lifecycle with NO auth session (integration)', () => {
   });
 
   it('stage 3 (forgot-reset): adult challenge resets to a new code; old code stops working', async () => {
+    const firstHash = await setupPasscode('1234');
+
     vi.spyOn(Math, 'random').mockReturnValue(0); // → 10 × 2 = 20
     fireEvent.click(screen.getByText('nav-parent'));
     fireEvent.click(await screen.findByRole('button', { name: /Forgot passcode/ }));
@@ -115,10 +114,9 @@ describe('parent passcode lifecycle with NO auth session (integration)', () => {
     expect(await screen.findByText('Confirm Passcode')).toBeTruthy();
     typePin('5678');
     await waitFor(() => expect(passHash()).toBeTruthy());
-    expect(passHash()).not.toBe(firstHash); // code actually changed on the device
+    expect(passHash()).not.toBe(firstHash);
     vi.restoreAllMocks();
 
-    // Old PIN no longer verifies; new one does.
     fireEvent.click(screen.getByText('nav-parent'));
     expect(await screen.findByText('For Parents Only')).toBeTruthy();
     typePin('1234');
@@ -128,8 +126,10 @@ describe('parent passcode lifecycle with NO auth session (integration)', () => {
   });
 
   it('stage 4 (remove): clears the stored code; zone becomes ungated again', async () => {
+    await setupPasscode('1234');
+
     fireEvent.click(screen.getByRole('button', { name: /Remove passcode/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Remove passcode' })); // confirm
+    fireEvent.click(screen.getByRole('button', { name: 'Remove passcode' }));
     await waitFor(() => expect(passHash()).toBeNull());
     expect(await screen.findByRole('button', { name: /Set Parent Passcode/ })).toBeTruthy();
   });
