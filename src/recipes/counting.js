@@ -3,8 +3,8 @@
  * parameterised recipe (per the skill map's recipe-reuse note):
  *   - g1.count.1-9   (numbers 1–9)
  *   - g1.count.1-20  (numbers up to 20)
- * (g1.num.21-99 is deliberately NOT served here: drawing dozens of objects is unsuitable and
- *  misconceptions-reference.md has no 21–99 counting tags yet — it stays `planned`.)
+ * (g1.num.21-99 is served separately by `numbers21to99.js`: drawing dozens of objects is
+ *  unsuitable for object counting.)
  *
  * `generate(difficulty, rng, skillId)` selects the range from `skillId`. Shows a set of
  * identical objects and asks how many there are, using the `count-objects` format: alongside

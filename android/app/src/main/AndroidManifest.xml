@@ -41,6 +41,6 @@
 
     <!-- Permissions: NONE. The app is fully offline (assets bundled, nothing fetched) and the privacy
          policy says nothing leaves the device, so the OS is not even asked for network access.
-         UNVERIFIED on a device: if the first APK shows a blank screen, restore INTERNET here and in the
-         allow-list in androidManifest.test.js, and say so in the Data Safety form. -->
+         Verified on real hardware (Samsung S25 Ultra, airplane/offline mode); guarded by
+         src/services/__tests__/androidProject.test.js and CI aapt2 checks. -->
 </manifest>

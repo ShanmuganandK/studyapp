@@ -14,8 +14,8 @@
  * 2026-08-27): rung 1 = 2-digit + 1-digit (add the ones), rung 2 = 2-digit + a multiple of ten
  * (add the tens), rung 3 = 2-digit + 2-digit (tens then ones). All three rungs stay no-carry and
  * inside the skill's existing curriculum ceiling (sum <= 99) — only the operand SHAPE changes
- * per rung, not the range. g2.add.2d-carry is unchanged: its difficulty still scales a magnitude
- * cap.
+ * per rung, not the range. g2.add.2d-carry scales BOTH magnitude cap (49 / 79 / 99) and operand
+ * shape (rung 1 = 2-digit + 1-digit with carry; rungs 2–3 = 2-digit + 2-digit with carry).
  *
  * Distractors encode addition misconceptions. Tags + rules are canonical per
  * misconceptions-reference.md ("2-digit addition without carry" / "...WITH carry") — the
@@ -72,7 +72,7 @@ const swapDigits = (n) => ones(n) * 10 + tens(n);
 const SKILL_IDS = ['g2.add.2d-nocarry', 'g2.add.2d-carry'];
 const DEFAULT_SKILL = 'g2.add.2d-nocarry';
 
-// g2.add.2d-carry: magnitude cap per difficulty rung (unchanged).
+// g2.add.2d-carry: magnitude cap per difficulty rung (rung 1 also restricts b to 1 digit).
 const CARRY_CAPS = { 1: 49, 2: 79, 3: 99 };
 
 // g2.add.2d-nocarry: one fixed curriculum ceiling — rungs select a strategy, not a range.

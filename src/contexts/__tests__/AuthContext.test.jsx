@@ -8,7 +8,7 @@ import { useAuth } from '../useAuth';
  * Integration test for the passcode lifecycle against the REAL AuthContext + real hashPasscode
  * + real localStorage — no signed-in user (the anonymous case, keyed under 'anon'), which is
  * exactly the state bug 2 broke. Proves set → verify → change → remove persist and validate
- * WITHOUT requiring a Firebase account. No mocking of the auth internals.
+ * in device-local account-free mode. No mocking of the auth internals.
  */
 
 const SETTINGS_KEY = 'math_kids_settings_anon';

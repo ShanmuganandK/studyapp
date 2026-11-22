@@ -13,7 +13,7 @@ vi.mock('../Mascot', () => ({ default: () => null }));
 /**
  * The exact condition that hid the bug: the FULL passcode lifecycle — set, verify, forgot-reset,
  * remove — driven through the REAL ParentGateModal + ParentDashboard + AuthContext with NO signed-
- * in user (the anonymous case; Firebase user is null, everything keyed under 'anon'). Nothing is
+ * in user (`authService` always emits `null`, everything keyed under `'anon'`). Nothing is
  * mocked except the mascot image. If the passcode ops silently no-op without an account (the
  * original bug), these persistence assertions fail.
  *
