@@ -192,3 +192,70 @@ describe('subtraction2d structural borrow guarantee', () => {
     }
   });
 });
+
+describe('PR #81 progressive rung operand shapes (carry / noborrow / borrow)', () => {
+  it('g2.add.2d-carry shapes rung 1 as 2-digit + 1-digit and rungs 2–3 as 2-digit + 2-digit within caps', () => {
+    const caps = { 1: 49, 2: 79, 3: 99 };
+    for (let difficulty = 1; difficulty <= 3; difficulty++) {
+      for (let run = 0; run < RUNS_PER_DIFFICULTY; run++) {
+        const q = addition2d.generate(difficulty, makeRng(`carry-rung:${difficulty}:${run}`), 'g2.add.2d-carry');
+        const [a, b] = numbersIn(q.questionText);
+        expect(a, `${q.questionText} a < 10`).toBeGreaterThanOrEqual(10);
+        expect(q.correctAnswer, `${q.questionText} exceeds cap ${caps[difficulty]}`).toBeLessThanOrEqual(caps[difficulty]);
+        expect(ones(a) + ones(b), `${q.questionText} must carry`).toBeGreaterThanOrEqual(10);
+        if (difficulty === 1) {
+          expect(b, `${q.questionText} rung 1 b must be 1-digit`).toBeLessThanOrEqual(9);
+        } else {
+          expect(b, `${q.questionText} rung ${difficulty} b must be 2-digit`).toBeGreaterThanOrEqual(10);
+        }
+      }
+    }
+  });
+
+  it('g2.sub.2d-noborrow shapes rung 1 (1-digit), rung 2 (multiple of 10 or teen), and rung 3 (2-digit)', () => {
+    const caps = { 1: 39, 2: 69, 3: 99 };
+    for (let difficulty = 1; difficulty <= 3; difficulty++) {
+      for (let run = 0; run < RUNS_PER_DIFFICULTY; run++) {
+        const q = subtraction2d.generate(difficulty, makeRng(`noborrow-rung:${difficulty}:${run}`), 'g2.sub.2d-noborrow');
+        const [a, b] = numbersIn(q.questionText);
+        expect(a, `${q.questionText} a < 12`).toBeGreaterThanOrEqual(12);
+        expect(a, `${q.questionText} exceeds cap ${caps[difficulty]}`).toBeLessThanOrEqual(caps[difficulty]);
+        expect(b).toBeLessThan(a);
+        expect(ones(a)).toBeGreaterThanOrEqual(ones(b));
+        if (difficulty === 1) {
+          expect(b).toBeGreaterThanOrEqual(1);
+          expect(b).toBeLessThanOrEqual(9);
+        } else if (difficulty === 2) {
+          const isTenMultiple = b % 10 === 0 && b >= 10;
+          const isTeen = b >= 11 && b <= 19;
+          expect(isTenMultiple || isTeen, `${q.questionText} rung 2 b=${b} is neither multiple of 10 nor teen`).toBe(true);
+        } else {
+          expect(b).toBeGreaterThanOrEqual(10);
+        }
+      }
+    }
+  });
+
+  it('g2.sub.2d-borrow shapes rung 1 (1-digit), rung 2 (teen), and rung 3 (2-digit)', () => {
+    const caps = { 1: 49, 2: 79, 3: 99 };
+    for (let difficulty = 1; difficulty <= 3; difficulty++) {
+      for (let run = 0; run < RUNS_PER_DIFFICULTY; run++) {
+        const q = subtraction2d.generate(difficulty, makeRng(`borrow-rung:${difficulty}:${run}`), 'g2.sub.2d-borrow');
+        const [a, b] = numbersIn(q.questionText);
+        expect(a, `${q.questionText} a < 12`).toBeGreaterThanOrEqual(12);
+        expect(a, `${q.questionText} exceeds cap ${caps[difficulty]}`).toBeLessThanOrEqual(caps[difficulty]);
+        expect(b).toBeLessThan(a);
+        expect(ones(a)).toBeLessThan(ones(b));
+        if (difficulty === 1) {
+          expect(b).toBeGreaterThanOrEqual(1);
+          expect(b).toBeLessThanOrEqual(9);
+        } else if (difficulty === 2) {
+          expect(b, `${q.questionText} rung 2 b=${b} must be teen`).toBeGreaterThanOrEqual(11);
+          expect(b, `${q.questionText} rung 2 b=${b} must be teen`).toBeLessThanOrEqual(19);
+        } else {
+          expect(b).toBeGreaterThanOrEqual(10);
+        }
+      }
+    }
+  });
+});
