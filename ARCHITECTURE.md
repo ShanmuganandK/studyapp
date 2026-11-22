@@ -33,7 +33,7 @@ index.html (<title>%PRODUCT_NAME%</title>)
 
 | Layer | Responsibility | Key Live Modules |
 |---|---|---|
-| `src/config/` | Static product config, tunables & single-source policy text | `brand.js`, `privacyPolicy.js`, `masteryConfig.js`, `composerConfig.js`, `quizLayout.js`, `flags.js` *(only `testerTools` active — see `TECH_DEBT.md` `TD-1`)* |
+| `src/config/` | Static product config, tunables & single-source policy text | `brand.js`, `privacyPolicy.js`, `masteryConfig.js`, `composerConfig.js`, `quizLayout.js`, `flags.js` |
 | `src/recipes/` | Pure, deterministic question generators + curriculum graph | `skillMap.js` (`36/36` `ready` G1–2 skills), `_rng.js`, `_plausibility.js` (used by 19 recipes), `27` recipe modules (`19` single-skill + `8` multi-skill) |
 | `src/engine/` | Pure pedagogy, mastery, spaced repetition & recommendation | `sessionLite.js` (`RECIPES` registry + 8-Q session builder), `mastery.js` (0–5 level, decoupled difficulty rungs, Leitner intervals), `composer.js` (grade-scoped `recommendNext`), `hints.js` (`85/85` tag parity, `<= 10` words), `parentCoaching.js` (`84/84` diagnostic coaching), `progressSummary.js`, `practiceSummary.js` |
 | `src/hooks/` | Session state machine, remediation ladder, settings & backup | `useQuizSession.js`, `useTestSettings.js`, `useProgressBackup.js`, `useOnline.js`, `useAndroidBackButton.js` *(known SDK boundary breach — see `TECH_DEBT.md` `TD-3`)* |
