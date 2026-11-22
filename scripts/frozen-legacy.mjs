@@ -23,7 +23,6 @@
 const FROZEN_DIRS = [
   'src/utils/**',              // legacy generators, questionFactory, masteryEngine, StampEngine
   'src/data/**',               // stored question banks + syllabus (violates "no stored questions")
-  'src/contexts/**',           // AuthContext — legacy until the auth rebuild (T109, deferred)
   'src/components/modules/**', // VisualAddition, VisualFractions
 ];
 

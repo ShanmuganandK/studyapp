@@ -13,7 +13,7 @@ const auth = {
   verifyPasscode: vi.fn(),
   clearPasscode: vi.fn(),
 };
-vi.mock('../../contexts/AuthContext', () => ({ useAuth: () => auth }));
+vi.mock('../../contexts/useAuth', () => ({ useAuth: () => auth }));
 
 const HASH = 'deadbeef'; // stand-in for a set passcode
 

@@ -6,7 +6,7 @@ import Layout from './Layout';
 import ParentGateModal from './ParentGateModal';
 import ParentDashboard from './ParentDashboard';
 import GradePickerScreen from './GradePickerScreen';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import useTestSettings from '../hooks/useTestSettings';
 import useAndroidBackButton from '../hooks/useAndroidBackButton';
 

@@ -2,7 +2,8 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
 import { useState } from 'react';
 import { render, screen, cleanup, fireEvent, waitFor, configure } from '@testing-library/react';
-import { AuthProvider, useAuth } from '../../contexts/AuthContext';
+import { AuthProvider } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/useAuth';
 import ParentGateModal from '../ParentGateModal';
 import ParentDashboard from '../ParentDashboard';
 

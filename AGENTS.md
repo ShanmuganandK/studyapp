@@ -62,7 +62,6 @@ Every retained topic has **one** owner. Do not duplicate content across files.
   - `src/hooks/` — session, settings, backup, and navigation orchestration.
   - `src/services/` — device-local storage, JSON export/import, audio, and native Capacitor seams.
   - `src/components/` — presentational screens and UI primitives.
-  - *Known tech-debt exceptions (tracked in `TECH_DEBT.md`):* `src/contexts/AuthContext.jsx` is live in production despite `'src/contexts/**'` being in `FROZEN_DIRS`, and `src/hooks/useAndroidBackButton.js` dynamically imports `@capacitor/app`. Do not add new breaches.
 - **Token & colour grammar (`npm run lint:hex` + `designTokens.test.js` + `themeContrast.test.js`):**
   - Never hardcode raw hex/RGB/Tailwind palette colours in components; consume named tokens from `src/index.css` / `tailwind.config.js`.
   - Locked semantic meanings: `accent`/amber = **rewards only**, `success` = correct, `encourage`/coral = wrong, `learn`/sky = hints, `review`/teal = review-due. `KidButton` is for answer tiles only.

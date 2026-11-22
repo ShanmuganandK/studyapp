@@ -37,15 +37,12 @@ index.html (<title>%PRODUCT_NAME%</title>)
 | `src/recipes/` | Pure, deterministic question generators + curriculum graph | `skillMap.js` (`36/36` `ready` G1–2 skills), `_rng.js`, `_plausibility.js` (used by 19 recipes), `27` recipe modules (`19` single-skill + `8` multi-skill) |
 | `src/engine/` | Pure pedagogy, mastery, spaced repetition & recommendation | `sessionLite.js` (`RECIPES` registry + 8-Q session builder), `mastery.js` (0–5 level, decoupled difficulty rungs, Leitner intervals), `composer.js` (grade-scoped `recommendNext`), `hints.js` (`85/85` tag parity, `<= 10` words), `parentCoaching.js` (`84/84` diagnostic coaching), `progressSummary.js`, `practiceSummary.js` |
 | `src/hooks/` | Session state machine, remediation ladder, settings & backup | `useQuizSession.js`, `useTestSettings.js`, `useProgressBackup.js`, `useOnline.js`, `useAndroidBackButton.js` |
-| `src/services/` | Device-local persistence, backup I/O, audio, Capacitor seams | `progressStore.js`, `practiceDays.js`, `testSettings.js`, `progressBackup.js`, `fileTransfer.js`, `platform.js`, `sound.js`, `localAdapter.js` (inert null-user), `authService.js`, `analytics.js` (inert no-op) |
+| `src/services/` | Device-local persistence, backup I/O, audio, Capacitor seams | `progressStore.js`, `practiceDays.js`, `testSettings.js`, `authSettingsStore.js`, `progressBackup.js`, `fileTransfer.js`, `platform.js`, `sound.js`, `localAdapter.js` (inert null-user), `authService.js`, `analytics.js` (inert no-op) |
 | `src/components/` | Presentational screens & UI primitives | `ThemeManager.jsx`, `Layout.jsx`, `GradePickerScreen.jsx`, `SkillPathScreen.jsx`, `SkillSelectScreen.jsx`, `SkillIcon.jsx` (`36/36` SVG medallions), `RecipeQuizScreen.jsx`, `SessionPlayer.jsx`, `QuestionView.jsx` (4 archetypes, 11 formats, 16 `mcq` `render.kind` trays), `CelebrationScreen.jsx`, `ParentGateModal.jsx`, `ParentDashboard.jsx`, `Mascot.jsx`, `KidButton.jsx` |
 | `src/utils/logger.js` | Sole sanctioned `console.*` wrapper | Exempted from `no-console` in `eslint.config.js` |
 
-### Frozen Legacy & Known Exceptions
+### Frozen Legacy
 - `scripts/frozen-legacy.mjs` isolates unreachable legacy modules (`src/data/**`, `src/components/modules/**`, 8 legacy screens, and `src/utils/**` except `logger.js`) from ESLint and `lint:hex`. Never edit or import them.
-- **Two known boundary exceptions** (tracked for cleanup in [`TECH_DEBT.md`](TECH_DEBT.md)):
-  1. `src/contexts/AuthContext.jsx` is actively imported in production (`App.jsx`, `ThemeManager.jsx`, `ParentGateModal.jsx`) even though `'src/contexts/**'` is listed in `FROZEN_DIRS`, and accesses `localStorage` directly (`TD-2`).
-  2. `src/hooks/useAndroidBackButton.js:22` dynamically imports `@capacitor/app` inside `src/hooks/` (`TD-3`).
 
 ---
 
