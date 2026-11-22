@@ -12,18 +12,13 @@ import PrivacyNotice from './PrivacyNotice';
 import SkillIcon from './SkillIcon';
 
 /**
- * SkillPathScreen — EXPERIMENT (Screen 3-B): a "Journey Path" Home variant, parallel to the
- * card-list SkillSelectScreen. Decision-pending — we kid-test both, then keep one. Currently the
- * DEFAULT Home on master; SkillSelectScreen is reachable via `?home=cards` (ThemeManager).
+ * SkillPathScreen — the Home / Journey Path screen, displaying every `status:'ready'` skill
+ * from the skill map (for the active grade) as a vertical winding path of medallions.
  *
- * Same skill set + ORDER as production (status:'ready', by `order`), laid out as a vertical winding
- * path of medallions alternating left/right, connected by a soft SVG spine.
- *
- * DATA FLOW IS IDENTICAL to SkillSelectScreen — the same loadAllSkillStates + recommendNext + per-
- * node isDueForReview delegation (thin, pre-existing pattern; copied, not refactored). No new engine
- * calls, no recomputed logic. Pip/label rendering is intentionally DUPLICATED here (not shared with
- * SkillCard) — de-dup only happens after the kid-test decision (STANDARDS §0.2). Tokens only; the
- * LOCKED colour rules hold: review-due = `review` (teal), mastered = `accent` (amber, reward-only).
+ * Reads loadAllSkillStates + recommendNext + isDueForReview on mount (thin delegation to the pure
+ * engine). Tokens only; the LOCKED colour rules hold: review-due = `review` (teal), mastered =
+ * `accent` (amber, reward-only).
+ * (Archived `?home=cards` variant `SkillSelectScreen` / `SkillCard` lives in `archive/legacy-code/`.)
  */
 
 // Layout constants — the path geometry. Nodes sit on two lanes (% of width) at fixed row heights;

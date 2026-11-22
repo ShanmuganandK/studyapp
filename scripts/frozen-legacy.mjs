@@ -1,49 +1,16 @@
 /**
- * The FROZEN legacy surface — the single source of truth for "code we do not lint".
+ * Active lint & colour-token guard exclusions — consumed by BOTH `eslint.config.js` and
+ * `scripts/check-raw-hex.mjs` so the two guards never disagree (STANDARDS §8).
  *
- * Consumed by BOTH `eslint.config.js` and `scripts/check-raw-hex.mjs` so the two guards can
- * never disagree about what counts as legacy (STANDARDS §8: one source of truth per value).
- *
- * WHY these are excluded rather than fixed: the migration strategy (DECISIONS, ARCHITECTURE)
- * freezes the pre-decisions Antigravity core — "new code never imports legacy; legacy is never
- * edited" — and STANDARDS §8 scopes its disciplines to NEW code. Linting these would demand
- * edits the migration rule forbids. They run as-is until their new-core replacement is proven
- * behind a flag, then they are deleted outright.
- *
- * Every entry below currently contains at least one real violation (raw `console.*` or raw hex),
- * which is exactly why the exclusion has to be deliberate and visible rather than a silent
- * `--quiet`.
- *
- * KEEP IN SYNC with ARCHITECTURE.md → "Legacy core (FROZEN)" and "FROZEN / unreachable screens".
- * When a legacy file is finally deleted, delete its line here too — a stale entry silently
- * un-guards a path that has become new code.
+ * Historically this file excluded frozen legacy directories (`src/data/**`, `src/utils/**`,
+ * `src/components/modules/**`, and 8 unreachable screens). Those unreachable legacy modules and
+ * the `?home=cards` experiment were moved to `archive/legacy-code/` (ignored by ESLint, Vitest,
+ * `check-raw-hex.mjs`, and Vite builds), so `FROZEN_GLOBS` is now empty and every file in `src/`
+ * is live and guarded.
  */
 
-/** Frozen directories. */
-const FROZEN_DIRS = [
-  'src/utils/**',              // legacy generators, questionFactory, masteryEngine, StampEngine
-  'src/data/**',               // stored question banks + syllabus (violates "no stored questions")
-  'src/components/modules/**', // VisualAddition, VisualFractions
-];
-
-/**
- * Frozen individual screens: kept on disk, never edited, no longer wired into navigation.
- * (`Login.jsx` and `ProfileSelector.jsx` are unrendered; the rest are unreachable per
- * ARCHITECTURE's "FROZEN / unreachable screens".)
- */
-const FROZEN_SCREENS = [
-  'AdventureLadder',
-  'Login',
-  'PassportDashboard',
-  'ProfileSelector',
-  'ProfileSetup',
-  'QuizEngine',
-  'StampCelebration',
-  'Syllabus',
-].map((name) => `src/components/${name}.jsx`);
-
-/** Glob patterns for everything frozen. Order is irrelevant; these are pure exclusions. */
-export const FROZEN_GLOBS = [...FROZEN_DIRS, ...FROZEN_SCREENS];
+/** Glob patterns for any frozen legacy files still inside `src/` (currently none). */
+export const FROZEN_GLOBS = [];
 
 /**
  * The ONE sanctioned exception inside a frozen directory: the logger is new code that happens
@@ -107,10 +74,5 @@ export const COLOR_CLASS_EXCEPTIONS = [
     file: 'src/components/ParentGateModal.jsx',
     pattern: /\bbg-black\b/,
     reason: 'modal scrim — dims whatever is behind it; scrims are conventionally theme-independent across most design systems, not app content',
-  },
-  {
-    file: 'src/components/__tests__/SkillCard.test.jsx',
-    pattern: /\btext-amber-500\b/,
-    reason: 'appears only inside a negative assertion (`toBeNull()`) proving the class is ABSENT — not applied styling, a false positive on a plain string scan',
   },
 ];

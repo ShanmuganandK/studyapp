@@ -12,11 +12,11 @@ import { loadTestSettings, saveTestSettings, THEME_SLUGS } from '../services/tes
  * ones included (the 2026-08-20 design-system audit finding). `wonder` = no class (the `:root`
  * defaults in index.css).
  *
- * This is where the theme-application logic lives so `ThemeManager` (which manages VIEWS, not
+ * This is where the theme-application logic lives so `AppRouter` (which manages VIEWS, not
  * colour themes) stays presentational and only wires the hook — keeping logic out of the
  * component per STANDARDS §2.
  *
- * Intended as a SINGLE app-level instance (mounted by ThemeManager). Not built for concurrent
+ * Intended as a SINGLE app-level instance (mounted by AppRouter). Not built for concurrent
  * instances writing the body class.
  */
 export default function useTestSettings() {

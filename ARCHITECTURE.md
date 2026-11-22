@@ -12,11 +12,11 @@
 ```text
 index.html (<title>%PRODUCT_NAME%</title>)
   └── src/main.jsx (Fontsource Baloo 2 & Nunito + index.css)
-        └── src/App.jsx (ErrorBoundary → AuthProvider → ThemeManager)
-              └── src/components/ThemeManager.jsx (top-level view router: 'skills' | 'quiz' | 'parent')
+        └── src/App.jsx (ErrorBoundary → AuthProvider → AppRouter)
+              └── src/components/AppRouter.jsx (top-level view router: 'skills' | 'quiz' | 'parent')
                     ├── First-run gate (!gradeChosen): GradePickerScreen
                     └── Layout (.app-shell / .app-frame, useOnline offline banner, 2-tab bottom nav)
-                          ├── 'skills': SkillPathScreen (default) or SkillSelectScreen (?home=cards)
+                          ├── 'skills': SkillPathScreen
                           ├── 'quiz':   RecipeQuizScreen → SessionPlayer → QuestionView (+ HintBubble, QuizPips, KidButton, CelebrationScreen, Confetti)
                           └── 'parent': ParentGateModal (portal + adult challenge) → ParentDashboard
                                           (progressSummary, practiceSummary, PrivacyNotice/PrivacyPolicy,
@@ -24,8 +24,8 @@ index.html (<title>%PRODUCT_NAME%</title>)
                                            TestPanel [gated by VITE_TESTER_TOOLS || bridgeEnabled], mailto feedback)
 ```
 
-- **Theming mount:** `ThemeManager.jsx` mounts `useTestSettings()`, applying `.theme-<slug>` (`wonder`, `sunset`, `bubblegum`) on `document.body` so portalled modals (`ParentGateModal`) inherit the active palette. `wonder` is the `:root` default.
-- **Android Back handling:** `ThemeManager.jsx` mounts `useAndroidBackButton()` so hardware Back closes the PIN modal, exits Quiz/Parent back to Skills, and only leaves the app from Skills.
+- **Theming mount:** `AppRouter.jsx` mounts `useTestSettings()`, applying `.theme-<slug>` (`wonder`, `sunset`, `bubblegum`) on `document.body` so portalled modals (`ParentGateModal`) inherit the active palette. `wonder` is the `:root` default.
+- **Android Back handling:** `AppRouter.jsx` mounts `useAndroidBackButton()` so hardware Back closes the PIN modal, exits Quiz/Parent back to Skills, and only leaves the app from Skills.
 
 ---
 
@@ -38,11 +38,12 @@ index.html (<title>%PRODUCT_NAME%</title>)
 | `src/engine/` | Pure pedagogy, mastery, spaced repetition & recommendation | `sessionLite.js` (`RECIPES` registry + 8-Q session builder), `mastery.js` (0–5 level, decoupled difficulty rungs, Leitner intervals), `composer.js` (grade-scoped `recommendNext`), `hints.js` (`85/85` tag parity, `<= 10` words), `parentCoaching.js` (`84/84` diagnostic coaching), `progressSummary.js`, `practiceSummary.js` |
 | `src/hooks/` | Session state machine, remediation ladder, settings & backup | `useQuizSession.js`, `useTestSettings.js`, `useProgressBackup.js`, `useOnline.js`, `useAndroidBackButton.js` |
 | `src/services/` | Device-local persistence, backup I/O, audio, Capacitor seams | `progressStore.js`, `practiceDays.js`, `testSettings.js`, `authSettingsStore.js`, `progressBackup.js`, `fileTransfer.js`, `platform.js`, `sound.js`, `localAdapter.js` (inert null-user), `authService.js`, `analytics.js` (inert no-op) |
-| `src/components/` | Presentational screens & UI primitives | `ThemeManager.jsx`, `Layout.jsx`, `GradePickerScreen.jsx`, `SkillPathScreen.jsx`, `SkillSelectScreen.jsx`, `SkillIcon.jsx` (`36/36` SVG medallions), `RecipeQuizScreen.jsx`, `SessionPlayer.jsx`, `QuestionView.jsx` (4 archetypes, 11 formats, 16 `mcq` `render.kind` trays), `CelebrationScreen.jsx`, `ParentGateModal.jsx`, `ParentDashboard.jsx`, `Mascot.jsx`, `KidButton.jsx` |
+| `src/components/` | Presentational screens & UI primitives | `AppRouter.jsx`, `Layout.jsx`, `GradePickerScreen.jsx`, `SkillPathScreen.jsx`, `SkillIcon.jsx` (`36/36` SVG medallions), `RecipeQuizScreen.jsx`, `SessionPlayer.jsx`, `QuestionView.jsx` (4 archetypes, 11 formats, 16 `mcq` `render.kind` trays), `CelebrationScreen.jsx`, `ParentGateModal.jsx`, `ParentDashboard.jsx`, `Mascot.jsx`, `KidButton.jsx` |
 | `src/utils/logger.js` | Sole sanctioned `console.*` wrapper | Exempted from `no-console` in `eslint.config.js` |
 
-### Frozen Legacy
-- `scripts/frozen-legacy.mjs` isolates unreachable legacy modules (`src/data/**`, `src/components/modules/**`, 8 legacy screens, and `src/utils/**` except `logger.js`) from ESLint and `lint:hex`. Never edit or import them.
+### Archived Legacy & Build Exclusions
+- Unreachable pre-rewrite legacy modules (`src/data/**`, `src/components/modules/**`, 8 legacy screens, unused `src/utils/**`) and the retired `?home=cards` experiment (`SkillSelectScreen.jsx`, `SkillCard.jsx`) live in [`archive/legacy-code/`](archive/legacy-code/README.md) — excluded from Vite builds, ESLint (`eslint.config.js`), Vitest (`vitest.config.js`), and `lint:hex`, and kept for reference until safe to delete as the product matures.
+- `scripts/frozen-legacy.mjs` now holds `FROZEN_GLOBS = []` (all files inside `src/` are active and guarded) alongside `COLOR_CLASS_EXCEPTIONS`.
 
 ---
 

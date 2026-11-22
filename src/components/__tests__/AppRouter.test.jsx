@@ -66,9 +66,9 @@ vi.mock('../ParentDashboard', () => ({
   ),
 }));
 
-import ThemeManager from '../ThemeManager';
+import AppRouter from '../AppRouter';
 
-describe('ThemeManager routing', () => {
+describe('AppRouter routing', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     settingsState.gradeChosen = true;
@@ -78,14 +78,14 @@ describe('ThemeManager routing', () => {
 
   it('shows GradePickerScreen on first launch when gradeChosen is false', () => {
     settingsState.gradeChosen = false;
-    render(<ThemeManager />);
+    render(<AppRouter />);
     fireEvent.click(screen.getByText('pick-grade-2'));
     expect(settingsState.chooseInitialGrade).toHaveBeenCalledWith(2);
     expect(screen.queryByTestId('layout')).toBeNull();
   });
 
   it('routes from skills → quiz (hiding bottom nav until summary) → back to skills', () => {
-    render(<ThemeManager />);
+    render(<AppRouter />);
     const layout = screen.getByTestId('layout');
     expect(layout.dataset.view).toBe('skills');
     expect(layout.dataset.hidenav).toBe('false');
@@ -103,7 +103,7 @@ describe('ThemeManager routing', () => {
   });
 
   it('gates ParentDashboard behind ParentGateModal and opens setting mode from dashboard', () => {
-    render(<ThemeManager />);
+    render(<AppRouter />);
 
     fireEvent.click(screen.getByText('nav-parent'));
     expect(screen.getByTestId('gate').dataset.setting).toBe('false');

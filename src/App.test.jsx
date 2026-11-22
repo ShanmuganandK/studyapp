@@ -6,10 +6,10 @@ let shouldThrow = false;
 vi.mock('./contexts/AuthContext', () => ({
   AuthProvider: ({ children }) => <div data-testid="auth-provider">{children}</div>,
 }));
-vi.mock('./components/ThemeManager', () => ({
+vi.mock('./components/AppRouter', () => ({
   default: () => {
     if (shouldThrow) throw new Error('boom');
-    return <div data-testid="theme-manager">ok</div>;
+    return <div data-testid="app-router">ok</div>;
   },
 }));
 vi.mock('./utils/logger', () => ({
@@ -26,10 +26,10 @@ describe('App', () => {
     vi.restoreAllMocks();
   });
 
-  it('mounts AuthProvider and ThemeManager inside ErrorBoundary', () => {
+  it('mounts AuthProvider and AppRouter inside ErrorBoundary', () => {
     render(<App />);
     expect(screen.getByTestId('auth-provider')).toBeTruthy();
-    expect(screen.getByTestId('theme-manager').textContent).toBe('ok');
+    expect(screen.getByTestId('app-router').textContent).toBe('ok');
   });
 
   it('renders child-safe fallback without exposing raw error details when a child throws', () => {

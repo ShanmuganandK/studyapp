@@ -69,8 +69,8 @@ Every retained topic has **one** owner. Do not duplicate content across files.
   - Quiz and picker screens fit one mobile viewport without scrolling via `.quiz-stage` / `.picker-hero` CSS container-query budgets (`src/config/quizLayout.js`, `src/index.css`).
   - Animate `transform` / `opacity` only (GPU-composited; never animate box-shadows or layout properties).
   - Mascot art ships as `1024×1024` WebPs (`scripts/build-mascot.sh`, guarded by `mascotAssets.test.js`). Never use stars (`⭐`) as countable objects.
-- **Frozen legacy (`scripts/frozen-legacy.mjs`):**
-  - Never edit or import `src/utils/**` (except `src/utils/logger.js`), `src/data/**`, `src/components/modules/**`, or the 8 unreachable legacy screens.
+- **Archived legacy (`archive/legacy-code/`):**
+  - Unreachable legacy modules and the retired `?home=cards` variant are archived in `archive/legacy-code/` (excluded from Vite builds, ESLint, Vitest, and `lint:hex`; never import from `archive/`). `scripts/frozen-legacy.mjs` keeps `FROZEN_GLOBS = []` so every file in `src/` is linted and token-checked.
 - **Logging & error handling:**
   - Use `src/utils/logger.js` (`no-console` is enforced by ESLint). Never leave empty `catch` blocks, always handle async rejections, and never expose raw errors to children.
 

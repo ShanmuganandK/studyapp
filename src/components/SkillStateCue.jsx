@@ -1,7 +1,6 @@
 /**
  * Shared label markup for a skill state cue (`getSkillVisual().cue`), so the ↻ glyph, wording,
- * and tone live in one place and read identically on cards (`SkillCard`) and the path
- * (`SkillPathScreen`). `className` carries each view's layout (spacing/alignment).
+ * and tone live in one place (`SkillPathScreen`). `className` carries layout (spacing/alignment).
  */
 export function SkillStateCue({ cue, className = '' }) {
   if (!cue) return null;

@@ -71,7 +71,7 @@ Layer 1 (automated unit/integration/guard suite) is live. Planned calibration lo
 
 ## 5. Kid-Test Watch-List (Gated Decisions — Do Not Build Until Signal Arrives)
 
-- **Home navigation (`SkillPathScreen` vs `?home=cards`):** Which view children navigate more confidently.
+- **Home navigation (`SkillPathScreen`):** Monitor how children navigate the Journey Path (`?home=cards` card variant archived in `archive/legacy-code/`).
 - **Composer tuning:** Whether children follow Tinku's pointer (`FRONTIER_PICK: 'momentum'`) and whether review-due prompts deflate motivation (in-session review embedding).
 - **Theme indifference check:** Whether theme switching moves engagement at all (kid-facing theme picker stays unbuilt unless proven valuable).
 - **Bridge-in warm-up toggle:** Whether walking lower rungs prevents freezes on `2d + 2d` without causing abandonment/fatigue (fallback: show only the single rung immediately below working rung).

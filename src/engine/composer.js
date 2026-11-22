@@ -3,7 +3,7 @@
  *
  * Pure functions only: no Firebase, no localStorage, no React, no Date.now().
  * `today` is always passed in so every function is deterministic and testable.
- * `skillStates` is loaded by the caller (SkillSelectScreen / hook); this module
+ * `skillStates` is loaded by the caller (SkillPathScreen / hook); this module
  * never reads or writes storage.
  *
  * Recommendation priority (fixed by spec):

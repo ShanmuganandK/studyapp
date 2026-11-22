@@ -3,7 +3,7 @@ import SessionPlayer from './SessionPlayer';
 /**
  * RecipeQuizScreen — the new-engine playable quiz for a single chosen skill.
  *
- * Skill choosing now lives in SkillSelectScreen (the home); this screen receives the chosen
+ * Skill choosing lives in SkillPathScreen (the home); this screen receives the chosen
  * `skillId` and hands off to SessionPlayer, which drives the session (remediation, scoring,
  * session-end). A thin presentational seam between selection and play.
  */

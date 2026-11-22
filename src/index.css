@@ -469,7 +469,7 @@
   .path-pulse { animation: none; opacity: 0; }
 }
 
-/* Screen transition — a gentle rise-and-fade when the active view changes (ThemeManager
+/* Screen transition — a gentle rise-and-fade when the active view changes (AppRouter
    sets key={currentView} on the content wrapper so React remounts it with this animation).
    200ms, GPU-only (transform/opacity), respects prefers-reduced-motion. */
 @keyframes view-enter {
