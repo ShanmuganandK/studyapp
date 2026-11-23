@@ -65,6 +65,7 @@ Every retained topic has **one** owner. Do not duplicate content across files.
 - **Token & colour grammar (`npm run lint:hex` + `designTokens.test.js` + `themeContrast.test.js`):**
   - Never hardcode raw hex/RGB/Tailwind palette colours in components; consume named tokens from `src/index.css` / `tailwind.config.js`.
   - Locked semantic meanings: `accent`/amber = **rewards only**, `success` = correct, `encourage`/coral = wrong, `learn`/sky = hints, `review`/teal = review-due. `KidButton` is for answer tiles only.
+  - Drawn art (skill icons) fills only from the `--color-illo-*` illustration palette, never a semantic token (`SkillIcon.test.jsx`).
 - **Layout & assets:**
   - Quiz and picker screens fit one mobile viewport without scrolling via `.quiz-stage` / `.picker-hero` CSS container-query budgets (`src/config/quizLayout.js`, `src/index.css`).
   - Animate `transform` / `opacity` only (GPU-composited; never animate box-shadows or layout properties).
