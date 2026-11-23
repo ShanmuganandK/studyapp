@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { REACHABLE_TAGS } from '../hints';
-import { getParentCoaching, pickTinkuNoticed } from '../parentCoaching';
+import {
+  getParentCoaching,
+  pickTinkuNoticed,
+  NOTICED_MIN_OCCURRENCES,
+  NOTICED_RECENT_DAYS,
+} from '../parentCoaching';
+import { MASTERY } from '../../config/masteryConfig';
 
 describe('parentCoaching — tag parity & tone', () => {
   const diagnosticTags = REACHABLE_TAGS.filter((t) => t !== 'random-slip');
@@ -13,6 +19,15 @@ describe('parentCoaching — tag parity & tone', () => {
       expect(card.title.trim().length).toBeGreaterThan(0);
       expect(card.observation.trim().length).toBeGreaterThan(0);
       expect(card.activity.trim().length).toBeGreaterThan(0);
+    }
+  });
+
+  it('describes the pattern only: one wrong tap never proves what the child "knows" or did "accurately"', () => {
+    for (const tag of diagnosticTags) {
+      const { observation } = getParentCoaching(tag);
+      expect(observation, `'${tag}' observation claims more than a wrong tap shows`).not.toMatch(
+        /\b(accurately|correctly|knows|understands|solid|well)\b/i,
+      );
     }
   });
 
@@ -86,5 +101,45 @@ describe('pickTinkuNoticed — selecting top recent diagnostic patterns', () => 
 
     expect(pickTinkuNoticed(states, { grade: 1 }).map((p) => p.tag)).toEqual(['crossing-ten-misstep']);
     expect(pickTinkuNoticed(states, { grade: 2 }).map((p) => p.tag)).toEqual(['forgot-carry']);
+  });
+});
+
+describe('pickTinkuNoticed — only current, repeated patterns reach the parent', () => {
+  const TODAY = '2026-11-23';
+
+  it(`needs a pattern at least ${NOTICED_MIN_OCCURRENCES} times: a single wrong tap is a slip, not a pattern`, () => {
+    const states = {
+      'g1.add.within20': { skillId: 'g1.add.within20', lastSeen: TODAY, misconceptions: { 'off-by-one': 1 } },
+    };
+    expect(pickTinkuNoticed(states, { grade: 1, today: TODAY })).toEqual([]);
+  });
+
+  it('adds the same pattern up across the skills that count', () => {
+    const states = {
+      'g1.add.within10': { skillId: 'g1.add.within10', lastSeen: TODAY, misconceptions: { 'off-by-one': 1 } },
+      'g1.add.within20': { skillId: 'g1.add.within20', lastSeen: TODAY, misconceptions: { 'off-by-one': 1 } },
+    };
+    expect(pickTinkuNoticed(states, { grade: 1, today: TODAY }).map((p) => p.tag)).toEqual(['off-by-one']);
+  });
+
+  it('skips mastered skills: a mistake the child has since overcome is not news', () => {
+    const states = {
+      'g1.count.1-9': {
+        skillId: 'g1.count.1-9',
+        level: MASTERY.MASTERED_LEVEL,
+        lastSeen: TODAY, // reviewed today, which used to push its week-1 mistakes to the top
+        misconceptions: { 'double-count-object': 4 },
+      },
+    };
+    expect(pickTinkuNoticed(states, { grade: 1, today: TODAY })).toEqual([]);
+  });
+
+  it(`skips skills not practised in the last ${NOTICED_RECENT_DAYS} days`, () => {
+    const states = {
+      'g1.add.within10': { skillId: 'g1.add.within10', lastSeen: '2026-11-09', misconceptions: { 'operator-mixup': 3 } },
+      'g1.add.within20': { skillId: 'g1.add.within20', lastSeen: '2026-11-08', misconceptions: { 'crossing-ten-misstep': 3 } },
+    };
+    // 14 days back is still recent; 15 days back is not.
+    expect(pickTinkuNoticed(states, { grade: 1, today: TODAY }).map((p) => p.tag)).toEqual(['operator-mixup']);
   });
 });
