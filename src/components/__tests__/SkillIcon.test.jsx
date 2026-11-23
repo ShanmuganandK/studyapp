@@ -25,4 +25,16 @@ describe('SkillIcon — custom Tinku SVG icon set (DS-6)', () => {
     }
     expect(markups.size).toBe(readyIds.length);
   });
+
+  it('never borrows a semantic UI colour: fills come from the illustration palette only', () => {
+    // amber = reward ONLY, green = correct, coral = wrong, sky = hint, teal = review (AGENTS.md §4).
+    // Icons sit beside amber mastery rings, so an amber crown or medal on an unmastered skill blurs "earned".
+    const SEMANTIC = /var\(--color-(accent|success|encourage|learn|review)\b/;
+    for (const id of readyIds) {
+      const { container } = render(<SkillIcon skillId={id} />);
+      const svg = container.querySelector(`svg[data-skill-icon="${id}"]`);
+      expect(svg.innerHTML, `${id} uses a semantic UI colour`).not.toMatch(SEMANTIC);
+      cleanup();
+    }
+  });
 });
