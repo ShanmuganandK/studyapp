@@ -41,6 +41,12 @@ describe('buildLiteSession', () => {
     }
   });
 
+  it('names the session with the kid-facing display name, not the curriculum name', () => {
+    const { skillName } = buildLiteSession(1, makeRng('name'), { skillId: 'g1.prenum.compare' });
+    expect(skillName).toBe(SKILLS['g1.prenum.compare'].displayName);
+    expect(skillName).not.toBe(SKILLS['g1.prenum.compare'].name);
+  });
+
   it('returns the requested number of questions', () => {
     const { questions } = buildLiteSession(1, makeRng('len'), { length: 8 });
     expect(questions).toHaveLength(8);
