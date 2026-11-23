@@ -197,8 +197,11 @@ describe('QuestionView — visual format trays (Batch 3)', () => {
     const groupBGlyphs = screen.getAllByText('🐜');
     expect(groupAGlyphs).toHaveLength(4);
     expect(groupBGlyphs).toHaveLength(6);
-    expect(groupAGlyphs[0].parentElement.className).toContain('text-xl');
-    expect(groupBGlyphs[0].parentElement.className).toContain('text-xs');
+    // Bigger-looking group drawn bigger, but the small group stays countable (>= 16px, never text-xs/sm):
+    // with the counts hidden, the child has to count every object.
+    expect(groupAGlyphs[0].parentElement.className).toContain('text-2xl');
+    expect(groupBGlyphs[0].parentElement.className).toContain('text-base');
+    expect(groupBGlyphs[0].parentElement.className).not.toMatch(/\btext-(xs|sm)\b/);
   });
 
   it('renders half-collection without leaking groupSize numerals when groupSize > 6 (TD-9)', () => {
