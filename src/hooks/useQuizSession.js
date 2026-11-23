@@ -57,11 +57,12 @@ import { makeRng } from '../recipes/_rng';
 import { buildLiteSession } from '../engine/sessionLite';
 import { getHint } from '../engine/hints';
 import { logEvent } from '../services/analytics';
-import { loadSkillState, saveSkillState } from '../services/progressStore';
+import { loadSkillState, saveSkillState, loadAllSkillStates } from '../services/progressStore';
 import { recordPracticeDay } from '../services/practiceDays';
 import { emptySkillState, applyResult, nextWorkingDifficulty, isMastered } from '../engine/mastery';
 import { MASTERY } from '../config/masteryConfig';
-import { getSkill } from '../recipes/skillMap';
+import { getSkill, SKILLS } from '../recipes/skillMap';
+import { nextSkillAfterSession } from '../engine/composer';
 import logger from '../utils/logger';
 
 const band = (grade) => (grade <= 3 ? 'wonder' : 'explorer');
@@ -497,7 +498,20 @@ export function useQuizSession(grade, { length = 8, skillId, seed, bridgeEnabled
         const leveledUp = newSkillState.level > prevState.level;
         const justMastered = !wasMastered && isMastered(newSkillState, MASTERY);
         if (leveledUp || justMastered) {
-          masteryUp = { leveledUp, justMastered, level: newSkillState.level, skillName: prev.skillName };
+          // Where "Next with Tinku →" goes: the composer's pick AFTER this session's save, only if
+          // it is a different skill (null keeps "Play again" as the main button).
+          const nextId = nextSkillAfterSession(loadAllSkillStates(), SKILLS, today, {
+            grade,
+            currentSkillId: prev.skillId,
+          });
+          const nextSkill = nextId ? getSkill(nextId) : null;
+          masteryUp = {
+            leveledUp,
+            justMastered,
+            level: newSkillState.level,
+            skillName: prev.skillName,
+            next: nextSkill ? { skillId: nextSkill.id, skillName: nextSkill.displayName ?? nextSkill.name } : null,
+          };
         }
       }
     } else {

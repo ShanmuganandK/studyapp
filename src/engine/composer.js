@@ -180,3 +180,23 @@ export function recommendNext(skillStates, skillMap, today, config = COMPOSER, {
     reason: 'all_caught_up',
   };
 }
+
+/**
+ * The skill "Next with Tinku →" opens after a session that levelled up or mastered a skill.
+ *
+ * It is the composer's own recommendation, but only when it points somewhere NEW: null when the
+ * recommendation is the skill just played (it is still the child's learning edge, and "Play again"
+ * already covers that), when nothing is recommended, or when everything is caught up (that branch
+ * nudges toward a review that is not due yet, which is not a "next").
+ *
+ * @param {Record<string, object>} skillStates  - all saved skill states, INCLUDING the session just saved
+ * @param {Record<string, object>} skillMap
+ * @param {string} today                         - 'YYYY-MM-DD'
+ * @param {{ grade?: number|null, currentSkillId?: string|null, config?: object }} [opts]
+ * @returns {string|null} the next skill id, or null
+ */
+export function nextSkillAfterSession(skillStates, skillMap, today, { grade = null, currentSkillId = null, config = COMPOSER } = {}) {
+  const rec = recommendNext(skillStates, skillMap, today, config, { grade });
+  if (!rec?.skillId || rec.reason === 'all_caught_up' || rec.skillId === currentSkillId) return null;
+  return rec.skillId;
+}

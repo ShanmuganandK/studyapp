@@ -110,9 +110,12 @@ export default function AppRouter() {
 
       {currentView === 'quiz' && activeSkillId && (
         <RecipeQuizScreen
+          // Keyed by skill so "Next with Tinku →" (a new skillId) remounts a fresh session.
+          key={activeSkillId}
           grade={grade}
           skillId={activeSkillId}
           onBack={handleBackToSkills}
+          onNextSkill={handleSelectSkill}
           bridgeEnabled={bridgeEnabled}
           onSessionComplete={setSessionDone}
         />

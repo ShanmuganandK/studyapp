@@ -21,7 +21,7 @@ import { quizProfileForGrade } from '../config/quizLayout';
  *   wrong   → wrong #2 reveal
  *   complete → phase transitions to 'complete' (session end)
  */
-export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = false, onSessionComplete }) {
+export default function SessionPlayer({ grade, skillId, onExit, onNextSkill, bridgeEnabled = false, onSessionComplete }) {
   const s = useQuizSession(grade, { skillId, bridgeEnabled });
 
   // Tell the shell when the session has ended so it can bring the Home/Parent bar back on the summary
@@ -92,6 +92,7 @@ export default function SessionPlayer({ grade, skillId, onExit, bridgeEnabled = 
         masteryUp={s.masteryUp}
         onPlayAgain={s.restart}
         onExit={onExit}
+        onNext={onNextSkill}
       />
     );
   }
