@@ -28,6 +28,7 @@ dist
 
 # Knowledge graph (generated — rebuild with /graphify)
 graphify-out
+scripts/update-graphify.py
 
 # Visual snapshot captures (scripts/visual-snapshot.mjs) — on-demand local artefacts, not committed
 .visual-snapshots
