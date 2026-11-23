@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import CelebrationScreen from '../CelebrationScreen';
 
 /**
@@ -42,31 +42,56 @@ describe('CelebrationScreen', () => {
     expect(screen.queryByText(/mastered|levelled up/i)).toBeNull();
   });
 
-  it('celebrates a just-mastered skill, shows level pips, and promotes Next with Tinku → to primary CTA', () => {
+  const NEXT = { skillId: 'g1.num.compare20', skillName: 'Big or Small?' };
+
+  it('celebrates a just-mastered skill, shows level pips, and Next with Tinku → opens the next skill', () => {
+    const onNext = vi.fn();
+    const onExit = vi.fn();
     render(
       <CelebrationScreen
         {...baseProps}
+        onNext={onNext}
+        onExit={onExit}
         skillName="Add within 20"
-        masteryUp={{ justMastered: true, leveledUp: true, level: 5, skillName: 'Add within 20' }}
+        masteryUp={{ justMastered: true, leveledUp: true, level: 5, skillName: 'Add within 20', next: NEXT }}
       />,
     );
     expect(screen.getByText('You mastered Add within 20!')).toBeTruthy();
     expect(screen.getByLabelText('Level 5 of 5')).toBeTruthy();
-    const nextBtn = screen.getByRole('button', { name: 'Next with Tinku →' });
+    const nextBtn = screen.getByRole('button', { name: 'Next with Tinku: Big or Small?' });
+    expect(nextBtn.textContent).toBe('Next with Tinku →');
     expect(nextBtn.className).toContain('bg-primary');
     expect(screen.getByRole('button', { name: 'Play again' }).className).not.toContain('bg-primary');
+    fireEvent.click(nextBtn);
+    expect(onNext).toHaveBeenCalledWith('g1.num.compare20');
+    expect(onExit).not.toHaveBeenCalled(); // it starts the next skill, it does not just go home
   });
 
-  it('celebrates a level-up (not yet mastered) and promotes Next with Tinku → to primary CTA', () => {
+  it('celebrates a level-up (not yet mastered) and promotes Next with Tinku → when a new skill is recommended', () => {
     render(
       <CelebrationScreen
         {...baseProps}
+        onNext={() => {}}
         skillName="Count to 20"
-        masteryUp={{ justMastered: false, leveledUp: true, level: 2, skillName: 'Count to 20' }}
+        masteryUp={{ justMastered: false, leveledUp: true, level: 2, skillName: 'Count to 20', next: NEXT }}
       />,
     );
     expect(screen.getByText('Count to 20 levelled up!')).toBeTruthy();
     expect(screen.getByLabelText('Level 2 of 5')).toBeTruthy();
-    expect(screen.getByRole('button', { name: 'Next with Tinku →' }).className).toContain('bg-primary');
+    expect(screen.getByRole('button', { name: /Next with Tinku/ }).className).toContain('bg-primary');
+  });
+
+  it('keeps Play again as the main button after a level-up when there is no different skill to go to', () => {
+    render(
+      <CelebrationScreen
+        {...baseProps}
+        onNext={() => {}}
+        masteryUp={{ justMastered: false, leveledUp: true, level: 2, skillName: 'Count to 20', next: null }}
+      />,
+    );
+    expect(screen.getByText('Count to 20 levelled up!')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /Next with Tinku/ })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Play again' }).className).toContain('bg-primary');
+    expect(screen.getByRole('button', { name: 'Pick another skill' })).toBeTruthy();
   });
 });

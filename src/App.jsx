@@ -1,6 +1,6 @@
 import React from 'react';
 import { AuthProvider } from './contexts/AuthContext';
-import ThemeManager from './components/ThemeManager';
+import AppRouter from './components/AppRouter';
 import logger from './utils/logger';
 import tinkuImg from './assets/mascot/webp/Tinku_Mascot.webp';
 
@@ -51,7 +51,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <ThemeManager />
+        <AppRouter />
       </AuthProvider>
     </ErrorBoundary>
   );

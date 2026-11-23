@@ -197,8 +197,11 @@ describe('QuestionView — visual format trays (Batch 3)', () => {
     const groupBGlyphs = screen.getAllByText('🐜');
     expect(groupAGlyphs).toHaveLength(4);
     expect(groupBGlyphs).toHaveLength(6);
-    expect(groupAGlyphs[0].parentElement.className).toContain('text-xl');
-    expect(groupBGlyphs[0].parentElement.className).toContain('text-xs');
+    // Bigger-looking group drawn bigger, but the small group stays countable (>= 16px, never text-xs/sm):
+    // with the counts hidden, the child has to count every object.
+    expect(groupAGlyphs[0].parentElement.className).toContain('text-2xl');
+    expect(groupBGlyphs[0].parentElement.className).toContain('text-base');
+    expect(groupBGlyphs[0].parentElement.className).not.toMatch(/\btext-(xs|sm)\b/);
   });
 
   it('renders half-collection without leaking groupSize numerals when groupSize > 6 (TD-9)', () => {
@@ -220,5 +223,278 @@ describe('QuestionView — visual format trays (Batch 3)', () => {
     );
     expect(container.textContent).not.toContain('(8)');
     expect(screen.getAllByText('🍎')).toHaveLength(16);
+  });
+});
+
+describe('QuestionView — remaining formats and mcq render.kind trays (TD-7)', () => {
+  it('renders count-objects tray with exact object count and aria-label', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'count-objects',
+          questionText: 'How many apples are there?',
+          render: { glyph: '🍎', count: 15 },
+        }}
+      />,
+    );
+    expect(screen.getByLabelText('15 objects to count')).toBeTruthy();
+    expect(screen.getAllByText('🍎')).toHaveLength(15);
+  });
+
+  it('renders compare sign box blank and filled on blankFill', () => {
+    const base = {
+      format: 'compare',
+      questionText: 'Compare 14 and 9',
+      correctAnswer: '>',
+      render: { left: 14, right: 9 },
+    };
+    const { rerender } = render(<QuestionView question={base} />);
+    expect(screen.getByText('Which sign goes in the box?')).toBeTruthy();
+    expect(screen.getByText('?')).toBeTruthy();
+
+    rerender(<QuestionView question={base} blankFill="correct" />);
+    expect(screen.getByText('>').className).toContain('border-success');
+
+    rerender(<QuestionView question={base} blankFill="learn" />);
+    expect(screen.getByText('>').className).toContain('border-learn');
+  });
+
+  it.each([
+    ['inside', '🧺', '🐱', 'basket', null],
+    ['outside', '🏠', '🐶', 'house', null],
+    ['top', '🪑', '🍎', 'table', null],
+    ['bottom', '🛏️', '🧸', 'bed', null],
+    ['near', '🌳', '🐰', 'tree', null],
+    ['far', '🚗', '🚲', 'car', '• • •'],
+  ])('renders spatial-mcq for relation "%s"', (relation, anchorGlyph, itemGlyph, anchorName, marker) => {
+    render(
+      <QuestionView
+        question={{
+          format: 'spatial-mcq',
+          questionText: `Where is ${itemGlyph}?`,
+          render: { relation, anchorGlyph, itemGlyph, anchorName },
+        }}
+      />,
+    );
+    expect(screen.getByText(new RegExp(`relative to the ${anchorName}\\?`))).toBeTruthy();
+    expect(screen.getByText(anchorGlyph)).toBeTruthy();
+    expect(screen.getByText(itemGlyph)).toBeTruthy();
+    if (marker) expect(screen.getByText(marker)).toBeTruthy();
+  });
+
+  it('renders ordinal-strip up to LINE_CAP N=7 items in a single row and highlights target', () => {
+    const items = ['🐼', '🐮', '🐶', '🐯', '🐸', '🦊', '🐰'];
+    render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: 'From the left, 🦊 is at position ? in: 🐼 🐮 🐶 🐯 🐸 🦊 🐰',
+          render: { kind: 'ordinal-strip', items, target: '🦊' },
+        }}
+      />,
+    );
+    expect(screen.getByText('← Start (1st)')).toBeTruthy();
+    for (const item of items) expect(screen.getByText(item)).toBeTruthy();
+    expect(screen.getByText('🦊').className).toContain('bg-primary-soft');
+    expect(screen.getByText('🐼').className).not.toContain('bg-primary-soft');
+  });
+
+  it('renders pattern-strip with target slot and blankFill reveal', () => {
+    const q = {
+      format: 'mcq',
+      questionText: 'What comes next? 🍎 🍌 🍎 🍌 ?',
+      correctAnswer: '🍎',
+      render: { kind: 'pattern-strip', sequence: ['🍎', '🍌', '🍎', '🍌'] },
+    };
+    const { rerender } = render(<QuestionView question={q} />);
+    expect(screen.getByText('What comes next in the pattern?')).toBeTruthy();
+    expect(screen.getByText('?')).toBeTruthy();
+
+    rerender(<QuestionView question={q} blankFill="correct" />);
+    expect(screen.getAllByText('🍎')).toHaveLength(3);
+  });
+
+  it('renders sorting-tray in both odd-one-out and belongs-with modes', () => {
+    const { rerender } = render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: 'Odd one out',
+          correctAnswer: '🚗',
+          render: { kind: 'sorting-tray', mode: 'odd-one-out', items: ['🍎', '🍌', '🍇', '🚗'] },
+        }}
+      />,
+    );
+    expect(screen.getByText('Which one does NOT belong?')).toBeTruthy();
+    expect(screen.queryByText('?')).toBeNull();
+
+    rerender(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: 'Belongs with',
+          correctAnswer: '🍐',
+          render: { kind: 'sorting-tray', mode: 'belongs-with', items: ['🍎', '🍌', '🍇'] },
+        }}
+      />,
+    );
+    expect(screen.getByText('Which one belongs with this group?')).toBeTruthy();
+    expect(screen.getByText('?')).toBeTruthy();
+  });
+
+  it('renders number-step track with sequence and target slot', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: '45, 46, 47, ?',
+          correctAnswer: 48,
+          render: { kind: 'number-step', sequence: [45, 46, 47] },
+        }}
+      />,
+    );
+    expect(screen.getByText('Count forward — what comes next?')).toBeTruthy();
+    expect(screen.getByText('45')).toBeTruthy();
+    expect(screen.getByText('47')).toBeTruthy();
+    expect(screen.getByText('?')).toBeTruthy();
+  });
+
+  it.each([
+    ['after', 'Monday', 'day', 'What day comes right AFTER?', '→'],
+    ['before', 'Friday', 'day', 'What day comes right BEFORE?', '←'],
+    ['tomorrow', 'Tuesday', 'day', 'Today is Tuesday — what day is TOMORROW?', '→'],
+    ['yesterday', 'Sunday', 'day', 'Today is Sunday — what day was YESTERDAY?', '←'],
+    ['2 days after', 'Wednesday', 'day', 'What day comes 2 days AFTER Wednesday?', '+2 →'],
+  ])('renders time-sequence for direction "%s"', (direction, current, noun, header, arrow) => {
+    render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: header,
+          correctAnswer: 'Thursday',
+          render: { kind: 'time-sequence', current, direction, noun },
+        }}
+      />,
+    );
+    expect(screen.getByText(header)).toBeTruthy();
+    expect(screen.getByText(current)).toBeTruthy();
+    expect(screen.getByText(arrow)).toBeTruthy();
+  });
+
+  it('renders money-add and money-change cards with currency-neutral coins', () => {
+    const { rerender } = render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: '🪙 15 + 🪙 12 = ?',
+          correctAnswer: 27,
+          render: { kind: 'money-add', a: 15, b: 12 },
+        }}
+      />,
+    );
+    expect(screen.getByText('Add the money together:')).toBeTruthy();
+    expect(screen.getByText('🪙 15')).toBeTruthy();
+    expect(screen.getByText('🪙 12')).toBeTruthy();
+
+    rerender(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: 'Have 🪙 50, spend 🪙 18',
+          correctAnswer: 32,
+          render: { kind: 'money-change', have: 50, spend: 18 },
+        }}
+      />,
+    );
+    expect(screen.getByText('How much money is left?')).toBeTruthy();
+    expect(screen.getByText('🪙 50')).toBeTruthy();
+    expect(screen.getByText('🪙 18')).toBeTruthy();
+  });
+
+  it('renders ruler-cm, length-add, and ribbon-compare trays', () => {
+    const { rerender } = render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: 'Starts at 3 cm, ends at 11 cm',
+          correctAnswer: 8,
+          render: { kind: 'ruler-cm', start: 3, end: 11 },
+        }}
+      />,
+    );
+    expect(screen.getByText('Start: 3 cm')).toBeTruthy();
+    expect(screen.getByText('End: 11 cm')).toBeTruthy();
+
+    rerender(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: '6 cm + 5 cm = ?',
+          correctAnswer: 11,
+          render: { kind: 'length-add', a: 6, b: 5, unit: 'cm' },
+        }}
+      />,
+    );
+    expect(screen.getByText('Join the two lengths:')).toBeTruthy();
+    expect(screen.getByText('6 cm')).toBeTruthy();
+    expect(screen.getByText('5 cm')).toBeTruthy();
+
+    rerender(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: 'Ribbon A (7) vs Ribbon B (4)',
+          correctAnswer: 3,
+          render: { kind: 'ribbon-compare', a: 7, b: 4 },
+        }}
+      />,
+    );
+    expect(screen.getByText('How many blocks LONGER is Ribbon A?')).toBeTruthy();
+    expect(screen.getByText('Ribbon A (7)')).toBeTruthy();
+    expect(screen.getByText('Ribbon B (4)')).toBeTruthy();
+  });
+
+  it('renders capacity-jugs and capacity-tanks cards', () => {
+    const { rerender } = render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: '1 jug holds 4 litres. How many litres in 3 jugs?',
+          correctAnswer: 12,
+          render: { kind: 'capacity-jugs', perJug: 4, jugs: 3 },
+        }}
+      />,
+    );
+    expect(screen.getByText('How many litres in all 3 jugs?')).toBeTruthy();
+    expect(screen.getAllByText('4 L')).toHaveLength(3);
+
+    rerender(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: 'Tank A holds 45 L. Tank B holds 18 L.',
+          correctAnswer: 27,
+          render: { kind: 'capacity-tanks', tankA: 45, tankB: 18 },
+        }}
+      />,
+    );
+    expect(screen.getByText('How many MORE litres in Tank A?')).toBeTruthy();
+    expect(screen.getByText('45 L')).toBeTruthy();
+    expect(screen.getByText('18 L')).toBeTruthy();
+  });
+
+  it('renders fraction-whole cards', () => {
+    render(
+      <QuestionView
+        question={{
+          format: 'mcq',
+          questionText: 'How many quarters (1/4) make 2 whole pizzas?',
+          correctAnswer: 8,
+          render: { kind: 'fraction-whole', wholes: 2, partsPerWhole: 4 },
+        }}
+      />,
+    );
+    expect(screen.getByText('How many quarters (1/4) make 2 whole pizzas?')).toBeTruthy();
+    expect(screen.getAllByText('4 × 1/4')).toHaveLength(2);
   });
 });

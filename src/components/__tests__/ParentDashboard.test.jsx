@@ -330,11 +330,14 @@ describe('ParentDashboard: feedback link', () => {
 describe('ParentDashboard — Tinku Noticed coaching card', () => {
   afterEach(() => { cleanup(); localStorage.clear(); });
   const props = { ...baseProps, hasPasscode: false, onGradeChange: () => {} };
+  // The card only uses recently practised skills, so seed "today" (the same clock the dashboard reads)
+  // rather than a fixed date that would age out of the window and break this test later.
+  const TODAY = new Date().toISOString().slice(0, 10);
 
   it('hides the Tinku Noticed card when no diagnostic misconceptions exist', () => {
     saveSkillState(SKILL_ID, {
       ...emptySkillState(SKILL_ID, 3),
-      lastSeen: '2026-11-20',
+      lastSeen: TODAY,
       misconceptions: { 'random-slip': 4 },
     });
     render(<ParentDashboard {...props} grade={1} />);
@@ -345,13 +348,13 @@ describe('ParentDashboard — Tinku Noticed coaching card', () => {
     saveSkillState('g1.add.within20', {
       ...emptySkillState('g1.add.within20', 3),
       level: 2,
-      lastSeen: '2026-11-20',
+      lastSeen: TODAY,
       misconceptions: { 'crossing-ten-misstep': 3, 'operator-mixup': 2 },
     });
     saveSkillState('g2.add.2d-carry', {
       ...emptySkillState('g2.add.2d-carry', 3),
       level: 1,
-      lastSeen: '2026-11-20',
+      lastSeen: TODAY,
       misconceptions: { 'forgot-carry': 5 },
     });
 

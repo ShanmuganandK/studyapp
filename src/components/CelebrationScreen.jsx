@@ -20,7 +20,9 @@ import MasteryPips from './MasteryPips';
  * @param {number} score - questions correct
  * @param {number} total - questions in the session
  * @param {string} [skillName] - human-readable skill name for context
- * @param {{leveledUp:boolean, justMastered:boolean, level?:number, skillName:string}|null} masteryUp
+ * @param {{leveledUp:boolean, justMastered:boolean, level?:number, skillName:string,
+ *          next?:{skillId:string, skillName:string}|null}|null} masteryUp
+ * @param {(skillId:string) => void} [onNext] - starts the recommended next skill ("Next with Tinku →")
  *        - read-only mastery-up read-out from the hook (null when nothing levelled up)
  * @param {() => void} onPlayAgain
  * @param {() => void} onExit
@@ -51,13 +53,16 @@ function SparkStar({ filled, size = 28 }) {
   );
 }
 
-export default function CelebrationScreen({ score, total, skillName, masteryUp, onPlayAgain, onExit }) {
+export default function CelebrationScreen({ score, total, skillName, masteryUp, onPlayAgain, onExit, onNext }) {
   const starsEndMs = STARS_START_MS + total * STAR_STAGGER_MS;
   const scoreDelayMs = starsEndMs + 80;
   const masteryDelayMs = starsEndMs + 250;
   const buttonsDelayMs = masteryUp ? masteryDelayMs + 420 : starsEndMs + 300;
   const resolvedSkillName = skillName ?? masteryUp?.skillName;
-  const advancePrimary = !!masteryUp;
+  // "Next with Tinku →" leads only when it can really go somewhere new: a level-up or mastery AND a
+  // different recommended skill. Otherwise "Play again" stays the main button.
+  const nextSkill = masteryUp?.next ?? null;
+  const advancePrimary = !!(nextSkill && onNext);
 
   return (
     <div className="quiz-stage relative flex flex-col items-center justify-center h-full overflow-hidden bg-bg px-6 py-6 text-center">
@@ -127,7 +132,8 @@ export default function CelebrationScreen({ score, total, skillName, masteryUp, 
           </div>
         )}
 
-        {/* Beat 5 — the buttons arrive last. After level-up/mastery, "Next with Tinku →" becomes primary. */}
+        {/* Beat 5 — the buttons arrive last. After a level-up/mastery with a new recommended skill,
+            "Next with Tinku →" becomes primary and opens that skill directly. */}
         <div
           className="animate-rise-in flex flex-col gap-3 mt-6 w-full max-w-xs"
           style={{ animationDelay: `${buttonsDelayMs}ms` }}
@@ -135,7 +141,8 @@ export default function CelebrationScreen({ score, total, skillName, masteryUp, 
           {advancePrimary ? (
             <>
               <button
-                onClick={onExit}
+                onClick={() => onNext(nextSkill.skillId)}
+                aria-label={`Next with Tinku: ${nextSkill.skillName}`}
                 className="min-h-[48px] bg-primary text-white font-bold text-lg py-3 px-8 rounded-button shadow-button hover:brightness-110 active:scale-95 transition-all"
               >
                 Next with Tinku →

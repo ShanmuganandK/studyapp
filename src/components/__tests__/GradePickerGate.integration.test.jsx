@@ -1,16 +1,16 @@
 // @vitest-environment jsdom
 /**
- * The first-run gate itself (DECISIONS 2026-09-23): does the REAL ThemeManager show the picker
+ * The first-run gate itself (DECISIONS 2026-09-23): does the REAL AppRouter show the picker
  * only when this device has never had test settings written, and never again after?
  *
  * The other grade-picker tests cover the pieces — the screen's UI, the hook's write, the storage
  * key and the export exclusion. None of them covers the branch that decides whether a child ever
- * sees the picker at all, which is the whole behaviour. So this mounts the real ThemeManager
+ * sees the picker at all, which is the whole behaviour. So this mounts the real AppRouter
  * inside the real AuthProvider against real jsdom localStorage, mocking only the mascot's image
  * preloads (same fence as ParentGate.noauth.integration.test.jsx).
  *
  * ⚠️ Every assertion here is ASYNC on purpose. `AuthProvider` renders `{!loading && children}`
- * and resolves its (inert, null-user) adapter in a microtask, so ThemeManager is absent from the
+ * and resolves its (inert, null-user) adapter in a microtask, so AppRouter is absent from the
  * DOM on the first paint. A synchronous `queryByRole(...) === null` therefore passes on an EMPTY
  * document and proves nothing — the first draft of this file did exactly that and "passed" two
  * negative cases vacuously. Each test below waits for something POSITIVE to render before
@@ -19,7 +19,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import { AuthProvider } from '../../contexts/AuthContext';
-import ThemeManager from '../ThemeManager';
+import AppRouter from '../AppRouter';
 
 // Mascot preloads webp assets — irrelevant to the gate; stub it (precedent: the noauth test).
 vi.mock('../Mascot', () => ({ default: () => null }));
@@ -28,7 +28,7 @@ const TEST_SETTINGS_KEY = 'tinku:v1:testSettings';
 const PICKER_HEADING = /Which class is your child in\?/;
 
 function renderApp() {
-  return render(<AuthProvider><ThemeManager /></AuthProvider>);
+  return render(<AuthProvider><AppRouter /></AuthProvider>);
 }
 
 /** Resolves once the app proper is on screen — the nav exists only PAST the picker gate. */
@@ -39,7 +39,7 @@ afterEach(() => {
   localStorage.clear();
 });
 
-describe('first-run grade picker — the gate in ThemeManager', () => {
+describe('first-run grade picker — the gate in AppRouter', () => {
   it('a device with NO stored test settings sees the picker, and no app chrome behind it', async () => {
     renderApp();
     expect(await screen.findByRole('heading', { name: PICKER_HEADING })).toBeTruthy();

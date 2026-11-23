@@ -1,5 +1,6 @@
 import MasteryPips from './MasteryPips';
-import { getSkillVisual, SkillStateCue } from './skillStateVisual';
+import { getSkillVisual } from './skillStateVisual';
+import { SkillStateCue } from './SkillStateCue';
 import SkillIcon from './SkillIcon';
 
 /**
@@ -9,7 +10,7 @@ import SkillIcon from './SkillIcon';
  * computed in the ENGINE (composer / mastery) and handed in as plain booleans — this card never
  * calls the engine or recomputes that logic. All colours/radii/shadows are design tokens.
  *
- * State→visual mapping is the SHARED `getSkillVisual` grammar (skillStateVisual.jsx), identical to
+ * State→visual mapping is the SHARED `getSkillVisual` grammar (skillStateVisual.js), identical to
  * SkillPathScreen so the two Home views can't drift. LOCKED colour rule: amber = reward-only;
  * review-due = teal, never amber; due-but-not-suggested = neutral ring + muted teal cue
  * (DECISIONS 2026-07-05 / 2026-07-15). The ↻ lives in the label — pips are level-only (dedupe).

@@ -19,6 +19,7 @@ import {
   getReviewsDue,
   getFrontierSkills,
   recommendNext,
+  nextSkillAfterSession,
 } from '../composer.js';
 import { emptySkillState } from '../mastery.js';
 import { SKILLS } from '../../recipes/skillMap.js';
@@ -653,5 +654,33 @@ describe('real skill map in grade mode', () => {
 
   it('a fresh Class 2 child starts on 3-digit numbers, not Class 1 counting', () => {
     expect(walk(2)[0]).toBe('g2.num.3digit');
+  });
+});
+
+// ─── nextSkillAfterSession ("Next with Tinku →") ───────────────────────────────
+
+describe('nextSkillAfterSession', () => {
+  it('points to the newly unlocked skill after the current one is mastered', () => {
+    const st = states(['skill.a', masteredState('skill.a', TOMORROW)]);
+    expect(nextSkillAfterSession(st, MAP, TODAY, { currentSkillId: 'skill.a' })).toBe('skill.b');
+  });
+
+  it('points to a different skill that is due for review', () => {
+    const st = states(['skill.a', masteredState('skill.a', YESTERDAY)], ['skill.b', 2]);
+    expect(nextSkillAfterSession(st, MAP, TODAY, { currentSkillId: 'skill.b' })).toBe('skill.a');
+  });
+
+  it('returns null when the recommendation is the skill just played (Play again covers it)', () => {
+    const st = states(['skill.a', 2]);
+    expect(nextSkillAfterSession(st, MAP, TODAY, { currentSkillId: 'skill.a' })).toBeNull();
+  });
+
+  it('returns null when everything is caught up (a not-yet-due review is not a "next")', () => {
+    const st = states(
+      ['skill.a', masteredState('skill.a', TOMORROW)],
+      ['skill.b', masteredState('skill.b', TOMORROW)],
+      ['skill.c', masteredState('skill.c', LAST_WEEK.replace('06-08', '06-30'))],
+    );
+    expect(nextSkillAfterSession(st, MAP, TODAY, { currentSkillId: 'skill.c' })).toBeNull();
   });
 });

@@ -3,9 +3,7 @@ import { MASTERY } from '../config/masteryConfig';
 /**
  * MasteryPips — shared pip indicator for a skill's mastery LEVEL (level only).
  *
- * Used by SkillCard (home screen) and ParentDashboard. NOT used by SkillPathScreen's
- * PathPips — that duplicate is intentional pending the home-screen A/B test decision
- * (ARCHITECTURE.md — Experiments).
+ * Used by ParentDashboard and CelebrationScreen. NOT used by SkillPathScreen's PathPips.
  *
  * Colour progression reads as "getting stronger": sky (learn) → indigo (primary) → amber
  * (accent, mastered = reward only). Deliberately not stars — stars are the in-session

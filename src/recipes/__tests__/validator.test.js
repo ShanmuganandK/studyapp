@@ -17,6 +17,7 @@
 import { describe, it, expect } from 'vitest';
 import { makeRng } from '../_rng';
 import { isImplausible } from '../_plausibility';
+import { REACHABLE_TAGS } from '../../engine/hints';
 import additionRecipe from '../addition';
 import countingRecipe from '../counting';
 import subtractionRecipe from '../subtraction';
@@ -99,6 +100,12 @@ const CANONICAL_TAGS = {
   'g2.data.pictograph': new Set(['adjacent-row-read', 'total-instead-of-difference', 'scale-factor-ignored', 'off-by-one', 'random-slip']),
   'g2.frac.halves-quarters': new Set(['denominator-magnitude-bias', 'shaded-to-unshaded-ratio', 'unshaded-complement-picked', 'double-instead-of-half', 'random-slip']),
 };
+
+// Documented planned/hint-only tags in misconceptions-reference.md that are NOT yet emitted by
+// any recipe (and therefore absent from src/engine/hints.js REACHABLE_TAGS):
+// - 'reference-anchor-swap' (g1.shapes.space — pending ROADMAP.md ☐ 11 sign-off)
+// - 'tall-thin-illusion' (g2.measure.capacity — visual vessel comparison)
+const UNEMITTED_PLANNED_TAGS = new Set(['reference-anchor-swap', 'tall-thin-illusion']);
 
 const numbersIn = (text) => text.match(/\d+/g).map(Number);
 
@@ -192,13 +199,25 @@ function expectedAnswerFor(skillId, q) {
     return q.render.relation;
   }
   if (skillId === 'g1.measure.weight') {
-    if (q.render.unitCount) return q.render.unitCount;
-    const heavyItem = q.render.heavier === 'left' ? q.render.leftItem : q.render.rightItem;
-    const lightItem = q.render.heavier === 'left' ? q.render.rightItem : q.render.leftItem;
-    return q.render.askLighter ? lightItem : heavyItem;
+    if (q.render.unitCount) {
+      const [, blocks] = numbersIn(q.questionText);
+      expect(blocks, 'render.unitCount matches questionText').toBe(q.render.unitCount);
+      return blocks;
+    }
+    const match = q.questionText.match(/^On the balance scale, (.+?) goes DOWN and (.+?) goes UP\. Which one is (HEAVIER|LIGHTER)\?$/);
+    expect(match, `unexpected balance questionText: ${q.questionText}`).toBeTruthy();
+    const [, heavyItem, lightItem, targetWord] = match;
+    const renderHeavy = q.render.heavier === 'left' ? q.render.leftItem : q.render.rightItem;
+    const renderLight = q.render.heavier === 'left' ? q.render.rightItem : q.render.leftItem;
+    expect(heavyItem).toBe(renderHeavy);
+    expect(lightItem).toBe(renderLight);
+    return targetWord === 'LIGHTER' ? lightItem : heavyItem;
   }
   if (skillId === 'g1.money.coins') {
-    return q.render.coins.reduce((sum, c) => sum + c, 0);
+    const textSum = numbersIn(q.questionText).reduce((sum, c) => sum + c, 0);
+    const renderSum = q.render.coins.reduce((sum, c) => sum + c, 0);
+    expect(textSum, 'questionText coin sum matches render.coins').toBe(renderSum);
+    return textSum;
   }
   if (skillId === 'g2.measure.capacity') {
     const nums = numbersIn(q.questionText);
@@ -233,9 +252,22 @@ function expectedAnswerFor(skillId, q) {
       return `${top}/${q.render.totalParts}`;
     }
     if (q.render.kind === 'fraction-whole') {
-      return q.render.wholes * q.render.partsPerWhole;
+      const partsPerWhole = q.questionText.includes('quarters (1/4)') ? 4 : 2;
+      const [wholes] = numbersIn(q.questionText.replace(/\(\d+\/\d+\)/, ''));
+      expect(wholes).toBe(q.render.wholes);
+      expect(partsPerWhole).toBe(q.render.partsPerWhole);
+      return wholes * partsPerWhole;
     }
-    return (q.render.total / (q.render.den ?? 2)) * (q.render.num ?? 1);
+    const [total] = numbersIn(q.questionText.replace(/\(\d+\/\d+\)/, ''));
+    const [num, den] = q.questionText.includes('three quarters')
+      ? [3, 4]
+      : q.questionText.includes('one quarter')
+        ? [1, 4]
+        : [1, 2];
+    expect(total).toBe(q.render.total);
+    expect(num).toBe(q.render.num ?? 1);
+    expect(den).toBe(q.render.den ?? 2);
+    return (total / den) * num;
   }
   if (skillId.startsWith('g1.count')) {
     return q.render.count; // the set drawn for the child has exactly `correctAnswer` objects
@@ -401,9 +433,10 @@ function validateCeiling(recipe) {
   }
 }
 
-// Distractor-plausibility guard (kid-test audit fix). `kind` per skill, matching _plausibility.js's
-// operation semantics; skills with no entry (compare, count-objects) have no numeric monotonic
-// rule defined and are out of scope for this guard — see ARCHITECTURE.md/TRACKER.md.
+// Distractor-plausibility guard: covers all 26 skills that call `selectDistractors` with
+// numeric options. Non-numeric / fixed-pool skills (counting, compareNumbers, shapes2d, spatial,
+// sorting, patterns, timeBasic, timeClock) and string-option branches (balance-mcq diff 1,
+// fraction-mcq) have no numeric plausibility rule and are skipped.
 const PLAUSIBILITY_KIND = {
   'g1.add.within10': 'add',
   'g1.add.within20': 'add',
@@ -422,17 +455,33 @@ const PLAUSIBILITY_KIND = {
   'g1.place.tens-ones': 'place',
   'g2.place.hundreds': 'place',
   'g2.money.amounts': 'money',
+  'g1.money.coins': 'place',
   'g1.num.ordinal': 'place',
+  'g1.prenum.compare': 'place',
   'g1.measure.length': 'length-g1',
   'g2.measure.length-std': 'length-std',
+  'g1.measure.weight': 'weight',
+  'g2.measure.capacity': 'capacity',
+  'g2.data.pictograph': 'pictograph',
+  'g2.frac.halves-quarters': 'fractions',
 };
 
 function plausibilityContextFor(kind, q) {
   if (kind === 'place') return { answer: q.correctAnswer };
+  if (kind === 'pictograph-add' || kind === 'pictograph-sub') {
+    const matched = q.render.rows.filter((r) => q.questionText.includes(r.label));
+    const counts = matched.map((r) => r.count);
+    const a = kind === 'pictograph-sub' ? Math.max(...counts) : counts[0];
+    const b = kind === 'pictograph-sub' ? Math.min(...counts) : counts[1];
+    return { a, b, answer: q.correctAnswer };
+  }
   const nums = numbersIn(q.questionText);
   if (q.questionText.startsWith('Starts at ')) {
     const [start, end] = nums;
     return { a: end, b: start, answer: q.correctAnswer };
+  }
+  if (q.questionText.startsWith('1 ') && q.questionText.includes(' holds ')) {
+    return { a: nums[1], b: nums[2], answer: q.correctAnswer };
   }
   const [a, b] = nums;
   return { a, b, answer: q.correctAnswer };
@@ -450,6 +499,17 @@ function resolvedKindFor(kind, q) {
     if (q.questionText.startsWith('Starts at 0 cm')) return 'place';
     return 'sub';
   }
+  if (kind === 'weight' || kind === 'fractions') {
+    return typeof q.correctAnswer === 'number' ? 'place' : null;
+  }
+  if (kind === 'capacity') {
+    return q.questionText.startsWith('1 ') ? 'mul' : 'sub';
+  }
+  if (kind === 'pictograph') {
+    if (q.render.scale === 1 && q.questionText.includes('ALTOGETHER')) return 'pictograph-add';
+    if (q.render.scale === 1 && q.questionText.includes('MORE')) return 'pictograph-sub';
+    return 'place';
+  }
   return kind;
 }
 
@@ -461,7 +521,7 @@ function resolvedKindFor(kind, q) {
 function validatePlausibility(recipe) {
   for (const skillId of skillIdsOf(recipe)) {
     const baseKind = PLAUSIBILITY_KIND[skillId];
-    if (!baseKind) continue; // compare / count-objects: no monotonic rule defined, out of scope
+    if (!baseKind) continue;
 
     for (let difficulty = 1; difficulty <= recipe.maxDifficulty; difficulty++) {
       for (let run = 0; run < RUNS_PER_DIFFICULTY; run++) {
@@ -469,9 +529,11 @@ function validatePlausibility(recipe) {
         const q = recipe.generate(difficulty, rng, skillId);
 
         const kind = resolvedKindFor(baseKind, q);
+        if (!kind) continue; // non-numeric branch of a mixed skill (balance-mcq / fraction-mcq)
+        const implausibleKind = kind === 'pictograph-add' ? 'add' : kind === 'pictograph-sub' ? 'sub' : kind;
         const context = plausibilityContextFor(kind, q);
         const implausibleCount = q.options.filter(
-          (opt) => opt !== q.correctAnswer && isImplausible(kind, context, opt),
+          (opt) => opt !== q.correctAnswer && isImplausible(implausibleKind, context, opt),
         ).length;
         expect(
           implausibleCount,
@@ -566,5 +628,18 @@ describe.each([
 
   it('generates at least 8 distinct questions per difficulty rung for an 8-question session', () => {
     validateSessionVariety(recipe);
+  });
+});
+
+describe('CANONICAL_TAGS vs hints parity', () => {
+  it('every canonical tag is either covered in hints.js or explicitly tracked as unemitted/planned', () => {
+    const unemitted = new Set();
+    for (const tags of Object.values(CANONICAL_TAGS)) {
+      for (const tag of tags) {
+        if (tag === 'random-slip') continue; // generic fallback tag; hints.js handles non-random tags
+        if (!REACHABLE_TAGS.includes(tag)) unemitted.add(tag);
+      }
+    }
+    expect(unemitted).toEqual(UNEMITTED_PLANNED_TAGS);
   });
 });

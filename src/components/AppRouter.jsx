@@ -1,23 +1,13 @@
 import { useState } from 'react';
 import RecipeQuizScreen from './RecipeQuizScreen';
-import SkillSelectScreen from './SkillSelectScreen';
 import SkillPathScreen from './SkillPathScreen';
 import Layout from './Layout';
 import ParentGateModal from './ParentGateModal';
 import ParentDashboard from './ParentDashboard';
 import GradePickerScreen from './GradePickerScreen';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import useTestSettings from '../hooks/useTestSettings';
 import useAndroidBackButton from '../hooks/useAndroidBackButton';
-
-// EXPERIMENT (screen-3b): SkillPathScreen is the current default Home (kid-test in progress).
-// `?home=cards` switches to the card-list variant (SkillSelectScreen) for A/B comparison —
-// same production build serves both variants without a deploy.
-// To RETIRE the path and restore card-list as default: swap the ternary below, remove the
-// SkillPathScreen import + the `path-pulse` keyframe in index.css, and delete SkillPathScreen.jsx.
-const USE_CARD_HOME =
-  typeof window !== 'undefined' &&
-  new URLSearchParams(window.location.search).get('home') === 'cards';
 
 /**
  * Wonder-band default grade. Grade is a parent-set profile property (DECISIONS: no child
@@ -27,13 +17,13 @@ const USE_CARD_HOME =
  */
 const DEFAULT_GRADE = 1;
 
-export default function ThemeManager() {
+/** Top-level view router (`'skills' | 'quiz' | 'parent'`). Theme side-effects live in `useTestSettings`. */
+export default function AppRouter() {
   const { user, currentProfile, parentSettings, clearPasscode } = useAuth();
 
   // Parent test panel (TRACKER #10): theme + grade, behind the gate. useTestSettings also owns
   // the side-effect that applies the theme class to <body> (so the portalled parent gate re-themes
-  // — see the hook). NOTE the name: THIS file manages VIEWS, not colour themes; theming logic lives
-  // in the hook, not here. The name collision is now live — flagged for a later rename decision.
+  // — see the hook).
   const {
     theme,
     grade: testGrade,
@@ -114,18 +104,18 @@ export default function ThemeManager() {
         />
       )}
 
-      {currentView === 'skills' &&
-        (USE_CARD_HOME ? (
-          <SkillSelectScreen grade={grade} onSelectSkill={handleSelectSkill} />
-        ) : (
-          <SkillPathScreen grade={grade} onSelectSkill={handleSelectSkill} />
-        ))}
+      {currentView === 'skills' && (
+        <SkillPathScreen grade={grade} onSelectSkill={handleSelectSkill} />
+      )}
 
       {currentView === 'quiz' && activeSkillId && (
         <RecipeQuizScreen
+          // Keyed by skill so "Next with Tinku →" (a new skillId) remounts a fresh session.
+          key={activeSkillId}
           grade={grade}
           skillId={activeSkillId}
           onBack={handleBackToSkills}
+          onNextSkill={handleSelectSkill}
           bridgeEnabled={bridgeEnabled}
           onSessionComplete={setSessionDone}
         />

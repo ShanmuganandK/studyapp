@@ -12,11 +12,11 @@
 ```text
 index.html (<title>%PRODUCT_NAME%</title>)
   └── src/main.jsx (Fontsource Baloo 2 & Nunito + index.css)
-        └── src/App.jsx (ErrorBoundary → AuthProvider → ThemeManager)
-              └── src/components/ThemeManager.jsx (top-level view router: 'skills' | 'quiz' | 'parent')
+        └── src/App.jsx (ErrorBoundary → AuthProvider → AppRouter)
+              └── src/components/AppRouter.jsx (top-level view router: 'skills' | 'quiz' | 'parent')
                     ├── First-run gate (!gradeChosen): GradePickerScreen
                     └── Layout (.app-shell / .app-frame, useOnline offline banner, 2-tab bottom nav)
-                          ├── 'skills': SkillPathScreen (default) or SkillSelectScreen (?home=cards)
+                          ├── 'skills': SkillPathScreen
                           ├── 'quiz':   RecipeQuizScreen → SessionPlayer → QuestionView (+ HintBubble, QuizPips, KidButton, CelebrationScreen, Confetti)
                           └── 'parent': ParentGateModal (portal + adult challenge) → ParentDashboard
                                           (progressSummary, practiceSummary, PrivacyNotice/PrivacyPolicy,
@@ -24,8 +24,8 @@ index.html (<title>%PRODUCT_NAME%</title>)
                                            TestPanel [gated by VITE_TESTER_TOOLS || bridgeEnabled], mailto feedback)
 ```
 
-- **Theming mount:** `ThemeManager.jsx` mounts `useTestSettings()`, applying `.theme-<slug>` (`wonder`, `sunset`, `bubblegum`) on `document.body` so portalled modals (`ParentGateModal`) inherit the active palette. `wonder` is the `:root` default.
-- **Android Back handling:** `ThemeManager.jsx` mounts `useAndroidBackButton()` so hardware Back closes the PIN modal, exits Quiz/Parent back to Skills, and only leaves the app from Skills.
+- **Theming mount:** `AppRouter.jsx` mounts `useTestSettings()`, applying `.theme-<slug>` (`wonder`, `sunset`, `bubblegum`) on `document.body` so portalled modals (`ParentGateModal`) inherit the active palette. `wonder` is the `:root` default.
+- **Android Back handling:** `AppRouter.jsx` mounts `useAndroidBackButton()` so hardware Back closes the PIN modal, exits Quiz/Parent back to Skills, and only leaves the app from Skills.
 
 ---
 
@@ -33,19 +33,18 @@ index.html (<title>%PRODUCT_NAME%</title>)
 
 | Layer | Responsibility | Key Live Modules |
 |---|---|---|
-| `src/config/` | Static product config, tunables & single-source policy text | `brand.js`, `privacyPolicy.js`, `masteryConfig.js`, `composerConfig.js`, `quizLayout.js`, `flags.js` *(only `testerTools` active — see `TECH_DEBT.md` `TD-1`)* |
+| `src/config/` | Static product config, tunables & single-source policy text | `brand.js`, `privacyPolicy.js`, `masteryConfig.js`, `composerConfig.js`, `quizLayout.js`, `flags.js` |
 | `src/recipes/` | Pure, deterministic question generators + curriculum graph | `skillMap.js` (`36/36` `ready` G1–2 skills), `_rng.js`, `_plausibility.js` (used by 19 recipes), `27` recipe modules (`19` single-skill + `8` multi-skill) |
 | `src/engine/` | Pure pedagogy, mastery, spaced repetition & recommendation | `sessionLite.js` (`RECIPES` registry + 8-Q session builder), `mastery.js` (0–5 level, decoupled difficulty rungs, Leitner intervals), `composer.js` (grade-scoped `recommendNext`), `hints.js` (`85/85` tag parity, `<= 10` words), `parentCoaching.js` (`84/84` diagnostic coaching), `progressSummary.js`, `practiceSummary.js` |
-| `src/hooks/` | Session state machine, remediation ladder, settings & backup | `useQuizSession.js`, `useTestSettings.js`, `useProgressBackup.js`, `useOnline.js`, `useAndroidBackButton.js` *(known SDK boundary breach — see `TECH_DEBT.md` `TD-3`)* |
-| `src/services/` | Device-local persistence, backup I/O, audio, Capacitor seams | `progressStore.js`, `practiceDays.js`, `testSettings.js`, `progressBackup.js`, `fileTransfer.js`, `platform.js`, `sound.js`, `localAdapter.js` (inert null-user), `authService.js`, `analytics.js` (inert no-op) |
-| `src/components/` | Presentational screens & UI primitives | `ThemeManager.jsx`, `Layout.jsx`, `GradePickerScreen.jsx`, `SkillPathScreen.jsx`, `SkillSelectScreen.jsx`, `SkillIcon.jsx` (`36/36` SVG medallions), `RecipeQuizScreen.jsx`, `SessionPlayer.jsx`, `QuestionView.jsx` (4 archetypes, 11 formats, 16 `mcq` `render.kind` trays), `CelebrationScreen.jsx`, `ParentGateModal.jsx`, `ParentDashboard.jsx`, `Mascot.jsx`, `KidButton.jsx` |
+| `src/hooks/` | Session state machine, remediation ladder, settings & backup | `useQuizSession.js`, `useTestSettings.js`, `useProgressBackup.js`, `useOnline.js`, `useAndroidBackButton.js` |
+| `src/services/` | Device-local persistence, backup I/O, audio, Capacitor seams | `progressStore.js`, `practiceDays.js`, `testSettings.js`, `authSettingsStore.js`, `progressBackup.js`, `fileTransfer.js`, `platform.js`, `sound.js`, `localAdapter.js` (inert null-user), `authService.js`, `analytics.js` (inert no-op) |
+| `src/contexts/` | React context wrappers for auth/PIN gate state | `AuthContext.jsx` (`AuthProvider`), `useAuth.js` |
+| `src/components/` | Presentational screens & UI primitives | `AppRouter.jsx`, `Layout.jsx`, `GradePickerScreen.jsx`, `SkillPathScreen.jsx`, `SkillIcon.jsx` (`36/36` SVG medallions), `RecipeQuizScreen.jsx`, `SessionPlayer.jsx`, `QuestionView.jsx` (4 archetypes, 11 formats, 16 `mcq` `render.kind` trays), `CelebrationScreen.jsx`, `ParentGateModal.jsx`, `ParentDashboard.jsx`, `Mascot.jsx`, `KidButton.jsx` |
 | `src/utils/logger.js` | Sole sanctioned `console.*` wrapper | Exempted from `no-console` in `eslint.config.js` |
 
-### Frozen Legacy & Known Exceptions
-- `scripts/frozen-legacy.mjs` isolates unreachable legacy modules (`src/data/**`, `src/components/modules/**`, 8 legacy screens, and `src/utils/**` except `logger.js`) from ESLint and `lint:hex`. Never edit or import them.
-- **Two known boundary exceptions** (tracked for cleanup in [`TECH_DEBT.md`](TECH_DEBT.md)):
-  1. `src/contexts/AuthContext.jsx` is actively imported in production (`App.jsx`, `ThemeManager.jsx`, `ParentGateModal.jsx`) even though `'src/contexts/**'` is listed in `FROZEN_DIRS`, and accesses `localStorage` directly (`TD-2`).
-  2. `src/hooks/useAndroidBackButton.js:22` dynamically imports `@capacitor/app` inside `src/hooks/` (`TD-3`).
+### Archived Legacy & Build Exclusions
+- Unreachable pre-rewrite legacy modules (`src/data/**`, `src/components/modules/**`, 8 legacy screens, unused `src/utils/**`) and the retired `?home=cards` experiment (`SkillSelectScreen.jsx`, `SkillCard.jsx`) live in [`archive/legacy-code/`](archive/legacy-code/README.md) — excluded from Vite builds, ESLint (`eslint.config.js`), Vitest (`vitest.config.js`), and `lint:hex`, and kept for reference until safe to delete as the product matures.
+- `scripts/frozen-legacy.mjs` now holds `FROZEN_GLOBS = []` (all files inside `src/` are active and guarded) alongside `COLOR_CLASS_EXCEPTIONS`.
 
 ---
 
@@ -70,7 +69,7 @@ Zero cloud persistence; all browser/WebView state lives in `localStorage`:
 | `tinku:v1:skills` | `src/services/progressStore.js` | `{ version: 1, skills: Record<skillId, SkillState> }`; backfills `difficultyStreak: 0`. |
 | `tinku:v1:practiceDays` | `src/services/practiceDays.js` | `{ version: 1, days: string[] }`; local `YYYY-MM-DD` dates recorded on session completion (`MAX_DAYS = 800`), no identifiers. |
 | `tinku:v1:testSettings` | `src/services/testSettings.js` | `{ version: 1, theme, grade, bridgeEnabled, gradeChosen }`; excluded from backup exports. |
-| `math_kids_settings_anon` | `src/contexts/AuthContext.jsx` | Parent PIN hash (`SHA-256`, or `plain:` FNV-1a fallback on insecure HTTP); excluded from backup exports. |
+| `math_kids_settings_anon` | `src/services/authSettingsStore.js` (via `AuthContext.jsx`) | Parent PIN hash (`SHA-256`, or `plain:` FNV-1a fallback on insecure HTTP); excluded from backup exports. |
 
 - **Backup export/import (`src/services/progressBackup.js`, `src/services/fileTransfer.js`):** Exchanges a versioned `tinku-math-progress` v1 JSON envelope (`{ format, version, exportedAt, skills, practiceDays? }`). Imports validate fully against an allowlist and **replace** (not merge) behind a two-step confirm. Web downloads via `<a download>`; Android exports via Capacitor Filesystem (cache dir) + Share sheet.
 
@@ -97,6 +96,7 @@ Zero cloud persistence; all browser/WebView state lives in `localStorage`:
 
 - **Design tokens (`src/index.css`, `tailwind.config.js`):** CSS custom properties under `:root` (`wonder`) and `.theme-{sunset,bubblegum}`. Guarded by `npm run lint:hex`, `designTokens.test.js`, and `themeContrast.test.js` (WCAG AA contrast).
 - **Semantic colour grammar (locked):** `accent`/amber = rewards only; `success` (`#16a34a`) = correct; `encourage`/coral = wrong; `learn`/sky = hints; `review`/teal = review-due.
+- **Illustration palette:** drawn art (`SkillIcon.jsx`) fills only from `--color-illo-*` (theme-independent, `sun` is apricot, never amber) and never borrows a semantic token (guarded by `SkillIcon.test.jsx`).
 - **Viewport-fit layout (`src/config/quizLayout.js`, `src/index.css`):** `.quiz-stage` and `.picker-hero` use CSS container-query sizing budgets (`container-type: size`) so questions, visual trays, mascot, and answer tiles fit on `360×640` through `412×915` without scrolling (checked via `npm run layout:check`). Bottom nav hides during active quizzes and returns on the summary screen.
 - **Images & animations:** Mascot poses in `src/assets/mascot/webp/` are built from `branding/mascot-originals/` by `scripts/build-mascot.sh` as `1024×1024` WebPs (guarded by `mascotAssets.test.js`). Skill medallions render via inline token-coloured SVGs in `src/components/SkillIcon.jsx` (`36/36` ready skills). PWA icons are generated by `scripts/build-icons.py` (`distLean.test.js`). Animations use GPU-composited `transform` and `opacity` only. Desktop phone-mockup bezel/notch chrome in `Layout.jsx` is scoped to fine-pointer desktop viewports (`>= 640px`, `hover: hover`, `pointer: fine`) so touch tablets render a centred full-height canvas.
 

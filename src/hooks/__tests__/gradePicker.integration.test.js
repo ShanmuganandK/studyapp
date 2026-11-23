@@ -3,7 +3,7 @@
  *
  * The picker's own UI is covered in components/__tests__/GradePickerScreen.test.jsx
  * (render/choice), the gate that decides whether it is shown at all in
- * components/__tests__/GradePickerGate.integration.test.jsx (the real ThemeManager), and
+ * components/__tests__/GradePickerGate.integration.test.jsx (the real AppRouter), and
  * chooseInitialGrade's state/persistence in useTestSettings.test.js. This file covers the two
  * claims that only make sense checked ACROSS modules:
  *   1. The grade the picker writes lands under the SAME key the parent-zone control already

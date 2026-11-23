@@ -89,6 +89,22 @@
      Any future "needs attention / revisit" state inherits this token, never amber. */
   --color-review: #14b8a6;
 
+  /* Color — ILLUSTRATION palette: drawn art only (SkillIcon.jsx), never UI state. Kept apart from the
+     semantic colours above so a drawing never borrows a locked meaning, and the art looks the same in
+     every theme (like Tinku himself). `sun` is apricot, NOT amber, because the icons sit right beside
+     the amber mastery rings and pips on the home path, and amber means "earned" only. leaf, berry and
+     sky keep today's hues for now; tuning them is an art-direction call (new character + palette). */
+  --color-illo-sun: #fdba74;
+  --color-illo-sun-soft: #ffedd5;
+  --color-illo-leaf: #16a34a;
+  --color-illo-leaf-soft: #dcfce7;
+  --color-illo-berry: #fb9a7d;
+  --color-illo-berry-soft: #ffede6;
+  --color-illo-berry-ink: #c2410c;
+  --color-illo-sky: #7dd3fc;
+  --color-illo-sky-soft: #e0f2fe;
+  --color-illo-sky-ink: #0369a1;
+
   /* Color — text. `ink` carries the same two co-declared forms as primary/primary-ink above,
      same reason (the effect layer alpha-blends it for depth shadows on light surfaces). */
   --color-ink: #1e293b;            /* slate-800 — primary body/heading text */
@@ -469,7 +485,7 @@
   .path-pulse { animation: none; opacity: 0; }
 }
 
-/* Screen transition — a gentle rise-and-fade when the active view changes (ThemeManager
+/* Screen transition — a gentle rise-and-fade when the active view changes (AppRouter
    sets key={currentView} on the content wrapper so React remounts it with this animation).
    200ms, GPU-only (transform/opacity), respects prefers-reduced-motion. */
 @keyframes view-enter {

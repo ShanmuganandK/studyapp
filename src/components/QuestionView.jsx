@@ -742,13 +742,15 @@ export default function QuestionView({ question, blankFill = null }) {
         <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card px-3 py-2.5 shadow-card grid grid-cols-2 gap-3 select-none">
           <div className="rounded-button border border-primary-soft bg-bg px-2.5 py-2 text-center flex flex-col justify-center min-h-[4.75rem]">
             <div className="text-xs font-body font-bold text-muted mb-1">Group A</div>
-            <div className="flex flex-wrap items-center justify-center gap-0.5 text-xl sm:text-3xl leading-none">
+            {/* Big-looking objects drawn big, small ones smaller (the size-vs-number test), but never so
+                small that a 6-year-old can't count them: the counts are no longer printed. */}
+            <div className="flex flex-wrap items-center justify-center gap-0.5 text-2xl sm:text-3xl leading-none">
               {Array.from({ length: countA }).map((_, i) => <span key={i}>{glyphA}</span>)}
             </div>
           </div>
           <div className="rounded-button border border-primary-soft bg-bg px-2.5 py-2 text-center flex flex-col justify-center min-h-[4.75rem]">
             <div className="text-xs font-body font-bold text-muted mb-1">Group B</div>
-            <div className="flex flex-wrap items-center justify-center gap-0.5 text-xs sm:text-sm leading-tight">
+            <div className="flex flex-wrap items-center justify-center gap-1 text-base sm:text-lg leading-tight">
               {Array.from({ length: countB }).map((_, i) => <span key={i}>{glyphB}</span>)}
             </div>
           </div>

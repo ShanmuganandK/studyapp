@@ -42,23 +42,3 @@ export function getSkillVisual({ level, isDue, isSuggested, isReviewSuggested })
   }
   return { state: 'idle', ring: 'border-primary-soft', cue: null, loud: false };
 }
-
-/**
- * Shared label markup for a state cue, so the ↻ glyph, wording, and tone live in one place and read
- * identically on cards and the path. `className` carries each view's layout (spacing/alignment).
- */
-export function SkillStateCue({ cue, className = '' }) {
-  if (!cue) return null;
-  if (cue.kind === 'review') {
-    // ↻ always teal (review token); the text tone signals loud (ink) vs a muted secondary cue.
-    const toneClass = cue.tone === 'muted' ? 'text-muted' : 'text-ink';
-    return (
-      <span className={`text-xs font-bold ${toneClass} ${className}`}>
-        <span className="text-review">↻</span> Review time!
-      </span>
-    );
-  }
-  return (
-    <span className={`text-xs font-bold text-learn-ink ${className}`}>Tinku suggests!</span>
-  );
-}

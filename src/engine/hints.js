@@ -2,9 +2,8 @@
  * hints — tag → kid-friendly remediation hint, for the tags the READY recipes actually emit.
  *
  * Seeded from misconceptions-reference.md (the canonical source), generalised so the string
- * works for any question of that type (the doc's hints are often example-specific). Only the
- * reachable tags are included now (the 4 ready recipes: counting, addition, subtraction,
- * compare) — not all 68. More land as the recipe factory builds more skills.
+ * works for any question of that type (the doc's hints are often example-specific). Covers all
+ * active misconception tags emitted across the 36 ready skills (guarded by hints.test.js).
  *
  * `operator-mixup` and `off-by-one` are shared across addition/subtraction, so their hints are
  * phrased to fit both operations.

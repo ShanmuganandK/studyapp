@@ -23,10 +23,9 @@
  * it — a listing title is ASO copy that changes on its own schedule, whereas PRODUCT_NAME is the
  * app's identity. Recorded in DECISIONS 2026-08-16 and the TRACKER pre-launch checklist.
  *
- * The rule locked with it: **brand first, keyword second.** "CBSE" must not appear in the NAME —
- * CBSE is a statutory board and a name implying affiliation risks Play's impersonation policy.
- * Describing the app as CBSE-*aligned* in the DESCRIPTION is a different and much safer claim,
- * which is why the word survives below but not in PRODUCT_NAME.
+ * The rule locked with it: **brand first, keyword second.** Regional/board terms (such as "CBSE")
+ * must not appear in PRODUCT_NAME or DESCRIPTION — the app targets a global Grades 1–2 audience
+ * and avoids board-impersonation risk in Play review.
  */
 
 /** The product's name. In-app, in the PWA manifest, in the page title, in the privacy policy. */

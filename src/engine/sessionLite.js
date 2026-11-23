@@ -179,7 +179,8 @@ export function rampDifficulty(index, length, maxDifficulty) {
  *     (clamped to the skill's maxDifficulty). Used by the mastery wiring layer to resume
  *     at the child's adapted level instead of always ramping from 1. When omitted the
  *     existing 1→2→3 ramp behaviour is unchanged.
- * @returns {{ skillId, skillName, grade, questions }} questions are recipe contract outputs,
+ * @returns {{ skillId, skillName, grade, questions }} skillName is the kid-facing display name;
+ *          questions are recipe contract outputs,
  *          each annotated with its `difficulty` (session metadata for analytics/mastery).
  */
 export function buildLiteSession(grade, rng, { length = DEFAULT_LENGTH, skillId, difficulty } = {}) {
@@ -208,5 +209,12 @@ export function buildLiteSession(grade, rng, { length = DEFAULT_LENGTH, skillId,
     signatureOf: (q) => signatureOf(q, kind),
   });
 
-  return { skillId: chosen.id, skillName: chosen.name, grade: chosen.grade, questions };
+  // skillName is child-facing (celebration + mastery-up line), so prefer the kid display name
+  // ("More or Fewer?") over the curriculum name ("Big/small, more/less, tall/short").
+  return {
+    skillId: chosen.id,
+    skillName: chosen.displayName ?? chosen.name,
+    grade: chosen.grade,
+    questions,
+  };
 }

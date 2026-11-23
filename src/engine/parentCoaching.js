@@ -7,6 +7,22 @@
  */
 
 import { SKILLS } from '../recipes/skillMap.js';
+import { isMastered } from './mastery.js';
+
+/**
+ * Selection rules for the "Tinku Noticed" card. Mistake counts in a skill state are lifetime totals that
+ * never decay, so the card must not treat old history as current:
+ *   - MIN_OCCURRENCES: one wrong tap is a slip or a guess, not a pattern worth a parent's evening.
+ *   - RECENT_DAYS: only skills practised within this many days of `today` count as "recent practice".
+ *   - mastered skills are skipped: whatever went wrong there has been overcome.
+ */
+export const NOTICED_MIN_OCCURRENCES = 2;
+export const NOTICED_RECENT_DAYS = 14;
+
+/** Whole days from ISO date `from` to ISO date `to` ('YYYY-MM-DD'); NaN when either is missing. */
+function daysBetween(from, to) {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86400000);
+}
 
 const COACHING = {
   // ── Counting ────────────────────────────────────────────────────────────────
@@ -17,7 +33,7 @@ const COACHING = {
   },
   'skip-count-sequence': {
     title: 'Skipping a number in order',
-    observation: 'Your child knows the number names, and occasionally skips over one number while counting fast.',
+    observation: 'Sometimes one number gets skipped when counting quickly, a very common slip at this age.',
     activity: 'Walk up 10 steps or clap 10 times together slowly, saying one number per step.',
   },
   'count-from-zero': {
@@ -41,19 +57,19 @@ const COACHING = {
   // ── Shared Add / Subtract ───────────────────────────────────────────────────
   'operator-mixup': {
     title: 'Mixing up + and − signs',
-    observation: 'Your child solved the numbers accurately, but followed the opposite sign (+ instead of −, or vice versa).',
+    observation: 'Some answers follow the opposite sign: adding when the question says take away, or the other way round.',
     activity: 'Before answering 3 quick sums with buttons, ask your child to point to the sign and say "join" (+) or "take away" (−).',
   },
   'off-by-one': {
     title: 'Off by just one',
-    observation: 'The strategy is solid — the answer is landing just 1 step above or below on the final count.',
+    observation: 'Some answers land just 1 above or below the right number, often from rushing the final count.',
     activity: 'Play a 1-minute finger check: have your child nod once per count on the last 3 numbers.',
   },
 
   // ── 2-Digit Addition ────────────────────────────────────────────────────────
   'ones-addition-ignored': {
     title: 'Adding tens, pausing on ones',
-    observation: 'Your child added the tens column well, and kept one number’s ones digit instead of adding both.',
+    observation: 'Some answers add the tens but keep only one number’s ones digit instead of adding both.',
     activity: 'Write 23 + 14 vertically and cover the tens with your thumb so only 3 + 4 shows first.',
   },
   'column-alignment-shift': {
@@ -132,7 +148,7 @@ const COACHING = {
   },
   'skip-count-misstep': {
     title: 'Slipping on a skip-count step',
-    observation: 'Your child understands equal groups and missed one step while skip-counting up.',
+    observation: 'Some answers land one step off while skip-counting up through equal groups.',
     activity: 'Clap and chant 2, 4, 6, 8, 10 (or 5s / 10s) together while waiting in line or riding.',
   },
   'multiplication-by-zero-identity': {
@@ -159,7 +175,7 @@ const COACHING = {
   // ── Comparing Numbers ───────────────────────────────────────────────────────
   'alligator-confusion': {
     title: 'Flipping < and > signs',
-    observation: 'Your child knows which number is bigger, and occasionally reverses which way < or > points.',
+    observation: 'Sometimes the < or > sign gets flipped, so it points the wrong way.',
     activity: 'Draw two dots beside the bigger number and one dot beside the smaller, then connect them into the open mouth.',
   },
   'ones-digit-bias': {
@@ -213,7 +229,7 @@ const COACHING = {
   },
   'tens-only-counted': {
     title: 'Stopping after counting the tens',
-    observation: 'Your child counted the tens accurately (30) and stopped before adding the loose ones.',
+    observation: 'Some answers count the tens (like 30) but stop before adding the loose ones.',
     activity: 'Tap the tens pile ("30!") and then sweep your hand to the ones ("plus 4 more!").',
   },
   'expanded-concatenation': {
@@ -277,7 +293,7 @@ const COACHING = {
   },
   'right-to-left-start': {
     title: 'Counting positions from the right end',
-    observation: 'Your child counted ordinal positions accurately, starting from the right side instead of the left.',
+    observation: 'Some answers count positions from the right side instead of the left.',
     activity: 'Put a sticker on the left edge of a toy queue to mark "Start (1st) here!"',
   },
 
@@ -343,7 +359,7 @@ const COACHING = {
   },
   'opposite-attribute-confusion': {
     title: 'Swapping MORE/HEAVIER with FEWER/LIGHTER',
-    observation: 'Your child counted correctly, and answered for the opposite comparison word.',
+    observation: 'Some answers match the opposite word: the group with fewer when asked for more, or lighter for heavier.',
     activity: 'Have your child underline or say the magic word ("MORE" or "FEWER") aloud before counting.',
   },
   'quantity-size-illusion': {
@@ -429,7 +445,7 @@ const COACHING = {
   // ── Pictograph ──────────────────────────────────────────────────────────────
   'adjacent-row-read': {
     title: 'Reading the neighbouring chart row',
-    observation: 'Your child counted symbols accurately, just from the row right above or below the named item.',
+    observation: 'Some answers come from the row just above or below the one asked about.',
     activity: 'Have your child place a finger on the named picture/word and slide straight across that row.',
   },
   'total-instead-of-difference': {
@@ -478,16 +494,30 @@ export function getParentCoaching(tag) {
  * Pick the top `limit` (default 2) recent diagnostic misconception coaching cards
  * for the active grade from stored `skillStates`. Pure, deterministic, zero PII/counts exposed.
  *
+ * A tag qualifies only when, summed over the skills that count (same grade, not mastered, and practised
+ * within `recentDays` of `today` when `today` is given), it occurred at least `minOccurrences` times.
+ *
  * @param {Record<string, object>} skillStates
- * @param {{ grade?: number, limit?: number }} [opts]
+ * @param {{ grade?: number, today?: string, limit?: number, minOccurrences?: number, recentDays?: number }} [opts]
  */
-export function pickTinkuNoticed(skillStates, { grade, limit = 2 } = {}) {
+export function pickTinkuNoticed(
+  skillStates,
+  {
+    grade,
+    today,
+    limit = 2,
+    minOccurrences = NOTICED_MIN_OCCURRENCES,
+    recentDays = NOTICED_RECENT_DAYS,
+  } = {},
+) {
   const byTag = new Map();
 
   for (const [skillId, state] of Object.entries(skillStates ?? {})) {
     const skill = SKILLS[skillId];
     if (!skill) continue;
     if (grade != null && skill.grade !== grade) continue;
+    if (state && isMastered(state)) continue;
+    if (today && !(daysBetween(state?.lastSeen, today) <= recentDays)) continue;
 
     const lastSeen = state?.lastSeen ?? '';
     const misconceptions = state?.misconceptions ?? {};
@@ -518,6 +548,7 @@ export function pickTinkuNoticed(skillStates, { grade, limit = 2 } = {}) {
   }
 
   return [...byTag.values()]
+    .filter((item) => item.count >= minOccurrences)
     .sort((a, b) => (
       b.lastSeen.localeCompare(a.lastSeen) ||
       b.count - a.count ||

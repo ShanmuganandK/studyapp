@@ -305,4 +305,24 @@ describe('SessionPlayer — one-way hint voice & Listen button', () => {
     expect(screen.queryByRole('button', { name: 'Listen to hint' })).toBeNull();
     expect(stopHintVoiceSpy).toHaveBeenCalled();
   });
+
+  it('"Next with Tinku →" on the summary starts the recommended skill through onNextSkill', () => {
+    const onNextSkill = vi.fn();
+    const onExit = vi.fn();
+    hookValue = baseState({
+      sessionComplete: true,
+      score: 8,
+      masteryUp: {
+        leveledUp: true,
+        justMastered: false,
+        level: 3,
+        skillName: 'Test',
+        next: { skillId: 'g1.num.compare20', skillName: 'Big or Small?' },
+      },
+    });
+    render(<SessionPlayer {...props} onExit={onExit} onNextSkill={onNextSkill} />);
+    fireEvent.click(screen.getByRole('button', { name: /Next with Tinku/ }));
+    expect(onNextSkill).toHaveBeenCalledWith('g1.num.compare20');
+    expect(onExit).not.toHaveBeenCalled();
+  });
 });

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Delete, X } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/useAuth';
 import Mascot from './Mascot';
 import { makeAdultChallenge } from './parentChallenge';
 import logger from '../utils/logger';

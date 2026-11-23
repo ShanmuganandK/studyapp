@@ -108,6 +108,6 @@ export function progressSummary(skillStates, today, grade) {
     masteredCount: mastered.length,
     lastActivity: latestSeen ? formatRelativeDate(latestSeen, today) : null,
     skillsPractisedCount: mastered.length + inProgress.length,
-    tinkuNoticed: pickTinkuNoticed(skillStates, { grade }),
+    tinkuNoticed: pickTinkuNoticed(skillStates, { grade, today }),
   };
 }

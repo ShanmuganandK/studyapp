@@ -5,24 +5,20 @@ import { loadAllSkillStates } from '../services/progressStore';
 import { isDueForReview } from '../engine/mastery';
 import { MASTERY } from '../config/masteryConfig';
 import { recommendNext } from '../engine/composer';
-import { getSkillVisual, SkillStateCue } from './skillStateVisual';
+import { getSkillVisual } from './skillStateVisual';
+import { SkillStateCue } from './SkillStateCue';
 import Mascot from './Mascot';
 import PrivacyNotice from './PrivacyNotice';
 import SkillIcon from './SkillIcon';
 
 /**
- * SkillPathScreen — EXPERIMENT (Screen 3-B): a "Journey Path" Home variant, parallel to the
- * card-list SkillSelectScreen. Decision-pending — we kid-test both, then keep one. Currently the
- * DEFAULT Home on master; SkillSelectScreen is reachable via `?home=cards` (ThemeManager).
+ * SkillPathScreen — the Home / Journey Path screen, displaying every `status:'ready'` skill
+ * from the skill map (for the active grade) as a vertical winding path of medallions.
  *
- * Same skill set + ORDER as production (status:'ready', by `order`), laid out as a vertical winding
- * path of medallions alternating left/right, connected by a soft SVG spine.
- *
- * DATA FLOW IS IDENTICAL to SkillSelectScreen — the same loadAllSkillStates + recommendNext + per-
- * node isDueForReview delegation (thin, pre-existing pattern; copied, not refactored). No new engine
- * calls, no recomputed logic. Pip/label rendering is intentionally DUPLICATED here (not shared with
- * SkillCard) — de-dup only happens after the kid-test decision (STANDARDS §0.2). Tokens only; the
- * LOCKED colour rules hold: review-due = `review` (teal), mastered = `accent` (amber, reward-only).
+ * Reads loadAllSkillStates + recommendNext + isDueForReview on mount (thin delegation to the pure
+ * engine). Tokens only; the LOCKED colour rules hold: review-due = `review` (teal), mastered =
+ * `accent` (amber, reward-only).
+ * (Archived `?home=cards` variant `SkillSelectScreen` / `SkillCard` lives in `archive/legacy-code/`.)
  */
 
 // Layout constants — the path geometry. Nodes sit on two lanes (% of width) at fixed row heights;
@@ -133,7 +129,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
 // ── One stop on the path: medallion + label + (when suggested) the Tinku "go here" marker ──
 
 function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft, onClick }) {
-  // SHARED state→visual grammar (skillStateVisual.jsx) — identical mapping to SkillCard, so the two
+  // SHARED state→visual grammar (skillStateVisual.js) — identical mapping to SkillCard, so the two
   // Home views can't drift. due-but-not-suggested is NEUTRAL (never amber while due); mastered-not-
   // due is amber; the single loud element is the suggested node. (DECISIONS 2026-07-15.)
   const visual = getSkillVisual({ level, isDue, isSuggested, isReviewSuggested });
