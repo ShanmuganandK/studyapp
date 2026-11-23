@@ -61,14 +61,15 @@ src/
 ├── hooks/         # Session loop, test settings, backup & Android back button
 ├── services/      # localStorage persistence, JSON export/import, audio, Capacitor seams
 ├── config/        # Brand, privacy policy source, mastery/composer/layout tunables
-├── components/    # Screens (GradePicker, SkillPath, Quiz, ParentDashboard), SkillIcon & UI
+├── components/    # Screens (AppRouter, GradePicker, SkillPath, Quiz, ParentDashboard), SkillIcon & UI
+├── contexts/      # AuthContext + useAuth (device-local PIN deterrent wrapper)
 ├── index.css      # Design tokens, theme palettes, .quiz-stage container-query layout
-└── data/, utils/  # Frozen legacy path (except src/utils/logger.js) — never edited
+└── utils/         # Active logger (`logger.js`)
 android/           # Capacitor 8 Android project (com.stringus.tinku)
 branding/          # Master mascot art & 512px Play Store icon
 public/            # Generated privacy.html and PWA icons
 scripts/           # Build/privacy generators, raw-hex/frozen guards, layout & visual checks
-archive/           # Historical ~1-year docs, trackers, specs & design snapshots (read-only)
+archive/           # Historical docs, trackers, specs, snapshots & archived legacy code (`legacy-code/`)
 ```
 
 ---

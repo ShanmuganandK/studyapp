@@ -3,7 +3,7 @@
 > **Scope (Single Source of Truth):** Final reconciled, code-verified post-`L9` improvement plan synthesizing independent reviews against live `src/` and locked decisions. Covers verified defects, positioning, brand/IP/trademark foundations, voice-first & tactile UX, a gated 4-phase solo-founder roadmap, zero-analytics organic growth, `2026-10-20`-compliant parent-convenience IAP, and pre-2027 Age Signals / DPDP compliance gates.
 > - Active UX follow-ups (`F1`–`F5`), design-system proposals (`DS-1`–`DS-8`), teacher sign-offs (`☐ 1`–`☐ 17`), and Layer 2 triggers live in [`ROADMAP.md`](ROADMAP.md).
 > - Live release status, Play Data Safety answers, and the active `L9` closed-test protocol live in [`CURRENT_STATE.md`](CURRENT_STATE.md).
-> - Verified code defects (`TD-1`–`TD-9`), stale flags, boundary breaches, lint warnings, and test gaps live in [`TECH_DEBT.md`](TECH_DEBT.md).
+> - Code-level defects, stale flags, boundary breaches, lint warnings, and test gaps (`TD-1`–`TD-9` — all resolved as of `2026-11-23`) live in [`TECH_DEBT.md`](TECH_DEBT.md).
 > - Historical decisions (including the locked `2026-10-20` monetisation rule) live in [`archive/decisions/DECISIONS.md`](archive/decisions/DECISIONS.md).
 
 _Reconciled: `2026-11-20` · Web/master implementation updated: `2026-11-21` (during `L9` closed test — **Android Play release remains frozen until `L9` is scored `~2026-11-25`**)._
@@ -19,7 +19,7 @@ The engineering and teaching engine are unusually rigorous, while the visible br
 | **Teaching engine** | 36 `ready` skills, 85 diagnostic misconception tags with targeted hints, spaced review, and a never-punish remediation path. | [`src/recipes/skillMap.js`](src/recipes/skillMap.js), [`src/engine/hints.js`](src/engine/hints.js) |
 | **Mistake data** | Each child's mistakes are counted by type on-device (`misconceptions: { tag: count }`). **Update (`2026-11-21`):** Now surfaced in [`ParentDashboard.jsx`](src/components/ParentDashboard.jsx) via the **"Tinku Noticed"** card (`84/84` diagnostic coaching tips in [`parentCoaching.js`](src/engine/parentCoaching.js)). | [`src/engine/mastery.js`](src/engine/mastery.js) (`:52`, `:129-132`), [`src/engine/parentCoaching.js`](src/engine/parentCoaching.js) |
 | **Privacy** | Zero accounts, ads, analytics, or network calls; zero Android OS permissions verified on a real phone. | [`CURRENT_STATE.md`](CURRENT_STATE.md), [`src/services/__tests__/androidProject.test.js`](src/services/__tests__/androidProject.test.js) |
-| **Engineering** | `59` test files (`822` passed / `824` total) with CI guards enforcing privacy, brand, and colour tokens. | [`CURRENT_STATE.md`](CURRENT_STATE.md) |
+| **Engineering** | `67` test files (`874` passed / `876` total), `0` ESLint errors/warnings, and CI guards enforcing privacy, brand, and colour tokens. | [`CURRENT_STATE.md`](CURRENT_STATE.md) |
 | **Character** | Tinku reads as a generic flat cartoon elephant: 6 static images, no animation, unused `Tinku_Sleeping.webp`, and unclear AI-art copyrightability. | `branding/`, [`src/components/Mascot.jsx`](src/components/Mascot.jsx) (`:34`) |
 | **Colour** | Default Wonder palette uses Tailwind's stock indigo and sky (`#4f46e5`, `#3730a3`, `#e0e7ff`, `#f0f9ff`). | [`src/index.css`](src/index.css) (`:38-64`) |
 | **Icons & names** | **Update (`2026-11-21`):** Replaced repeating emojis and `🐘` with `36/36` kid-first token-coloured SVG medallions ([`SkillIcon.jsx`](src/components/SkillIcon.jsx)), renamed `Bigger or Smaller?` → `More or Fewer?`, and removed the duplicate Home Tinku. | [`src/components/SkillIcon.jsx`](src/components/SkillIcon.jsx), [`src/recipes/skillMap.js`](src/recipes/skillMap.js), [`src/components/SkillPathScreen.jsx`](src/components/SkillPathScreen.jsx) |
@@ -98,7 +98,7 @@ flowchart LR
     P0 --> G1 --> P1 --> G2 --> P2 --> G3 --> P3
 ```
 
-*(Resolve `TD-1`–`TD-8` in [`TECH_DEBT.md`](TECH_DEBT.md) — especially `AuthContext.jsx` `TD-2` and Capacitor seam `TD-3` — ahead of Phase 3 billing/profile work. iOS stays unscheduled until Android demand justifies a separate Kids-category review.)*
+*(All `TD-1`–`TD-8` items in [`TECH_DEBT.md`](TECH_DEBT.md) are resolved as of `2026-11-23` — `AuthContext.jsx` unfrozen/routed via `authSettingsStore.js`, Capacitor back-button behind `platform.js`, `?home=cards` and unreachable legacy code moved to `archive/legacy-code/` — leaving a clean codebase ahead of Phase 3 billing/profile work. iOS stays unscheduled until Android demand justifies a separate Kids-category review.)*
 
 ---
 
@@ -177,7 +177,7 @@ No billing work begins until **production retention holds** and some parents ask
 
 **Due before the Day-14 message (`~Nov 24, 2026`) or before Production Launch:**
 - [ ] Add two questions to the Day-14 tester message: *"Did your child need you to read the questions or hints aloud?"* and *"If Tinku told you your child's exact mistake and a 1-minute game to fix it, would you use it?"*
-- [ ] Decide whether to fix both `TD-9` answer-leak bugs (`group-compare` + `half-collection`) during the `L9` freeze or wait until Day 15.
+- [x] Decided & fixed both `TD-9` answer-leak bugs (`group-compare` + `half-collection`, `57725f5`).
 - [ ] Lock product name spelling (`"Math"` vs. `"Maths"`) and in-app copy consistency.
 - [ ] Run trademark search (`Tinku` / `Tinku Math`, including against `Tinkle` in India) before production launch.
 - [ ] Settle the Android `allowBackup="true"` Data Safety answer (`L7` in [`CURRENT_STATE.md`](CURRENT_STATE.md)).

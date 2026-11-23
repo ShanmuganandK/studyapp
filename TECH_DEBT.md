@@ -5,7 +5,7 @@
 > - Live release status & ops live in [`CURRENT_STATE.md`](CURRENT_STATE.md).
 > - **Maintenance rule:** Remove an item from this table when fixed rather than keeping a completed history log (git history holds closed fixes).
 
-_Baseline verified against live `src/` (`2026-11-21`)._
+_Baseline verified against live `src/` (`2026-11-23`)._
 
 ---
 

@@ -38,6 +38,7 @@ index.html (<title>%PRODUCT_NAME%</title>)
 | `src/engine/` | Pure pedagogy, mastery, spaced repetition & recommendation | `sessionLite.js` (`RECIPES` registry + 8-Q session builder), `mastery.js` (0–5 level, decoupled difficulty rungs, Leitner intervals), `composer.js` (grade-scoped `recommendNext`), `hints.js` (`85/85` tag parity, `<= 10` words), `parentCoaching.js` (`84/84` diagnostic coaching), `progressSummary.js`, `practiceSummary.js` |
 | `src/hooks/` | Session state machine, remediation ladder, settings & backup | `useQuizSession.js`, `useTestSettings.js`, `useProgressBackup.js`, `useOnline.js`, `useAndroidBackButton.js` |
 | `src/services/` | Device-local persistence, backup I/O, audio, Capacitor seams | `progressStore.js`, `practiceDays.js`, `testSettings.js`, `authSettingsStore.js`, `progressBackup.js`, `fileTransfer.js`, `platform.js`, `sound.js`, `localAdapter.js` (inert null-user), `authService.js`, `analytics.js` (inert no-op) |
+| `src/contexts/` | React context wrappers for auth/PIN gate state | `AuthContext.jsx` (`AuthProvider`), `useAuth.js` |
 | `src/components/` | Presentational screens & UI primitives | `AppRouter.jsx`, `Layout.jsx`, `GradePickerScreen.jsx`, `SkillPathScreen.jsx`, `SkillIcon.jsx` (`36/36` SVG medallions), `RecipeQuizScreen.jsx`, `SessionPlayer.jsx`, `QuestionView.jsx` (4 archetypes, 11 formats, 16 `mcq` `render.kind` trays), `CelebrationScreen.jsx`, `ParentGateModal.jsx`, `ParentDashboard.jsx`, `Mascot.jsx`, `KidButton.jsx` |
 | `src/utils/logger.js` | Sole sanctioned `console.*` wrapper | Exempted from `no-console` in `eslint.config.js` |
 
@@ -68,7 +69,7 @@ Zero cloud persistence; all browser/WebView state lives in `localStorage`:
 | `tinku:v1:skills` | `src/services/progressStore.js` | `{ version: 1, skills: Record<skillId, SkillState> }`; backfills `difficultyStreak: 0`. |
 | `tinku:v1:practiceDays` | `src/services/practiceDays.js` | `{ version: 1, days: string[] }`; local `YYYY-MM-DD` dates recorded on session completion (`MAX_DAYS = 800`), no identifiers. |
 | `tinku:v1:testSettings` | `src/services/testSettings.js` | `{ version: 1, theme, grade, bridgeEnabled, gradeChosen }`; excluded from backup exports. |
-| `math_kids_settings_anon` | `src/contexts/AuthContext.jsx` | Parent PIN hash (`SHA-256`, or `plain:` FNV-1a fallback on insecure HTTP); excluded from backup exports. |
+| `math_kids_settings_anon` | `src/services/authSettingsStore.js` (via `AuthContext.jsx`) | Parent PIN hash (`SHA-256`, or `plain:` FNV-1a fallback on insecure HTTP); excluded from backup exports. |
 
 - **Backup export/import (`src/services/progressBackup.js`, `src/services/fileTransfer.js`):** Exchanges a versioned `tinku-math-progress` v1 JSON envelope (`{ format, version, exportedAt, skills, practiceDays? }`). Imports validate fully against an allowlist and **replace** (not merge) behind a two-step confirm. Web downloads via `<a download>`; Android exports via Capacitor Filesystem (cache dir) + Share sheet.
 
