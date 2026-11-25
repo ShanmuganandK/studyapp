@@ -337,6 +337,24 @@ async function checkPhone(phone) {
     if (landed.stopTinkuOpacity !== '1') fail(wwhere, "the stop's Tinku is not visible after the walk", landed);
     if (landed.back) fail(wwhere, '"Back to Tinku" shows right after landing', landed);
     if (landed.pageScrollY !== 0) fail(wwhere, 'the walk scrolled the page itself', landed);
+    // Owner review 2026-11-25: once Tinku has left, the header spot must close up, so scrolling back to the top
+    // shows the title at the top, not a blank band where the big Tinku stood.
+    const titleGap = () => mpage.evaluate(() => Math.round(
+      document.querySelector('h2').getBoundingClientRect().top - document.querySelector('.desktop-phone-content').getBoundingClientRect().top));
+    await mpage.evaluate(() => { document.querySelector('.desktop-phone-content').scrollTop = 0; });
+    await mpage.clock.runFor(50);
+    const farGap = await titleGap();
+    if (farGap > 70) fail(wwhere, `blank band above the title after the walk (title ${farGap} px below the top)`);
+    // Near stop (fresh install → stop 1): the top is still on screen when Tinku lands, so the page slides up.
+    // Init scripts run in order on every load: the first one seeds stop 15, this one clears it (fresh install).
+    await mpage.addInitScript(() => localStorage.removeItem('tinku:v1:skills'));
+    await mpage.goto(URL); await mpage.clock.runFor(2500);
+    await mpage.waitForTimeout(500); // the slide-up is a Web Animation (compositor clock, not the paused page clock)
+    const near = await walkState();
+    const nearGap = await titleGap();
+    if (near.walker || !near.inView) fail(wwhere, 'near stop: Tinku did not land on stop 1', near);
+    if (nearGap > 70) fail(wwhere, `near stop: blank band above the title after the walk (title ${nearGap} px below the top)`);
+    await mpage.addInitScript(([k]) => localStorage.setItem('tinku:v1:skills', k), [seeded]); // back to stop 15
     await mpage.goto(URL); await mpage.clock.runFor(700); // mid-walk
     // Tap a blank spot (the left padding) by coordinates: no auto-scroll first, and no stop under the finger.
     await mpage.mouse.click(8, Math.round(phone.h / 2)); await mpage.clock.runFor(50);

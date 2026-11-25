@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp } from 'lucide-react';
 import { SKILLS } from '../recipes/skillMap';
 import { readySkills } from '../engine/sessionLite';
@@ -89,6 +89,8 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
   const suggestedRef = useRef(null);
   const backAnchorRef = useRef(null);
   const walkerRef = useRef(null);
+  const rootRef = useRef(null);
+  const landingRef = useRef(null); // { top, scroller }: the stop's screen position the moment Tinku lands
   const [tinkuAway, setTinkuAway] = useState(null); // null (in view / not yet known) | 'up' | 'down'
   // Decided once per visit (Home remounts on every visit, so the walk plays every time — owner's call).
   const [walks] = useState(
@@ -143,6 +145,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
       SKIP_EVENTS.forEach((type) => window.removeEventListener(type, land));
       if (scroller) scroller.scrollTop = (geo || measure()).scrollTo;
       else row.scrollIntoView?.({ block: 'center' });
+      landingRef.current = { top: row.getBoundingClientRect().top, scroller };
       setWalk('landed');
     };
     const step = (now) => {
@@ -166,6 +169,25 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
       SKIP_EVENTS.forEach((type) => window.removeEventListener(type, land));
     };
   }, [walks]);
+
+  // Once Tinku has landed the emptied header spot is removed, or scrolling back up showed a blank band at the
+  // top (owner review 2026-11-25). Before paint, keep the stop where it was on screen by scrolling up as far
+  // as it moved; whatever the scroll can't absorb (header still on screen, stop near the top) slides up
+  // instead of jumping (transform-only).
+  useLayoutEffect(() => {
+    const before = landingRef.current;
+    const row = suggestedRef.current;
+    if (walk !== 'landed' || !before || !row) return;
+    landingRef.current = null;
+    if (before.scroller) before.scroller.scrollTop += row.getBoundingClientRect().top - before.top;
+    const stillMoved = before.top - row.getBoundingClientRect().top;
+    if (stillMoved > 0.5) {
+      rootRef.current?.animate?.(
+        [{ transform: `translateY(${stillMoved}px)` }, { transform: 'translateY(0)' }],
+        { duration: 300, easing: 'ease-out' }
+      );
+    }
+  }, [walk]);
 
   // While the child scrolls Tinku's stop mostly out of view, offer "Back to Tinku", pointing toward the stop.
   // Direction compares the stop with the button's own anchor, which sits at the bottom of the visible area.
@@ -191,16 +213,14 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
   };
 
   return (
-    <div className="flex flex-col items-center min-h-full bg-bg px-4 py-6 text-center">
+    <div ref={rootRef} className="flex flex-col items-center min-h-full bg-bg px-4 py-6 text-center">
       {!hasPathMascot && <Mascot emotion="waving" size={HEADER_TINKU} />}
-      {/* F6: the walk's launch pad. It keeps its size after Tinku leaves, so nothing below ever shifts. */}
-      {walks && (
-        <div className="relative z-40" style={{ width: HEADER_TINKU, height: HEADER_TINKU }}>
-          {walk === 'walking' && (
-            <div ref={walkerRef} data-tinku="travel" className="pointer-events-none will-change-transform" style={{ transformOrigin: '0 0' }}>
-              <Mascot emotion="waving" size={HEADER_TINKU} />
-            </div>
-          )}
+      {/* F6: the walk's launch pad, removed once Tinku lands (see the layout effect above). */}
+      {walk === 'walking' && (
+        <div data-tinku="slot" className="relative z-40" style={{ width: HEADER_TINKU, height: HEADER_TINKU }}>
+          <div ref={walkerRef} data-tinku="travel" className="pointer-events-none will-change-transform" style={{ transformOrigin: '0 0' }}>
+            <Mascot emotion="waving" size={HEADER_TINKU} />
+          </div>
         </div>
       )}
       <h2 className="font-display text-2xl font-extrabold text-primary-ink mt-2">What shall we practise?</h2>

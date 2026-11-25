@@ -192,11 +192,13 @@ describe('SkillPathScreen', () => {
     });
     const traveller = (c) => c.querySelector('[data-tinku="travel"]');
     const stopTinku = (c) => c.querySelector('[data-tinku="stop"]');
+    const headerSlot = (c) => c.querySelector('[data-tinku="slot"]');
 
     it('starts with the big Tinku at the top and the stop\'s Tinku hidden (no instant jump)', () => {
       motion(false);
       const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
       expect(traveller(container).querySelector('[data-testid="mascot"]').dataset.size).toBe('104');
+      expect(headerSlot(container)).toBeTruthy(); // the big Tinku's spot at the top
       expect(stopTinku(container).style.opacity).toBe('0');
       expect(scrolled).toHaveLength(0);
     });
@@ -209,6 +211,8 @@ describe('SkillPathScreen', () => {
       expect(stopTinku(container).style.opacity).not.toBe('0');
       expect(stopTinku(container).className).toContain('animate-tinku-land');
       expect(screen.getAllByTestId('mascot')).toHaveLength(1);
+      // Owner review 2026-11-25: the emptied header spot must close up, or scrolling back up shows a blank top.
+      expect(headerSlot(container)).toBeNull();
     });
 
     it('any tap skips straight to the stop', () => {
@@ -218,6 +222,7 @@ describe('SkillPathScreen', () => {
       expect(traveller(container)).toBeTruthy();
       fireEvent.pointerDown(window);
       expect(traveller(container)).toBeNull();
+      expect(headerSlot(container)).toBeNull();
       expect(stopTinku(container).style.opacity).not.toBe('0');
     });
 
