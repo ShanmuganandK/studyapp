@@ -485,6 +485,19 @@
   .path-pulse { animation: none; opacity: 0; }
 }
 
+/* Home (ROADMAP F6): after Tinku walks down from the top, a small hop as Tinku lands on the stop.
+   Transform-only; the walk itself never runs under reduced motion, and neither does this. */
+@keyframes tinku-land {
+  0%   { transform: translateY(0); }
+  40%  { transform: translateY(-8px); }
+  100% { transform: translateY(0); }
+}
+.animate-tinku-land { animation: tinku-land 260ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-tinku-land { animation: none; }
+}
+
 /* Screen transition — a gentle rise-and-fade when the active view changes (AppRouter
    sets key={currentView} on the content wrapper so React remounts it with this animation).
    200ms, GPU-only (transform/opacity), respects prefers-reduced-motion. */

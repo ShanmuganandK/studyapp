@@ -28,6 +28,24 @@ const LANE_LEFT = 30; // %
 const LANE_RIGHT = 70; // %
 const ROW_H = 128; // px per skill row
 
+// ROADMAP F6 "Tinku walks to the stop" (prototype for owner review): the big header Tinku waves for
+// WALK_HOLD_MS, then glides onto the stop while the page scrolls under it. Longer trips take longer, within
+// bounds. Any tap, scroll or key (SKIP_EVENTS) jumps straight to the end.
+const HEADER_TINKU = 104; // px — the header Tinku (all-caught-up header, and where the walk starts)
+const WALK_HOLD_MS = 350;
+const walkMs = (dy) => Math.min(1500, Math.max(700, 500 + Math.abs(dy) * 0.5));
+const easeInOut = (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
+const SKIP_EVENTS = ['pointerdown', 'wheel', 'touchstart', 'keydown'];
+
+/** Nearest scrolling ancestor (Layout's content area): the walk drives its scrollTop frame by frame. */
+function scrollParentOf(el) {
+  for (let p = el?.parentElement; p; p = p.parentElement) {
+    const { overflowY } = getComputedStyle(p);
+    if ((overflowY === 'auto' || overflowY === 'scroll') && p.scrollHeight > p.clientHeight) return p;
+  }
+  return null;
+}
+
 /** Build the winding spine path (SVG user units: x in 0–100, y in px). Smooth S-curves between
  *  alternating lane centres. Stroke stays even via vector-effect (see the <path> below). */
 function buildSpine(count) {
@@ -67,13 +85,87 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
 
   // TD-15: Home must open with Tinku's stop on screen. Layout remounts the scroll area at the top and the
   // header Tinku is hidden while the path has one, so a suggestion past the first few stops used to leave
-  // no Tinku on screen at all. Default (instant) behaviour, so it holds under reduced motion too.
+  // no Tinku on screen at all. With motion allowed, Tinku walks there (F6); otherwise an instant jump.
   const suggestedRef = useRef(null);
   const backAnchorRef = useRef(null);
+  const walkerRef = useRef(null);
   const [tinkuAway, setTinkuAway] = useState(null); // null (in view / not yet known) | 'up' | 'down'
+  // Decided once per visit (Home remounts on every visit, so the walk plays every time — owner's call).
+  const [walks] = useState(
+    () =>
+      hasPathMascot &&
+      typeof requestAnimationFrame === 'function' &&
+      typeof window.matchMedia === 'function' &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+  const [walk, setWalk] = useState(walks ? 'walking' : 'off'); // 'walking' → 'landed'; 'off' = no walk
+
   useEffect(() => {
-    suggestedRef.current?.scrollIntoView?.({ block: 'center' });
-  }, []);
+    const row = suggestedRef.current;
+    if (!row) return undefined;
+    if (!walks) {
+      row.scrollIntoView?.({ block: 'center' });
+      return undefined;
+    }
+    // F6: frame by frame, move the walker from the header slot onto the stop's (hidden) Tinku and scroll the
+    // page by the same eased amount. Both sit in the same scrolling content, so their offset is measured once.
+    const walker = walkerRef.current;
+    const marker = row.querySelector('[data-tinku="stop"]');
+    const scroller = scrollParentOf(row);
+    let frame = 0;
+    let start = null;
+    let geo = null;
+    let finished = false;
+    const measure = () => {
+      const a = walker.getBoundingClientRect();
+      const b = marker.getBoundingClientRect();
+      const r = row.getBoundingClientRect();
+      let scrollTo = 0;
+      if (scroller) {
+        const s = scroller.getBoundingClientRect();
+        const centred = scroller.scrollTop + r.top - s.top + r.height / 2 - scroller.clientHeight / 2;
+        scrollTo = Math.min(scroller.scrollHeight - scroller.clientHeight, Math.max(0, centred));
+      }
+      const dy = b.top - a.top;
+      return {
+        dx: b.left - a.left,
+        dy,
+        scale: a.width ? b.width / a.width : 1,
+        scrollFrom: scroller ? scroller.scrollTop : 0,
+        scrollTo,
+        ms: walkMs(dy),
+      };
+    };
+    const land = () => {
+      if (finished) return;
+      finished = true;
+      cancelAnimationFrame(frame);
+      SKIP_EVENTS.forEach((type) => window.removeEventListener(type, land));
+      if (scroller) scroller.scrollTop = (geo || measure()).scrollTo;
+      else row.scrollIntoView?.({ block: 'center' });
+      setWalk('landed');
+    };
+    const step = (now) => {
+      if (start === null) start = now;
+      const t = now - start - WALK_HOLD_MS;
+      if (t >= 0) {
+        if (!geo) geo = measure();
+        const e = easeInOut(Math.min(1, t / geo.ms));
+        walker.style.transform = `translate(${geo.dx * e}px, ${geo.dy * e}px) scale(${1 + (geo.scale - 1) * e})`;
+        if (scroller) scroller.scrollTop = geo.scrollFrom + (geo.scrollTo - geo.scrollFrom) * e;
+        if (t >= geo.ms) return land();
+      }
+      frame = requestAnimationFrame(step);
+      return undefined;
+    };
+    SKIP_EVENTS.forEach((type) => window.addEventListener(type, land, { passive: true }));
+    frame = requestAnimationFrame(step);
+    return () => {
+      finished = true;
+      cancelAnimationFrame(frame);
+      SKIP_EVENTS.forEach((type) => window.removeEventListener(type, land));
+    };
+  }, [walks]);
 
   // While the child scrolls Tinku's stop mostly out of view, offer "Back to Tinku", pointing toward the stop.
   // Direction compares the stop with the button's own anchor, which sits at the bottom of the visible area.
@@ -100,7 +192,17 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
 
   return (
     <div className="flex flex-col items-center min-h-full bg-bg px-4 py-6 text-center">
-      {!hasPathMascot && <Mascot emotion="waving" size={104} />}
+      {!hasPathMascot && <Mascot emotion="waving" size={HEADER_TINKU} />}
+      {/* F6: the walk's launch pad. It keeps its size after Tinku leaves, so nothing below ever shifts. */}
+      {walks && (
+        <div className="relative z-40" style={{ width: HEADER_TINKU, height: HEADER_TINKU }}>
+          {walk === 'walking' && (
+            <div ref={walkerRef} data-tinku="travel" className="pointer-events-none will-change-transform" style={{ transformOrigin: '0 0' }}>
+              <Mascot emotion="waving" size={HEADER_TINKU} />
+            </div>
+          )}
+        </div>
+      )}
       <h2 className="font-display text-2xl font-extrabold text-primary-ink mt-2">What shall we practise?</h2>
       <p className="text-muted text-sm mb-4">Follow the path with Tinku!</p>
 
@@ -138,9 +240,9 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
                 key={skill.id}
                 ref={isSuggested ? suggestedRef : undefined}
                 className="relative animate-opt-in"
-                // Stagger ripples out from Tinku's stop, so the stops on screen after the load scroll appear
-                // first (a top-down stagger left them blank for up to ~1 s). Tinku on stop 1 = the old order.
-                style={{ height: ROW_H, animationDelay: `${Math.abs(i - Math.max(suggestedIdx, 0)) * 55}ms` }}
+                // Stagger starts where the screen starts: at the top while Tinku walks down (F6), else rippling
+                // out from Tinku's stop, so the stops on screen after the instant jump don't sit blank for ~1 s.
+                style={{ height: ROW_H, animationDelay: `${Math.abs(i - (walks ? 0 : Math.max(suggestedIdx, 0))) * 55}ms` }}
               >
                 <PathNode
                   skill={skill}
@@ -149,6 +251,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
                   isSuggested={isSuggested}
                   isReviewSuggested={isReviewSuggested}
                   isLeft={isLeft}
+                  tinku={walk === 'walking' ? 'hidden' : walk === 'landed' ? 'land' : 'still'}
                   onClick={() => onSelectSkill(skill.id)}
                 />
               </li>
@@ -162,7 +265,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
           view, so it never competes with the one loud node. */}
       {hasPathMascot && (
         <div ref={backAnchorRef} className="sticky bottom-4 z-30 h-0 w-full max-w-sm">
-          {tinkuAway && (
+          {tinkuAway && walk !== 'walking' && (
             <div className="absolute bottom-0 inset-x-0 flex justify-center pointer-events-none">
               <button
                 type="button"
@@ -189,7 +292,9 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
 
 // ── One stop on the path: medallion + label + (when suggested) the Tinku "go here" marker ──
 
-function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft, onClick }) {
+// `tinku` (suggested node only): 'hidden' while the header Tinku walks here (F6) — still laid out, so the walk
+// can measure where to land — 'land' once arrived (small hop), 'still' when there was no walk.
+function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft, tinku = 'still', onClick }) {
   // SHARED state→visual grammar (skillStateVisual.js) — identical mapping to SkillCard, so the two
   // Home views can't drift. due-but-not-suggested is NEUTRAL (never amber while due); mastered-not-
   // due is amber; the single loud element is the suggested node. (DECISIONS 2026-07-15.)
@@ -222,8 +327,9 @@ function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft,
       {/* Tinku "you are here / go here" marker beside the suggested node (outer side). */}
       {visual.loud && (
         <div
-          className="absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none"
-          style={isLeft ? { left: '-2px' } : { right: '-2px' }}
+          data-tinku="stop"
+          className={`absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none ${tinku === 'land' ? 'animate-tinku-land' : ''}`}
+          style={{ ...(isLeft ? { left: '-2px' } : { right: '-2px' }), opacity: tinku === 'hidden' ? 0 : undefined }}
         >
           <Mascot emotion="waving" size={58} />
         </div>

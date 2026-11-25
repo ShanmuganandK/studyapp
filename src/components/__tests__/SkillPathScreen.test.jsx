@@ -167,6 +167,79 @@ describe('SkillPathScreen', () => {
     });
   });
 
+  // ── F6: Tinku walks from the top of Home down to the stop (prototype for owner review) ─────────────
+  describe('Tinku walks from the top to the stop (F6)', () => {
+    // jsdom has no layout (every rect is 0) and no real frames, so frames are driven by hand: we assert the
+    // sequence (big Tinku at the top → glide → lands on the stop), not pixel positions (layout:check does those).
+    let frames; // queued requestAnimationFrame callbacks
+    let scrolled;
+    const motion = (reduce) => vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: reduce })));
+    const runFrames = (times) => times.forEach((t) => act(() => frames.splice(0).forEach((cb) => cb(t))));
+    beforeEach(() => {
+      frames = [];
+      vi.stubGlobal('requestAnimationFrame', (cb) => frames.push(cb));
+      vi.stubGlobal('cancelAnimationFrame', () => {});
+      scrolled = [];
+      Element.prototype.scrollIntoView = vi.fn(function scrollIntoView(opts) { scrolled.push({ el: this, opts }); });
+      mockStates = {
+        'g1.count.1-9': { ...mastered('g1.count.1-9', null), level: 3 },
+        'g1.shapes.2d': { ...mastered('g1.shapes.2d', null), level: 1 }, // → Tinku's stop is 15 of 19
+      };
+    });
+    afterEach(() => {
+      vi.unstubAllGlobals();
+      delete Element.prototype.scrollIntoView;
+    });
+    const traveller = (c) => c.querySelector('[data-tinku="travel"]');
+    const stopTinku = (c) => c.querySelector('[data-tinku="stop"]');
+
+    it('starts with the big Tinku at the top and the stop\'s Tinku hidden (no instant jump)', () => {
+      motion(false);
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
+      expect(traveller(container).querySelector('[data-testid="mascot"]').dataset.size).toBe('104');
+      expect(stopTinku(container).style.opacity).toBe('0');
+      expect(scrolled).toHaveLength(0);
+    });
+
+    it('after the glide, Tinku lands on the stop with a hop and the top one is gone', () => {
+      motion(false);
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
+      runFrames([0, 100, 400, 800, 1200, 1600]);
+      expect(traveller(container)).toBeNull();
+      expect(stopTinku(container).style.opacity).not.toBe('0');
+      expect(stopTinku(container).className).toContain('animate-tinku-land');
+      expect(screen.getAllByTestId('mascot')).toHaveLength(1);
+    });
+
+    it('any tap skips straight to the stop', () => {
+      motion(false);
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
+      runFrames([0, 400]); // mid-glide
+      expect(traveller(container)).toBeTruthy();
+      fireEvent.pointerDown(window);
+      expect(traveller(container)).toBeNull();
+      expect(stopTinku(container).style.opacity).not.toBe('0');
+    });
+
+    it('reduced motion: no walk, no header slot — the instant TD-15 jump', () => {
+      motion(true);
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
+      expect(screen.getByText('Tinku suggests!')).toBeTruthy(); // path rendered
+      expect(traveller(container)).toBeNull();
+      expect(screen.getAllByTestId('mascot')).toHaveLength(1);
+      expect(scrolled.map((s) => s.opts)).toEqual([{ block: 'center' }]);
+    });
+
+    it('all caught up: the header Tinku stays put (nothing to walk to)', () => {
+      motion(false);
+      mockStates = Object.fromEntries(readySkills.map((s) => [s.id, mastered(s.id, '2999-12-31')]));
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
+      expect(screen.getAllByRole('button')).toHaveLength(readySkills.length); // path rendered
+      expect(traveller(container)).toBeNull();
+      expect(screen.getAllByTestId('mascot')).toHaveLength(1);
+    });
+  });
+
   it('mastered-not-due shows the amber ring; a separate frontier skill is the suggestion', () => {
     const [a, b] = [readySkills[0].id, readySkills[1].id];
     mockStates = {
