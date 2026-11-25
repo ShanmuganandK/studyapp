@@ -71,8 +71,18 @@ Layer 1 (automated unit/integration/guard suite) is live. Planned calibration lo
 
 ## 5. Kid-Test Watch-List (Gated Decisions — Do Not Build Until Signal Arrives)
 
-- **Home navigation (`SkillPathScreen`):** Monitor how children navigate the Journey Path (`?home=cards` card variant archived in `archive/legacy-code/`).
-- **Composer tuning:** Whether children follow Tinku's pointer (`FRONTIER_PICK: 'momentum'`) and whether review-due prompts deflate motivation (in-session review embedding).
+- **Home navigation (`SkillPathScreen`) — owner flagged `2026-11-25`:** Every stop on the Journey Path can be tapped in any order (prereqs only steer Tinku; the UI never gates a stop), so a child can scatter across the path with no single "you are here". Proposed direction, **not yet decided**:
+  - *Guided for the child:* stops behind Tinku stay playable; stops ahead read as a friendly "not yet" (no grey padlock); tapping one has Tinku say "Let's finish *X* first!" and scrolls back to Tinku.
+  - *Choice for the parent:* a parent-zone "Move Tinku to…" so the path can follow what school taught this week (CBSE schools won't teach in the app's order).
+  - *Open:* stops ahead truly locked, or tappable with a nudge; whether children who already know a topic need a "quick check to skip ahead".
+  - Tinku being off-screen on load was a separate defect (`TD-15`), fixed `2026-11-25` without waiting on this decision: Home now opens scrolled to Tinku's stop and shows a "Back to Tinku" button while that stop is scrolled away (`SkillPathScreen.jsx`, guarded by `SkillPathScreen.test.jsx` and the `layout:check` Home pass). (`?home=cards` card variant archived in `archive/legacy-code/`.)
+- **Composer tuning — where Tinku stands:** Today (`FRONTIER_PICK: 'lowest_level'`, `src/config/composerConfig.js:17`) Tinku goes to the started, unmastered skill with the lowest level, so it jumps around once a child has started several. Reproduced in Playwright on `2026-11-25` (Class 1: Counting 1–9 at level 3, then Addition within 10, 2D shapes and Day/night started at level 1): playing each in turn moved Tinku stop 6 → 15 → 19 → 6. Candidate rules:
+  - `'lowest_level'` (today): weakest started skill first; zig-zags.
+  - `'momentum'` (proposed `2026-08`, never built; only `'lowest_level'` / `'skillmap_order'` exist): the most recently played unmastered skill until mastered. Follows the child, so scattered taps still scatter Tinku.
+  - *First unfinished stop* (proposed `2026-11-25`): Tinku only moves forward along the path; due reviews still come first, then Tinku returns to its stop.
+  - *Open — pace:* move on at `UNLOCK_LEVEL` 3 (3 strong sessions) or `MASTERED_LEVEL` 5 (at least 5 strong sessions, the last at hard difficulty; more in practice), across 19 Class 1 stops. Leaning 3, with levels 4–5 coming back as revisits.
+  - *Open — reviews:* a due review currently takes Tinku and the loud node back up the path. The archived composer rationale (`archive/trackers/TRACKER.md`) said review should never be the headline call-to-action, and should instead be blended into sessions as warm-up questions (never built). Decide together with the rule above.
+  - *Gate:* either the owner's own observation counts as the signal, or wait for `L9` results. Record the call in [`archive/decisions/DECISIONS.md`](archive/decisions/DECISIONS.md) before building.
 - **Theme indifference check:** Whether theme switching moves engagement at all (kid-facing theme picker stays unbuilt unless proven valuable).
 - **Bridge-in warm-up toggle:** Whether walking lower rungs prevents freezes on `2d + 2d` without causing abandonment/fatigue (fallback: show only the single rung immediately below working rung).
 - **Progress loss & backup:** Whether families hit data loss in practice or find JSON export/import sufficient.

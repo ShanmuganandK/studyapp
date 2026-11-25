@@ -23,6 +23,8 @@
  * counting tray was once clipped on a real phone (2026-10-18). It fails if it never gets to see a 3-row tray.
  * A third pass loads a FRESH install and checks the first-run class picker: no scroll, every choice on screen and
  * touchable, Tinku at least 30% of the screen height (and no wider than the hero), at most 30% of the hero empty.
+ * A Home pass (TD-15) seeds progress so Tinku's stop is far down the path and checks it is on screen when Home
+ * opens, and that a >= 48px "Back to Tinku" button appears when it is scrolled away and brings it back.
  * Portrait only: this is a portrait app (the Android build should be locked to portrait).
  *
  * Exit code 1 if anything fails, with the offending measurement printed.
@@ -247,6 +249,52 @@ async function checkPhone(phone) {
       pickerRows.push(`${pad(phone.name, 24)}${pad(`${phone.w}x${phone.h}`, 11)}${pad(`${Math.round(m.tinku)} px`, 10)}${pad(`${Math.round((100 * m.tinku) / m.vh)}%`, 17)}${phone.cramped ? 'n/a' : `${Math.round(m.void * 100)}%`}`);
     }
     if (shotsDir) await page.screenshot({ path: join(shotsDir, `picker-${phone.w}x${phone.h}.png`) });
+    await ctx.close();
+  }
+
+  // HOME PASS (TD-15): with Tinku's stop far down the path, Home must open with that stop on screen (without
+  // scrolling the page itself); scrolled away, a >= 48px "Back to Tinku" button must appear and bring it back.
+  {
+    const ctx = await browser.newContext({ viewport: { width: phone.w, height: phone.h }, deviceScaleFactor: 2, reducedMotion: 'reduce' });
+    const page = await ctx.newPage();
+    const st = (id, level) => ({ skillId: id, level, difficulty: 1, maxDifficulty: 3, attempts: 10, correct: 8, lastSeen: '2026-11-20', nextReview: null, reviewInterval: 0, recentParams: [], misconceptions: {}, difficultyStreak: 0 });
+    // Counting 1–9 at the unlock level and 2D shapes just started → Tinku suggests shapes, stop 15 of 19.
+    const seeded = JSON.stringify({ version: 1, skills: { 'g1.count.1-9': st('g1.count.1-9', 3), 'g1.shapes.2d': st('g1.shapes.2d', 1) } });
+    await page.addInitScript(([s, k]) => { localStorage.setItem('tinku:v1:testSettings', s); localStorage.setItem('tinku:v1:skills', k); }, [settings(1), seeded]);
+    await page.clock.install({ time: 1760000000000 });
+    await page.goto(URL); await page.clock.runFor(1200);
+    const where = `${phone.name} ${phone.w}x${phone.h} home (TD-15)`;
+    const BACK = 'button[aria-label="Back to Tinku"]';
+    const homeState = () => page.evaluate((backSel) => {
+      const s = document.querySelector('.desktop-phone-content').getBoundingClientRect();
+      const rows = [...document.querySelectorAll('ol li')];
+      const idx = rows.findIndex((li) => li.querySelector('.path-pulse'));
+      const r = rows[idx]?.getBoundingClientRect();
+      const b = document.querySelector(backSel)?.getBoundingClientRect();
+      return {
+        stop: idx + 1,
+        inView: !!r && r.top >= s.top - 1 && r.bottom <= s.bottom + 1,
+        pageScrollY: window.scrollY,
+        back: b ? { h: Math.round(b.height), inView: b.top >= s.top && b.bottom <= s.bottom } : null,
+      };
+    }, BACK);
+    const onLoad = await homeState();
+    if (onLoad.stop < 6) fail(where, `seeded suggestion should be far down the path, got stop ${onLoad.stop}`);
+    if (!onLoad.inView) fail(where, "Tinku's stop is off-screen on load", onLoad);
+    if (onLoad.pageScrollY !== 0) fail(where, 'opening Home scrolled the page itself', onLoad);
+    if (onLoad.back) fail(where, '"Back to Tinku" shows while the stop is in view', onLoad);
+    await page.evaluate(() => { document.querySelector('.desktop-phone-content').scrollTop = 0; });
+    await page.waitForSelector(BACK, { timeout: 3000 }).catch(() => {});
+    const away = await homeState();
+    if (!away.back) fail(where, '"Back to Tinku" did not appear with the stop scrolled away', away);
+    else {
+      if (away.back.h < 47.5) fail(where, `"Back to Tinku" is ${away.back.h} px tall (< 48px)`);
+      if (!away.back.inView) fail(where, '"Back to Tinku" is not inside the visible area', away);
+      await page.click(BACK);
+      await page.waitForSelector(BACK, { state: 'detached', timeout: 3000 }).catch(() => {});
+      const back = await homeState();
+      if (!back.inView || back.back) fail(where, '"Back to Tinku" did not bring the stop back into view', back);
+    }
     await ctx.close();
   }
 

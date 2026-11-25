@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 import { SKILLS } from '../recipes/skillMap';
 import { readySkills } from '../engine/sessionLite';
 import { loadAllSkillStates } from '../services/progressStore';
@@ -56,12 +57,46 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
   // Grade filter via the shared readySkills() — parent test-panel grade (TRACKER #10), with its
   // built-in fallback to all ready skills so a grade with none yet (Grade 3 today) is never empty.
   const skills = readySkills(grade).sort((a, b) => a.order - b.order);
-  const hasPathMascot =
-    recommendation.reason !== 'all_caught_up' &&
-    skills.some((s) => s.id === recommendation.skillId);
+  // Index of the stop Tinku stands on, or -1 when no stop holds Tinku (all caught up → header Tinku).
+  const suggestedIdx =
+    recommendation.reason !== 'all_caught_up' ? skills.findIndex((s) => s.id === recommendation.skillId) : -1;
+  const hasPathMascot = suggestedIdx >= 0;
 
   const spine = buildSpine(skills.length);
   const pathHeight = skills.length * ROW_H;
+
+  // TD-15: Home must open with Tinku's stop on screen. Layout remounts the scroll area at the top and the
+  // header Tinku is hidden while the path has one, so a suggestion past the first few stops used to leave
+  // no Tinku on screen at all. Default (instant) behaviour, so it holds under reduced motion too.
+  const suggestedRef = useRef(null);
+  const backAnchorRef = useRef(null);
+  const [tinkuAway, setTinkuAway] = useState(null); // null (in view / not yet known) | 'up' | 'down'
+  useEffect(() => {
+    suggestedRef.current?.scrollIntoView?.({ block: 'center' });
+  }, []);
+
+  // While the child scrolls Tinku's stop mostly out of view, offer "Back to Tinku", pointing toward the stop.
+  // Direction compares the stop with the button's own anchor, which sits at the bottom of the visible area.
+  // Skipped where IntersectionObserver is missing (jsdom, very old WebViews): the button just never shows.
+  useEffect(() => {
+    const row = suggestedRef.current;
+    if (!row || typeof IntersectionObserver === 'undefined') return undefined;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.intersectionRatio >= 0.5) return setTinkuAway(null);
+        const anchorTop = backAnchorRef.current?.getBoundingClientRect().top ?? 0;
+        return setTinkuAway(entry.boundingClientRect.top < anchorTop ? 'up' : 'down');
+      },
+      { threshold: [0, 0.5] }
+    );
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, []);
+
+  const backToTinku = () => {
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    suggestedRef.current?.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
+  };
 
   return (
     <div className="flex flex-col items-center min-h-full bg-bg px-4 py-6 text-center">
@@ -94,16 +129,18 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
             const skillState = allStates[skill.id];
             const level = skillState?.level ?? 0;
             const isDue = skillState ? isDueForReview(skillState, today) : false;
-            const isSuggested =
-              recommendation.skillId === skill.id && recommendation.reason !== 'all_caught_up';
+            const isSuggested = i === suggestedIdx;
             const isReviewSuggested = isSuggested && recommendation.reason === 'review';
             const isLeft = i % 2 === 0;
 
             return (
               <li
                 key={skill.id}
+                ref={isSuggested ? suggestedRef : undefined}
                 className="relative animate-opt-in"
-                style={{ height: ROW_H, animationDelay: `${i * 55}ms` }}
+                // Stagger ripples out from Tinku's stop, so the stops on screen after the load scroll appear
+                // first (a top-down stagger left them blank for up to ~1 s). Tinku on stop 1 = the old order.
+                style={{ height: ROW_H, animationDelay: `${Math.abs(i - Math.max(suggestedIdx, 0)) * 55}ms` }}
               >
                 <PathNode
                   skill={skill}
@@ -119,6 +156,30 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
           })}
         </ol>
       </div>
+
+      {/* "Back to Tinku" — a zero-height sticky anchor pinned near the bottom of the visible area, so the
+          button floats over the path without taking layout space. Shown only while Tinku's stop is out of
+          view, so it never competes with the one loud node. */}
+      {hasPathMascot && (
+        <div ref={backAnchorRef} className="sticky bottom-4 z-30 h-0 w-full max-w-sm">
+          {tinkuAway && (
+            <div className="absolute bottom-0 inset-x-0 flex justify-center pointer-events-none">
+              <button
+                type="button"
+                onClick={backToTinku}
+                aria-label="Back to Tinku"
+                className="pointer-events-auto animate-opt-in min-h-[48px] flex items-center gap-2 pl-2 pr-4 rounded-full bg-bg-card border-2 border-primary-soft shadow-card font-display font-extrabold text-primary-ink active:scale-95 transition-transform"
+              >
+                <Mascot emotion="waving" size={36} />
+                Back to Tinku
+                <span data-direction={tinkuAway} aria-hidden="true">
+                  {tinkuAway === 'up' ? <ArrowUp size={20} strokeWidth={2.5} /> : <ArrowDown size={20} strokeWidth={2.5} />}
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Same privacy reassurance as production, kept subtle. */}
       <PrivacyNotice variant="footer" />

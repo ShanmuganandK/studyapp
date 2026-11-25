@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, act, fireEvent } from '@testing-library/react';
 import SkillPathScreen from '../SkillPathScreen';
 import { SKILLS } from '../../recipes/skillMap';
 
@@ -94,6 +94,77 @@ describe('SkillPathScreen', () => {
     // Exactly one loud (teal) ring; the due-not-suggested node does NOT wear amber.
     expect(container.querySelector('.border-review')).toBeTruthy();
     expect(container.querySelectorAll('.border-accent').length).toBe(0);
+  });
+
+  // ── TD-15: Tinku's stop must be on screen when Home opens ───────────────────────────────────────
+  describe("keeps Tinku's stop in view (TD-15)", () => {
+    // jsdom has no layout, so scrolling and IntersectionObserver are stubbed: we assert WHICH element
+    // the screen asks to scroll / watch, and that "Back to Tinku" follows what the observer reports.
+    let scrolled; // [{ el, opts }] — `this` and options of every scrollIntoView call
+    let observer; // the single IntersectionObserver the screen creates
+    beforeEach(() => {
+      scrolled = [];
+      Element.prototype.scrollIntoView = vi.fn(function scrollIntoView(opts) { scrolled.push({ el: this, opts }); });
+      observer = null;
+      globalThis.IntersectionObserver = class {
+        constructor(cb) { this.cb = cb; this.targets = []; observer = this; }
+        observe(el) { this.targets.push(el); }
+        disconnect() { this.targets = []; }
+      };
+    });
+    afterEach(() => {
+      delete Element.prototype.scrollIntoView;
+      delete globalThis.IntersectionObserver;
+    });
+
+    // Counting 1–9 at the unlock level, 2D shapes just started → Tinku sits far down the path (stop 15).
+    const farSuggestion = () => {
+      mockStates = {
+        'g1.count.1-9': { ...mastered('g1.count.1-9', null), level: 3 },
+        'g1.shapes.2d': { ...mastered('g1.shapes.2d', null), level: 1 },
+      };
+      return SKILLS['g1.shapes.2d'].displayName ?? SKILLS['g1.shapes.2d'].name;
+    };
+    const suggestedRow = () => screen.getByText('Tinku suggests!').closest('li');
+    const report = (entry) => act(() => observer.cb([entry]));
+
+    it('scrolls the suggested stop to the middle of the screen on load', () => {
+      const label = farSuggestion();
+      render(<SkillPathScreen onSelectSkill={() => {}} />);
+      expect(suggestedRow().querySelector(`[aria-label="${label}"]`)).toBeTruthy(); // the far stop is the suggestion
+      expect(scrolled).toHaveLength(1);
+      expect(scrolled[0].el).toBe(suggestedRow());
+      expect(scrolled[0].opts).toEqual({ block: 'center' }); // instant: no smooth scroll on load
+    });
+
+    it('does not scroll when all caught up (no stop holds Tinku; the header Tinku shows)', () => {
+      mockStates = Object.fromEntries(readySkills.map((s) => [s.id, mastered(s.id, '2999-12-31')]));
+      render(<SkillPathScreen onSelectSkill={() => {}} />);
+      expect(screen.getAllByRole('button')).toHaveLength(readySkills.length); // path rendered
+      expect(scrolled).toHaveLength(0);
+    });
+
+    it('"Back to Tinku" appears only while the stop is out of view, points the right way, and scrolls back', () => {
+      farSuggestion();
+      render(<SkillPathScreen onSelectSkill={() => {}} />);
+      expect(observer.targets).toEqual([suggestedRow()]);
+      expect(screen.queryByRole('button', { name: 'Back to Tinku' })).toBeNull(); // in view (or unknown) → hidden
+
+      // The child scrolls back to the top: Tinku's stop is now BELOW the visible area.
+      report({ intersectionRatio: 0, boundingClientRect: { top: 5000 } });
+      const back = screen.getByRole('button', { name: 'Back to Tinku' });
+      expect(back.querySelector('[data-direction="down"]')).toBeTruthy();
+
+      fireEvent.click(back);
+      expect(scrolled.at(-1).el).toBe(suggestedRow());
+      expect(scrolled.at(-1).opts).toEqual({ block: 'center', behavior: 'smooth' });
+
+      // Stop back in view → button goes away. Scrolled past it → button points up.
+      report({ intersectionRatio: 1, boundingClientRect: { top: 200 } });
+      expect(screen.queryByRole('button', { name: 'Back to Tinku' })).toBeNull();
+      report({ intersectionRatio: 0, boundingClientRect: { top: -5000 } });
+      expect(screen.getByRole('button', { name: 'Back to Tinku' }).querySelector('[data-direction="up"]')).toBeTruthy();
+    });
   });
 
   it('mastered-not-due shows the amber ring; a separate frontier skill is the suggestion', () => {
