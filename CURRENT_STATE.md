@@ -16,7 +16,7 @@ _Last verified against codebase: `2026-11-23`._
 - **Curriculum:** **`36 / 36` `ready` skills** (`19` Grade 1, `17` Grade 2, `0` Grade 3) across `27` recipe modules (`src/recipes/skillMap.js`, `src/engine/sessionLite.js`), `11` top-level question formats (`+ 16` `mcq` `render.kind` sub-archetypes), **`85 / 85` concise spoken-ready misconception hints** (`<= 10` words, `src/engine/hints.js`), **`84 / 84` diagnostic parent coaching tips** (`src/engine/parentCoaching.js`), and **`36 / 36` kid-first SVG skill medallions** drawn from the `--color-illo-*` illustration palette (`src/components/SkillIcon.jsx`).
 - **Privacy & Network Posture:** 100% device-local (`localStorage`), zero accounts, zero cloud sync, zero analytics, zero ads, zero payments, zero off-origin requests, and **zero Android OS `<uses-permission>` entries** (only AndroidX's app-private `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` in the merged APK manifest, verified on a real Samsung S25 Ultra running without `INTERNET`).
 - **Web PWA:** Live at `https://tinku.stringus.com` (Netlify serving `dist/`), with public privacy policy at `https://tinku.stringus.com/privacy.html` (generated from `src/config/privacyPolicy.js`; operator line: `"operated by Stringus, based in the UAE"`, contact: `tinku@stringus.com`).
-- **Automated Verification Baseline:** `68 / 68` Vitest files (`897` passed, `2` intentional `dist/`-presence conditional skips = `899` total), `npm run lint` (`0` errors, `0` warnings), `npm run lint:hex` clean, `npm run privacy:check` clean. All `TD-1`–`TD-8` tech-debt items resolved (`archive/legacy-code/` holds archived legacy modules and `?home=cards`).
+- **Automated Verification Baseline:** `68 / 68` Vitest files (`902` passed, `2` intentional `dist/`-presence conditional skips = `904` total), `npm run lint` (`0` errors, `0` warnings), `npm run lint:hex` clean, `npm run privacy:check` clean. All `TD-1`–`TD-8` tech-debt items resolved (`archive/legacy-code/` holds archived legacy modules and `?home=cards`).
 
 ---
 
@@ -77,5 +77,5 @@ Every answer below rests on live build guards (`noFirebaseAuth.test.js`, `distLe
   - **Day 0:** Send Play opt-in link, tester code, one-child-per-phone & do-not-uninstall/clear-data note, and ask whether a Grade 1–2 child will use it.
   - **Day 3:** Optional install-check nudge only if they have not opened the app (never nudge to play more often).
   - **Day 7:** Request a Parent Zone screenshot (`Days practised` + `First week`).
-  - **Day 14:** Request Parent Zone → `Export progress` JSON file (fallback: screenshot) plus 3 optional questions: *(1) Did your child ever ask to play without being told? (2) Too easy, too hard, or about right? (3) Did anything confuse you or your child?*
+  - **Day 14:** Request Parent Zone → `Settings` → `Export progress` JSON file (fallback: screenshot) plus 3 optional questions: *(1) Did your child ever ask to play without being told? (2) Too easy, too hard, or about right? (3) Did anything confuse you or your child?*
   - **Day 15+:** Score against the pre-committed cohort rule; if missed, treat as a product signal (not a bug) before changing pacing or building new features.

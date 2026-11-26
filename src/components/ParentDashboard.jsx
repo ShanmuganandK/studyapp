@@ -68,12 +68,56 @@ function SectionLabel({ children }) {
   );
 }
 
+const PARENT_TABS = [
+  { id: 'progress', label: 'Progress' },
+  { id: 'settings', label: 'Settings' },
+];
+
+/** Two-way switch at the top of the parent zone (DECISIONS 2026-11-26). Styled like the bottom nav's active pill. */
+function ParentTabs({ tab, onChange }) {
+  return (
+    <div role="tablist" aria-label="Parent area" className="flex gap-1 p-1 bg-bg-card border border-primary-soft rounded-full">
+      {PARENT_TABS.map(({ id, label }) => {
+        const selected = tab === id;
+        return (
+          <button
+            key={id}
+            id={`parent-tab-${id}`}
+            role="tab"
+            aria-selected={selected}
+            aria-controls="parent-tabpanel"
+            onClick={() => onChange(id)}
+            className={`flex-1 min-h-[48px] rounded-full text-sm font-bold transition-colors ${
+              selected ? 'bg-primary-soft text-primary' : 'text-muted hover:text-primary'
+            }`}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Small uppercase heading + one-line note, matching the Colours and Progress backup headings. */
+function SettingsHeading({ title, note }) {
+  return (
+    <div>
+      <p className="text-xs font-semibold text-muted uppercase tracking-wide">{title}</p>
+      {note && <p className="text-xs text-muted">{note}</p>}
+    </div>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 /**
  * ParentDashboard — encouraging progress snapshot for parents, behind the parent gate.
  * Reads local mastery data (no account, no cloud). Logic lives in progressSummary.js;
  * this component only renders.
+ *
+ * Two tabs (DECISIONS 2026-11-26): Progress (opens first: what a parent reads about their child) and
+ * Settings (Class, Colours, Parent lock, Progress backup, tester tools, privacy, feedback).
  *
  * Tone: positive, never judgmental. No grades, percentages, rankings, or guilt.
  *
@@ -133,301 +177,333 @@ export default function ParentDashboard({
   // parent zone needs to know this view exists.
   const [showPolicy, setShowPolicy] = useState(false);
 
+  // Progress / Settings switch (DECISIONS 2026-11-26). Local state, so returning from the privacy
+  // policy lands back on Settings; a fresh visit (the gate remounts this screen) opens on Progress.
+  const [tab, setTab] = useState('progress');
+
   if (showPolicy) {
     return <PrivacyPolicy onBack={() => setShowPolicy(false)} />;
   }
 
-  return (
-    <div className="flex flex-col min-h-full bg-bg overflow-y-auto">
+  const header = (
+    <div className="flex flex-col items-center pt-6 pb-4 px-4 text-center">
+      <Mascot emotion="happy" size={80} />
+      <h1 className="font-display text-xl font-extrabold text-primary-ink mt-3">
+        {tab === 'settings' ? 'Settings' : "Your child's progress"}
+      </h1>
+      <p className="text-sm text-muted mt-0.5">Tinku Math{grade ? ` · Grade ${grade} (Class ${grade})` : ''}</p>
+    </div>
+  );
 
-      {/* ── Warm header ─────────────────────────────────────────────────── */}
-      <div className="flex flex-col items-center pt-6 pb-4 px-4 text-center">
-        <Mascot emotion="happy" size={80} />
-        <h1 className="font-display text-xl font-extrabold text-primary-ink mt-3">
-          Your child's progress
-        </h1>
-        <p className="text-sm text-muted mt-0.5">Tinku Math{grade ? ` · Grade ${grade} (Class ${grade})` : ''}</p>
+  // Progress tab: what a parent reads about their child.
+  const progress = (
+    <>
+      {/* ── Wins highlight ──────────────────────────────────────────────── */}
+      <div className="bg-accent-soft rounded-card shadow-card p-4">
+        {masteredCount > 0 ? (
+          <>
+            <p className="font-bold text-primary-ink text-base">
+              {masteredCount === 1
+                ? '1 skill mastered! 🎉'
+                : `${masteredCount} skills mastered! 🎉`}
+            </p>
+            <p className="text-sm text-ink mt-0.5">
+              {masteredCount === totalReady
+                ? 'All ready skills complete — wonderful work!'
+                : 'Keep it up — great progress so far!'}
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="font-bold text-primary-ink text-base">Just getting started ✨</p>
+            <p className="text-sm text-ink mt-0.5">
+              Every bit of practice helps — great things take a little time!
+            </p>
+          </>
+        )}
       </div>
 
-      <div className="px-4 pb-8 space-y-4">
-
-        {/* ── Wins highlight ──────────────────────────────────────────────── */}
-        <div className="bg-accent-soft rounded-card shadow-card p-4">
-          {masteredCount > 0 ? (
-            <>
-              <p className="font-bold text-primary-ink text-base">
-                {masteredCount === 1
-                  ? '1 skill mastered! 🎉'
-                  : `${masteredCount} skills mastered! 🎉`}
-              </p>
-              <p className="text-sm text-ink mt-0.5">
-                {masteredCount === totalReady
-                  ? 'All ready skills complete — wonderful work!'
-                  : 'Keep it up — great progress so far!'}
-              </p>
-            </>
-          ) : (
-            <>
-              <p className="font-bold text-primary-ink text-base">Just getting started ✨</p>
-              <p className="text-sm text-ink mt-0.5">
-                Every bit of practice helps — great things take a little time!
-              </p>
-            </>
-          )}
-        </div>
-
-        {/* ── Currently working on ─────────────────────────────────────────── */}
-        {inProgress.length > 0 && (
-          <div className="bg-learn-soft rounded-card p-4">
-            <p className="text-xs font-semibold text-learn-ink uppercase tracking-wide mb-2">
-              Currently working on
-            </p>
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
-              {inProgress.map((s) => (
-                <span key={s.skillId} className="inline-flex items-center gap-1.5 text-sm text-ink font-medium">
-                  <SkillIcon skillId={s.skillId} fallback={s.icon} size={20} />
-                  <span>{s.displayName}</span>
-                </span>
-              ))}
-            </div>
+      {/* ── Currently working on ─────────────────────────────────────────── */}
+      {inProgress.length > 0 && (
+        <div className="bg-learn-soft rounded-card p-4">
+          <p className="text-xs font-semibold text-learn-ink uppercase tracking-wide mb-2">
+            Currently working on
+          </p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+            {inProgress.map((s) => (
+              <span key={s.skillId} className="inline-flex items-center gap-1.5 text-sm text-ink font-medium">
+                <SkillIcon skillId={s.skillId} fallback={s.icon} size={20} />
+                <span>{s.displayName}</span>
+              </span>
+            ))}
           </div>
-        )}
-
-        {/* ── Tinku Noticed (parent mistake-coaching card, local only) ─────── */}
-        {tinkuNoticed?.length > 0 && (
-          <section
-            data-testid="tinku-noticed-card"
-            aria-label="Tinku Noticed"
-            className="bg-bg-card rounded-card border border-primary-soft shadow-card p-4 space-y-3"
-          >
-            <div>
-              <p className="text-xs font-semibold text-primary-ink uppercase tracking-wide">
-                Tinku Noticed
-              </p>
-              <p className="text-xs text-muted mt-0.5">
-                Helpful patterns from recent practice — plus a quick offline game to try at home.
-              </p>
-            </div>
-            <div className="space-y-3">
-              {tinkuNoticed.map((item) => (
-                <div
-                  key={item.tag}
-                  className="rounded-button bg-bg border border-primary-soft p-3 space-y-1.5"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm font-bold text-primary-ink">{item.title}</p>
-                    <span className="text-[11px] font-semibold text-learn-ink bg-learn-soft rounded-full px-2 py-0.5 shrink-0">
-                      {item.skillName}
-                    </span>
-                  </div>
-                  <p className="text-xs text-ink leading-relaxed">{item.observation}</p>
-                  <p className="text-xs text-primary-ink bg-primary-soft/60 rounded-button px-2.5 py-2 leading-relaxed">
-                    <span className="font-bold">Try at home (1 min):</span> {item.activity}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* ── Skills list ──────────────────────────────────────────────────── */}
-        <div className="bg-bg-card rounded-card border border-primary-soft overflow-hidden">
-          {mastered.length > 0 && (
-            <>
-              <SectionLabel>Mastered</SectionLabel>
-              <div className="px-4">
-                {mastered.map((s) => <SkillRow key={s.skillId} skill={s} />)}
-              </div>
-            </>
-          )}
-
-          {inProgress.length > 0 && (
-            <>
-              <SectionLabel>In progress</SectionLabel>
-              <div className="px-4">
-                {inProgress.map((s) => <SkillRow key={s.skillId} skill={s} />)}
-              </div>
-            </>
-          )}
-
-          {notStarted.length > 0 && (
-            <>
-              <SectionLabel>Not started yet</SectionLabel>
-              <div className="px-4 pb-2">
-                {notStarted.map((s) => <SkillRow key={s.skillId} skill={s} />)}
-              </div>
-            </>
-          )}
         </div>
+      )}
 
-        {/* ── Light activity signal ────────────────────────────────────────── */}
-        <div className="text-center py-1">
-          {lastActivity ? (
-            <p className="text-xs text-muted">
-              Last practised:{' '}
-              <span className="text-ink font-medium">{lastActivity}</span>
+      {/* ── Tinku Noticed (parent mistake-coaching card, local only) ─────── */}
+      {tinkuNoticed?.length > 0 && (
+        <section
+          data-testid="tinku-noticed-card"
+          aria-label="Tinku Noticed"
+          className="bg-bg-card rounded-card border border-primary-soft shadow-card p-4 space-y-3"
+        >
+          <div>
+            <p className="text-xs font-semibold text-primary-ink uppercase tracking-wide">
+              Tinku Noticed
             </p>
-          ) : (
-            <p className="text-xs text-muted">
-              No practice sessions yet — pick a skill to get started!
-            </p>
-          )}
-        </div>
-
-        {practice.total > 0 && (
-          <div className="text-center -mt-2" data-testid="practice-days">
-            <p className="text-xs text-muted">
-              Days practised: <span className="text-ink font-medium">{practice.total}</span>
-            </p>
-            <p className="text-xs text-muted">
-              First week: <span className="text-ink font-medium">{practice.week1} of 7 days</span>
-              {practice.week2Started && (
-                <>
-                  {' · '}Second week: <span className="text-ink font-medium">{practice.week2} of 7 days</span>
-                </>
-              )}
+            <p className="text-xs text-muted mt-0.5">
+              Helpful patterns from recent practice — plus a quick offline game to try at home.
             </p>
           </div>
-        )}
-
-        {/* ── Privacy reassurance ──────────────────────────────────────────── */}
-        <PrivacyNotice variant="card" onReadPolicy={() => setShowPolicy(true)} />
-
-        {/* ── Settings footer ──────────────────────────────────────────────── */}
-        <div className="border-t border-primary-soft pt-4 space-y-3">
-          <button
-            onClick={onSetPasscode}
-            className="w-full min-h-[48px] bg-primary text-white rounded-button shadow-button font-semibold py-3 flex items-center justify-center gap-2 active:scale-95 transition-transform"
-          >
-            <Lock size={18} />
-            {hasPasscode ? 'Change Passcode' : 'Set Parent Passcode'}
-          </button>
-
-          {/* Remove passcode — only when one is set. Two-step inline confirm (no modal system):
-              removing the code leaves the parent zone open ungated until a new code is set. */}
-          {hasPasscode && (
-            confirmRemove ? (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => { setConfirmRemove(false); onRemovePasscode(); }}
-                  className="flex-1 min-h-[48px] bg-encourage text-encourage-ink rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
-                >
-                  Remove passcode
-                </button>
-                <button
-                  onClick={() => setConfirmRemove(false)}
-                  className="flex-1 min-h-[48px] border border-primary-soft text-muted rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setConfirmRemove(true)}
-                className="w-full min-h-[48px] py-2.5 text-sm text-muted hover:text-encourage-ink transition-colors"
+          <div className="space-y-3">
+            {tinkuNoticed.map((item) => (
+              <div
+                key={item.tag}
+                className="rounded-button bg-bg border border-primary-soft p-3 space-y-1.5"
               >
-                Remove passcode
-              </button>
-            )
-          )}
-
-          {/* Progress backup — export/import as a local JSON file (TRACKER "Now" #3). Zero
-              server, zero account: REPLACE-not-merge import behind a two-step confirm. */}
-          <div className="space-y-2">
-            <p className="text-xs font-semibold text-muted uppercase tracking-wide">
-              Progress backup
-            </p>
-
-            {pendingImport ? (
-              <div className="bg-learn-soft rounded-card p-3 space-y-2">
-                <p className="text-sm text-ink">
-                  This will replace all progress on this device with the backup (
-                  {pendingImport.skillCount} skill{pendingImport.skillCount === 1 ? '' : 's'}
-                  {pendingImport.ignoredSkillCount > 0
-                    ? `, ${pendingImport.ignoredSkillCount} skipped — not in this app version`
-                    : ''}
-                  ). This can't be undone.
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={confirmImport}
-                    className="flex-1 min-h-[48px] bg-primary text-white rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
-                  >
-                    Replace progress
-                  </button>
-                  <button
-                    onClick={cancelImport}
-                    className="flex-1 min-h-[48px] border border-primary-soft text-muted rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
-                  >
-                    Cancel
-                  </button>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-sm font-bold text-primary-ink">{item.title}</p>
+                  <span className="text-[11px] font-semibold text-learn-ink bg-learn-soft rounded-full px-2 py-0.5 shrink-0">
+                    {item.skillName}
+                  </span>
                 </div>
+                <p className="text-xs text-ink leading-relaxed">{item.observation}</p>
+                <p className="text-xs text-primary-ink bg-primary-soft/60 rounded-button px-2.5 py-2 leading-relaxed">
+                  <span className="font-bold">Try at home (1 min):</span> {item.activity}
+                </p>
               </div>
-            ) : (
-              <>
-                <button
-                  onClick={exportProgress}
-                  disabled={!hasProgress}
-                  className="w-full min-h-[48px] border border-primary-soft text-ink rounded-button font-semibold py-2.5 text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
-                >
-                  <Download size={16} />
-                  Export progress
-                </button>
-                {!hasProgress && (
-                  <p className="text-xs text-muted text-center">
-                    Play a few questions first — there'll be something to save!
-                  </p>
-                )}
+            ))}
+          </div>
+        </section>
+      )}
 
-                <label className="w-full min-h-[48px] border border-primary-soft text-ink rounded-button font-semibold py-2.5 text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform cursor-pointer">
-                  <Upload size={16} />
-                  Import backup
-                  <input
-                    type="file"
-                    accept="application/json"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      e.target.value = ''; // allow re-selecting the same filename later
-                      if (file) stageImportFile(file);
-                    }}
-                  />
-                </label>
-                {importError && (
-                  <p className="text-xs text-encourage-ink text-center">{importError}</p>
-                )}
+      {/* ── Skills list ──────────────────────────────────────────────────── */}
+      <div className="bg-bg-card rounded-card border border-primary-soft overflow-hidden">
+        {mastered.length > 0 && (
+          <>
+            <SectionLabel>Mastered</SectionLabel>
+            <div className="px-4">
+              {mastered.map((s) => <SkillRow key={s.skillId} skill={s} />)}
+            </div>
+          </>
+        )}
+
+        {inProgress.length > 0 && (
+          <>
+            <SectionLabel>In progress</SectionLabel>
+            <div className="px-4">
+              {inProgress.map((s) => <SkillRow key={s.skillId} skill={s} />)}
+            </div>
+          </>
+        )}
+
+        {notStarted.length > 0 && (
+          <>
+            <SectionLabel>Not started yet</SectionLabel>
+            <div className="px-4 pb-2">
+              {notStarted.map((s) => <SkillRow key={s.skillId} skill={s} />)}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* ── Light activity signal ────────────────────────────────────────── */}
+      <div className="text-center py-1">
+        {lastActivity ? (
+          <p className="text-xs text-muted">
+            Last practised:{' '}
+            <span className="text-ink font-medium">{lastActivity}</span>
+          </p>
+        ) : (
+          <p className="text-xs text-muted">
+            No practice sessions yet — pick a skill to get started!
+          </p>
+        )}
+      </div>
+
+      {practice.total > 0 && (
+        <div className="text-center -mt-2" data-testid="practice-days">
+          <p className="text-xs text-muted">
+            Days practised: <span className="text-ink font-medium">{practice.total}</span>
+          </p>
+          <p className="text-xs text-muted">
+            First week: <span className="text-ink font-medium">{practice.week1} of 7 days</span>
+            {practice.week2Started && (
+              <>
+                {' · '}Second week: <span className="text-ink font-medium">{practice.week2} of 7 days</span>
               </>
             )}
+          </p>
+        </div>
+      )}
+    </>
+  );
+
+  const passcodeControls = (
+    <>
+      <button
+        onClick={onSetPasscode}
+        className="w-full min-h-[48px] bg-primary text-white rounded-button shadow-button font-semibold py-3 flex items-center justify-center gap-2 active:scale-95 transition-transform"
+      >
+        <Lock size={18} />
+        {hasPasscode ? 'Change Passcode' : 'Set Parent Passcode'}
+      </button>
+
+      {/* Remove passcode — only when one is set. Two-step inline confirm (no modal system):
+          removing the code leaves the parent zone open ungated until a new code is set. */}
+      {hasPasscode && (
+        confirmRemove ? (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setConfirmRemove(false); onRemovePasscode(); }}
+              className="flex-1 min-h-[48px] bg-encourage text-encourage-ink rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+            >
+              Remove passcode
+            </button>
+            <button
+              onClick={() => setConfirmRemove(false)}
+              className="flex-1 min-h-[48px] border border-primary-soft text-muted rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+            >
+              Cancel
+            </button>
           </div>
+        ) : (
+          <button
+            onClick={() => setConfirmRemove(true)}
+            className="w-full min-h-[48px] py-2.5 text-sm text-muted hover:text-encourage-ink transition-colors"
+          >
+            Remove passcode
+          </button>
+        )
+      )}
+    </>
+  );
 
-          {/* Class (grade): a real setting since suggestions became grade-scoped (DECISIONS 2026-10-20). */}
-          <div className="border-t border-primary-soft pt-4">
-            <ClassPicker grade={grade} onGradeChange={onGradeChange} />
+  // Progress backup — export/import as a local JSON file (TRACKER "Now" #3). Zero
+  // server, zero account: REPLACE-not-merge import behind a two-step confirm.
+  const backupControls = (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold text-muted uppercase tracking-wide">
+        Progress backup
+      </p>
+
+      {pendingImport ? (
+        <div className="bg-learn-soft rounded-card p-3 space-y-2">
+          <p className="text-sm text-ink">
+            This will replace all progress on this device with the backup (
+            {pendingImport.skillCount} skill{pendingImport.skillCount === 1 ? '' : 's'}
+            {pendingImport.ignoredSkillCount > 0
+              ? `, ${pendingImport.ignoredSkillCount} skipped — not in this app version`
+              : ''}
+            ). This can't be undone.
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={confirmImport}
+              className="flex-1 min-h-[48px] bg-primary text-white rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+            >
+              Replace progress
+            </button>
+            <button
+              onClick={cancelImport}
+              className="flex-1 min-h-[48px] border border-primary-soft text-muted rounded-button font-semibold py-2.5 text-sm active:scale-95 transition-transform"
+            >
+              Cancel
+            </button>
           </div>
-
-          <ThemePicker theme={theme} onThemeChange={onThemeChange} />
-
-          {/* Tester tools: warm-up experiment. Hidden from public parents; stays reachable when
-              already on, so it can be switched off (DECISIONS 2026-10-20). */}
-          {(flags.testerTools || bridgeEnabled) && (
-            <TestPanel
-              bridgeEnabled={bridgeEnabled}
-              onBridgeEnabledChange={onBridgeEnabledChange}
-            />
+        </div>
+      ) : (
+        <>
+          <button
+            onClick={exportProgress}
+            disabled={!hasProgress}
+            className="w-full min-h-[48px] border border-primary-soft text-ink rounded-button font-semibold py-2.5 text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+          >
+            <Download size={16} />
+            Export progress
+          </button>
+          {!hasProgress && (
+            <p className="text-xs text-muted text-center">
+              Play a few questions first — there'll be something to save!
+            </p>
           )}
 
-          <a
-            href={feedbackMailtoUrl()}
-            className="w-full min-h-[48px] flex items-center justify-center gap-2 py-2.5 text-sm text-muted hover:text-learn-ink transition-colors"
-          >
-            <Mail size={16} />
-            Report a bug / Give feedback
-          </a>
+          <label className="w-full min-h-[48px] border border-primary-soft text-ink rounded-button font-semibold py-2.5 text-sm flex items-center justify-center gap-2 active:scale-95 transition-transform cursor-pointer">
+            <Upload size={16} />
+            Import backup
+            <input
+              type="file"
+              accept="application/json"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = ''; // allow re-selecting the same filename later
+                if (file) stageImportFile(file);
+              }}
+            />
+          </label>
+          {importError && (
+            <p className="text-xs text-encourage-ink text-center">{importError}</p>
+          )}
+        </>
+      )}
+    </div>
+  );
 
-          {userEmail && (
-            <p className="text-xs text-muted text-center">
-              Logged in as {userEmail}
-            </p>
+  // Tester tools: warm-up experiment. Hidden from public parents; stays reachable when
+  // already on, so it can be switched off (DECISIONS 2026-10-20).
+  const testerTools = (flags.testerTools || bridgeEnabled) && (
+    <TestPanel
+      bridgeEnabled={bridgeEnabled}
+      onBridgeEnabledChange={onBridgeEnabledChange}
+    />
+  );
+
+  const help = (
+    <>
+      <a
+        href={feedbackMailtoUrl()}
+        className="w-full min-h-[48px] flex items-center justify-center gap-2 py-2.5 text-sm text-muted hover:text-learn-ink transition-colors"
+      >
+        <Mail size={16} />
+        Report a bug / Give feedback
+      </a>
+
+      {userEmail && (
+        <p className="text-xs text-muted text-center">
+          Logged in as {userEmail}
+        </p>
+      )}
+    </>
+  );
+
+  return (
+    <div className="flex flex-col min-h-full bg-bg overflow-y-auto">
+      {header}
+
+      <div className="px-4 pb-8 space-y-4">
+        <ParentTabs tab={tab} onChange={setTab} />
+
+        <div id="parent-tabpanel" role="tabpanel" aria-labelledby={`parent-tab-${tab}`} className="space-y-4">
+          {tab === 'progress' ? progress : (
+            <>
+              {/* One settings sheet; ThemePicker and TestPanel bring their own top divider. */}
+              <div className="bg-bg-card rounded-card border border-primary-soft p-4 space-y-4">
+                <ClassPicker grade={grade} onGradeChange={onGradeChange} />
+                <ThemePicker theme={theme} onThemeChange={onThemeChange} />
+                <div className="border-t border-primary-soft pt-4 space-y-3">
+                  <SettingsHeading title="Parent lock" note="Keeps this area for grown-ups." />
+                  {passcodeControls}
+                </div>
+                <div className="border-t border-primary-soft pt-4">
+                  {backupControls}
+                </div>
+                {testerTools}
+              </div>
+
+              <PrivacyNotice variant="card" onReadPolicy={() => setShowPolicy(true)} />
+              {help}
+            </>
           )}
         </div>
       </div>

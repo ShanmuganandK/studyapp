@@ -56,6 +56,7 @@ describe('parent zone — the policy is reachable in-app', () => {
 
   it('offers a link to the full policy and opens it', () => {
     render(<ParentDashboard {...baseProps} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Settings' })); // the privacy card lives on Settings (DECISIONS 2026-11-26)
 
     fireEvent.click(screen.getByRole('button', { name: /Read the full privacy policy/ }));
 
@@ -64,6 +65,7 @@ describe('parent zone — the policy is reachable in-app', () => {
 
   it('returns to the dashboard from the policy', () => {
     render(<ParentDashboard {...baseProps} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Settings' })); // the privacy card lives on Settings (DECISIONS 2026-11-26)
 
     fireEvent.click(screen.getByRole('button', { name: /Read the full privacy policy/ }));
     fireEvent.click(screen.getByRole('button', { name: /Back/ }));

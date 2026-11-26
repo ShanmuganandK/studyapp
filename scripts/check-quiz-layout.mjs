@@ -363,7 +363,8 @@ async function checkPhone(phone) {
     await mctx.close();
   }
 
-  // PARENT DASHBOARD PASS (F3): on 360x640, verify zero horizontal overflow, Tinku Noticed card, and >= 48px controls.
+  // PARENT DASHBOARD PASS (F3, F7): on 360x640, both tabs — zero horizontal overflow, Tinku Noticed card on Progress,
+  // the passcode control on Settings, and >= 48px controls.
   if (phone.w === 360 && phone.h === 640) {
     const ctx = await browser.newContext({ viewport: { width: phone.w, height: phone.h }, deviceScaleFactor: 2, reducedMotion: 'reduce' });
     const page = await ctx.newPage();
@@ -382,27 +383,33 @@ async function checkPhone(phone) {
     await page.clock.install({ time: 1760000000000 });
     await page.goto(URL); await page.clock.runFor(1200);
     await page.click('text=Parent'); await page.clock.runFor(600);
-    const parentReport = await page.evaluate(() => {
-      const noticed = document.querySelector('[data-testid="tinku-noticed-card"]')?.getBoundingClientRect();
-      const controls = [...document.querySelectorAll('button, a, label')].map((el) => {
-        const r = el.getBoundingClientRect();
-        return { text: el.textContent.trim().slice(0, 35), h: r.height, right: r.right };
+    // Both tabs (DECISIONS 2026-11-26): Progress opens first, Settings is one tap away.
+    for (const tab of ['Progress', 'Settings']) {
+      if (tab === 'Settings') { await page.click('[role="tab"]:has-text("Settings")'); await page.clock.runFor(300); }
+      const parentReport = await page.evaluate(() => {
+        const noticed = document.querySelector('[data-testid="tinku-noticed-card"]')?.getBoundingClientRect();
+        const controls = [...document.querySelectorAll('button, a, label')].map((el) => {
+          const r = el.getBoundingClientRect();
+          return { text: el.textContent.trim().slice(0, 35), h: r.height, right: r.right };
+        });
+        return {
+          vw: window.innerWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+          hasNoticed: !!noticed,
+          noticedRight: noticed ? noticed.right : 0,
+          hasPasscode: controls.some((c) => c.text.includes('Set Parent Passcode')),
+          under48: controls.filter((c) => c.h > 0 && c.h < 47.5),
+          overflowRight: controls.filter((c) => c.right > window.innerWidth + 1),
+        };
       });
-      return {
-        vw: window.innerWidth,
-        scrollWidth: document.documentElement.scrollWidth,
-        hasNoticed: !!noticed,
-        noticedRight: noticed ? noticed.right : 0,
-        under48: controls.filter((c) => c.h > 0 && c.h < 47.5),
-        overflowRight: controls.filter((c) => c.right > window.innerWidth + 1),
-      };
-    });
-    const where = `${phone.name} ${phone.w}x${phone.h} parent dashboard (F3)`;
-    if (parentReport.scrollWidth > parentReport.vw + 1) fail(where, 'horizontal overflow', parentReport);
-    if (!parentReport.hasNoticed) fail(where, 'Tinku Noticed card did not render');
-    if (parentReport.noticedRight > parentReport.vw + 1) fail(where, 'Tinku Noticed card overflows right edge', parentReport);
-    if (parentReport.under48.length) fail(where, 'parent controls under 48px', parentReport.under48);
-    if (parentReport.overflowRight.length) fail(where, 'parent controls overflow right edge', parentReport.overflowRight);
+      const where = `${phone.name} ${phone.w}x${phone.h} parent ${tab} tab (F3/F7)`;
+      if (parentReport.scrollWidth > parentReport.vw + 1) fail(where, 'horizontal overflow', parentReport);
+      if (tab === 'Progress' && !parentReport.hasNoticed) fail(where, 'Tinku Noticed card did not render');
+      if (tab === 'Settings' && !parentReport.hasPasscode) fail(where, 'Settings tab did not show the passcode control');
+      if (parentReport.noticedRight > parentReport.vw + 1) fail(where, 'Tinku Noticed card overflows right edge', parentReport);
+      if (parentReport.under48.length) fail(where, 'parent controls under 48px', parentReport.under48);
+      if (parentReport.overflowRight.length) fail(where, 'parent controls overflow right edge', parentReport.overflowRight);
+    }
     await ctx.close();
   }
   rows.push({ phone, stats });

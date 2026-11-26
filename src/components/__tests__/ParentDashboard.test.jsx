@@ -26,6 +26,80 @@ async function lastCreatedBlobText(createObjectURL) {
   return blob.text();
 }
 
+/** The parent zone opens on Progress; every setting is one tap away on the Settings tab (F7). */
+function openSettings() {
+  fireEvent.click(screen.getByRole('tab', { name: 'Settings' }));
+}
+
+describe('ParentDashboard — Progress / Settings switch (F7, DECISIONS 2026-11-26)', () => {
+  afterEach(() => {
+    cleanup();
+    localStorage.clear();
+  });
+
+  const props = { ...baseProps, hasPasscode: false, grade: 1, onGradeChange: () => {}, onThemeChange: () => {} };
+  const settingsShown = () => [
+    screen.queryByRole('button', { name: /Set Parent Passcode/ }),
+    screen.queryByRole('button', { name: /Export progress/ }),
+    screen.queryByRole('button', { name: /Class 2/ }),
+    screen.queryByText('Colours'),
+    screen.queryByRole('button', { name: /Read the full privacy policy/ }),
+    screen.queryByRole('link', { name: /Report a bug/ }),
+  ].filter(Boolean).length;
+
+  it('opens on Progress: the report is there and no setting is', () => {
+    render(<ParentDashboard {...props} />);
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs.map((t) => t.textContent)).toEqual(['Progress', 'Settings']);
+    expect(tabs.map((t) => t.getAttribute('aria-selected'))).toEqual(['true', 'false']);
+    expect(screen.getByRole('heading', { name: "Your child's progress" })).toBeTruthy();
+    expect(document.querySelectorAll('[data-skill-id]').length).toBeGreaterThan(0);
+    expect(settingsShown()).toBe(0);
+  });
+
+  it('Settings shows every setting and none of the report', () => {
+    render(<ParentDashboard {...props} />);
+    openSettings();
+    expect(screen.getByRole('tab', { name: 'Settings' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeTruthy();
+    expect(screen.getByRole('tabpanel').getAttribute('aria-labelledby')).toBe('parent-tab-settings');
+    expect(settingsShown()).toBe(6);
+    expect(document.querySelectorAll('[data-skill-id]').length).toBe(0);
+  });
+
+  it('lists the settings in the agreed order: Class, Colours, Parent lock, Progress backup', () => {
+    render(<ParentDashboard {...props} />);
+    openSettings();
+    const order = [
+      screen.getByRole('button', { name: /Class 2/ }),
+      screen.getByText('Colours'),
+      screen.getByText('Parent lock'),
+      screen.getByText('Progress backup'),
+    ];
+    for (let i = 1; i < order.length; i++) {
+      expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+  });
+
+  it('coming back from the privacy policy lands on Settings, not Progress', () => {
+    render(<ParentDashboard {...props} />);
+    openSettings();
+    fireEvent.click(screen.getByRole('button', { name: /Read the full privacy policy/ }));
+    expect(screen.queryByRole('tab')).toBeNull(); // the policy replaces the screen
+    fireEvent.click(screen.getAllByRole('button', { name: /back/i })[0]);
+    expect(screen.getByRole('tab', { name: 'Settings' }).getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByRole('button', { name: /Set Parent Passcode/ })).toBeTruthy();
+  });
+
+  it('Progress tab takes the parent back to the report', () => {
+    render(<ParentDashboard {...props} />);
+    openSettings();
+    fireEvent.click(screen.getByRole('tab', { name: 'Progress' }));
+    expect(document.querySelectorAll('[data-skill-id]').length).toBeGreaterThan(0);
+    expect(settingsShown()).toBe(0);
+  });
+});
+
 describe('ParentDashboard — passcode lifecycle actions', () => {
   afterEach(() => {
     cleanup();
@@ -35,12 +109,14 @@ describe('ParentDashboard — passcode lifecycle actions', () => {
 
   it('no passcode set: shows "Set Parent Passcode", no Remove action', () => {
     render(<ParentDashboard {...baseProps} hasPasscode={false} />);
+    openSettings();
     expect(screen.getByRole('button', { name: /Set Parent Passcode/ })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /Remove passcode/ })).toBeNull();
   });
 
   it('passcode set: shows Change + Remove actions', () => {
     render(<ParentDashboard {...baseProps} hasPasscode />);
+    openSettings();
     expect(screen.getByRole('button', { name: /Change Passcode/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: /Remove passcode/ })).toBeTruthy();
   });
@@ -48,6 +124,7 @@ describe('ParentDashboard — passcode lifecycle actions', () => {
   it('Remove uses an inline confirm before calling onRemovePasscode', () => {
     const onRemovePasscode = vi.fn();
     render(<ParentDashboard {...baseProps} hasPasscode onRemovePasscode={onRemovePasscode} />);
+    openSettings();
 
     // First tap only reveals the confirm — does NOT remove yet.
     fireEvent.click(screen.getByRole('button', { name: /Remove passcode/ }));
@@ -62,6 +139,7 @@ describe('ParentDashboard — passcode lifecycle actions', () => {
   it('Cancel dismisses the confirm without removing', () => {
     const onRemovePasscode = vi.fn();
     render(<ParentDashboard {...baseProps} hasPasscode onRemovePasscode={onRemovePasscode} />);
+    openSettings();
     fireEvent.click(screen.getByRole('button', { name: /Remove passcode/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(onRemovePasscode).not.toHaveBeenCalled();
@@ -88,6 +166,7 @@ describe('ParentDashboard — progress backup (export/import, TRACKER "Now" #3)'
 
   it('no saved progress: Export is disabled with a hint', () => {
     render(<ParentDashboard {...baseProps} hasPasscode={false} />);
+    openSettings();
     expect(screen.getByRole('button', { name: /Export progress/ }).disabled).toBe(true);
     expect(screen.getByText(/there'll be something to save/)).toBeTruthy();
   });
@@ -95,6 +174,7 @@ describe('ParentDashboard — progress backup (export/import, TRACKER "Now" #3)'
   it('with saved progress: Export is enabled and downloads a valid, versioned envelope', async () => {
     saveSkillState(SKILL_ID, emptySkillState(SKILL_ID, 3));
     render(<ParentDashboard {...baseProps} hasPasscode={false} />);
+    openSettings();
 
     const exportBtn = screen.getByRole('button', { name: /Export progress/ });
     expect(exportBtn.disabled).toBe(false);
@@ -112,6 +192,7 @@ describe('ParentDashboard — progress backup (export/import, TRACKER "Now" #3)'
     saveSkillState(SKILL_ID, emptySkillState(SKILL_ID, 3));
     localStorage.setItem(PASSCODE_KEY, JSON.stringify({ passcodeHash: 'super-secret-hash' }));
     render(<ParentDashboard {...baseProps} hasPasscode />);
+    openSettings();
 
     fireEvent.click(screen.getByRole('button', { name: /Export progress/ }));
     const raw = await lastCreatedBlobText(createObjectURL);
@@ -133,6 +214,7 @@ describe('ParentDashboard — progress backup (export/import, TRACKER "Now" #3)'
     const file = new File([JSON.stringify(backup)], 'backup.json', { type: 'application/json' });
 
     render(<ParentDashboard {...baseProps} hasPasscode={false} />);
+    openSettings();
     fireEvent.change(screen.getByLabelText(/Import backup/), { target: { files: [file] } });
 
     expect(await screen.findByText(/This will replace all progress on this device/)).toBeTruthy();
@@ -152,6 +234,7 @@ describe('ParentDashboard — progress backup (export/import, TRACKER "Now" #3)'
     const file = new File(['not valid json{{'], 'backup.json', { type: 'application/json' });
 
     render(<ParentDashboard {...baseProps} hasPasscode={false} />);
+    openSettings();
     fireEvent.change(screen.getByLabelText(/Import backup/), { target: { files: [file] } });
 
     expect(await screen.findByText(/doesn't look like a Tinku Math backup/)).toBeTruthy();
@@ -169,6 +252,7 @@ describe('ParentDashboard — progress backup (export/import, TRACKER "Now" #3)'
     const file = new File([JSON.stringify(backup)], 'backup.json', { type: 'application/json' });
 
     render(<ParentDashboard {...baseProps} hasPasscode={false} />);
+    openSettings();
     fireEvent.change(screen.getByLabelText(/Import backup/), { target: { files: [file] } });
     expect(await screen.findByRole('button', { name: 'Cancel' })).toBeTruthy();
 
@@ -220,6 +304,7 @@ describe('ParentDashboard — importing practice days (DECISIONS 2026-10-20)', (
   async function importFile(body) {
     const file = new File([JSON.stringify(body)], 'backup.json', { type: 'application/json' });
     render(<ParentDashboard {...baseProps} hasPasscode={false} />);
+    openSettings();
     fireEvent.change(screen.getByLabelText(/Import backup/), { target: { files: [file] } });
     await screen.findByText(/This will replace all progress on this device/);
     fireEvent.click(screen.getByRole('button', { name: 'Replace progress' }));
@@ -243,6 +328,7 @@ describe('ParentDashboard — importing practice days (DECISIONS 2026-10-20)', (
     localStorage.setItem('tinku:v1:practiceDays', JSON.stringify({ version: 1, days: ['2026-10-18'] }));
     const file = new File([JSON.stringify(envelope({ practiceDays: ['nope'] }))], 'backup.json', { type: 'application/json' });
     render(<ParentDashboard {...baseProps} hasPasscode={false} />);
+    openSettings();
     fireEvent.change(screen.getByLabelText(/Import backup/), { target: { files: [file] } });
     expect(await screen.findByText(/looks damaged/)).toBeTruthy();
     expect(days()).toEqual(['2026-10-18']);
@@ -271,6 +357,7 @@ describe('ParentDashboard — days practised, and the Class control (DECISIONS 2
 
   it('puts the Class control in its own section, apart from Colours', () => {
     render(<ParentDashboard {...props} grade={2} />);
+    openSettings();
     expect(screen.getByRole('button', { name: /Class 2/ }).getAttribute('aria-pressed')).toBe('true');
     const colours = screen.getByText('Colours');
     expect(colours.parentElement.textContent).not.toMatch(/Class 1/);
@@ -284,6 +371,7 @@ describe('ParentDashboard — days practised, and the Class control (DECISIONS 2
     it('are hidden in a public build', () => {
       flags.testerTools = false;
       render(<ParentDashboard {...tools} />);
+      openSettings();
       expect(screen.queryByText(/Warm-up steps/)).toBeNull();
       expect(screen.getByText('Colours')).toBeTruthy();
     });
@@ -291,12 +379,14 @@ describe('ParentDashboard — days practised, and the Class control (DECISIONS 2
     it('show in a tester build', () => {
       flags.testerTools = true;
       render(<ParentDashboard {...tools} />);
+      openSettings();
       expect(screen.getByText(/Warm-up steps/)).toBeTruthy();
     });
 
     it('stay reachable in a public build when the experiment is already on, so it can be turned off', () => {
       flags.testerTools = false;
       render(<ParentDashboard {...tools} bridgeEnabled />);
+      openSettings();
       expect(screen.getByRole('button', { name: 'Off' })).toBeTruthy();
     });
   });
@@ -307,6 +397,7 @@ describe('ParentDashboard — days practised, and the Class control (DECISIONS 2
     const createObjectURL = vi.fn(() => 'blob:mock-url');
     vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL: vi.fn() });
     render(<ParentDashboard {...props} grade={1} />);
+    openSettings();
     fireEvent.click(screen.getByRole('button', { name: /Export progress/ }));
     await waitFor(() => expect(createObjectURL).toHaveBeenCalled());
     const exported = JSON.parse(await lastCreatedBlobText(createObjectURL));
@@ -320,6 +411,7 @@ describe('ParentDashboard: feedback link', () => {
 
   it('opens the parent\'s email app to the published contact address, not WhatsApp', () => {
     render(<ParentDashboard {...baseProps} hasPasscode={false} />);
+    openSettings();
     const link = screen.getByRole('link', { name: /Report a bug \/ Give feedback/ });
     expect(link.getAttribute('href')).toBe('mailto:tinku@stringus.com?subject=Tinku%20Math%20feedback');
     expect(link.getAttribute('href')).not.toMatch(/wa\.me|whatsapp/i);

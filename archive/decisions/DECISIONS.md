@@ -1090,3 +1090,21 @@ Founder decisions after testing the full 36-skill build on a phone (`PR #80` `f4
 4. **Pedagogical skill ordering (`src/recipes/skillMap.js`, `PR #81`, `622d37e`):**
    - Grade 1 (`orders 10..52`): Counting & Comparison Foundations (`10..14`) → Core Addition & Subtraction (`20..23`) → 2-Digit Numbers, Place Value & Coins (`30..32`) → Patterns, Sorting & Geometry (`40..43`) → Measurement & Time (`50..52`).
    - Grade 2 (`orders 100..160`): 3-Digit Numbers & Place Value (`100..102`) → 2-Digit Addition, Subtraction & Shopping Maths (`110..125`) → Multiplication & Halves/Quarters (`130..135`) → Measurement, Time & Picture Charts (`140..160`).
+
+## 2026-11-26 — Navigation stays two tabs (Home, Parent); the parent zone splits into Progress and Settings (`F7`)
+
+Founder idea, reviewed the same day: three bottom tabs — Home (the Tinku path, where a child could also choose the class again), a Settings tab for kids (Colours and other product settings), and Parent kept for parent-only use.
+
+1. **No kid-facing Settings tab, no class choice on Home.** Kept: two tabs, Home and Parent, the Parent tab behind the gate.
+   - **Why:** the theme picker is a parent-zone instrument and must not become child-reachable without kid-test evidence (2026-08-21, still in force; the theme indifference check is still on the ROADMAP §5 watch-list). Class is parent-set with no child grade-wall (DECISIONS context above). Each class keeps its own progress, so a child switching class gets a different path with Tinku somewhere else — it would make the "no single you-are-here" problem flagged on 2026-11-25 worse. Children aged 6–8 tap tabs to explore and do not read "Settings". And a Settings tab holding passcode, backup import and Class would have to be gated anyway, giving two locked doors.
+   - **Other apps:** the common shape for under-8s is one kid space plus one gated grown-up area (Khan Academy Kids, Duolingo ABC, YouTube Kids' lock icon); Prodigy and SplashLearn go further with a separate parent dashboard. From general knowledge, not re-checked on a device.
+2. **The parent zone gets a two-way switch at the top — Progress and Settings.** Progress holds what a parent reads about their child (wins, currently working on, Tinku Noticed, skills, last practised, days practised). Settings holds what a parent sets up. Same gate, same storage, same controls; only the arrangement changes.
+   - **Why:** one long scroll did two jobs. Measured at `390×844` with a seeded child: the settings started `2,456 px` down and Class sat `2,673 px` down (about 3.5 screens) under the whole report. On the Settings tab Class is `285 px` down, on the first screen.
+   - **Approved by the owner the same day** after a side-by-side review of a prototype (`?parent=split`, now removed). Shipped as the only layout:
+     - Tabs are named **Progress** and **Settings**; the zone **opens on Progress** every visit (the gate remounts it). Returning from the privacy policy lands back on Settings.
+     - Settings order: **Class, Colours, Parent lock, Progress backup** in one card, then tester tools (when on), then the privacy card and the feedback link. Backup stays last in the card: parents use it rarely (mostly when changing phones), so one short scroll is fine.
+     - The header title follows the tab ("Your child's progress" / "Settings").
+   - **Guards:** 5 tests in `ParentDashboard.test.jsx` (all failed on the old layout); the `layout:check` parent pass (`F3`) now walks both tabs at `360×640`; `visual:capture` adds `03b-parent-settings`.
+3. **Not built, recorded for later:**
+   - **Siblings on one phone** ("choose the class again"): a "Who's playing?" picker at launch, where a child chooses themselves rather than a class. This is the existing "more than one child on a device" item in the monetisation roadmap (2026-10-20); it needs real child profiles first.
+   - **Kid self-expression:** if the theme check shows colours matter to children, it comes back as an earned in-game reward (for example dressing Tinku up), never as a settings menu. A new entry here is required before building it.

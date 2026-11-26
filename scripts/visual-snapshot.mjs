@@ -34,7 +34,8 @@
  *                         ⚠️ CONTENT IS RANDOM per capture (the recipe seeds fresh each time),
  *                         so this screen will almost always show as "DIFFERS" even with zero
  *                         styling change — open it and eyeball the STYLING, not the content.
- *   03-parent-dashboard  Cards, text, mascot — behind the (ungated, no-passcode) parent zone.
+ *   03-parent-dashboard  Progress tab: cards, text, mascot — behind the (ungated, no-passcode) parent zone.
+ *   03b-parent-settings  Settings tab: Class, Colours, Parent lock, Progress backup (DECISIONS 2026-11-26).
  *   04-parent-gate-modal The "Set a Passcode" modal — a `createPortal(document.body)` surface,
  *                         notable because it sits OUTSIDE #root's DOM subtree (see ARCHITECTURE.md).
  *
@@ -104,6 +105,11 @@ async function captureScreens(outDir) {
   await page.click('text=Parent');
   await page.waitForTimeout(400);
   await page.screenshot({ path: join(outDir, '03-parent-dashboard.png') });
+
+  // 3b) Settings tab — also where the passcode button for step 4 lives
+  await page.click('[role="tab"]:has-text("Settings")');
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: join(outDir, '03b-parent-settings.png') });
 
   // 4) Parent gate modal (set-passcode mode) — a createPortal(document.body) surface
   const setBtn = page.locator('button:has-text("Set Parent Passcode")');

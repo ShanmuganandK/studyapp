@@ -18,7 +18,7 @@ index.html (<title>%PRODUCT_NAME%</title>)
                     └── Layout (.app-shell / .app-frame, useOnline offline banner, 2-tab bottom nav)
                           ├── 'skills': SkillPathScreen
                           ├── 'quiz':   RecipeQuizScreen → SessionPlayer → QuestionView (+ HintBubble, QuizPips, KidButton, CelebrationScreen, Confetti)
-                          └── 'parent': ParentGateModal (portal + adult challenge) → ParentDashboard
+                          └── 'parent': ParentGateModal (portal + adult challenge) → ParentDashboard (Progress | Settings tabs)
                                           (progressSummary, practiceSummary, PrivacyNotice/PrivacyPolicy,
                                            passcode controls, useProgressBackup, ClassPicker, ThemePicker,
                                            TestPanel [gated by VITE_TESTER_TOOLS || bridgeEnabled], mailto feedback)

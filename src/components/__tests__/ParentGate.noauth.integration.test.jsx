@@ -63,6 +63,7 @@ async function bootFreshApp() {
 
 async function setupPasscode(pin) {
   fireEvent.click(screen.getByText('nav-parent'));
+  fireEvent.click(await screen.findByRole('tab', { name: 'Settings' })); // passcode lives on Settings (DECISIONS 2026-11-26)
   fireEvent.click(await screen.findByRole('button', { name: /Set Parent Passcode/ }));
   expect(await screen.findByText('Set a Passcode')).toBeTruthy();
   typePin(pin);
