@@ -22,6 +22,7 @@ Every retained topic has **one** owner. Do not duplicate content across files.
 | `ROADMAP.md` | Future product, curriculum, design-system, teacher-review, and post-launch direction |
 | `IMPROVEMENT_PLAN.md` | Strategic post-L9 product, UI/UX, brand, audience-growth, ethical IAP, and pre-2027 Age Signals compliance blueprint |
 | `TECH_DEBT.md` | Identified code issues, stale flags, boundary breaches, lint warnings, and test blind spots |
+| `TESTING_PLAN.md` | App-level testing: the smoke test in use, and candidate testing levels held until agreed |
 
 - **Start here:** `AGENTS.md` → `ARCHITECTURE.md` → `CURRENT_STATE.md` → `ROADMAP.md` / `TECH_DEBT.md`.
 - **Curriculum / recipe tasks:** also read `RECIPE_TEMPLATE.md`, `misconceptions-reference.md`, `GLOSSARY.md`, and `src/recipes/skillMap.js`.
@@ -90,6 +91,7 @@ Every retained topic has **one** owner. Do not duplicate content across files.
 | `npm run build:android` | Build Android web assets (`dist-android/`) and `cap sync android` |
 | `npm run layout:check` | Playwright viewport fit check across 6 phone sizes (requires `dist/`) |
 | `npm run visual:capture -- <label>` / `visual:diff` / `visual:list` | On-demand Playwright visual regression captures |
+| `npm run smoke` | On-demand Playwright smoke test of core journeys on the live site (`-- --url <address>` for another copy); see `TESTING_PLAN.md` |
 
 - **Full web CI chain (`.github/workflows/ci.yml`):**
   ```bash

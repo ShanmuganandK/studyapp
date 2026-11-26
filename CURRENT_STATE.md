@@ -16,7 +16,7 @@ _Last verified against codebase: `2026-11-23`._
 - **Curriculum:** **`36 / 36` `ready` skills** (`19` Grade 1, `17` Grade 2, `0` Grade 3) across `27` recipe modules (`src/recipes/skillMap.js`, `src/engine/sessionLite.js`), `11` top-level question formats (`+ 16` `mcq` `render.kind` sub-archetypes), **`85 / 85` concise spoken-ready misconception hints** (`<= 10` words, `src/engine/hints.js`), **`84 / 84` diagnostic parent coaching tips** (`src/engine/parentCoaching.js`), and **`36 / 36` kid-first SVG skill medallions** drawn from the `--color-illo-*` illustration palette (`src/components/SkillIcon.jsx`).
 - **Privacy & Network Posture:** 100% device-local (`localStorage`), zero accounts, zero cloud sync, zero analytics, zero ads, zero payments, zero off-origin requests, and **zero Android OS `<uses-permission>` entries** (only AndroidX's app-private `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` in the merged APK manifest, verified on a real Samsung S25 Ultra running without `INTERNET`).
 - **Web PWA:** Live at `https://tinku.stringus.com` (Netlify serving `dist/`), with public privacy policy at `https://tinku.stringus.com/privacy.html` (generated from `src/config/privacyPolicy.js`; operator line: `"operated by Stringus, based in the UAE"`, contact: `tinku@stringus.com`).
-- **Automated Verification Baseline:** `68 / 68` Vitest files (`902` passed, `2` intentional `dist/`-presence conditional skips = `904` total), `npm run lint` (`0` errors, `0` warnings), `npm run lint:hex` clean, `npm run privacy:check` clean. All `TD-1`–`TD-8` tech-debt items resolved (`archive/legacy-code/` holds archived legacy modules and `?home=cards`).
+- **Automated Verification Baseline:** `68 / 68` Vitest files (`902` passed, `2` intentional `dist/`-presence conditional skips = `904` total), `npm run lint` (`0` errors, `0` warnings), `npm run lint:hex` clean, `npm run privacy:check` clean, `npm run smoke` `28 / 28` on the live site (`2026-11-26`, [`TESTING_PLAN.md`](TESTING_PLAN.md)). All `TD-1`–`TD-8` tech-debt items resolved (`archive/legacy-code/` holds archived legacy modules and `?home=cards`).
 
 ---
 
@@ -43,6 +43,7 @@ A stale service-worker cache and a stale Netlify deploy produce identical sympto
 1. Open `https://tinku.stringus.com` in a **private/incognito window** first (bypasses the service worker).
 2. Confirm the Netlify **Published** deploy commit SHA matches `master` `HEAD`.
 3. To clear a stale installed PWA on mobile: uninstall from home screen → clear site data → revisit.
+4. Run `npm run smoke` (core journeys on the live site, about a minute; [`TESTING_PLAN.md`](TESTING_PLAN.md) §2). Run it again before each Play upload.
 
 ### 3.2 Android Builds (`.github/workflows/android.yml`)
 - **Debug APK (auto on `master` push, or manual `build_type: debug`):** Builds with `VITE_TESTER_TOOLS=true` (enables the Parent Zone warm-up toggle) and verifies via `aapt2` that the merged manifest contains only `com.stringus.tinku.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. Note: each CI debug run signs with a fresh debug key, so `adb install -r` over an older CI debug APK requires `adb uninstall com.stringus.tinku` first (export progress beforehand if needed).

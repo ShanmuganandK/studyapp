@@ -1108,3 +1108,12 @@ Founder idea, reviewed the same day: three bottom tabs — Home (the Tinku path,
 3. **Not built, recorded for later:**
    - **Siblings on one phone** ("choose the class again"): a "Who's playing?" picker at launch, where a child chooses themselves rather than a class. This is the existing "more than one child on a device" item in the monetisation roadmap (2026-10-20); it needs real child profiles first.
    - **Kid self-expression:** if the theme check shows colours matter to children, it comes back as an earned in-game reward (for example dressing Tinku up), never as a settings menu. A new entry here is required before building it.
+
+## 2026-11-26 — Testing: a smoke test now; every other app-level testing level waits for agreement (`TESTING_PLAN.md`)
+
+Founder call after discussing system-level testing (unit and component tests run in CI; nothing drives the real app end to end).
+
+1. **In use now: `npm run smoke`** (`scripts/smoke.mjs`), a small Playwright check of the core journeys on a deployed site: first run, a full session, progress kept, the parent zone, opening offline, no console errors. Run by hand after a web deploy and before each Play upload. Not in CI and gates nothing.
+   - **Why only this:** the closed test (`L9`) is what decides whether more investment pays back. Closed-test families get the app only from a Play release started by hand, so a push to `master` reaches the website, not their phones. The app has no server, accounts or data leaving the device, so a bug stays on one device and a fix ships in about 20 seconds. At this stage the bugs that would cost families are "the app does not open or a session cannot start" and "progress disappears"; the smoke test checks both in about a minute.
+2. **Held, not agreed: the wider plan** (journey tests in CI, deploy previews, a deploy gate, after-deploy checks, Android emulator flows, performance, and where tests live) is written down in [`TESTING_PLAN.md`](../../TESTING_PLAN.md) with the triggers discussed. Several levels can hold or stop a deploy, so **each must be agreed and recorded here before work starts**; nothing in that plan implies an order or a date.
+3. **Test code stays outside the shipped app.**

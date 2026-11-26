@@ -93,6 +93,7 @@ Netlify builds with `npm run build` and publishes `dist/` to `https://tinku.stri
 | [`ROADMAP.md`](ROADMAP.md) | Future product, curriculum, design & teacher-review direction |
 | [`IMPROVEMENT_PLAN.md`](IMPROVEMENT_PLAN.md) | Post-L9 product, UI/UX, brand, audience-growth, IAP & Age Signals plan |
 | [`TECH_DEBT.md`](TECH_DEBT.md) | Identified code, stale-flag, boundary, lint & test gaps |
+| [`TESTING_PLAN.md`](TESTING_PLAN.md) | App-level testing: smoke test in use, future testing levels (not yet agreed) |
 | [`SECURITY.md`](SECURITY.md) | Vulnerability disclosure policy |
 
 ---

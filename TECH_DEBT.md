@@ -3,6 +3,7 @@
 > **Scope (Single Source of Truth):** Code-level defects, stale feature flags, architectural boundary breaches, frozen-legacy anomalies, active lint warnings, stale in-code/config/test comments, and verified automated test blind spots.
 > - Product/curriculum/design future direction lives in [`ROADMAP.md`](ROADMAP.md).
 > - Live release status & ops live in [`CURRENT_STATE.md`](CURRENT_STATE.md).
+> - App-level testing (the smoke test in use, and testing levels held until agreed) lives in [`TESTING_PLAN.md`](TESTING_PLAN.md).
 > - **Maintenance rule:** Remove an item from this table when fixed rather than keeping a completed history log (git history holds closed fixes).
 
 _Baseline verified against live `src/` (`2026-11-23`). `TD-1`–`TD-9` resolved._

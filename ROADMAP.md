@@ -4,6 +4,7 @@
 > - Detailed post-L9 future improvements (product differentiation, UI/UX upgrades, brand positioning, organic audience growth, ethical IAP strategy, and pre-2027 child age-signal compliance planning) are documented in [`IMPROVEMENT_PLAN.md`](IMPROVEMENT_PLAN.md).
 > - Live release status & closed-test ops live in [`CURRENT_STATE.md`](CURRENT_STATE.md).
 > - Code-level defects, stale flags, boundary breaches, lint warnings, and automated test gaps live in [`TECH_DEBT.md`](TECH_DEBT.md).
+> - App-level testing (smoke test in use; CI, deploy-gate, Android and performance testing plans held until agreed) lives in [`TESTING_PLAN.md`](TESTING_PLAN.md).
 
 ---
 
@@ -65,7 +66,7 @@ All 36 Grade 1–2 skills are shipped (`status: 'ready'`), but several reconstru
 
 Layer 1 (automated unit/integration/guard suite) is live. Planned calibration loop:
 - **Layer 2:** Simulated child personas (traits: learning rate, misconception tendencies, freezing, hint usage, fatigue — labelled `"assumed"` until calibrated) running full sessions (`bridge`, remediation ladder, bonus, mastery), not only `applyResult`.
-- **Layer 3:** Automated Playwright player driving the built app for UX regressions (never treated as evidence about real children).
+- **Layer 3:** Automated Playwright player driving the built app for UX regressions (never treated as evidence about real children). **Status (`2026-11-26`):** a smoke test (`npm run smoke`, Level 0) is in use; the wider app-level testing plan (CI journeys, deploy previews, a deploy gate, after-deploy checks, Android emulator flows, performance, where tests live) is held in [`TESTING_PLAN.md`](TESTING_PLAN.md), each level to be agreed before it starts ([`DECISIONS`](archive/decisions/DECISIONS.md) `2026-11-26`).
 - **Layer 4:** Structured kid-test protocol with an optional, default-off, parent-exported on-device session log (stored under test settings, zero identifiers, never networked — requires a locked scope decision before building).
 - **Layer 5:** Recalibrate Layer 2 persona parameters from Layer 4 observations.
 
