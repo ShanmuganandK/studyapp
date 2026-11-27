@@ -36,8 +36,8 @@ vi.mock('../GradePickerScreen', () => ({
   default: ({ onChoose }) => <button onClick={() => onChoose(2)}>pick-grade-2</button>,
 }));
 vi.mock('../SkillPathScreen', () => ({
-  default: ({ grade, onSelectSkill }) => (
-    <button onClick={() => onSelectSkill('g1.add.within10')}>path-skill-g{grade}</button>
+  default: ({ grade, onSelectSkill, intro }) => (
+    <button data-intro={String(!!intro)} onClick={() => onSelectSkill('g1.add.within10')}>path-skill-g{grade}</button>
   ),
 }));
 vi.mock('../RecipeQuizScreen', () => ({
@@ -121,5 +121,32 @@ describe('AppRouter routing', () => {
 
     fireEvent.click(screen.getByText('nav-skills'));
     expect(screen.getByTestId('layout').dataset.view).toBe('skills');
+  });
+
+  // Hero intro (ROADMAP F6, 2026-11-27): only the first Home of each app open.
+  const intro = () => screen.getByText(/path-skill-g/).dataset.intro;
+
+  it('the first Home of an app open gets the hero intro; Home after a quiz or the parent zone does not', () => {
+    render(<AppRouter />);
+    expect(intro()).toBe('true');
+    fireEvent.click(screen.getByText('path-skill-g1'));
+    fireEvent.click(screen.getByText('back-to-skills'));
+    expect(intro()).toBe('false');
+    cleanup();
+
+    render(<AppRouter />);
+    fireEvent.click(screen.getByText('nav-parent'));
+    fireEvent.click(screen.getByText('gate-pass'));
+    fireEvent.click(screen.getByText('nav-skills'));
+    expect(intro()).toBe('false');
+  });
+
+  it('no hero intro right after the first-run class picker (it already shows big Tinku)', () => {
+    settingsState.gradeChosen = false;
+    const { rerender } = render(<AppRouter />);
+    fireEvent.click(screen.getByText('pick-grade-2'));
+    settingsState.gradeChosen = true;
+    rerender(<AppRouter />);
+    expect(intro()).toBe('false');
   });
 });

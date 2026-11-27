@@ -33,6 +33,12 @@ const ROW_H = 128; // px per skill row
 // bounds. Any tap, scroll or key (SKIP_EVENTS) jumps straight to the end.
 const HEADER_TINKU = 104; // px — the header Tinku (all-caught-up header, and where the walk starts)
 const WALK_HOLD_MS = 350;
+// Hero intro (F6, owner request 2026-11-27): on the first Home of an app open Tinku starts big in the middle on
+// the splash colour, holds, shrinks into the header slot, then walks. Drawn at hero size and only ever scaled
+// down, so the big Tinku stays sharp.
+const HERO_HOLD_MS = 700;
+const HERO_SHRINK_MS = 400;
+const heroSize = () => Math.round(Math.min(window.innerHeight * 0.42, window.innerWidth * 0.85, 360));
 const walkMs = (dy) => Math.min(1500, Math.max(700, 500 + Math.abs(dy) * 0.5));
 const easeInOut = (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
 const SKIP_EVENTS = ['pointerdown', 'wheel', 'touchstart', 'keydown'];
@@ -62,7 +68,7 @@ function buildSpine(count) {
   return d;
 }
 
-export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
+export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = false }) {
   // IDENTICAL to SkillSelectScreen (copied, not refactored — see file header). Thin delegation to
   // the pure engine; no new calls or logic in this experiment.
   const [{ allStates, recommendation }] = useState(() => {
@@ -101,6 +107,35 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
       !window.matchMedia('(prefers-reduced-motion: reduce)').matches
   );
   const [walk, setWalk] = useState(walks ? 'walking' : 'off'); // 'walking' → 'landed'; 'off' = no walk
+  // Hero intro: AppRouter passes `intro` for the first Home of an app open; it needs the walk (motion allowed).
+  const [hero] = useState(() => walks && intro);
+  const [travelSize] = useState(() => (hero ? heroSize() : HEADER_TINKU)); // the walking Tinku's drawn size
+  const backdropRef = useRef(null);
+  const heroRef = useRef(null); // { x, y }: offset from the header slot that centres the big Tinku on the app
+
+  // Hero, before the first paint: centre the big Tinku on the app and cover the page with the splash colour, so
+  // the first frame is the hero (no flash of Home). The backdrop covers the visible scroll area, with slack for
+  // the view-enter rise.
+  useLayoutEffect(() => {
+    if (!hero) return;
+    const walker = walkerRef.current;
+    const slot = walker.parentElement.getBoundingClientRect();
+    const app = walker.closest('.app-frame')?.getBoundingClientRect()
+      ?? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+    heroRef.current = {
+      x: app.left + app.width / 2 - travelSize / 2 - slot.left,
+      y: app.top + app.height / 2 - travelSize / 2 - slot.top,
+    };
+    walker.style.transform = `translate(${heroRef.current.x}px, ${heroRef.current.y}px)`;
+    const view = (scrollParentOf(rootRef.current) ?? rootRef.current.parentElement).getBoundingClientRect();
+    const root = rootRef.current.getBoundingClientRect();
+    Object.assign(backdropRef.current.style, {
+      top: `${view.top - root.top - 40}px`,
+      left: `${view.left - root.left}px`,
+      width: `${view.width}px`,
+      height: `${view.height + 80}px`,
+    });
+  }, [hero, travelSize]);
 
   useEffect(() => {
     const row = suggestedRef.current;
@@ -112,6 +147,10 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
     // F6: frame by frame, move the walker from the header slot onto the stop's (hidden) Tinku and scroll the
     // page by the same eased amount. Both sit in the same scrolling content, so their offset is measured once.
     const walker = walkerRef.current;
+    const slot = walker.parentElement; // the header slot: never transformed, so it is the walk's fixed start
+    const backdrop = backdropRef.current;
+    const base = HEADER_TINKU / travelSize; // the scale that fits the walking Tinku in the header slot
+    const place = (x, y, scale) => { walker.style.transform = `translate(${x}px, ${y}px) scale(${scale})`; };
     const marker = row.querySelector('[data-tinku="stop"]');
     const scroller = scrollParentOf(row);
     let frame = 0;
@@ -119,7 +158,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
     let geo = null;
     let finished = false;
     const measure = () => {
-      const a = walker.getBoundingClientRect();
+      const a = slot.getBoundingClientRect();
       const b = marker.getBoundingClientRect();
       const r = row.getBoundingClientRect();
       let scrollTo = 0;
@@ -132,7 +171,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
       return {
         dx: b.left - a.left,
         dy,
-        scale: a.width ? b.width / a.width : 1,
+        scale: b.width / travelSize,
         scrollFrom: scroller ? scroller.scrollTop : 0,
         scrollTo,
         ms: walkMs(dy),
@@ -150,13 +189,22 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
     };
     const step = (now) => {
       if (start === null) start = now;
-      const t = now - start - WALK_HOLD_MS;
-      if (t >= 0) {
-        if (!geo) geo = measure();
-        const e = easeInOut(Math.min(1, t / geo.ms));
-        walker.style.transform = `translate(${geo.dx * e}px, ${geo.dy * e}px) scale(${1 + (geo.scale - 1) * e})`;
-        if (scroller) scroller.scrollTop = geo.scrollFrom + (geo.scrollTo - geo.scrollFrom) * e;
-        if (t >= geo.ms) return land();
+      const elapsed = now - start;
+      if (hero && elapsed < HERO_HOLD_MS + HERO_SHRINK_MS) {
+        // Hero: hold big in the middle, then shrink into the header slot while the backdrop fades away.
+        const k = easeInOut(Math.max(0, (elapsed - HERO_HOLD_MS) / HERO_SHRINK_MS));
+        place(heroRef.current.x * (1 - k), heroRef.current.y * (1 - k), 1 + (base - 1) * k);
+        backdrop.style.opacity = String(1 - k);
+      } else {
+        if (hero) backdrop.hidden = true; // out of the way, so a tap on a stop during the walk still opens it
+        const t = elapsed - (hero ? HERO_HOLD_MS + HERO_SHRINK_MS : WALK_HOLD_MS);
+        if (t >= 0) {
+          if (!geo) geo = measure();
+          const e = easeInOut(Math.min(1, t / geo.ms));
+          place(geo.dx * e, geo.dy * e, base + (geo.scale - base) * e);
+          if (scroller) scroller.scrollTop = geo.scrollFrom + (geo.scrollTo - geo.scrollFrom) * e;
+          if (t >= geo.ms) return land();
+        }
       }
       frame = requestAnimationFrame(step);
       return undefined;
@@ -168,7 +216,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
       cancelAnimationFrame(frame);
       SKIP_EVENTS.forEach((type) => window.removeEventListener(type, land));
     };
-  }, [walks]);
+  }, [walks, hero, travelSize]);
 
   // Once Tinku has landed the emptied header spot is removed, or scrolling back up showed a blank band at the
   // top (owner review 2026-11-25). Before paint, keep the stop where it was on screen by scrolling up as far
@@ -213,13 +261,17 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill }) {
   };
 
   return (
-    <div ref={rootRef} className="flex flex-col items-center min-h-full bg-bg px-4 py-6 text-center">
+    <div ref={rootRef} className="relative flex flex-col items-center min-h-full bg-bg px-4 py-6 text-center">
       {!hasPathMascot && <Mascot emotion="waving" size={HEADER_TINKU} />}
+      {/* Hero intro: the splash-colour cover under the big Tinku (Wonder's primary-soft is the Android splash colour). */}
+      {walk === 'walking' && hero && (
+        <div ref={backdropRef} data-tinku="hero-backdrop" aria-hidden="true" className="absolute z-30 bg-primary-soft" />
+      )}
       {/* F6: the walk's launch pad, removed once Tinku lands (see the layout effect above). */}
       {walk === 'walking' && (
         <div data-tinku="slot" className="relative z-40" style={{ width: HEADER_TINKU, height: HEADER_TINKU }}>
-          <div ref={walkerRef} data-tinku="travel" className="pointer-events-none will-change-transform" style={{ transformOrigin: '0 0' }}>
-            <Mascot emotion="waving" size={HEADER_TINKU} />
+          <div ref={walkerRef} data-tinku="travel" className="pointer-events-none will-change-transform" style={{ transformOrigin: '0 0', width: travelSize, height: travelSize }}>
+            <Mascot emotion="waving" size={travelSize} />
           </div>
         </div>
       )}

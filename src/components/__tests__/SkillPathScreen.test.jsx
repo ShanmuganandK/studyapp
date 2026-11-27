@@ -235,6 +235,48 @@ describe('SkillPathScreen', () => {
       expect(scrolled.map((s) => s.opts)).toEqual([{ block: 'center' }]);
     });
 
+    // Hero intro (ROADMAP F6, 2026-11-27): first Home of an app open only (AppRouter passes `intro`).
+    const backdrop = (c) => c.querySelector('[data-tinku="hero-backdrop"]');
+    const travelSize = (c) => Number(traveller(c).querySelector('[data-testid="mascot"]').dataset.size);
+
+    it('intro: Tinku starts big on the splash-colour backdrop, holds, shrinks, then walks to the stop', () => {
+      motion(false);
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
+      expect(travelSize(container)).toBeGreaterThan(104); // drawn at hero size (scaled down later, never up)
+      expect(backdrop(container).className).toContain('bg-primary-soft');
+      runFrames([0, 300, 650]); // still holding big
+      expect(backdrop(container).style.opacity).toBe('1');
+      expect(stopTinku(container).style.opacity).toBe('0');
+      runFrames([900, 1150, 1600, 2200, 2800]); // shrink, then the walk
+      expect(traveller(container)).toBeNull();
+      expect(backdrop(container)).toBeNull();
+      expect(stopTinku(container).className).toContain('animate-tinku-land');
+      expect(screen.getAllByTestId('mascot')).toHaveLength(1);
+    });
+
+    it('intro: a tap during the hero skips straight to the stop', () => {
+      motion(false);
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
+      runFrames([0, 300]);
+      expect(backdrop(container)).toBeTruthy(); // the hero is on screen before the tap
+      fireEvent.pointerDown(window);
+      expect(traveller(container)).toBeNull();
+      expect(backdrop(container)).toBeNull();
+      expect(stopTinku(container).style.opacity).not.toBe('0');
+    });
+
+    it('no intro (later Home visits) or reduced motion: no hero, no backdrop', () => {
+      motion(false);
+      const { container, unmount } = render(<SkillPathScreen onSelectSkill={() => {}} />);
+      expect(backdrop(container)).toBeNull();
+      expect(travelSize(container)).toBe(104);
+      unmount();
+      motion(true);
+      const reduced = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
+      expect(backdrop(reduced.container)).toBeNull();
+      expect(traveller(reduced.container)).toBeNull();
+    });
+
     it('all caught up: the header Tinku stays put (nothing to walk to)', () => {
       motion(false);
       mockStates = Object.fromEntries(readySkills.map((s) => [s.id, mastered(s.id, '2999-12-31')]));

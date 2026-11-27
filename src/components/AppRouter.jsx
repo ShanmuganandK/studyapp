@@ -46,8 +46,12 @@ export default function AppRouter() {
   // True while the quiz is on its summary screen: the bottom nav is hidden during questions only.
   const [sessionDone, setSessionDone] = useState(false);
   const [isGateSettingMode, setIsGateSettingMode] = useState(false);
+  // F6 hero intro (ROADMAP): only the first Home of each app open, and not right after the first-run picker
+  // (it already shows big Tinku). Leaving Home for a quiz or the parent zone ends it for this app open.
+  const [intro, setIntro] = useState(gradeChosen);
 
   const handleSelectSkill = (skillId) => {
+    setIntro(false);
     setActiveSkillId(skillId);
     setCurrentView('quiz');
   };
@@ -73,6 +77,7 @@ export default function AppRouter() {
   };
 
   const handleGateSuccess = () => {
+    setIntro(false);
     setIsGateOpen(false);
     setIsGateSettingMode(false);
     setActiveSkillId(null);
@@ -105,7 +110,7 @@ export default function AppRouter() {
       )}
 
       {currentView === 'skills' && (
-        <SkillPathScreen grade={grade} onSelectSkill={handleSelectSkill} />
+        <SkillPathScreen grade={grade} onSelectSkill={handleSelectSkill} intro={intro} />
       )}
 
       {currentView === 'quiz' && activeSkillId && (

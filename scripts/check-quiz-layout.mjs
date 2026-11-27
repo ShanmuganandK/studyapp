@@ -25,7 +25,7 @@
  * touchable, Tinku at least 30% of the screen height (and no wider than the hero), at most 30% of the hero empty.
  * A Home pass (TD-15) seeds progress so Tinku's stop is far down the path and checks it is on screen when Home
  * opens, and that a >= 48px "Back to Tinku" button appears when it is scrolled away and brings it back. With motion
- * allowed it also checks the F6 walk: big Tinku starts at the top, lands on the stop, and a tap mid-walk skips it.
+ * allowed it also checks the F6 hero and walk: big Tinku starts in the middle, lands on the stop, and a tap skips it.
  * Portrait only: this is a portrait app (the Android build should be locked to portrait).
  *
  * Exit code 1 if anything fails, with the offending measurement printed.
@@ -298,8 +298,9 @@ async function checkPhone(phone) {
     }
     await ctx.close();
 
-    // WALK (ROADMAP F6), motion allowed: the big Tinku starts at the top with the stop's Tinku hidden, then lands
-    // on the stop with the stop on screen; a tap mid-walk skips straight to the end.
+    // HERO + WALK (ROADMAP F6), motion allowed, first Home of an app open: big Tinku starts in the middle of the app on
+    // the splash-colour cover with the stop's Tinku hidden, then lands on the stop with the stop on screen; a tap
+    // during the hero or mid-walk skips straight to the end.
     const mctx = await browser.newContext({ viewport: { width: phone.w, height: phone.h }, deviceScaleFactor: 2, reducedMotion: 'no-preference' });
     const mpage = await mctx.newPage();
     await mpage.addInitScript(([s, k]) => { localStorage.setItem('tinku:v1:testSettings', s); localStorage.setItem('tinku:v1:skills', k); }, [settings(1), seeded]);
@@ -313,9 +314,12 @@ async function checkPhone(phone) {
       const row = [...document.querySelectorAll('ol li')].find((li) => li.querySelector('.path-pulse'));
       const r = row?.getBoundingClientRect();
       const w = document.querySelector('[data-tinku="travel"]')?.getBoundingClientRect();
+      const app = document.querySelector('.app-frame').getBoundingClientRect();
+      const cover = document.querySelector('[data-tinku="hero-backdrop"]');
       const stopTinku = document.querySelector('[data-tinku="stop"]');
       return {
-        walker: w ? { inTopHalf: w.top >= s.top && w.bottom <= s.top + s.height / 2 } : null,
+        walker: w ? { heightShare: w.height / s.height, offCentre: Math.abs(w.left + w.width / 2 - (app.left + app.width / 2)) } : null,
+        cover: cover && !cover.hidden ? window.getComputedStyle(cover).opacity : null,
         stopTinkuOpacity: stopTinku ? window.getComputedStyle(stopTinku).opacity : null,
         inView: !!r && r.top >= s.top - 1 && r.bottom <= s.bottom + 1,
         scrollTop: Math.round(scroller.scrollTop),
@@ -326,13 +330,14 @@ async function checkPhone(phone) {
     const wwhere = `${phone.name} ${phone.w}x${phone.h} home walk (F6)`;
     await mpage.goto(URL); await mpage.clock.runFor(150);
     const atStart = await walkState();
-    if (!atStart.walker) fail(wwhere, 'no walking Tinku at the top when Home opens', atStart);
-    else if (!atStart.walker.inTopHalf) fail(wwhere, 'walking Tinku does not start in the top half of the screen', atStart);
+    if (!atStart.walker) fail(wwhere, 'no big Tinku when Home opens', atStart);
+    else if (atStart.walker.heightShare < 0.25 || atStart.walker.offCentre > 4) fail(wwhere, 'hero Tinku is not big and centred', atStart);
+    if (atStart.cover !== '1') fail(wwhere, 'hero cover is not showing (Home flashes before the hero)', atStart);
     if (atStart.stopTinkuOpacity !== '0') fail(wwhere, "the stop's Tinku shows while the other one walks (two Tinkus)", atStart);
     if (atStart.scrollTop !== 0) fail(wwhere, 'page jumped before the walk', atStart);
-    await mpage.clock.runFor(2500);
+    await mpage.clock.runFor(3300); // hero 1.1 s + walk up to 1.5 s
     const landed = await walkState();
-    if (landed.walker) fail(wwhere, 'walking Tinku never landed', landed);
+    if (landed.walker || landed.cover) fail(wwhere, 'walking Tinku never landed, or the hero cover stayed', landed);
     if (!landed.inView) fail(wwhere, "Tinku's stop is off-screen after the walk", landed);
     if (landed.stopTinkuOpacity !== '1') fail(wwhere, "the stop's Tinku is not visible after the walk", landed);
     if (landed.back) fail(wwhere, '"Back to Tinku" shows right after landing', landed);
@@ -348,18 +353,20 @@ async function checkPhone(phone) {
     // Near stop (fresh install → stop 1): the top is still on screen when Tinku lands, so the page slides up.
     // Init scripts run in order on every load: the first one seeds stop 15, this one clears it (fresh install).
     await mpage.addInitScript(() => localStorage.removeItem('tinku:v1:skills'));
-    await mpage.goto(URL); await mpage.clock.runFor(2500);
+    await mpage.goto(URL); await mpage.clock.runFor(3300);
     await mpage.waitForTimeout(500); // the slide-up is a Web Animation (compositor clock, not the paused page clock)
     const near = await walkState();
     const nearGap = await titleGap();
     if (near.walker || !near.inView) fail(wwhere, 'near stop: Tinku did not land on stop 1', near);
     if (nearGap > 70) fail(wwhere, `near stop: blank band above the title after the walk (title ${nearGap} px below the top)`);
     await mpage.addInitScript(([k]) => localStorage.setItem('tinku:v1:skills', k), [seeded]); // back to stop 15
-    await mpage.goto(URL); await mpage.clock.runFor(700); // mid-walk
     // Tap a blank spot (the left padding) by coordinates: no auto-scroll first, and no stop under the finger.
-    await mpage.mouse.click(8, Math.round(phone.h / 2)); await mpage.clock.runFor(50);
-    const skipped = await walkState();
-    if (skipped.walker || !skipped.inView) fail(wwhere, 'a tap mid-walk did not skip straight to the stop', skipped);
+    for (const [label, ms] of [['during the hero', 300], ['mid-walk', 1500]]) {
+      await mpage.goto(URL); await mpage.clock.runFor(ms);
+      await mpage.mouse.click(8, Math.round(phone.h / 2)); await mpage.clock.runFor(50);
+      const skipped = await walkState();
+      if (skipped.walker || skipped.cover || !skipped.inView) fail(wwhere, `a tap ${label} did not skip straight to the stop`, skipped);
+    }
     await mctx.close();
   }
 
