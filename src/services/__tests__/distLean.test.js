@@ -27,7 +27,9 @@ import { fileURLToPath } from 'node:url';
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 const DIST_DIR = join(REPO_ROOT, 'dist');
 
-const ALLOWED_EXTENSIONS = new Set(['.html', '.js', '.css', '.webp', '.png', '.ico', '.woff2', '.webmanifest']);
+// .svg: the vector hero Tinku (ROADMAP F6, 2026-11-27). SVG can carry scripts and outside links, so its signature
+// check below also refuses both.
+const ALLOWED_EXTENSIONS = new Set(['.html', '.js', '.css', '.webp', '.png', '.svg', '.ico', '.woff2', '.webmanifest']);
 
 // Served by convention or by tooling, so no file need name them: browsers request /favicon.ico on
 // their own, and the service-worker files are generated and registered by registerSW.js.
@@ -44,6 +46,11 @@ const SIGNATURES = {
   '.webp': (b) => b.subarray(0, 4).toString('latin1') === 'RIFF' && b.subarray(8, 12).toString('latin1') === 'WEBP',
   '.ico': (b) => b.readUInt16LE(0) === 0 && b.readUInt16LE(2) === 1,
   '.woff2': (b) => b.subarray(0, 4).toString('latin1') === 'wOF2',
+  '.svg': (b) => {
+    const text = b.toString('utf8');
+    return /^\s*(<\?xml[^>]*>\s*)?<svg[\s>]/.test(text)
+      && !/<script|<foreignObject|(?:href|url)\s*[=(]\s*["']?\s*(?:https?:|data:|\/\/)/i.test(text);
+  },
 };
 
 function walk(dir) {

@@ -321,7 +321,9 @@ async function checkPhone(phone) {
         // The elephant's own centre in the waving art is at (54%, 53%) of the image (WAVE_ART in SkillPathScreen).
         walker: w ? {
           widthShare: w.width / app.width,
-          offCentre: Math.round(Math.max(Math.abs(w.left + w.width * 0.54 - (app.left + app.width / 2)), Math.abs(w.top + w.height * 0.53 - (app.top + app.height / 2)))),
+          offX: Math.round(Math.abs(w.left + w.width * 0.54 - (app.left + app.width / 2))),
+          // Vertical allows for Home's 10 px view-enter rise, which runs on real time while the page clock is paused.
+          offY: Math.round(Math.abs(w.top + w.height * 0.53 - (app.top + app.height / 2))),
         } : null,
         cover: cover && !cover.hidden ? window.getComputedStyle(cover).opacity : null,
         coverFull: !!cover && cover.getBoundingClientRect().top <= app.top + 1 && cover.getBoundingClientRect().bottom >= app.bottom - 1,
@@ -337,7 +339,7 @@ async function checkPhone(phone) {
     await mpage.goto(URL); await mpage.clock.runFor(150);
     const atStart = await walkState();
     if (!atStart.walker) fail(wwhere, 'no big Tinku when Home opens', atStart);
-    else if (atStart.walker.widthShare < 0.9 || atStart.walker.offCentre > 4) fail(wwhere, 'hero Tinku is not big and centred', atStart);
+    else if (atStart.walker.widthShare < 0.9 || atStart.walker.offX > 4 || atStart.walker.offY > 12) fail(wwhere, 'hero Tinku is not big and centred', atStart);
     if (atStart.cover !== '1' || !atStart.coverFull) fail(wwhere, 'hero cover does not cover the whole app (Home flashes before the hero)', atStart);
     if (atStart.bar) fail(wwhere, 'bottom bar shows during the hero (it should be full-screen Tinku)', atStart);
     if (atStart.stopTinkuOpacity !== '0') fail(wwhere, "the stop's Tinku shows while the other one walks (two Tinkus)", atStart);

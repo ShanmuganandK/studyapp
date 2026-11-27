@@ -19,7 +19,9 @@ vi.mock('../../services/progressStore', () => ({
 // Mascot preloads webp assets — irrelevant to structure; stub with a testable marker so we can
 // verify at most one Tinku renders on Home at a time.
 vi.mock('../Mascot', () => ({
-  default: ({ emotion, size }) => <span data-testid="mascot" data-emotion={emotion} data-size={String(size)} />,
+  default: ({ emotion, size, vector }) => (
+    <span data-testid="mascot" data-emotion={emotion} data-size={String(size)} data-vector={String(!!vector)} />
+  ),
 }));
 
 // SkillPathScreen defaults to grade 1 (no grade prop passed below), so this must match the
@@ -243,6 +245,7 @@ describe('SkillPathScreen', () => {
       motion(false);
       const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
       expect(travelSize(container)).toBeGreaterThan(104); // drawn at hero size (scaled down later, never up)
+      expect(traveller(container).querySelector('[data-testid="mascot"]').dataset.vector).toBe('true'); // sharp vector art
       expect(backdrop(container).className).toContain('bg-primary-soft');
       runFrames([0, 300, 650]); // still holding big
       expect(backdrop(container).style.opacity).toBe('1');
@@ -293,6 +296,7 @@ describe('SkillPathScreen', () => {
       const { container, unmount } = render(<SkillPathScreen onSelectSkill={() => {}} />);
       expect(backdrop(container)).toBeNull();
       expect(travelSize(container)).toBe(104);
+      expect(traveller(container).querySelector('[data-testid="mascot"]').dataset.vector).toBe('false');
       unmount();
       motion(true);
       const reduced = render(<SkillPathScreen onSelectSkill={() => {}} intro />);

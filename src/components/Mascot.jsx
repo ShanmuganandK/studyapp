@@ -9,6 +9,8 @@ import encourageWebp from '../assets/mascot/webp/Tinku_Encourage_2.webp';
 import thinkingWebp from '../assets/mascot/webp/Tinku_Think3.webp';
 import sleepingWebp from '../assets/mascot/webp/Tinku_Sleeping.webp';
 import wavingWebp from '../assets/mascot/webp/Tinku_Bye.webp';
+// Vector art (F6 hero): a clean trace of the waving original, sharp at any size. Only this pose so far.
+import wavingSvg from '../assets/mascot/svg/Tinku_Wave.svg';
 
 /**
  * Tinku — the mascot. Flat 2D blue-grey elephant, light/Wonder theme (DECISIONS).
@@ -35,13 +37,18 @@ const POSES = {
   waving: wavingWebp,
 };
 
+const VECTOR_POSES = { waving: wavingSvg };
+
+/** The art for a pose: the vector version when asked for and one exists, else the WebP. */
+const artFor = (emotion, vector) => (vector && VECTOR_POSES[emotion]) || POSES[emotion] || POSES.happy;
+
 // Warm the browser cache for all poses at module load time — best-effort, non-blocking.
-Object.values(POSES).forEach(src => { new Image().src = src; });
+[...Object.values(POSES), ...Object.values(VECTOR_POSES)].forEach(src => { new Image().src = src; });
 
 const FADE_MS = 120;
 
-export default function Mascot({ emotion = 'happy', size = 120, className = '' }) {
-  const [activeSrc, setActiveSrc] = useState(() => POSES[emotion] ?? POSES.happy);
+export default function Mascot({ emotion = 'happy', size = 120, className = '', vector = false }) {
+  const [activeSrc, setActiveSrc] = useState(() => artFor(emotion, vector));
   // Start at opacity 0 — revealed only after the image confirms it is ready.
   const [opacity, setOpacity] = useState(0);
   // imgKey increments on retry to force the img element to remount and re-fetch.
@@ -65,7 +72,7 @@ export default function Mascot({ emotion = 'happy', size = 120, className = '' }
   }, [activeSrc, imgKey]);
 
   useEffect(() => {
-    const nextSrc = POSES[emotion] ?? POSES.happy;
+    const nextSrc = artFor(emotion, vector);
     if (nextSrc === activeSrc) {
       clearTimeout(timerRef.current);
       if (
@@ -86,7 +93,7 @@ export default function Mascot({ emotion = 'happy', size = 120, className = '' }
     }, FADE_MS);
 
     return () => clearTimeout(timerRef.current);
-  }, [emotion]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [emotion, vector]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleLoad() {
     lastGoodSrcRef.current = activeSrc;

@@ -283,7 +283,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
       {walk === 'walking' && (
         <div data-tinku="slot" className="relative z-40" style={{ width: HEADER_TINKU, height: HEADER_TINKU }}>
           <div ref={walkerRef} data-tinku="travel" className="pointer-events-none will-change-transform" style={{ transformOrigin: '0 0', width: travelSize, height: travelSize }}>
-            <Mascot emotion="waving" size={travelSize} />
+            <Mascot emotion="waving" size={travelSize} vector={hero} />
           </div>
         </div>
       )}

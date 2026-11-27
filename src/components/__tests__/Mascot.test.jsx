@@ -39,3 +39,21 @@ describe('Mascot — rapid emotion change regression', () => {
     expect(img.style.opacity).toBe('1');
   });
 });
+
+describe('Mascot — vector art (F6 hero)', () => {
+  afterEach(cleanup);
+  const src = (c) => c.querySelector('img').getAttribute('src');
+
+  it('waving + vector uses the SVG art; without vector it stays the WebP', () => {
+    const vector = render(<Mascot emotion="waving" size={300} vector />);
+    expect(src(vector.container)).toMatch(/Tinku_Wave\.svg/);
+    cleanup();
+    const plain = render(<Mascot emotion="waving" size={300} />);
+    expect(src(plain.container)).toMatch(/Tinku_Bye\.webp/);
+  });
+
+  it('a pose with no vector art falls back to its WebP', () => {
+    const { container } = render(<Mascot emotion="happy" size={120} vector />);
+    expect(src(container)).toMatch(/Tinku_Mascot\.webp/);
+  });
+});
