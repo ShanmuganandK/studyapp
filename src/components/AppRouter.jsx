@@ -49,6 +49,8 @@ export default function AppRouter() {
   // F6 hero intro (ROADMAP): only the first Home of each app open, and not right after the first-run picker
   // (it already shows big Tinku). Leaving Home for a quiz or the parent zone ends it for this app open.
   const [intro, setIntro] = useState(gradeChosen);
+  // While the hero shows, the bottom bar is hidden too: a full-screen Tinku (owner review 2026-11-27).
+  const [heroOnScreen, setHeroOnScreen] = useState(false);
 
   const handleSelectSkill = (skillId) => {
     setIntro(false);
@@ -97,7 +99,7 @@ export default function AppRouter() {
   }
 
   return (
-    <Layout currentView={currentView} onNavigate={handleNavigate} scrollLocked={isGateOpen} hideNav={currentView === 'quiz' && !sessionDone}>
+    <Layout currentView={currentView} onNavigate={handleNavigate} scrollLocked={isGateOpen} hideNav={(currentView === 'quiz' && !sessionDone) || heroOnScreen}>
       {/* Mounted only while open so it starts fresh each time — its internal mode initialises
           from isSettingMode with no stale-state lag (fixes the first-click-no-op race). */}
       {isGateOpen && (
@@ -110,7 +112,7 @@ export default function AppRouter() {
       )}
 
       {currentView === 'skills' && (
-        <SkillPathScreen grade={grade} onSelectSkill={handleSelectSkill} intro={intro} />
+        <SkillPathScreen grade={grade} onSelectSkill={handleSelectSkill} intro={intro} onHeroChange={setHeroOnScreen} />
       )}
 
       {currentView === 'quiz' && activeSkillId && (

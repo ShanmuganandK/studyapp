@@ -39,16 +39,17 @@ const Layout = ({ children, currentView, onNavigate, scrollLocked = false, hideN
             position can never bleed across views. */}
         {/* scrollLocked (gate open) freezes this scroller so the background can't scroll behind
             the portalled modal — the real scroll container is here, not the body. */}
-        <div key={currentView} className={`desktop-phone-content flex-1 ${scrollLocked ? 'overflow-hidden' : 'overflow-y-auto'} pt-3 pb-4 px-4 bg-bg scrollbar-hide`}>
+        <div key={currentView} className={`desktop-phone-content flex-1 ${scrollLocked ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden'} pt-3 pb-4 px-4 bg-bg scrollbar-hide`}>
           <div className="h-full animate-view-enter">
             {children}
           </div>
         </div>
 
         {/* Bottom Navigation. Hidden during a quiz (DECISIONS 2026-10-18): the room goes to the question,
-            and a mid-quiz tap on Parent/Home was an accident. The quiz keeps its own '← Skills' exit. */}
+            and a mid-quiz tap on Parent/Home was an accident. The quiz keeps its own '← Skills' exit. Also hidden
+            while the Home hero shows (F6). It rises back in when it returns. */}
         {!hideNav && (
-        <div className="shrink-0 h-20 bg-bg-card border-t border-primary-soft flex items-center justify-around px-4 shadow-nav">
+        <div className="animate-view-enter shrink-0 h-20 bg-bg-card border-t border-primary-soft flex items-center justify-around px-4 shadow-nav">
           <NavItem
             icon={<Home size={22} strokeWidth={2.5} />}
             label="Home"

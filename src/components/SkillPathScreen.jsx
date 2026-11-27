@@ -38,7 +38,14 @@ const WALK_HOLD_MS = 350;
 // down, so the big Tinku stays sharp.
 const HERO_HOLD_MS = 700;
 const HERO_SHRINK_MS = 400;
-const heroSize = () => Math.round(Math.min(window.innerHeight * 0.42, window.innerWidth * 0.85, 360));
+// The waving art (Tinku_Bye.webp, measured): the elephant fills 68% x 81% of the image, centred at (54%, 53%).
+// The hero is sized so the elephant spans ~80% of the app's width, but at most ~55% of its height (short screens);
+// the image's transparent margin may run past the screen edges (the scroll area clips it).
+const WAVE_ART = { w: 0.68, h: 0.81, cx: 0.54, cy: 0.53 };
+const heroSize = () => {
+  const appWidth = Math.min(window.innerWidth, 448); // the app is max-w-md on tablets and desktop
+  return Math.round(Math.min((appWidth * 0.8) / WAVE_ART.w, (window.innerHeight * 0.55) / WAVE_ART.h));
+};
 const walkMs = (dy) => Math.min(1500, Math.max(700, 500 + Math.abs(dy) * 0.5));
 const easeInOut = (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
 const SKIP_EVENTS = ['pointerdown', 'wheel', 'touchstart', 'keydown'];
@@ -68,7 +75,7 @@ function buildSpine(count) {
   return d;
 }
 
-export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = false }) {
+export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = false, onHeroChange }) {
   // IDENTICAL to SkillSelectScreen (copied, not refactored — see file header). Thin delegation to
   // the pure engine; no new calls or logic in this experiment.
   const [{ allStates, recommendation }] = useState(() => {
@@ -113,29 +120,29 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
   const backdropRef = useRef(null);
   const heroRef = useRef(null); // { x, y }: offset from the header slot that centres the big Tinku on the app
 
-  // Hero, before the first paint: centre the big Tinku on the app and cover the page with the splash colour, so
-  // the first frame is the hero (no flash of Home). The backdrop covers the visible scroll area, with slack for
-  // the view-enter rise.
+  // Hero, before the first paint: hide the bottom bar (full-screen Tinku, owner review 2026-11-27), put the
+  // elephant itself in the middle of the app, and cover the whole app with the splash colour, so the first frame
+  // is the hero (no flash of Home). The cover has slack for the view-enter rise.
   useLayoutEffect(() => {
     if (!hero) return;
+    onHeroChange?.(true);
     const walker = walkerRef.current;
     const slot = walker.parentElement.getBoundingClientRect();
     const app = walker.closest('.app-frame')?.getBoundingClientRect()
       ?? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
     heroRef.current = {
-      x: app.left + app.width / 2 - travelSize / 2 - slot.left,
-      y: app.top + app.height / 2 - travelSize / 2 - slot.top,
+      x: app.left + app.width / 2 - travelSize * WAVE_ART.cx - slot.left,
+      y: app.top + app.height / 2 - travelSize * WAVE_ART.cy - slot.top,
     };
     walker.style.transform = `translate(${heroRef.current.x}px, ${heroRef.current.y}px)`;
-    const view = (scrollParentOf(rootRef.current) ?? rootRef.current.parentElement).getBoundingClientRect();
     const root = rootRef.current.getBoundingClientRect();
     Object.assign(backdropRef.current.style, {
-      top: `${view.top - root.top - 40}px`,
-      left: `${view.left - root.left}px`,
-      width: `${view.width}px`,
-      height: `${view.height + 80}px`,
+      top: `${app.top - root.top - 40}px`,
+      left: `${app.left - root.left}px`,
+      width: `${app.width}px`,
+      height: `${app.height + 80}px`,
     });
-  }, [hero, travelSize]);
+  }, [hero, travelSize, onHeroChange]);
 
   useEffect(() => {
     const row = suggestedRef.current;
@@ -151,6 +158,8 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
     const backdrop = backdropRef.current;
     const base = HEADER_TINKU / travelSize; // the scale that fits the walking Tinku in the header slot
     const place = (x, y, scale) => { walker.style.transform = `translate(${x}px, ${y}px) scale(${scale})`; };
+    let barBack = !hero;
+    const bringBarBack = () => { if (!barBack) { barBack = true; onHeroChange?.(false); } };
     const marker = row.querySelector('[data-tinku="stop"]');
     const scroller = scrollParentOf(row);
     let frame = 0;
@@ -182,6 +191,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
       finished = true;
       cancelAnimationFrame(frame);
       SKIP_EVENTS.forEach((type) => window.removeEventListener(type, land));
+      bringBarBack();
       if (scroller) scroller.scrollTop = (geo || measure()).scrollTo;
       else row.scrollIntoView?.({ block: 'center' });
       landingRef.current = { top: row.getBoundingClientRect().top, scroller };
@@ -193,6 +203,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
       if (hero && elapsed < HERO_HOLD_MS + HERO_SHRINK_MS) {
         // Hero: hold big in the middle, then shrink into the header slot while the backdrop fades away.
         const k = easeInOut(Math.max(0, (elapsed - HERO_HOLD_MS) / HERO_SHRINK_MS));
+        if (elapsed >= HERO_HOLD_MS) bringBarBack(); // the bar rises back in with Home
         place(heroRef.current.x * (1 - k), heroRef.current.y * (1 - k), 1 + (base - 1) * k);
         backdrop.style.opacity = String(1 - k);
       } else {
@@ -215,8 +226,9 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
       finished = true;
       cancelAnimationFrame(frame);
       SKIP_EVENTS.forEach((type) => window.removeEventListener(type, land));
+      bringBarBack();
     };
-  }, [walks, hero, travelSize]);
+  }, [walks, hero, travelSize, onHeroChange]);
 
   // Once Tinku has landed the emptied header spot is removed, or scrolling back up showed a blank band at the
   // top (owner review 2026-11-25). Before paint, keep the stop where it was on screen by scrolling up as far

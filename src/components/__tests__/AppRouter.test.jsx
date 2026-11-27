@@ -36,8 +36,12 @@ vi.mock('../GradePickerScreen', () => ({
   default: ({ onChoose }) => <button onClick={() => onChoose(2)}>pick-grade-2</button>,
 }));
 vi.mock('../SkillPathScreen', () => ({
-  default: ({ grade, onSelectSkill, intro }) => (
-    <button data-intro={String(!!intro)} onClick={() => onSelectSkill('g1.add.within10')}>path-skill-g{grade}</button>
+  default: ({ grade, onSelectSkill, intro, onHeroChange }) => (
+    <div>
+      <button data-intro={String(!!intro)} onClick={() => onSelectSkill('g1.add.within10')}>path-skill-g{grade}</button>
+      <button onClick={() => onHeroChange(true)}>hero-on</button>
+      <button onClick={() => onHeroChange(false)}>hero-off</button>
+    </div>
   ),
 }));
 vi.mock('../RecipeQuizScreen', () => ({
@@ -139,6 +143,15 @@ describe('AppRouter routing', () => {
     fireEvent.click(screen.getByText('gate-pass'));
     fireEvent.click(screen.getByText('nav-skills'));
     expect(intro()).toBe('false');
+  });
+
+  it('hides the bottom bar while the hero shows (full-screen Tinku), and brings it back after', () => {
+    render(<AppRouter />);
+    expect(screen.getByTestId('layout').dataset.hidenav).toBe('false');
+    fireEvent.click(screen.getByText('hero-on'));
+    expect(screen.getByTestId('layout').dataset.hidenav).toBe('true');
+    fireEvent.click(screen.getByText('hero-off'));
+    expect(screen.getByTestId('layout').dataset.hidenav).toBe('false');
   });
 
   it('no hero intro right after the first-run class picker (it already shows big Tinku)', () => {

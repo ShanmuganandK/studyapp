@@ -254,12 +254,35 @@ describe('SkillPathScreen', () => {
       expect(screen.getAllByTestId('mascot')).toHaveLength(1);
     });
 
+    it('intro: asks for the bottom bar to hide while the hero shows, and back once Tinku starts shrinking', () => {
+      motion(false);
+      const onHeroChange = vi.fn();
+      render(<SkillPathScreen onSelectSkill={() => {}} intro onHeroChange={onHeroChange} />);
+      expect(onHeroChange).toHaveBeenLastCalledWith(true);
+      runFrames([0, 300, 650]);
+      expect(onHeroChange).toHaveBeenLastCalledWith(true);
+      runFrames([800]); // shrinking
+      expect(onHeroChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it('intro: the hero is sized to the screen (the elephant spans most of a phone\'s width)', () => {
+      motion(false);
+      vi.stubGlobal('innerWidth', 412); // Galaxy S25 Ultra
+      vi.stubGlobal('innerHeight', 915);
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
+      expect(travelSize(container)).toBeGreaterThanOrEqual(412); // the art's transparent margin may run past the edges
+    });
+
     it('intro: a tap during the hero skips straight to the stop', () => {
       motion(false);
-      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
+      let { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
+      const onHeroChange = vi.fn();
+      cleanup();
+      ({ container } = render(<SkillPathScreen onSelectSkill={() => {}} intro onHeroChange={onHeroChange} />));
       runFrames([0, 300]);
       expect(backdrop(container)).toBeTruthy(); // the hero is on screen before the tap
       fireEvent.pointerDown(window);
+      expect(onHeroChange).toHaveBeenLastCalledWith(false);
       expect(traveller(container)).toBeNull();
       expect(backdrop(container)).toBeNull();
       expect(stopTinku(container).style.opacity).not.toBe('0');

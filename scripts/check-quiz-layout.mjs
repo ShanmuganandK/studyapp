@@ -318,8 +318,14 @@ async function checkPhone(phone) {
       const cover = document.querySelector('[data-tinku="hero-backdrop"]');
       const stopTinku = document.querySelector('[data-tinku="stop"]');
       return {
-        walker: w ? { heightShare: w.height / s.height, offCentre: Math.abs(w.left + w.width / 2 - (app.left + app.width / 2)) } : null,
+        // The elephant's own centre in the waving art is at (54%, 53%) of the image (WAVE_ART in SkillPathScreen).
+        walker: w ? {
+          widthShare: w.width / app.width,
+          offCentre: Math.round(Math.max(Math.abs(w.left + w.width * 0.54 - (app.left + app.width / 2)), Math.abs(w.top + w.height * 0.53 - (app.top + app.height / 2)))),
+        } : null,
         cover: cover && !cover.hidden ? window.getComputedStyle(cover).opacity : null,
+        coverFull: !!cover && cover.getBoundingClientRect().top <= app.top + 1 && cover.getBoundingClientRect().bottom >= app.bottom - 1,
+        bar: [...document.querySelectorAll('button')].some((b) => b.textContent.trim().toUpperCase() === 'HOME'),
         stopTinkuOpacity: stopTinku ? window.getComputedStyle(stopTinku).opacity : null,
         inView: !!r && r.top >= s.top - 1 && r.bottom <= s.bottom + 1,
         scrollTop: Math.round(scroller.scrollTop),
@@ -331,13 +337,15 @@ async function checkPhone(phone) {
     await mpage.goto(URL); await mpage.clock.runFor(150);
     const atStart = await walkState();
     if (!atStart.walker) fail(wwhere, 'no big Tinku when Home opens', atStart);
-    else if (atStart.walker.heightShare < 0.25 || atStart.walker.offCentre > 4) fail(wwhere, 'hero Tinku is not big and centred', atStart);
-    if (atStart.cover !== '1') fail(wwhere, 'hero cover is not showing (Home flashes before the hero)', atStart);
+    else if (atStart.walker.widthShare < 0.9 || atStart.walker.offCentre > 4) fail(wwhere, 'hero Tinku is not big and centred', atStart);
+    if (atStart.cover !== '1' || !atStart.coverFull) fail(wwhere, 'hero cover does not cover the whole app (Home flashes before the hero)', atStart);
+    if (atStart.bar) fail(wwhere, 'bottom bar shows during the hero (it should be full-screen Tinku)', atStart);
     if (atStart.stopTinkuOpacity !== '0') fail(wwhere, "the stop's Tinku shows while the other one walks (two Tinkus)", atStart);
     if (atStart.scrollTop !== 0) fail(wwhere, 'page jumped before the walk', atStart);
     await mpage.clock.runFor(3300); // hero 1.1 s + walk up to 1.5 s
     const landed = await walkState();
     if (landed.walker || landed.cover) fail(wwhere, 'walking Tinku never landed, or the hero cover stayed', landed);
+    if (!landed.bar) fail(wwhere, 'bottom bar did not come back after the hero', landed);
     if (!landed.inView) fail(wwhere, "Tinku's stop is off-screen after the walk", landed);
     if (landed.stopTinkuOpacity !== '1') fail(wwhere, "the stop's Tinku is not visible after the walk", landed);
     if (landed.back) fail(wwhere, '"Back to Tinku" shows right after landing', landed);
