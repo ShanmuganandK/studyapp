@@ -77,17 +77,17 @@ describe('Mascot — vector art (F6 hero)', () => {
     expect(still.container.querySelector('img').className).not.toContain('mascot-breathe');
   });
 
-  it('Tinku_Wave.svg preserves the original vector trace with GPU-safe arm-wave, ear-wiggle, blink & glow rig', async () => {
+  it('Tinku_Wave.svg preserves the original vector trace with GPU-safe sway, blink, brow & glow animations', async () => {
     const { readFileSync, statSync } = await import('node:fs');
     const path = 'src/assets/mascot/svg/Tinku_Wave.svg';
     expect(statSync(path).size).toBeLessThan(150 * 1024);
     const svg = readFileSync(path, 'utf8');
     expect(svg).toContain('tinku-wave');
-    expect(svg).toContain('tinku-arm');
-    expect(svg).toContain('tinku-ear-r');
-    expect(svg).toContain('tinku-ear-l');
     expect(svg).toContain('tinku-blink');
+    expect(svg).toContain('tinku-brow');
     expect(svg).toContain('tinku-glow');
+    expect(svg).not.toContain('tinku-arm');
+    expect(svg).not.toContain('clip-arm');
     expect(svg).toContain('prefers-reduced-motion: reduce');
   });
 });
