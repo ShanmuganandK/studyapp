@@ -215,15 +215,15 @@ describe('SkillPathScreen', () => {
       expect(stopTinku(container).style.opacity).toBe('0');
       expect(onHeroChange).toHaveBeenLastCalledWith(true);
 
-      // Hold phase (< 900 ms): cover stays opaque and bar stays hidden.
-      runFrames([0, 400, 850]);
+      // Hold phase (< 1500 ms): cover stays opaque and bar stays hidden so Tinku's ~0.68 s blink plays cleanly.
+      runFrames([0, 700, 1450]);
       expect(backdrop(container).style.opacity).toBe('1');
       expect(onHeroChange).toHaveBeenLastCalledWith(true);
 
-      // Fade phase (900..1220 ms): bar returns as hero cross-fades out, then Tinku lands on the stop.
-      runFrames([960]);
+      // Fade phase (1500..1820 ms): bar returns as hero cross-fades out, then Tinku lands on the stop.
+      runFrames([1560]);
       expect(onHeroChange).toHaveBeenLastCalledWith(false);
-      runFrames([1100, 1300]);
+      runFrames([1700, 1900]);
       expect(traveller(container)).toBeNull();
       expect(backdrop(container)).toBeNull();
       expect(stopTinku(container).style.opacity).toBe('1');
@@ -231,12 +231,13 @@ describe('SkillPathScreen', () => {
       expect(screen.getAllByTestId('mascot')).toHaveLength(1);
     });
 
-    it('intro: sizes the hero elephant across most of a phone screen (412×915)', () => {
+    it('intro: sizes the hero elephant crisply at Grade-Picker proportions (412×915)', () => {
       motion(false);
       vi.stubGlobal('innerWidth', 412);
       vi.stubGlobal('innerHeight', 915);
       const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
-      expect(travelSize(container)).toBeGreaterThanOrEqual(412);
+      expect(travelSize(container)).toBeGreaterThanOrEqual(300);
+      expect(travelSize(container)).toBeLessThanOrEqual(360);
     });
 
     it('intro: any tap during the hero skips straight to the settled stop and restores the bar', () => {

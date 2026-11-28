@@ -20,9 +20,10 @@ import SkillIcon from './SkillIcon';
  *
  * Ages 6–8 Hero & Motion Cadence (ROADMAP F6, 2026-11-28):
  *   1. Cold-open Hero (`intro === true`, motion allowed): full-screen Wonder World scene
- *      (`WonderBackdrop` + animated vector `Tinku_Wave.svg`, bottom bar hidden) holds `900 ms`,
- *      then cross-fades (`320 ms`) directly onto Tinku already centred on his recommended stop
- *      with a `tinku-land` hop (`260 ms`).
+ *      (`WonderBackdrop` + animated vector `Tinku_Wave.svg` at crisp Grade-Picker proportions with
+ *      ground shadow and soft halo, bottom bar hidden) holds `1500 ms` so kids clearly see Tinku's
+ *      early `~0.68 s` blink and animated side maths vignettes, then cross-fades (`320 ms`) directly
+ *      onto Tinku already centred on his recommended stop with a `tinku-land` hop (`260 ms`).
  *   2. Smart return visits (`intro === false`):
  *      - Same stop: opens immediately centred on Tinku's stop with a quick `260 ms` hop (no
  *        repetitive top-to-bottom glide).
@@ -40,18 +41,16 @@ const ROW_H = 128; // px per skill row
 
 const HEADER_TINKU = 104; // px — header Tinku when all skills are caught up (no stop holds Tinku)
 const STOP_TINKU = 58; // px — Tinku beside the suggested medallion
-const HERO_HOLD_MS = 900;
+const HERO_HOLD_MS = 1500;
 const HERO_FADE_MS = 320;
 const HOP_HOLD_MS = 180;
 const HOP_ARC_PX = 28;
 
-// Bounding box of the waving elephant in `Tinku_Wave.svg` (2000×2000 viewBox):
-// elephant fills 68% × 81% of the canvas, visually centred at (54%, 53%).
-const HERO_ART = { w: 0.68, h: 0.81, cx: 0.54, cy: 0.53 };
-
+// Crisp hero scale matching GradePickerScreen (~310–356 px) so Tinku's outlines stay sharp and
+// well-framed inside the centred Wonder World stage instead of feeling stretched across 915 px.
 const heroSize = () => {
   const appWidth = Math.min(window.innerWidth, 448); // the app is max-w-md on tablets and desktop
-  return Math.round(Math.min((appWidth * 0.8) / HERO_ART.w, (window.innerHeight * 0.55) / HERO_ART.h));
+  return Math.round(Math.min(356, appWidth * 0.84, window.innerHeight * 0.43));
 };
 const hopMs = (dy) => Math.min(1100, Math.max(600, 480 + Math.abs(dy) * 0.45));
 const easeInOut = (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
@@ -163,7 +162,6 @@ export default function SkillPathScreen({
       centreRowInScroller(row, scroller);
 
       const backdrop = backdropRef.current;
-      const walker = walkerRef.current;
       const root = rootRef.current?.getBoundingClientRect();
       const app =
         backdrop?.closest('.app-frame')?.getBoundingClientRect() ?? {
@@ -179,16 +177,6 @@ export default function SkillPathScreen({
           width: `${app.width}px`,
           height: `${app.height + 80}px`,
           opacity: '1',
-        });
-      }
-      if (walker) {
-        // Inside the backdrop (width = app.width, top shifted -40px for view-enter slack), place heroPx
-        // so HERO_ART.(cx, cy) sits at the exact centre of `.app-frame`.
-        const left = app.width / 2 - heroPx * HERO_ART.cx;
-        const top = 40 + app.height / 2 - heroPx * HERO_ART.cy;
-        Object.assign(walker.style, {
-          left: `${left}px`,
-          top: `${top}px`,
         });
       }
       return;
@@ -331,19 +319,31 @@ export default function SkillPathScreen({
           ref={backdropRef}
           data-tinku="hero-backdrop"
           aria-hidden="true"
-          className="absolute z-40 overflow-hidden bg-primary-soft pointer-events-none"
+          className="absolute z-40 overflow-hidden bg-primary-soft pointer-events-none flex items-center justify-center py-10"
         >
-          <WonderBackdrop />
-          <span className="absolute inset-x-0 top-16 z-10 font-display text-title font-extrabold text-primary-ink text-center">
-            {PRODUCT_NAME}
-          </span>
-          <div
-            ref={walkerRef}
-            data-tinku="travel"
-            className="absolute will-change-transform"
-            style={{ width: heroPx, height: heroPx }}
-          >
-            <Mascot emotion="waving" size={heroPx} vector breathe={false} />
+          <WonderBackdrop variant="splash" />
+          <div className="relative z-10 flex flex-col items-center justify-center px-6 gap-2">
+            <span className="font-display text-title font-extrabold text-primary-ink text-center">
+              {PRODUCT_NAME}
+            </span>
+            <div className="relative flex items-center justify-center">
+              <div
+                className="tinku-hero-halo absolute w-72 h-72 rounded-full opacity-75 pointer-events-none"
+                aria-hidden="true"
+              />
+              <div
+                ref={walkerRef}
+                data-tinku="travel"
+                className="relative will-change-transform"
+                style={{ width: heroPx, height: heroPx }}
+              >
+                <Mascot emotion="waving" size={heroPx} vector breathe={false} />
+              </div>
+            </div>
+            <div className="tinku-ground h-4 w-44 -mt-3" aria-hidden="true" />
+            <p className="text-sm sm:text-base font-semibold text-ink mt-1 max-w-xs">
+              Maths practice, one friendly step at a time.
+            </p>
           </div>
         </div>
       )}

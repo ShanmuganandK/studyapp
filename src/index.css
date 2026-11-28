@@ -187,6 +187,10 @@
 .tinku-ground {
   background: radial-gradient(ellipse at center, rgba(var(--color-primary-rgb), 0.16), rgba(var(--color-primary-rgb), 0) 72%);
 }
+/* Soft sunlit halo behind Hero Tinku — gives gentle foreground/background depth without hard rings. */
+.tinku-hero-halo {
+  background: radial-gradient(circle at center, var(--color-bg-card) 0%, rgba(var(--color-primary-rgb), 0) 68%);
+}
 
 /* Option-tile surface — a subtle top-lit gradient that, together with --shadow-button's layered
    soft shadow, gives the answer tiles a raised, tactile "pillow" feel (Stitch "Polished" variant

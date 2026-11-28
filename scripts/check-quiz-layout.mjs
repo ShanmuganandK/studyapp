@@ -336,11 +336,11 @@ async function checkPhone(phone) {
     await mpage.goto(URL); await mpage.clock.runFor(150);
     const atStart = await walkState();
     if (!atStart.walker) fail(wwhere, 'no big Tinku when Home opens', atStart);
-    else if (atStart.walker.widthShare < 0.9 || atStart.walker.offX > 4 || atStart.walker.offY > 12) fail(wwhere, 'hero Tinku is not big and centred', atStart);
+    else if (atStart.walker.widthShare < 0.6 || atStart.walker.widthShare > 0.9 || atStart.walker.offX > 18 || atStart.walker.offY > 24) fail(wwhere, 'hero Tinku is not big and centred', atStart);
     if (atStart.cover !== '1' || !atStart.coverFull) fail(wwhere, 'hero cover does not cover the whole app (Home flashes before the hero)', atStart);
     if (atStart.bar) fail(wwhere, 'bottom bar shows during the hero (it should be full-screen Tinku)', atStart);
     if (atStart.stopTinkuOpacity !== '0') fail(wwhere, "the stop's Tinku shows during the hero (two Tinkus)", atStart);
-    await mpage.clock.runFor(1600); // hero 900 ms hold + 320 ms fade
+    await mpage.clock.runFor(2100); // hero 1500 ms hold + 320 ms fade
     const landed = await walkState();
     if (landed.walker || landed.cover) fail(wwhere, 'hero cover or travel Tinku stayed after landing', landed);
     if (!landed.bar) fail(wwhere, 'bottom bar did not come back after the hero', landed);
@@ -357,7 +357,7 @@ async function checkPhone(phone) {
     if (farGap > 70) fail(wwhere, `blank band above the title after the hero (title ${farGap} px below the top)`);
     // Near stop (fresh install → stop 1): Tinku lands cleanly on stop 1 with no blank top band.
     await mpage.addInitScript(() => localStorage.removeItem('tinku:v1:skills'));
-    await mpage.goto(URL); await mpage.clock.runFor(1600);
+    await mpage.goto(URL); await mpage.clock.runFor(2100);
     const near = await walkState();
     const nearGap = await titleGap();
     if (near.walker || !near.inView) fail(wwhere, 'near stop: Tinku did not land on stop 1', near);

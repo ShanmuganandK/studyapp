@@ -33,18 +33,19 @@ const C = {
   skySoft: 'var(--color-illo-sky-soft)',
 };
 
-export default function WonderBackdrop({ className = '' }) {
+export default function WonderBackdrop({ className = '', variant = 'card' }) {
+  const isSplash = variant === 'splash';
   return (
     <div
       data-testid="wonder-backdrop"
       aria-hidden="true"
       className={`pointer-events-none select-none absolute inset-0 overflow-hidden ${className}`}
     >
-      {/* Upper band: corner clouds + Top-Left (1·2·3 blocks) & Top-Right (2+3=5 card) */}
+      {/* Clouds: sit cleanly near the top of both card and full-screen splash layouts */}
       <svg
-        viewBox="0 0 400 220"
+        viewBox="0 0 400 100"
         preserveAspectRatio="xMidYMin meet"
-        className="absolute inset-x-0 top-2 w-full"
+        className={`absolute inset-x-0 w-full ${isSplash ? 'top-14' : 'top-2'}`}
       >
         <g className="wonder-cloud-slow">
           <path
@@ -66,94 +67,110 @@ export default function WonderBackdrop({ className = '' }) {
             strokeLinejoin="round"
           />
         </g>
-
-        {/* 1. Top-Left Side Math Vignette: 1-2-3 Counting Blocks with staggered wave pop */}
-        <g className="wonder-float-a">
-          <g transform="translate(38 142) rotate(-8)">
-            <g className="wonder-block-1" style={{ transformOrigin: '0px -14px' }}>
-              <rect x="-8" y="-22" width="16" height="16" rx="3.5" fill={C.sunSoft} stroke={C.primaryInk} strokeWidth="2" />
-              <text x="0" y="-10.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>1</text>
-            </g>
-            <g className="wonder-block-2" style={{ transformOrigin: '-9px 3px' }}>
-              <rect x="-17" y="-5" width="16" height="16" rx="3.5" fill={C.skySoft} stroke={C.primaryInk} strokeWidth="2" />
-              <text x="-9" y="6.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>2</text>
-            </g>
-            <g className="wonder-block-3" style={{ transformOrigin: '9px 3px' }}>
-              <rect x="1" y="-5" width="16" height="16" rx="3.5" fill={C.primarySoft} stroke={C.primaryInk} strokeWidth="2" />
-              <text x="9" y="6.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>3</text>
-            </g>
-          </g>
-        </g>
-
-        {/* 2. Top-Right Side Math Vignette: "2 + 3 = 5" Card with animated "= 5" pop */}
-        <g className="wonder-float-b">
-          <g transform="translate(358 148) rotate(8)">
-            <rect x="-22" y="-18" width="44" height="36" rx="7" fill={C.card} stroke={C.primaryInk} strokeWidth="2" />
-            <rect x="-19" y="-15" width="38" height="15" rx="4" fill={C.leafSoft} />
-            <text x="0" y="-4" textAnchor="middle" fontSize="10.5" fontWeight="900" fill={C.primaryInk}>2 + 3</text>
-            <g className="wonder-eq-ans" style={{ transformOrigin: '0px 9px' }}>
-              <text x="0" y="12" textAnchor="middle" fontSize="11" fontWeight="900" fill={C.primary}>= 5</text>
-            </g>
-          </g>
-        </g>
       </svg>
 
-      {/* Lower band: Bottom-Left (Ticking 3:00 Clock) & Bottom-Right (Tilting cm Ruler + Set-Square) */}
-      <svg
-        viewBox="0 0 400 150"
-        preserveAspectRatio="xMidYMax meet"
-        className="absolute inset-x-0 bottom-[11%] w-full"
+      {/* Side-margin math vignettes: bounded tightly around Tinku even on tall full-screen splash */}
+      <div
+        className={
+          isSplash
+            ? 'absolute inset-x-0 top-1/2 -translate-y-1/2 h-[min(72%,520px)]'
+            : 'absolute inset-0'
+        }
       >
-        {/* 3. Lower-Left Side Math Vignette: Friendly Ticking Analogue Clock */}
-        <g className="wonder-float-b">
-          <g transform="translate(38 72) rotate(-6)">
-            <circle cx="0" cy="0" r="19" fill={C.sunSoft} stroke={C.primaryInk} strokeWidth="2" />
-            <circle cx="0" cy="0" r="14.5" fill={C.card} stroke={C.primarySoft} strokeWidth="1.5" />
-            <line x1="0" y1="-12" x2="0" y2="-9.5" stroke={C.primaryInk} strokeWidth="1.8" strokeLinecap="round" />
-            <line x1="12" y1="0" x2="9.5" y2="0" stroke={C.primaryInk} strokeWidth="1.8" strokeLinecap="round" />
-            <line x1="0" y1="12" x2="0" y2="9.5" stroke={C.primaryInk} strokeWidth="1.8" strokeLinecap="round" />
-            <line x1="-12" y1="0" x2="-9.5" y2="0" stroke={C.primaryInk} strokeWidth="1.8" strokeLinecap="round" />
-            <line
-              x1="0"
-              y1="0"
-              x2="0"
-              y2="-8.5"
-              stroke={C.primaryInk}
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              className="wonder-clock-min"
-            />
-            <line x1="0" y1="0" x2="6.5" y2="0" stroke={C.berry} strokeWidth="2.4" strokeLinecap="round" />
-            <circle cx="0" cy="0" r="2" fill={C.primaryInk} />
-          </g>
-        </g>
-
-        {/* 4. Lower-Right Side Math Vignette: "cm" Ruler & Geometry Set-Square */}
-        <g className="wonder-float-a">
-          <g transform="translate(360 72) rotate(9)">
-            <g className="wonder-ruler-tilt">
-              <polygon
-                points="-18,14 14,-14 14,14"
-                fill={C.skySoft}
-                stroke={C.primaryInk}
-                strokeWidth="2"
-                strokeLinejoin="round"
-              />
-              <rect x="-20" y="4" width="38" height="13" rx="3" fill={C.sunSoft} stroke={C.primaryInk} strokeWidth="2" />
-              <line x1="-12" y1="4" x2="-12" y2="9" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
-              <line x1="-4" y1="4" x2="-4" y2="11" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
-              <line x1="4" y1="4" x2="4" y2="9" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
-              <line x1="12" y1="4" x2="12" y2="11" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
+        {/* Upper vignettes: Top-Left (1·2·3 blocks) & Top-Right (2+3=5 card) */}
+        <svg
+          viewBox="0 0 400 220"
+          preserveAspectRatio="xMidYMin meet"
+          className={`absolute inset-x-0 w-full ${isSplash ? 'top-0' : 'top-2'}`}
+        >
+          {/* 1. Top-Left Side Math Vignette: 1-2-3 Counting Blocks with staggered wave pop */}
+          <g className="wonder-float-a">
+            <g transform="translate(38 142) rotate(-8)">
+              <g className="wonder-block-1" style={{ transformOrigin: '0px -14px' }}>
+                <rect x="-8" y="-22" width="16" height="16" rx="3.5" fill={C.sunSoft} stroke={C.primaryInk} strokeWidth="2" />
+                <text x="0" y="-10.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>1</text>
+              </g>
+              <g className="wonder-block-2" style={{ transformOrigin: '-9px 3px' }}>
+                <rect x="-17" y="-5" width="16" height="16" rx="3.5" fill={C.skySoft} stroke={C.primaryInk} strokeWidth="2" />
+                <text x="-9" y="6.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>2</text>
+              </g>
+              <g className="wonder-block-3" style={{ transformOrigin: '9px 3px' }}>
+                <rect x="1" y="-5" width="16" height="16" rx="3.5" fill={C.primarySoft} stroke={C.primaryInk} strokeWidth="2" />
+                <text x="9" y="6.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>3</text>
+              </g>
             </g>
           </g>
-        </g>
-      </svg>
+
+          {/* 2. Top-Right Side Math Vignette: "2 + 3 = 5" Card with animated "= 5" pop */}
+          <g className="wonder-float-b">
+            <g transform="translate(358 148) rotate(8)">
+              <rect x="-22" y="-18" width="44" height="36" rx="7" fill={C.card} stroke={C.primaryInk} strokeWidth="2" />
+              <rect x="-19" y="-15" width="38" height="15" rx="4" fill={C.leafSoft} />
+              <text x="0" y="-4" textAnchor="middle" fontSize="10.5" fontWeight="900" fill={C.primaryInk}>2 + 3</text>
+              <g className="wonder-eq-ans" style={{ transformOrigin: '0px 9px' }}>
+                <text x="0" y="12" textAnchor="middle" fontSize="11" fontWeight="900" fill={C.primary}>= 5</text>
+              </g>
+            </g>
+          </g>
+        </svg>
+
+        {/* Lower vignettes: Bottom-Left (Ticking 3:00 Clock) & Bottom-Right (Tilting cm Ruler + Set-Square) */}
+        <svg
+          viewBox="0 0 400 150"
+          preserveAspectRatio="xMidYMax meet"
+          className={`absolute inset-x-0 w-full ${isSplash ? 'bottom-[14%]' : 'bottom-[11%]'}`}
+        >
+          {/* 3. Lower-Left Side Math Vignette: Friendly Ticking Analogue Clock */}
+          <g className="wonder-float-b">
+            <g transform="translate(38 72) rotate(-6)">
+              <circle cx="0" cy="0" r="19" fill={C.sunSoft} stroke={C.primaryInk} strokeWidth="2" />
+              <circle cx="0" cy="0" r="14.5" fill={C.card} stroke={C.primarySoft} strokeWidth="1.5" />
+              <line x1="0" y1="-12" x2="0" y2="-9.5" stroke={C.primaryInk} strokeWidth="1.8" strokeLinecap="round" />
+              <line x1="12" y1="0" x2="9.5" y2="0" stroke={C.primaryInk} strokeWidth="1.8" strokeLinecap="round" />
+              <line x1="0" y1="12" x2="0" y2="9.5" stroke={C.primaryInk} strokeWidth="1.8" strokeLinecap="round" />
+              <line x1="-12" y1="0" x2="-9.5" y2="0" stroke={C.primaryInk} strokeWidth="1.8" strokeLinecap="round" />
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="-8.5"
+                stroke={C.primaryInk}
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                className="wonder-clock-min"
+              />
+              <line x1="0" y1="0" x2="6.5" y2="0" stroke={C.berry} strokeWidth="2.4" strokeLinecap="round" />
+              <circle cx="0" cy="0" r="2" fill={C.primaryInk} />
+            </g>
+          </g>
+
+          {/* 4. Lower-Right Side Math Vignette: "cm" Ruler & Geometry Set-Square */}
+          <g className="wonder-float-a">
+            <g transform="translate(360 72) rotate(9)">
+              <g className="wonder-ruler-tilt">
+                <polygon
+                  points="-18,14 14,-14 14,14"
+                  fill={C.skySoft}
+                  stroke={C.primaryInk}
+                  strokeWidth="2"
+                  strokeLinejoin="round"
+                />
+                <rect x="-20" y="4" width="38" height="13" rx="3" fill={C.sunSoft} stroke={C.primaryInk} strokeWidth="2" />
+                <line x1="-12" y1="4" x2="-12" y2="9" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
+                <line x1="-4" y1="4" x2="-4" y2="11" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
+                <line x1="4" y1="4" x2="4" y2="9" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
+                <line x1="12" y1="4" x2="12" y2="11" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
+              </g>
+            </g>
+          </g>
+        </svg>
+      </div>
 
       {/* Soft low meadow curve at the very bottom */}
       <svg
         viewBox="0 0 400 90"
         preserveAspectRatio="none"
-        className="absolute inset-x-0 bottom-0 w-full h-[13%]"
+        className={`absolute inset-x-0 bottom-0 w-full ${isSplash ? 'h-[11%]' : 'h-[13%]'}`}
       >
         <path
           d="M0 44 C130 14, 270 68, 400 32 L400 90 L0 90 Z"
