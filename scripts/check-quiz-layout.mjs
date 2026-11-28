@@ -316,12 +316,12 @@ async function checkPhone(phone) {
       const cover = document.querySelector('[data-tinku="hero-backdrop"]');
       const stopTinku = document.querySelector('[data-tinku="stop"]');
       return {
-        // Hand-crafted Tinku_Wave.svg visual centre is at (51%, 51%) (HERO_ART in SkillPathScreen).
+        // The waving elephant's visual centre in `Tinku_Wave.svg` is at (54%, 53%) (HERO_ART in SkillPathScreen).
         walker: w ? {
           widthShare: w.width / app.width,
-          offX: Math.round(Math.abs(w.left + w.width * 0.51 - (app.left + app.width / 2))),
+          offX: Math.round(Math.abs(w.left + w.width * 0.54 - (app.left + app.width / 2))),
           // Vertical allows for Home's 10 px view-enter rise, which runs on real time while the page clock is paused.
-          offY: Math.round(Math.abs(w.top + w.height * 0.51 - (app.top + app.height / 2))),
+          offY: Math.round(Math.abs(w.top + w.height * 0.53 - (app.top + app.height / 2))),
         } : null,
         cover: cover && !cover.hidden ? window.getComputedStyle(cover).opacity : null,
         coverFull: !!cover && cover.getBoundingClientRect().top <= app.top + 1 && cover.getBoundingClientRect().bottom >= app.bottom - 1,

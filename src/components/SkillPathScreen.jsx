@@ -45,9 +45,9 @@ const HERO_FADE_MS = 320;
 const HOP_HOLD_MS = 180;
 const HOP_ARC_PX = 28;
 
-// Bounding box of the hand-crafted waving elephant in `Tinku_Wave.svg` (2000×2000 viewBox):
-// elephant fills ~66% × 78% of the canvas, visually centred at (51%, 51%).
-const HERO_ART = { w: 0.66, h: 0.78, cx: 0.51, cy: 0.51 };
+// Bounding box of the waving elephant in `Tinku_Wave.svg` (2000×2000 viewBox):
+// elephant fills 68% × 81% of the canvas, visually centred at (54%, 53%).
+const HERO_ART = { w: 0.68, h: 0.81, cx: 0.54, cy: 0.53 };
 
 const heroSize = () => {
   const appWidth = Math.min(window.innerWidth, 448); // the app is max-w-md on tablets and desktop
@@ -331,7 +331,7 @@ export default function SkillPathScreen({
           ref={backdropRef}
           data-tinku="hero-backdrop"
           aria-hidden="true"
-          className="absolute z-40 overflow-hidden bg-gradient-to-b from-primary-soft via-bg to-primary-soft pointer-events-none"
+          className="absolute z-40 overflow-hidden bg-primary-soft pointer-events-none"
         >
           <WonderBackdrop />
           <span className="absolute inset-x-0 top-16 z-10 font-display text-title font-extrabold text-primary-ink text-center">

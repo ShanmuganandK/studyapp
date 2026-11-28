@@ -494,13 +494,19 @@
 }
 .animate-tinku-land { animation: tinku-land 260ms ease-out both; }
 
-/* WonderBackdrop subtle cloud drift — GPU transform-only. */
+/* WonderBackdrop subtle cloud drift & side math prop bob — GPU transform-only. */
 @keyframes wonder-drift {
   0%, 100% { transform: translateX(0); }
   50%      { transform: translateX(6px); }
 }
+@keyframes wonder-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-5px); }
+}
 .wonder-cloud-slow { animation: wonder-drift 7s ease-in-out infinite; }
 .wonder-cloud-alt  { animation: wonder-drift 8.5s ease-in-out reverse infinite; }
+.wonder-float-a    { animation: wonder-bob 3.6s ease-in-out infinite; }
+.wonder-float-b    { animation: wonder-bob 4.2s ease-in-out 0.8s infinite; }
 
 /* Tap-to-count bounce on countable objects (`count-objects` in QuestionView.jsx). */
 @keyframes count-pop {
@@ -514,6 +520,8 @@
   .animate-tinku-land,
   .wonder-cloud-slow,
   .wonder-cloud-alt,
+  .wonder-float-a,
+  .wonder-float-b,
   .animate-count-pop { animation: none; }
 }
 

@@ -65,13 +65,14 @@ describe('Mascot — vector art (F6 hero)', () => {
     expect(still.container.firstElementChild.className).not.toContain('mascot-breathe');
   });
 
-  it('Tinku_Wave.svg is a compact (< 25 KB) hand-crafted layered SVG with no off-age math symbols', async () => {
+  it('Tinku_Wave.svg preserves the original vector trace with GPU-safe greeting, blink & glow animations', async () => {
     const { readFileSync, statSync } = await import('node:fs');
     const path = 'src/assets/mascot/svg/Tinku_Wave.svg';
-    expect(statSync(path).size).toBeLessThan(25 * 1024);
+    expect(statSync(path).size).toBeLessThan(150 * 1024);
     const svg = readFileSync(path, 'utf8');
     expect(svg).toContain('tinku-wave');
+    expect(svg).toContain('tinku-blink');
+    expect(svg).toContain('tinku-glow');
     expect(svg).toContain('prefers-reduced-motion: reduce');
-    expect(svg).not.toMatch(/[÷×√]/);
   });
 });

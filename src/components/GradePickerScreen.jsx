@@ -37,7 +37,7 @@ const HERO_TINKU = 'clamp(8rem, min(100cqh - 9rem, 94cqw), 24rem)';
 export default function GradePickerScreen({ onChoose }) {
   return (
     <div className="app-frame font-body flex flex-col overflow-hidden bg-bg text-center">
-      <div className="picker-hero relative overflow-hidden flex-1 min-h-0 bg-gradient-to-b from-primary-soft to-bg">
+      <div className="picker-hero relative overflow-hidden flex-1 min-h-0 bg-primary-soft">
         <WonderBackdrop />
         <div className="relative z-10 h-full flex flex-col items-center justify-center px-6 gap-2">
           <p className="font-display text-title font-extrabold text-primary-ink">{PRODUCT_NAME}</p>
