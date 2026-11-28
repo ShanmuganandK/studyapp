@@ -56,4 +56,22 @@ describe('Mascot — vector art (F6 hero)', () => {
     const { container } = render(<Mascot emotion="happy" size={120} vector />);
     expect(src(container)).toMatch(/Tinku_Mascot\.webp/);
   });
+
+  it('breathes by default and omits mascot-breathe when breathe={false} (small pills / hero SVG)', () => {
+    const breathing = render(<Mascot emotion="waving" size={58} />);
+    expect(breathing.container.firstElementChild.className).toContain('mascot-breathe');
+    cleanup();
+    const still = render(<Mascot emotion="waving" size={36} breathe={false} />);
+    expect(still.container.firstElementChild.className).not.toContain('mascot-breathe');
+  });
+
+  it('Tinku_Wave.svg is a compact (< 25 KB) hand-crafted layered SVG with no off-age math symbols', async () => {
+    const { readFileSync, statSync } = await import('node:fs');
+    const path = 'src/assets/mascot/svg/Tinku_Wave.svg';
+    expect(statSync(path).size).toBeLessThan(25 * 1024);
+    const svg = readFileSync(path, 'utf8');
+    expect(svg).toContain('tinku-wave');
+    expect(svg).toContain('prefers-reduced-motion: reduce');
+    expect(svg).not.toMatch(/[÷×√]/);
+  });
 });

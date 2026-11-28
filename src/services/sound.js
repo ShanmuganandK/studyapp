@@ -140,6 +140,11 @@ const synthMap = {
     playNote(ctx, 880, t, 0.035, 0.08, 0.002);  // A5 — very short, very quiet
   },
 
+  // Warm marimba pluck for tap-to-count trays (single default step; stepped pitches via playCountTick).
+  count: () => {
+    playCountMarimba(0);
+  },
+
   // Short celebratory fanfare — C5 → E5 → G5 → C6 ascending, C6 held as the peak.
   // Clearly more expansive than the per-question correct chime.
   complete: () => {
@@ -230,9 +235,60 @@ export function playHintVoice(tag, audioMap = hintAudioMap) {
   return false;
 }
 
+// Two-octave C-major pentatonic scale (C5..A6) so tapping countable objects rises musically.
+const COUNT_SCALE = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.51, 1567.98, 1760.0];
+
+function playCountMarimba(step = 0) {
+  const ctx = getCtx();
+  if (!ctx) return;
+  const now = ctx.currentTime;
+  const idx = Math.max(0, Math.floor(step)) % COUNT_SCALE.length;
+  const freq = COUNT_SCALE[idx];
+
+  const osc1 = ctx.createOscillator();
+  const g1 = ctx.createGain();
+  osc1.type = 'sine';
+  osc1.frequency.setValueAtTime(freq, now);
+  g1.gain.setValueAtTime(0, now);
+  g1.gain.linearRampToValueAtTime(0.14, now + 0.004);
+  g1.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+
+  const osc2 = ctx.createOscillator();
+  const g2 = ctx.createGain();
+  osc2.type = 'triangle';
+  osc2.frequency.setValueAtTime(freq * 2, now);
+  g2.gain.setValueAtTime(0, now);
+  g2.gain.linearRampToValueAtTime(0.04, now + 0.003);
+  g2.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+
+  osc1.connect(g1);
+  g1.connect(ctx.destination);
+  osc2.connect(g2);
+  g2.connect(ctx.destination);
+
+  osc1.start(now);
+  osc1.stop(now + 0.12);
+  osc2.start(now);
+  osc2.stop(now + 0.065);
+}
+
+/**
+ * Play a rising marimba pluck for tap-to-count trays (`count-objects` in QuestionView.jsx).
+ * Fire-and-forget, silent when muted, zero network or audio files.
+ * @param {number} [step=0] - 0-based count step along the pentatonic scale
+ */
+export function playCountTick(step = 0) {
+  if (muted) return;
+  try {
+    playCountMarimba(step);
+  } catch {
+    // Degrade silently when Web Audio is unavailable.
+  }
+}
+
 /**
  * Fire a named sound event. Fire-and-forget — never throws, never blocks the UI.
- * @param {'correct'|'wrong'|'hint'|'tap'|'complete'} event
+ * @param {'correct'|'wrong'|'hint'|'tap'|'count'|'complete'} event
  */
 export function playSound(event) {
   if (muted) return;

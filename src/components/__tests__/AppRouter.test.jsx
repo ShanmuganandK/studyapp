@@ -36,9 +36,16 @@ vi.mock('../GradePickerScreen', () => ({
   default: ({ onChoose }) => <button onClick={() => onChoose(2)}>pick-grade-2</button>,
 }));
 vi.mock('../SkillPathScreen', () => ({
-  default: ({ grade, onSelectSkill, intro, onHeroChange }) => (
+  default: ({ grade, onSelectSkill, intro, fromSkillId, onStopChange, onHeroChange }) => (
     <div>
-      <button data-intro={String(!!intro)} onClick={() => onSelectSkill('g1.add.within10')}>path-skill-g{grade}</button>
+      <button
+        data-intro={String(!!intro)}
+        data-from={String(fromSkillId ?? '')}
+        onClick={() => onSelectSkill('g1.add.within10')}
+      >
+        path-skill-g{grade}
+      </button>
+      <button onClick={() => onStopChange?.('g1.count.1-9')}>report-stop</button>
       <button onClick={() => onHeroChange(true)}>hero-on</button>
       <button onClick={() => onHeroChange(false)}>hero-off</button>
     </div>
@@ -161,5 +168,14 @@ describe('AppRouter routing', () => {
     settingsState.gradeChosen = true;
     rerender(<AppRouter />);
     expect(intro()).toBe('false');
+  });
+
+  it('remembers the last reported Home stop and passes it back as fromSkillId after a quiz', () => {
+    render(<AppRouter />);
+    expect(screen.getByText('path-skill-g1').dataset.from).toBe('');
+    fireEvent.click(screen.getByText('report-stop'));
+    fireEvent.click(screen.getByText('path-skill-g1'));
+    fireEvent.click(screen.getByText('back-to-skills'));
+    expect(screen.getByText('path-skill-g1').dataset.from).toBe('g1.count.1-9');
   });
 });

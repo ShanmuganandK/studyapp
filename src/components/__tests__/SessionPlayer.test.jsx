@@ -31,6 +31,7 @@ const stopHintVoiceSpy = vi.fn();
 const hasHintVoiceSpy = vi.fn(() => false);
 vi.mock('../../services/sound', () => ({
   playSound: () => {},
+  playCountTick: () => {},
   playHintVoice: (...args) => playHintVoiceSpy(...args),
   stopHintVoice: (...args) => stopHintVoiceSpy(...args),
   hasHintVoice: (...args) => hasHintVoiceSpy(...args),

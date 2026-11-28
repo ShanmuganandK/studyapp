@@ -14,8 +14,58 @@
  * (390×844, 412×915) get hero-sized visuals.
  */
 
+import { useState } from 'react';
+import { playCountTick, haptic } from '../services/sound';
+
 const SIGN_BOX = 'var(--q-sign-box, 3rem)';
 const STAGE_SVG_SIZE = 'clamp(4.25rem, min(58cqh, 42cqw), 9rem)';
+
+function CountObjectsTray({ questionText, glyph, count }) {
+  const [taps, setTaps] = useState({});
+  const [step, setStep] = useState(0);
+  const rows = Math.ceil(count / 5);
+  const fit = `((100cqh - 3.1 * var(--text-prompt) - 4.25rem) / ${rows} / 1.05)`;
+  const size = `min(var(--q-glyph, clamp(1.5rem, 6.5vw, 2.5rem)), max(1rem, ${fit}))`;
+
+  const handleTap = (idx) => {
+    playCountTick(step);
+    haptic('light');
+    setStep((s) => s + 1);
+    setTaps((prev) => ({ ...prev, [idx]: (prev[idx] ?? 0) + 1 }));
+  };
+
+  return (
+    <div className="text-center">
+      <p className="text-prompt font-body font-extrabold text-ink mb-2">{questionText}</p>
+      <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card p-2.5 shadow-card">
+        <div
+          className="grid gap-1"
+          style={{ gridTemplateColumns: `repeat(${Math.min(count, 5)}, auto)`, justifyContent: 'center' }}
+          aria-label={`${count} objects to count`}
+        >
+          {Array.from({ length: count }).map((_, i) => {
+            const tapCount = taps[i] ?? 0;
+            return (
+              <span
+                key={i}
+                data-counted={tapCount > 0 ? 'true' : undefined}
+                onClick={() => handleTap(i)}
+                className={`count-glyph flex items-center justify-center leading-none select-none cursor-pointer rounded-lg transition-colors ${
+                  tapCount > 0 ? 'bg-primary-soft' : ''
+                }`}
+                style={{ fontSize: size, minWidth: `calc(${size} * 1.1)` }}
+              >
+                <span key={tapCount} className={tapCount > 0 ? 'animate-count-pop inline-block' : 'inline-block'}>
+                  {glyph}
+                </span>
+              </span>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function TargetSlot({ blankFill, answer, size = 'clamp(2.25rem, min(22cqh, 13cqw), 3.25rem)' }) {
   if (blankFill) {
@@ -48,30 +98,13 @@ export default function QuestionView({ question, blankFill = null }) {
   // ── Archetype D: Ten-frame counting tray (`count-objects`) ──────────────────
   if (question.format === 'count-objects') {
     const { glyph, count } = question.render;
-    const rows = Math.ceil(count / 5);
-    const fit = `((100cqh - 3.1 * var(--text-prompt) - 4.25rem) / ${rows} / 1.05)`;
-    const size = `min(var(--q-glyph, clamp(1.5rem, 6.5vw, 2.5rem)), max(1rem, ${fit}))`;
     return (
-      <div className="text-center">
-        <p className="text-prompt font-body font-extrabold text-ink mb-2">{question.questionText}</p>
-        <div className="mx-auto w-fit rounded-card border-2 border-primary-soft bg-bg-card p-2.5 shadow-card">
-          <div
-            className="grid gap-1"
-            style={{ gridTemplateColumns: `repeat(${Math.min(count, 5)}, auto)`, justifyContent: 'center' }}
-            aria-label={`${count} objects to count`}
-          >
-            {Array.from({ length: count }).map((_, i) => (
-              <span
-                key={i}
-                className="count-glyph flex items-center justify-center leading-none select-none"
-                style={{ fontSize: size, minWidth: `calc(${size} * 1.1)` }}
-              >
-                {glyph}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
+      <CountObjectsTray
+        key={`${question.questionText}-${glyph}-${count}`}
+        questionText={question.questionText}
+        glyph={glyph}
+        count={count}
+      />
     );
   }
 

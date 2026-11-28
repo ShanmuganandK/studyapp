@@ -19,8 +19,14 @@ vi.mock('../../services/progressStore', () => ({
 // Mascot preloads webp assets — irrelevant to structure; stub with a testable marker so we can
 // verify at most one Tinku renders on Home at a time.
 vi.mock('../Mascot', () => ({
-  default: ({ emotion, size, vector }) => (
-    <span data-testid="mascot" data-emotion={emotion} data-size={String(size)} data-vector={String(!!vector)} />
+  default: ({ emotion, size, vector, breathe = true }) => (
+    <span
+      data-testid="mascot"
+      data-emotion={emotion}
+      data-size={String(size)}
+      data-vector={String(!!vector)}
+      data-breathe={String(!!breathe)}
+    />
   ),
 }));
 
@@ -156,6 +162,7 @@ describe('SkillPathScreen', () => {
       report({ intersectionRatio: 0, boundingClientRect: { top: 5000 } });
       const back = screen.getByRole('button', { name: 'Back to Tinku' });
       expect(back.querySelector('[data-direction="down"]')).toBeTruthy();
+      expect(back.querySelector('[data-testid="mascot"]').dataset.breathe).toBe('false');
 
       fireEvent.click(back);
       expect(scrolled.at(-1).el).toBe(suggestedRow());
@@ -169,11 +176,9 @@ describe('SkillPathScreen', () => {
     });
   });
 
-  // ── F6: Tinku walks from the top of Home down to the stop (prototype for owner review) ─────────────
-  describe('Tinku walks from the top to the stop (F6)', () => {
-    // jsdom has no layout (every rect is 0) and no real frames, so frames are driven by hand: we assert the
-    // sequence (big Tinku at the top → glide → lands on the stop), not pixel positions (layout:check does those).
-    let frames; // queued requestAnimationFrame callbacks
+  // ── F6: 1-beat Wonder Hero on cold open + stop-to-stop hop only when Tinku advances ──────────────
+  describe('Wonder Hero intro & stop-advance hop (F6)', () => {
+    let frames;
     let scrolled;
     const motion = (reduce) => vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: reduce })));
     const runFrames = (times) => times.forEach((t) => act(() => frames.splice(0).forEach((cb) => cb(t))));
@@ -194,123 +199,107 @@ describe('SkillPathScreen', () => {
     });
     const traveller = (c) => c.querySelector('[data-tinku="travel"]');
     const stopTinku = (c) => c.querySelector('[data-tinku="stop"]');
-    const headerSlot = (c) => c.querySelector('[data-tinku="slot"]');
-
-    it('starts with the big Tinku at the top and the stop\'s Tinku hidden (no instant jump)', () => {
-      motion(false);
-      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
-      expect(traveller(container).querySelector('[data-testid="mascot"]').dataset.size).toBe('104');
-      expect(headerSlot(container)).toBeTruthy(); // the big Tinku's spot at the top
-      expect(stopTinku(container).style.opacity).toBe('0');
-      expect(scrolled).toHaveLength(0);
-    });
-
-    it('after the glide, Tinku lands on the stop with a hop and the top one is gone', () => {
-      motion(false);
-      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
-      runFrames([0, 100, 400, 800, 1200, 1600]);
-      expect(traveller(container)).toBeNull();
-      expect(stopTinku(container).style.opacity).not.toBe('0');
-      expect(stopTinku(container).className).toContain('animate-tinku-land');
-      expect(screen.getAllByTestId('mascot')).toHaveLength(1);
-      // Owner review 2026-11-25: the emptied header spot must close up, or scrolling back up shows a blank top.
-      expect(headerSlot(container)).toBeNull();
-    });
-
-    it('any tap skips straight to the stop', () => {
-      motion(false);
-      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
-      runFrames([0, 400]); // mid-glide
-      expect(traveller(container)).toBeTruthy();
-      fireEvent.pointerDown(window);
-      expect(traveller(container)).toBeNull();
-      expect(headerSlot(container)).toBeNull();
-      expect(stopTinku(container).style.opacity).not.toBe('0');
-    });
-
-    it('reduced motion: no walk, no header slot — the instant TD-15 jump', () => {
-      motion(true);
-      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
-      expect(screen.getByText('Tinku suggests!')).toBeTruthy(); // path rendered
-      expect(traveller(container)).toBeNull();
-      expect(screen.getAllByTestId('mascot')).toHaveLength(1);
-      expect(scrolled.map((s) => s.opts)).toEqual([{ block: 'center' }]);
-    });
-
-    // Hero intro (ROADMAP F6, 2026-11-27): first Home of an app open only (AppRouter passes `intro`).
     const backdrop = (c) => c.querySelector('[data-tinku="hero-backdrop"]');
     const travelSize = (c) => Number(traveller(c).querySelector('[data-testid="mascot"]').dataset.size);
 
-    it('intro: Tinku starts big on the splash-colour backdrop, holds, shrinks, then walks to the stop', () => {
+    it('intro: shows WonderBackdrop + vector Hero Tinku, hides bottom bar, then cross-fades to the stop with a hop', () => {
       motion(false);
-      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
-      expect(travelSize(container)).toBeGreaterThan(104); // drawn at hero size (scaled down later, never up)
-      expect(traveller(container).querySelector('[data-testid="mascot"]').dataset.vector).toBe('true'); // sharp vector art
-      expect(backdrop(container).className).toContain('bg-primary-soft');
-      runFrames([0, 300, 650]); // still holding big
-      expect(backdrop(container).style.opacity).toBe('1');
+      const onHeroChange = vi.fn();
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro onHeroChange={onHeroChange} />);
+
+      expect(backdrop(container)).toBeTruthy();
+      expect(backdrop(container).querySelector('[data-testid="wonder-backdrop"]')).toBeTruthy();
+      expect(travelSize(container)).toBeGreaterThan(104);
+      expect(traveller(container).querySelector('[data-testid="mascot"]').dataset.vector).toBe('true');
+      expect(traveller(container).querySelector('[data-testid="mascot"]').dataset.breathe).toBe('false');
       expect(stopTinku(container).style.opacity).toBe('0');
-      runFrames([900, 1150, 1600, 2200, 2800]); // shrink, then the walk
+      expect(onHeroChange).toHaveBeenLastCalledWith(true);
+
+      // Hold phase (< 900 ms): cover stays opaque and bar stays hidden.
+      runFrames([0, 400, 850]);
+      expect(backdrop(container).style.opacity).toBe('1');
+      expect(onHeroChange).toHaveBeenLastCalledWith(true);
+
+      // Fade phase (900..1220 ms): bar returns as hero cross-fades out, then Tinku lands on the stop.
+      runFrames([960]);
+      expect(onHeroChange).toHaveBeenLastCalledWith(false);
+      runFrames([1100, 1300]);
       expect(traveller(container)).toBeNull();
       expect(backdrop(container)).toBeNull();
+      expect(stopTinku(container).style.opacity).toBe('1');
       expect(stopTinku(container).className).toContain('animate-tinku-land');
       expect(screen.getAllByTestId('mascot')).toHaveLength(1);
     });
 
-    it('intro: asks for the bottom bar to hide while the hero shows, and back once Tinku starts shrinking', () => {
+    it('intro: sizes the hero elephant across most of a phone screen (412×915)', () => {
       motion(false);
-      const onHeroChange = vi.fn();
-      render(<SkillPathScreen onSelectSkill={() => {}} intro onHeroChange={onHeroChange} />);
-      expect(onHeroChange).toHaveBeenLastCalledWith(true);
-      runFrames([0, 300, 650]);
-      expect(onHeroChange).toHaveBeenLastCalledWith(true);
-      runFrames([800]); // shrinking
-      expect(onHeroChange).toHaveBeenLastCalledWith(false);
-    });
-
-    it('intro: the hero is sized to the screen (the elephant spans most of a phone\'s width)', () => {
-      motion(false);
-      vi.stubGlobal('innerWidth', 412); // Galaxy S25 Ultra
+      vi.stubGlobal('innerWidth', 412);
       vi.stubGlobal('innerHeight', 915);
       const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
-      expect(travelSize(container)).toBeGreaterThanOrEqual(412); // the art's transparent margin may run past the edges
+      expect(travelSize(container)).toBeGreaterThanOrEqual(412);
     });
 
-    it('intro: a tap during the hero skips straight to the stop', () => {
+    it('intro: any tap during the hero skips straight to the settled stop and restores the bar', () => {
       motion(false);
-      let { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
       const onHeroChange = vi.fn();
-      cleanup();
-      ({ container } = render(<SkillPathScreen onSelectSkill={() => {}} intro onHeroChange={onHeroChange} />));
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro onHeroChange={onHeroChange} />);
       runFrames([0, 300]);
-      expect(backdrop(container)).toBeTruthy(); // the hero is on screen before the tap
+      expect(backdrop(container)).toBeTruthy();
       fireEvent.pointerDown(window);
       expect(onHeroChange).toHaveBeenLastCalledWith(false);
       expect(traveller(container)).toBeNull();
       expect(backdrop(container)).toBeNull();
-      expect(stopTinku(container).style.opacity).not.toBe('0');
+      expect(stopTinku(container).style.opacity).toBe('1');
     });
 
-    it('no intro (later Home visits) or reduced motion: no hero, no backdrop', () => {
+    it('return visit to the SAME stop (intro=false): opens immediately on the stop with a hop — no top-to-bottom glide', () => {
       motion(false);
-      const { container, unmount } = render(<SkillPathScreen onSelectSkill={() => {}} />);
+      const onStopChange = vi.fn();
+      const { container } = render(
+        <SkillPathScreen onSelectSkill={() => {}} fromSkillId="g1.shapes.2d" onStopChange={onStopChange} />,
+      );
       expect(backdrop(container)).toBeNull();
-      expect(travelSize(container)).toBe(104);
-      expect(traveller(container).querySelector('[data-testid="mascot"]').dataset.vector).toBe('false');
-      unmount();
-      motion(true);
-      const reduced = render(<SkillPathScreen onSelectSkill={() => {}} intro />);
-      expect(backdrop(reduced.container)).toBeNull();
-      expect(traveller(reduced.container)).toBeNull();
+      expect(traveller(container)).toBeNull();
+      expect(stopTinku(container).style.opacity).toBe('1');
+      expect(stopTinku(container).className).toContain('animate-tinku-land');
+      expect(scrolled).toHaveLength(1);
+      expect(onStopChange).toHaveBeenCalledWith('g1.shapes.2d');
     });
 
-    it('all caught up: the header Tinku stays put (nothing to walk to)', () => {
+    it('stop advance (fromSkillId !== new stop): hops along an arc from the old stop to the new stop, skippable on tap', () => {
       motion(false);
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} fromSkillId="g1.count.1-9" />);
+      expect(backdrop(container)).toBeNull();
+      expect(traveller(container)).toBeTruthy();
+      expect(travelSize(container)).toBe(58);
+      expect(stopTinku(container).style.opacity).toBe('0');
+
+      runFrames([0, 250, 600, 1000, 1400]);
+      expect(traveller(container)).toBeNull();
+      expect(stopTinku(container).style.opacity).toBe('1');
+      expect(stopTinku(container).className).toContain('animate-tinku-land');
+      expect(screen.getAllByTestId('mascot')).toHaveLength(1);
+    });
+
+    it('reduced motion: no hero, no hop, no land bounce — instant TD-15 jump', () => {
+      motion(true);
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro fromSkillId="g1.count.1-9" />);
+      expect(backdrop(container)).toBeNull();
+      expect(traveller(container)).toBeNull();
+      expect(stopTinku(container).className).not.toContain('animate-tinku-land');
+      expect(scrolled.map((s) => s.opts)).toEqual([{ block: 'center' }]);
+    });
+
+    it('all caught up: header Tinku stays put in vector art and reports null stop', () => {
+      motion(false);
+      const onStopChange = vi.fn();
       mockStates = Object.fromEntries(readySkills.map((s) => [s.id, mastered(s.id, '2999-12-31')]));
-      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} />);
-      expect(screen.getAllByRole('button')).toHaveLength(readySkills.length); // path rendered
+      const { container } = render(<SkillPathScreen onSelectSkill={() => {}} intro onStopChange={onStopChange} />);
+      expect(screen.getAllByRole('button')).toHaveLength(readySkills.length);
       expect(traveller(container)).toBeNull();
       expect(screen.getAllByTestId('mascot')).toHaveLength(1);
+      expect(screen.getByTestId('mascot').dataset.vector).toBe('true');
+      expect(onStopChange).toHaveBeenCalledWith(null);
     });
   });
 

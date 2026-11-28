@@ -49,8 +49,10 @@ export default function AppRouter() {
   // F6 hero intro (ROADMAP): only the first Home of each app open, and not right after the first-run picker
   // (it already shows big Tinku). Leaving Home for a quiz or the parent zone ends it for this app open.
   const [intro, setIntro] = useState(gradeChosen);
-  // While the hero shows, the bottom bar is hidden too: a full-screen Tinku (owner review 2026-11-27).
+  // While the hero shows, the bottom bar is hidden too: a full-screen Tinku (owner review 2026-11-27..28).
   const [heroOnScreen, setHeroOnScreen] = useState(false);
+  // Last recommended stop seen on Home this app session — drives the F6 stop-to-stop hop only when Tinku moves.
+  const [lastStopId, setLastStopId] = useState(null);
 
   const handleSelectSkill = (skillId) => {
     setIntro(false);
@@ -112,7 +114,14 @@ export default function AppRouter() {
       )}
 
       {currentView === 'skills' && (
-        <SkillPathScreen grade={grade} onSelectSkill={handleSelectSkill} intro={intro} onHeroChange={setHeroOnScreen} />
+        <SkillPathScreen
+          grade={grade}
+          onSelectSkill={handleSelectSkill}
+          intro={intro}
+          fromSkillId={lastStopId}
+          onStopChange={setLastStopId}
+          onHeroChange={setHeroOnScreen}
+        />
       )}
 
       {currentView === 'quiz' && activeSkillId && (

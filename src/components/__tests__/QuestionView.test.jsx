@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import QuestionView from '../QuestionView';
 
 /**
@@ -227,8 +227,8 @@ describe('QuestionView — visual format trays (Batch 3)', () => {
 });
 
 describe('QuestionView — remaining formats and mcq render.kind trays (TD-7)', () => {
-  it('renders count-objects tray with exact object count and aria-label', () => {
-    render(
+  it('renders count-objects tray with exact object count, aria-label, and tap-to-count bounce highlight', () => {
+    const { rerender } = render(
       <QuestionView
         question={{
           format: 'count-objects',
@@ -238,7 +238,30 @@ describe('QuestionView — remaining formats and mcq render.kind trays (TD-7)', 
       />,
     );
     expect(screen.getByLabelText('15 objects to count')).toBeTruthy();
-    expect(screen.getAllByText('🍎')).toHaveLength(15);
+    const apples = screen.getAllByText('🍎');
+    expect(apples).toHaveLength(15);
+
+    const firstCell = apples[0].closest('.count-glyph');
+    expect(firstCell.getAttribute('data-counted')).toBeNull();
+    expect(firstCell.className).not.toContain('bg-primary-soft');
+
+    fireEvent.click(firstCell);
+    expect(firstCell.getAttribute('data-counted')).toBe('true');
+    expect(firstCell.className).toContain('bg-primary-soft');
+    expect(firstCell.firstElementChild.className).toContain('animate-count-pop');
+
+    // Advancing to a new count-objects question resets the counted state cleanly.
+    rerender(
+      <QuestionView
+        question={{
+          format: 'count-objects',
+          questionText: 'How many flowers are there?',
+          render: { glyph: '🌸', count: 4 },
+        }}
+      />,
+    );
+    const flowers = screen.getAllByText('🌸');
+    expect(flowers[0].closest('.count-glyph').getAttribute('data-counted')).toBeNull();
   });
 
   it('renders compare sign box blank and filled on blankFill', () => {

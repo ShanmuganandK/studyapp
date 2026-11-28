@@ -298,14 +298,12 @@ async function checkPhone(phone) {
     }
     await ctx.close();
 
-    // HERO + WALK (ROADMAP F6), motion allowed, first Home of an app open: big Tinku starts in the middle of the app on
-    // the splash-colour cover with the stop's Tinku hidden, then lands on the stop with the stop on screen; a tap
-    // during the hero or mid-walk skips straight to the end.
+    // HERO + HOME (ROADMAP F6), motion allowed, first Home of an app open: full-screen Wonder Hero starts centred
+    // with the bottom bar and stop Tinku hidden, then cross-fades cleanly onto Tinku already centred on his stop;
+    // a tap during the hero skips straight to the stop, and returning from a quiz opens straight on the stop.
     const mctx = await browser.newContext({ viewport: { width: phone.w, height: phone.h }, deviceScaleFactor: 2, reducedMotion: 'no-preference' });
     const mpage = await mctx.newPage();
     await mpage.addInitScript(([s, k]) => { localStorage.setItem('tinku:v1:testSettings', s); localStorage.setItem('tinku:v1:skills', k); }, [settings(1), seeded]);
-    // Paused clock: time moves only when the check says so (a running clock let Playwright's own waits finish the
-    // walk before the 'mid-walk' tap, and under load let it start before the 'at start' reading).
     await mpage.clock.install({ time: 1760000000000 });
     await mpage.clock.pauseAt(1760000001000);
     const walkState = () => mpage.evaluate(() => {
@@ -318,65 +316,58 @@ async function checkPhone(phone) {
       const cover = document.querySelector('[data-tinku="hero-backdrop"]');
       const stopTinku = document.querySelector('[data-tinku="stop"]');
       return {
-        // The elephant's own centre in the waving art is at (54%, 53%) of the image (WAVE_ART in SkillPathScreen).
+        // Hand-crafted Tinku_Wave.svg visual centre is at (51%, 51%) (HERO_ART in SkillPathScreen).
         walker: w ? {
           widthShare: w.width / app.width,
-          offX: Math.round(Math.abs(w.left + w.width * 0.54 - (app.left + app.width / 2))),
+          offX: Math.round(Math.abs(w.left + w.width * 0.51 - (app.left + app.width / 2))),
           // Vertical allows for Home's 10 px view-enter rise, which runs on real time while the page clock is paused.
-          offY: Math.round(Math.abs(w.top + w.height * 0.53 - (app.top + app.height / 2))),
+          offY: Math.round(Math.abs(w.top + w.height * 0.51 - (app.top + app.height / 2))),
         } : null,
         cover: cover && !cover.hidden ? window.getComputedStyle(cover).opacity : null,
         coverFull: !!cover && cover.getBoundingClientRect().top <= app.top + 1 && cover.getBoundingClientRect().bottom >= app.bottom - 1,
         bar: [...document.querySelectorAll('button')].some((b) => b.textContent.trim().toUpperCase() === 'HOME'),
         stopTinkuOpacity: stopTinku ? window.getComputedStyle(stopTinku).opacity : null,
         inView: !!r && r.top >= s.top - 1 && r.bottom <= s.bottom + 1,
-        scrollTop: Math.round(scroller.scrollTop),
         pageScrollY: window.scrollY,
         back: !!document.querySelector('button[aria-label="Back to Tinku"]'),
       };
     });
-    const wwhere = `${phone.name} ${phone.w}x${phone.h} home walk (F6)`;
+    const wwhere = `${phone.name} ${phone.w}x${phone.h} home hero (F6)`;
     await mpage.goto(URL); await mpage.clock.runFor(150);
     const atStart = await walkState();
     if (!atStart.walker) fail(wwhere, 'no big Tinku when Home opens', atStart);
     else if (atStart.walker.widthShare < 0.9 || atStart.walker.offX > 4 || atStart.walker.offY > 12) fail(wwhere, 'hero Tinku is not big and centred', atStart);
     if (atStart.cover !== '1' || !atStart.coverFull) fail(wwhere, 'hero cover does not cover the whole app (Home flashes before the hero)', atStart);
     if (atStart.bar) fail(wwhere, 'bottom bar shows during the hero (it should be full-screen Tinku)', atStart);
-    if (atStart.stopTinkuOpacity !== '0') fail(wwhere, "the stop's Tinku shows while the other one walks (two Tinkus)", atStart);
-    if (atStart.scrollTop !== 0) fail(wwhere, 'page jumped before the walk', atStart);
-    await mpage.clock.runFor(3300); // hero 1.1 s + walk up to 1.5 s
+    if (atStart.stopTinkuOpacity !== '0') fail(wwhere, "the stop's Tinku shows during the hero (two Tinkus)", atStart);
+    await mpage.clock.runFor(1600); // hero 900 ms hold + 320 ms fade
     const landed = await walkState();
-    if (landed.walker || landed.cover) fail(wwhere, 'walking Tinku never landed, or the hero cover stayed', landed);
+    if (landed.walker || landed.cover) fail(wwhere, 'hero cover or travel Tinku stayed after landing', landed);
     if (!landed.bar) fail(wwhere, 'bottom bar did not come back after the hero', landed);
-    if (!landed.inView) fail(wwhere, "Tinku's stop is off-screen after the walk", landed);
-    if (landed.stopTinkuOpacity !== '1') fail(wwhere, "the stop's Tinku is not visible after the walk", landed);
+    if (!landed.inView) fail(wwhere, "Tinku's stop is off-screen after the hero", landed);
+    if (landed.stopTinkuOpacity !== '1') fail(wwhere, "the stop's Tinku is not visible after the hero", landed);
     if (landed.back) fail(wwhere, '"Back to Tinku" shows right after landing', landed);
-    if (landed.pageScrollY !== 0) fail(wwhere, 'the walk scrolled the page itself', landed);
-    // Owner review 2026-11-25: once Tinku has left, the header spot must close up, so scrolling back to the top
-    // shows the title at the top, not a blank band where the big Tinku stood.
+    if (landed.pageScrollY !== 0) fail(wwhere, 'opening Home scrolled the page itself', landed);
+    // Scrolling back to the top shows the title cleanly near the top (no blank header slot band).
     const titleGap = () => mpage.evaluate(() => Math.round(
       document.querySelector('h2').getBoundingClientRect().top - document.querySelector('.desktop-phone-content').getBoundingClientRect().top));
     await mpage.evaluate(() => { document.querySelector('.desktop-phone-content').scrollTop = 0; });
     await mpage.clock.runFor(50);
     const farGap = await titleGap();
-    if (farGap > 70) fail(wwhere, `blank band above the title after the walk (title ${farGap} px below the top)`);
-    // Near stop (fresh install → stop 1): the top is still on screen when Tinku lands, so the page slides up.
-    // Init scripts run in order on every load: the first one seeds stop 15, this one clears it (fresh install).
+    if (farGap > 70) fail(wwhere, `blank band above the title after the hero (title ${farGap} px below the top)`);
+    // Near stop (fresh install → stop 1): Tinku lands cleanly on stop 1 with no blank top band.
     await mpage.addInitScript(() => localStorage.removeItem('tinku:v1:skills'));
-    await mpage.goto(URL); await mpage.clock.runFor(3300);
-    await mpage.waitForTimeout(500); // the slide-up is a Web Animation (compositor clock, not the paused page clock)
+    await mpage.goto(URL); await mpage.clock.runFor(1600);
     const near = await walkState();
     const nearGap = await titleGap();
     if (near.walker || !near.inView) fail(wwhere, 'near stop: Tinku did not land on stop 1', near);
-    if (nearGap > 70) fail(wwhere, `near stop: blank band above the title after the walk (title ${nearGap} px below the top)`);
+    if (nearGap > 70) fail(wwhere, `near stop: blank band above the title after the hero (title ${nearGap} px below the top)`);
     await mpage.addInitScript(([k]) => localStorage.setItem('tinku:v1:skills', k), [seeded]); // back to stop 15
-    // Tap a blank spot (the left padding) by coordinates: no auto-scroll first, and no stop under the finger.
-    for (const [label, ms] of [['during the hero', 300], ['mid-walk', 1500]]) {
-      await mpage.goto(URL); await mpage.clock.runFor(ms);
-      await mpage.mouse.click(8, Math.round(phone.h / 2)); await mpage.clock.runFor(50);
-      const skipped = await walkState();
-      if (skipped.walker || skipped.cover || !skipped.inView) fail(wwhere, `a tap ${label} did not skip straight to the stop`, skipped);
-    }
+    // Tap during the hero skips straight to the stop.
+    await mpage.goto(URL); await mpage.clock.runFor(300);
+    await mpage.mouse.click(8, Math.round(phone.h / 2)); await mpage.clock.runFor(50);
+    const skipped = await walkState();
+    if (skipped.walker || skipped.cover || !skipped.inView || !skipped.bar) fail(wwhere, 'a tap during the hero did not skip straight to the stop', skipped);
     await mctx.close();
   }
 

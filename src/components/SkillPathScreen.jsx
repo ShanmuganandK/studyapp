@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ArrowDown, ArrowUp } from 'lucide-react';
+import { PRODUCT_NAME } from '../config/brand';
 import { SKILLS } from '../recipes/skillMap';
 import { readySkills } from '../engine/sessionLite';
 import { loadAllSkillStates } from '../services/progressStore';
@@ -9,6 +10,7 @@ import { recommendNext } from '../engine/composer';
 import { getSkillVisual } from './skillStateVisual';
 import { SkillStateCue } from './SkillStateCue';
 import Mascot from './Mascot';
+import WonderBackdrop from './WonderBackdrop';
 import PrivacyNotice from './PrivacyNotice';
 import SkillIcon from './SkillIcon';
 
@@ -16,10 +18,18 @@ import SkillIcon from './SkillIcon';
  * SkillPathScreen — the Home / Journey Path screen, displaying every `status:'ready'` skill
  * from the skill map (for the active grade) as a vertical winding path of medallions.
  *
- * Reads loadAllSkillStates + recommendNext + isDueForReview on mount (thin delegation to the pure
- * engine). Tokens only; the LOCKED colour rules hold: review-due = `review` (teal), mastered =
- * `accent` (amber, reward-only).
- * (Archived `?home=cards` variant `SkillSelectScreen` / `SkillCard` lives in `archive/legacy-code/`.)
+ * Ages 6–8 Hero & Motion Cadence (ROADMAP F6, 2026-11-28):
+ *   1. Cold-open Hero (`intro === true`, motion allowed): full-screen Wonder World scene
+ *      (`WonderBackdrop` + animated vector `Tinku_Wave.svg`, bottom bar hidden) holds `900 ms`,
+ *      then cross-fades (`320 ms`) directly onto Tinku already centred on his recommended stop
+ *      with a `tinku-land` hop (`260 ms`).
+ *   2. Smart return visits (`intro === false`):
+ *      - Same stop: opens immediately centred on Tinku's stop with a quick `260 ms` hop (no
+ *        repetitive top-to-bottom glide).
+ *      - New stop (`fromSkillId → recommendation.skillId`): Tinku hops along a parabolic arc
+ *        from his previous stop to the new stop (`600–1100 ms`) while the path scrolls smoothly.
+ *   3. Any tap, scroll, or key (`SKIP_EVENTS`) skips immediately to the settled stop;
+ *      `prefers-reduced-motion: reduce` disables all hero/hop motion.
  */
 
 // Layout constants — the path geometry. Nodes sit on two lanes (% of width) at fixed row heights;
@@ -28,29 +38,26 @@ const LANE_LEFT = 30; // %
 const LANE_RIGHT = 70; // %
 const ROW_H = 128; // px per skill row
 
-// ROADMAP F6 "Tinku walks to the stop" (prototype for owner review): the big header Tinku waves for
-// WALK_HOLD_MS, then glides onto the stop while the page scrolls under it. Longer trips take longer, within
-// bounds. Any tap, scroll or key (SKIP_EVENTS) jumps straight to the end.
-const HEADER_TINKU = 104; // px — the header Tinku (all-caught-up header, and where the walk starts)
-const WALK_HOLD_MS = 350;
-// Hero intro (F6, owner request 2026-11-27): on the first Home of an app open Tinku starts big in the middle on
-// the splash colour, holds, shrinks into the header slot, then walks. Drawn at hero size and only ever scaled
-// down, so the big Tinku stays sharp.
-const HERO_HOLD_MS = 700;
-const HERO_SHRINK_MS = 400;
-// The waving art (Tinku_Bye.webp, measured): the elephant fills 68% x 81% of the image, centred at (54%, 53%).
-// The hero is sized so the elephant spans ~80% of the app's width, but at most ~55% of its height (short screens);
-// the image's transparent margin may run past the screen edges (the scroll area clips it).
-const WAVE_ART = { w: 0.68, h: 0.81, cx: 0.54, cy: 0.53 };
+const HEADER_TINKU = 104; // px — header Tinku when all skills are caught up (no stop holds Tinku)
+const STOP_TINKU = 58; // px — Tinku beside the suggested medallion
+const HERO_HOLD_MS = 900;
+const HERO_FADE_MS = 320;
+const HOP_HOLD_MS = 180;
+const HOP_ARC_PX = 28;
+
+// Bounding box of the hand-crafted waving elephant in `Tinku_Wave.svg` (2000×2000 viewBox):
+// elephant fills ~66% × 78% of the canvas, visually centred at (51%, 51%).
+const HERO_ART = { w: 0.66, h: 0.78, cx: 0.51, cy: 0.51 };
+
 const heroSize = () => {
   const appWidth = Math.min(window.innerWidth, 448); // the app is max-w-md on tablets and desktop
-  return Math.round(Math.min((appWidth * 0.8) / WAVE_ART.w, (window.innerHeight * 0.55) / WAVE_ART.h));
+  return Math.round(Math.min((appWidth * 0.8) / HERO_ART.w, (window.innerHeight * 0.55) / HERO_ART.h));
 };
-const walkMs = (dy) => Math.min(1500, Math.max(700, 500 + Math.abs(dy) * 0.5));
+const hopMs = (dy) => Math.min(1100, Math.max(600, 480 + Math.abs(dy) * 0.45));
 const easeInOut = (t) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
 const SKIP_EVENTS = ['pointerdown', 'wheel', 'touchstart', 'keydown'];
 
-/** Nearest scrolling ancestor (Layout's content area): the walk drives its scrollTop frame by frame. */
+/** Nearest scrolling ancestor (Layout's content area). */
 function scrollParentOf(el) {
   for (let p = el?.parentElement; p; p = p.parentElement) {
     const { overflowY } = getComputedStyle(p);
@@ -59,8 +66,20 @@ function scrollParentOf(el) {
   return null;
 }
 
-/** Build the winding spine path (SVG user units: x in 0–100, y in px). Smooth S-curves between
- *  alternating lane centres. Stroke stays even via vector-effect (see the <path> below). */
+/** Centre `row` inside `scroller` (or fall back to `scrollIntoView` in jsdom). */
+function centreRowInScroller(row, scroller) {
+  if (!row) return;
+  if (scroller) {
+    const s = scroller.getBoundingClientRect();
+    const r = row.getBoundingClientRect();
+    const target = scroller.scrollTop + r.top - s.top + r.height / 2 - scroller.clientHeight / 2;
+    scroller.scrollTop = Math.min(scroller.scrollHeight - scroller.clientHeight, Math.max(0, target));
+  } else {
+    row.scrollIntoView?.({ block: 'center' });
+  }
+}
+
+/** Build the winding spine path (SVG user units: x in 0–100, y in px). */
 function buildSpine(count) {
   if (count < 2) return '';
   const laneX = (i) => (i % 2 === 0 ? LANE_LEFT : LANE_RIGHT);
@@ -75,9 +94,14 @@ function buildSpine(count) {
   return d;
 }
 
-export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = false, onHeroChange }) {
-  // IDENTICAL to SkillSelectScreen (copied, not refactored — see file header). Thin delegation to
-  // the pure engine; no new calls or logic in this experiment.
+export default function SkillPathScreen({
+  grade = 1,
+  onSelectSkill,
+  intro = false,
+  fromSkillId = null,
+  onStopChange,
+  onHeroChange,
+}) {
   const [{ allStates, recommendation }] = useState(() => {
     const states = loadAllSkillStates();
     const nowDate = new Date().toISOString().slice(0, 10);
@@ -85,141 +109,183 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
   });
   const today = new Date().toISOString().slice(0, 10);
 
-  // Grade filter via the shared readySkills() — parent test-panel grade (TRACKER #10), with its
-  // built-in fallback to all ready skills so a grade with none yet (Grade 3 today) is never empty.
   const skills = readySkills(grade).sort((a, b) => a.order - b.order);
-  // Index of the stop Tinku stands on, or -1 when no stop holds Tinku (all caught up → header Tinku).
   const suggestedIdx =
     recommendation.reason !== 'all_caught_up' ? skills.findIndex((s) => s.id === recommendation.skillId) : -1;
   const hasPathMascot = suggestedIdx >= 0;
 
+  const fromIdx =
+    hasPathMascot && !intro && fromSkillId && fromSkillId !== recommendation.skillId
+      ? skills.findIndex((s) => s.id === fromSkillId)
+      : -1;
+
   const spine = buildSpine(skills.length);
   const pathHeight = skills.length * ROW_H;
 
-  // TD-15: Home must open with Tinku's stop on screen. Layout remounts the scroll area at the top and the
-  // header Tinku is hidden while the path has one, so a suggestion past the first few stops used to leave
-  // no Tinku on screen at all. With motion allowed, Tinku walks there (F6); otherwise an instant jump.
-  const suggestedRef = useRef(null);
-  const backAnchorRef = useRef(null);
-  const walkerRef = useRef(null);
   const rootRef = useRef(null);
-  const landingRef = useRef(null); // { top, scroller }: the stop's screen position the moment Tinku lands
-  const [tinkuAway, setTinkuAway] = useState(null); // null (in view / not yet known) | 'up' | 'down'
-  // Decided once per visit (Home remounts on every visit, so the walk plays every time — owner's call).
-  const [walks] = useState(
+  const suggestedRef = useRef(null);
+  const fromRowRef = useRef(null);
+  const backdropRef = useRef(null);
+  const walkerRef = useRef(null);
+  const hopAnchorRef = useRef(null);
+  const backAnchorRef = useRef(null);
+  const [tinkuAway, setTinkuAway] = useState(null);
+
+  const [allowMotion] = useState(
     () =>
       hasPathMascot &&
       typeof requestAnimationFrame === 'function' &&
       typeof window.matchMedia === 'function' &&
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   );
-  const [walk, setWalk] = useState(walks ? 'walking' : 'off'); // 'walking' → 'landed'; 'off' = no walk
-  // Hero intro: AppRouter passes `intro` for the first Home of an app open; it needs the walk (motion allowed).
-  const [hero] = useState(() => walks && intro);
-  const [travelSize] = useState(() => (hero ? heroSize() : HEADER_TINKU)); // the walking Tinku's drawn size
-  const backdropRef = useRef(null);
-  const heroRef = useRef(null); // { x, y }: offset from the header slot that centres the big Tinku on the app
 
-  // Hero, before the first paint: hide the bottom bar (full-screen Tinku, owner review 2026-11-27), put the
-  // elephant itself in the middle of the app, and cover the whole app with the splash colour, so the first frame
-  // is the hero (no flash of Home). The cover has slack for the view-enter rise.
-  useLayoutEffect(() => {
-    if (!hero) return;
-    onHeroChange?.(true);
-    const walker = walkerRef.current;
-    const slot = walker.parentElement.getBoundingClientRect();
-    const app = walker.closest('.app-frame')?.getBoundingClientRect()
-      ?? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
-    heroRef.current = {
-      x: app.left + app.width / 2 - travelSize * WAVE_ART.cx - slot.left,
-      y: app.top + app.height / 2 - travelSize * WAVE_ART.cy - slot.top,
-    };
-    walker.style.transform = `translate(${heroRef.current.x}px, ${heroRef.current.y}px)`;
-    const root = rootRef.current.getBoundingClientRect();
-    Object.assign(backdropRef.current.style, {
-      top: `${app.top - root.top - 40}px`,
-      left: `${app.left - root.left}px`,
-      width: `${app.width}px`,
-      height: `${app.height + 80}px`,
-    });
-  }, [hero, travelSize, onHeroChange]);
+  // Motion mode decided once on mount: 'hero' (cold open) | 'hop' (stop advanced) | 'settled' (same stop / reduced).
+  const [phase, setPhase] = useState(() => {
+    if (!allowMotion) return 'settled';
+    if (intro) return 'hero';
+    if (fromIdx >= 0) return 'hop';
+    return 'settled';
+  });
+  const [heroPx] = useState(() => (phase === 'hero' ? heroSize() : STOP_TINKU));
 
+  // Report the current recommended stop so AppRouter can detect future stop advances.
   useEffect(() => {
+    onStopChange?.(hasPathMascot ? recommendation.skillId : null);
+  }, [hasPathMascot, recommendation.skillId, onStopChange]);
+
+  // Before first paint in Hero mode: hide the bottom nav, pre-centre the path underneath the opaque
+  // Wonder cover so revealing Home needs zero layout jump, and size the full-bleed cover + centred hero Tinku.
+  useLayoutEffect(() => {
+    const row = suggestedRef.current;
+    if (phase === 'hero') {
+      onHeroChange?.(true);
+      const scroller = scrollParentOf(row);
+      centreRowInScroller(row, scroller);
+
+      const backdrop = backdropRef.current;
+      const walker = walkerRef.current;
+      const root = rootRef.current?.getBoundingClientRect();
+      const app =
+        backdrop?.closest('.app-frame')?.getBoundingClientRect() ?? {
+          left: 0,
+          top: 0,
+          width: window.innerWidth,
+          height: window.innerHeight,
+        };
+      if (backdrop && root) {
+        Object.assign(backdrop.style, {
+          top: `${app.top - root.top - 40}px`,
+          left: `${app.left - root.left}px`,
+          width: `${app.width}px`,
+          height: `${app.height + 80}px`,
+          opacity: '1',
+        });
+      }
+      if (walker) {
+        // Inside the backdrop (width = app.width, top shifted -40px for view-enter slack), place heroPx
+        // so HERO_ART.(cx, cy) sits at the exact centre of `.app-frame`.
+        const left = app.width / 2 - heroPx * HERO_ART.cx;
+        const top = 40 + app.height / 2 - heroPx * HERO_ART.cy;
+        Object.assign(walker.style, {
+          left: `${left}px`,
+          top: `${top}px`,
+        });
+      }
+      return;
+    }
+
+    if (phase === 'hop') {
+      const startRow = fromRowRef.current ?? row;
+      centreRowInScroller(startRow, scrollParentOf(startRow));
+      return;
+    }
+
+    // 'settled' from mount (same stop or reduced motion): centre immediately on Tinku's stop.
+    if (row) {
+      centreRowInScroller(row, scrollParentOf(row));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Drive 'hero' (hold + cross-fade) or 'hop' (parabolic stop-to-stop arc), with instant skip on any input.
+  useEffect(() => {
+    if (phase !== 'hero' && phase !== 'hop') return undefined;
     const row = suggestedRef.current;
     if (!row) return undefined;
-    if (!walks) {
-      row.scrollIntoView?.({ block: 'center' });
-      return undefined;
-    }
-    // F6: frame by frame, move the walker from the header slot onto the stop's (hidden) Tinku and scroll the
-    // page by the same eased amount. Both sit in the same scrolling content, so their offset is measured once.
-    const walker = walkerRef.current;
-    const slot = walker.parentElement; // the header slot: never transformed, so it is the walk's fixed start
-    const backdrop = backdropRef.current;
-    const base = HEADER_TINKU / travelSize; // the scale that fits the walking Tinku in the header slot
-    const place = (x, y, scale) => { walker.style.transform = `translate(${x}px, ${y}px) scale(${scale})`; };
-    let barBack = !hero;
-    const bringBarBack = () => { if (!barBack) { barBack = true; onHeroChange?.(false); } };
-    const marker = row.querySelector('[data-tinku="stop"]');
+
     const scroller = scrollParentOf(row);
     let frame = 0;
     let start = null;
-    let geo = null;
     let finished = false;
-    const measure = () => {
-      const a = slot.getBoundingClientRect();
-      const b = marker.getBoundingClientRect();
+    let barBack = phase !== 'hero';
+    const bringBarBack = () => {
+      if (!barBack) {
+        barBack = true;
+        onHeroChange?.(false);
+      }
+    };
+
+    let hopGeo = null;
+    const measureHop = () => {
+      const anchor = hopAnchorRef.current;
+      const targetStop = row.querySelector('[data-tinku="stop"]');
+      if (!anchor || !targetStop) return { dx: 0, dy: 0, scrollFrom: 0, scrollTo: 0, ms: 650 };
+      const a = anchor.getBoundingClientRect();
+      const b = targetStop.getBoundingClientRect();
       const r = row.getBoundingClientRect();
       let scrollTo = 0;
+      const scrollFrom = scroller ? scroller.scrollTop : 0;
       if (scroller) {
         const s = scroller.getBoundingClientRect();
-        const centred = scroller.scrollTop + r.top - s.top + r.height / 2 - scroller.clientHeight / 2;
+        const centred = scrollFrom + r.top - s.top + r.height / 2 - scroller.clientHeight / 2;
         scrollTo = Math.min(scroller.scrollHeight - scroller.clientHeight, Math.max(0, centred));
       }
       const dy = b.top - a.top;
-      return {
-        dx: b.left - a.left,
-        dy,
-        scale: b.width / travelSize,
-        scrollFrom: scroller ? scroller.scrollTop : 0,
-        scrollTo,
-        ms: walkMs(dy),
-      };
+      return { dx: b.left - a.left, dy, scrollFrom, scrollTo, ms: hopMs(dy) };
     };
+
     const land = () => {
       if (finished) return;
       finished = true;
       cancelAnimationFrame(frame);
       SKIP_EVENTS.forEach((type) => window.removeEventListener(type, land));
       bringBarBack();
-      if (scroller) scroller.scrollTop = (geo || measure()).scrollTo;
-      else row.scrollIntoView?.({ block: 'center' });
-      landingRef.current = { top: row.getBoundingClientRect().top, scroller };
-      setWalk('landed');
+      centreRowInScroller(row, scroller);
+      setPhase('landed');
     };
+
     const step = (now) => {
       if (start === null) start = now;
       const elapsed = now - start;
-      if (hero && elapsed < HERO_HOLD_MS + HERO_SHRINK_MS) {
-        // Hero: hold big in the middle, then shrink into the header slot while the backdrop fades away.
-        const k = easeInOut(Math.max(0, (elapsed - HERO_HOLD_MS) / HERO_SHRINK_MS));
-        if (elapsed >= HERO_HOLD_MS) bringBarBack(); // the bar rises back in with Home
-        place(heroRef.current.x * (1 - k), heroRef.current.y * (1 - k), 1 + (base - 1) * k);
-        backdrop.style.opacity = String(1 - k);
+
+      if (phase === 'hero') {
+        const backdrop = backdropRef.current;
+        const walker = walkerRef.current;
+        if (elapsed >= HERO_HOLD_MS) {
+          bringBarBack();
+          const t = Math.min(1, (elapsed - HERO_HOLD_MS) / HERO_FADE_MS);
+          const k = easeInOut(t);
+          if (backdrop) backdrop.style.opacity = String(1 - k);
+          if (walker) walker.style.transform = `scale(${1 - 0.06 * k})`;
+          if (t >= 1) return land();
+        }
       } else {
-        if (hero) backdrop.hidden = true; // out of the way, so a tap on a stop during the walk still opens it
-        const t = elapsed - (hero ? HERO_HOLD_MS + HERO_SHRINK_MS : WALK_HOLD_MS);
+        const walker = walkerRef.current;
+        const t = elapsed - HOP_HOLD_MS;
         if (t >= 0) {
-          if (!geo) geo = measure();
-          const e = easeInOut(Math.min(1, t / geo.ms));
-          place(geo.dx * e, geo.dy * e, base + (geo.scale - base) * e);
-          if (scroller) scroller.scrollTop = geo.scrollFrom + (geo.scrollTo - geo.scrollFrom) * e;
-          if (t >= geo.ms) return land();
+          if (!hopGeo) hopGeo = measureHop();
+          const p = Math.min(1, t / hopGeo.ms);
+          const e = easeInOut(p);
+          const arcY = -HOP_ARC_PX * Math.sin(Math.PI * p);
+          if (walker) walker.style.transform = `translate(${hopGeo.dx * e}px, ${hopGeo.dy * e + arcY}px)`;
+          if (scroller) scroller.scrollTop = hopGeo.scrollFrom + (hopGeo.scrollTo - hopGeo.scrollFrom) * e;
+          if (p >= 1) return land();
         }
       }
+
       frame = requestAnimationFrame(step);
       return undefined;
     };
+
     SKIP_EVENTS.forEach((type) => window.addEventListener(type, land, { passive: true }));
     frame = requestAnimationFrame(step);
     return () => {
@@ -228,30 +294,9 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
       SKIP_EVENTS.forEach((type) => window.removeEventListener(type, land));
       bringBarBack();
     };
-  }, [walks, hero, travelSize, onHeroChange]);
+  }, [phase, onHeroChange]);
 
-  // Once Tinku has landed the emptied header spot is removed, or scrolling back up showed a blank band at the
-  // top (owner review 2026-11-25). Before paint, keep the stop where it was on screen by scrolling up as far
-  // as it moved; whatever the scroll can't absorb (header still on screen, stop near the top) slides up
-  // instead of jumping (transform-only).
-  useLayoutEffect(() => {
-    const before = landingRef.current;
-    const row = suggestedRef.current;
-    if (walk !== 'landed' || !before || !row) return;
-    landingRef.current = null;
-    if (before.scroller) before.scroller.scrollTop += row.getBoundingClientRect().top - before.top;
-    const stillMoved = before.top - row.getBoundingClientRect().top;
-    if (stillMoved > 0.5) {
-      rootRef.current?.animate?.(
-        [{ transform: `translateY(${stillMoved}px)` }, { transform: 'translateY(0)' }],
-        { duration: 300, easing: 'ease-out' }
-      );
-    }
-  }, [walk]);
-
-  // While the child scrolls Tinku's stop mostly out of view, offer "Back to Tinku", pointing toward the stop.
-  // Direction compares the stop with the button's own anchor, which sits at the bottom of the visible area.
-  // Skipped where IntersectionObserver is missing (jsdom, very old WebViews): the button just never shows.
+  // Offer "Back to Tinku" while Tinku's stop is scrolled mostly out of view.
   useEffect(() => {
     const row = suggestedRef.current;
     if (!row || typeof IntersectionObserver === 'undefined') return undefined;
@@ -261,7 +306,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
         const anchorTop = backAnchorRef.current?.getBoundingClientRect().top ?? 0;
         return setTinkuAway(entry.boundingClientRect.top < anchorTop ? 'up' : 'down');
       },
-      { threshold: [0, 0.5] }
+      { threshold: [0, 0.5] },
     );
     observer.observe(row);
     return () => observer.disconnect();
@@ -272,21 +317,37 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
     suggestedRef.current?.scrollIntoView({ block: 'center', behavior: reduceMotion ? 'auto' : 'smooth' });
   };
 
+  const inFlight = phase === 'hero' || phase === 'hop';
+  const stopTinkuState = inFlight ? 'hidden' : allowMotion ? 'land' : 'still';
+  const staggerAnchor = Math.max(phase === 'hop' && fromIdx >= 0 ? fromIdx : suggestedIdx, 0);
+
   return (
     <div ref={rootRef} className="relative flex flex-col items-center min-h-full bg-bg px-4 py-6 text-center">
-      {!hasPathMascot && <Mascot emotion="waving" size={HEADER_TINKU} />}
-      {/* Hero intro: the splash-colour cover under the big Tinku (Wonder's primary-soft is the Android splash colour). */}
-      {walk === 'walking' && hero && (
-        <div ref={backdropRef} data-tinku="hero-backdrop" aria-hidden="true" className="absolute z-30 bg-primary-soft" />
-      )}
-      {/* F6: the walk's launch pad, removed once Tinku lands (see the layout effect above). */}
-      {walk === 'walking' && (
-        <div data-tinku="slot" className="relative z-40" style={{ width: HEADER_TINKU, height: HEADER_TINKU }}>
-          <div ref={walkerRef} data-tinku="travel" className="pointer-events-none will-change-transform" style={{ transformOrigin: '0 0', width: travelSize, height: travelSize }}>
-            <Mascot emotion="waving" size={travelSize} vector={hero} />
+      {!hasPathMascot && <Mascot emotion="waving" size={HEADER_TINKU} vector />}
+
+      {/* Cold-open 1-beat Wonder World Hero Scene (first Home of an app open only). */}
+      {phase === 'hero' && (
+        <div
+          ref={backdropRef}
+          data-tinku="hero-backdrop"
+          aria-hidden="true"
+          className="absolute z-40 overflow-hidden bg-gradient-to-b from-primary-soft via-bg to-primary-soft pointer-events-none"
+        >
+          <WonderBackdrop />
+          <span className="absolute inset-x-0 top-16 z-10 font-display text-title font-extrabold text-primary-ink text-center">
+            {PRODUCT_NAME}
+          </span>
+          <div
+            ref={walkerRef}
+            data-tinku="travel"
+            className="absolute will-change-transform"
+            style={{ width: heroPx, height: heroPx }}
+          >
+            <Mascot emotion="waving" size={heroPx} vector breathe={false} />
           </div>
         </div>
       )}
+
       <h2 className="font-display text-2xl font-extrabold text-primary-ink mt-2">What shall we practise?</h2>
       <p className="text-muted text-sm mb-4">Follow the path with Tinku!</p>
 
@@ -298,7 +359,6 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
           preserveAspectRatio="none"
           aria-hidden="true"
         >
-          {/* non-scaling-stroke keeps the thread an even width despite the non-uniform viewBox. */}
           <path
             d={spine}
             fill="none"
@@ -316,17 +376,23 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
             const level = skillState?.level ?? 0;
             const isDue = skillState ? isDueForReview(skillState, today) : false;
             const isSuggested = i === suggestedIdx;
+            const isFromStop = phase === 'hop' && i === fromIdx;
             const isReviewSuggested = isSuggested && recommendation.reason === 'review';
             const isLeft = i % 2 === 0;
 
             return (
               <li
                 key={skill.id}
-                ref={isSuggested ? suggestedRef : undefined}
+                ref={(el) => {
+                  if (isSuggested) suggestedRef.current = el;
+                  if (i === fromIdx) fromRowRef.current = el;
+                }}
                 className="relative animate-opt-in"
-                // Stagger starts where the screen starts: at the top while Tinku walks down (F6), else rippling
-                // out from Tinku's stop, so the stops on screen after the instant jump don't sit blank for ~1 s.
-                style={{ height: ROW_H, animationDelay: `${Math.abs(i - (walks ? 0 : Math.max(suggestedIdx, 0))) * 55}ms` }}
+                // Ripple outward from the visible stop (capped at 280 ms so nearby nodes never sit blank).
+                style={{
+                  height: ROW_H,
+                  animationDelay: `${Math.min(280, Math.abs(i - staggerAnchor) * 35)}ms`,
+                }}
               >
                 <PathNode
                   skill={skill}
@@ -335,21 +401,30 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
                   isSuggested={isSuggested}
                   isReviewSuggested={isReviewSuggested}
                   isLeft={isLeft}
-                  tinku={walk === 'walking' ? 'hidden' : walk === 'landed' ? 'land' : 'still'}
+                  tinku={stopTinkuState}
                   onClick={() => onSelectSkill(skill.id)}
                 />
+                {isFromStop && (
+                  <div
+                    ref={hopAnchorRef}
+                    className="absolute top-1/2 -translate-y-1/2 z-30 pointer-events-none"
+                    style={{ ...(isLeft ? { left: '-2px' } : { right: '-2px' }), width: STOP_TINKU, height: STOP_TINKU }}
+                  >
+                    <div ref={walkerRef} data-tinku="travel" className="will-change-transform" style={{ width: STOP_TINKU, height: STOP_TINKU }}>
+                      <Mascot emotion="waving" size={STOP_TINKU} breathe={false} />
+                    </div>
+                  </div>
+                )}
               </li>
             );
           })}
         </ol>
       </div>
 
-      {/* "Back to Tinku" — a zero-height sticky anchor pinned near the bottom of the visible area, so the
-          button floats over the path without taking layout space. Shown only while Tinku's stop is out of
-          view, so it never competes with the one loud node. */}
+      {/* "Back to Tinku" — shown only while Tinku's stop is scrolled out of view. */}
       {hasPathMascot && (
         <div ref={backAnchorRef} className="sticky bottom-4 z-30 h-0 w-full max-w-sm">
-          {tinkuAway && walk !== 'walking' && (
+          {tinkuAway && !inFlight && (
             <div className="absolute bottom-0 inset-x-0 flex justify-center pointer-events-none">
               <button
                 type="button"
@@ -357,7 +432,7 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
                 aria-label="Back to Tinku"
                 className="pointer-events-auto animate-opt-in min-h-[48px] flex items-center gap-2 pl-2 pr-4 rounded-full bg-bg-card border-2 border-primary-soft shadow-card font-display font-extrabold text-primary-ink active:scale-95 transition-transform"
               >
-                <Mascot emotion="waving" size={36} />
+                <Mascot emotion="waving" size={36} breathe={false} />
                 Back to Tinku
                 <span data-direction={tinkuAway} aria-hidden="true">
                   {tinkuAway === 'up' ? <ArrowUp size={20} strokeWidth={2.5} /> : <ArrowDown size={20} strokeWidth={2.5} />}
@@ -368,7 +443,6 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
         </div>
       )}
 
-      {/* Same privacy reassurance as production, kept subtle. */}
       <PrivacyNotice variant="footer" />
     </div>
   );
@@ -376,30 +450,22 @@ export default function SkillPathScreen({ grade = 1, onSelectSkill, intro = fals
 
 // ── One stop on the path: medallion + label + (when suggested) the Tinku "go here" marker ──
 
-// `tinku` (suggested node only): 'hidden' while the header Tinku walks here (F6) — still laid out, so the walk
-// can measure where to land — 'land' once arrived (small hop), 'still' when there was no walk.
 function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft, tinku = 'still', onClick }) {
-  // SHARED state→visual grammar (skillStateVisual.js) — identical mapping to SkillCard, so the two
-  // Home views can't drift. due-but-not-suggested is NEUTRAL (never amber while due); mastered-not-
-  // due is amber; the single loud element is the suggested node. (DECISIONS 2026-07-15.)
   const visual = getSkillVisual({ level, isDue, isSuggested, isReviewSuggested });
 
   const lanePct = isLeft ? LANE_LEFT : LANE_RIGHT;
-  // Label fills the opposite (inner) side of the row so it never overlaps the node.
   const labelSide = isLeft
     ? { left: `calc(${LANE_LEFT}% + 46px)`, right: '8px', textAlign: 'left' }
     : { right: `calc(${100 - LANE_RIGHT}% + 46px)`, left: '8px', textAlign: 'right' };
 
   return (
     <>
-      {/* Medallion — circular node, white fill, 5px state-ring (token border colour). */}
       <button
         onClick={onClick}
         aria-label={skill.displayName ?? skill.name}
         className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 w-[76px] h-[76px] rounded-full bg-bg-card border-[5px] ${visual.ring} shadow-card flex items-center justify-center active:scale-95 hover:scale-105 transition-transform`}
         style={{ left: `${lanePct}%` }}
       >
-        {/* Gentle repeating sonar pulse on the single loud node; matches its ring colour. */}
         {visual.loud && (
           <span aria-hidden="true" className={`path-pulse absolute inset-[-5px] rounded-full border-[3px] ${visual.ring}`} />
         )}
@@ -408,18 +474,16 @@ function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft,
         </span>
       </button>
 
-      {/* Tinku "you are here / go here" marker beside the suggested node (outer side). */}
       {visual.loud && (
         <div
           data-tinku="stop"
           className={`absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none ${tinku === 'land' ? 'animate-tinku-land' : ''}`}
-          style={{ ...(isLeft ? { left: '-2px' } : { right: '-2px' }), opacity: tinku === 'hidden' ? 0 : undefined }}
+          style={{ ...(isLeft ? { left: '-2px' } : { right: '-2px' }), opacity: tinku === 'hidden' ? 0 : 1 }}
         >
-          <Mascot emotion="waving" size={58} />
+          <Mascot emotion="waving" size={STOP_TINKU} />
         </div>
       )}
 
-      {/* Label block on the inner side. Cue uses the SHARED grammar (skillStateVisual). */}
       <div className="absolute top-1/2 -translate-y-1/2 flex flex-col min-w-0" style={labelSide}>
         <span className="font-display text-primary-ink font-extrabold text-base leading-tight truncate">
           {skill.displayName ?? skill.name}
@@ -434,7 +498,7 @@ function PathNode({ skill, level, isDue, isSuggested, isReviewSuggested, isLeft,
   );
 }
 
-/** Mastery pips — amber dots (NOT stars). Duplicated from SkillCard on purpose (see file header). */
+/** Mastery pips — amber dots (NOT stars). */
 function PathPips({ level, isLeft }) {
   return (
     <span

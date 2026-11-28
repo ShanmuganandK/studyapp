@@ -47,7 +47,7 @@ const artFor = (emotion, vector) => (vector && VECTOR_POSES[emotion]) || POSES[e
 
 const FADE_MS = 120;
 
-export default function Mascot({ emotion = 'happy', size = 120, className = '', vector = false }) {
+export default function Mascot({ emotion = 'happy', size = 120, className = '', vector = false, breathe = true }) {
   const [activeSrc, setActiveSrc] = useState(() => artFor(emotion, vector));
   // Start at opacity 0 — revealed only after the image confirms it is ready.
   const [opacity, setOpacity] = useState(0);
@@ -124,7 +124,7 @@ export default function Mascot({ emotion = 'happy', size = 120, className = '', 
   return (
     // Outer div reserves layout space so nothing shifts before/between images.
     <div
-      className={`mascot-breathe inline-block ${className}`}
+      className={`${breathe ? 'mascot-breathe ' : ''}inline-block ${className}`}
       style={{ width: size, height: size }}
     >
       <img

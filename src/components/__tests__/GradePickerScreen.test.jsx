@@ -49,9 +49,11 @@ describe('GradePickerScreen', () => {
     expect(onChoose).not.toHaveBeenCalled();
   });
 
-  it('has a size-container hero for Tinku to be sized from (the sizing itself is measured by layout:check)', async () => {
+  it('has a size-container hero with WonderBackdrop and vector Tinku (sizing measured by layout:check)', async () => {
     const { container } = render(<GradePickerScreen onChoose={() => {}} />);
     expect(container.querySelector('.picker-hero')).toBeTruthy();
+    expect(container.querySelector('[data-testid="wonder-backdrop"]')).toBeTruthy();
+    expect(container.querySelector('.picker-hero img').getAttribute('src')).toMatch(/Tinku_Wave\.svg/);
     const { readFileSync } = await import('node:fs');
     const css = readFileSync('src/index.css', 'utf8');
     expect(css).toMatch(/\.picker-hero\s*\{\s*container:\s*picker\s*\/\s*size/);

@@ -1,4 +1,5 @@
 import Mascot from './Mascot';
+import WonderBackdrop from './WonderBackdrop';
 import { PRODUCT_NAME } from '../config/brand';
 
 /**
@@ -36,12 +37,13 @@ const HERO_TINKU = 'clamp(8rem, min(100cqh - 9rem, 94cqw), 24rem)';
 export default function GradePickerScreen({ onChoose }) {
   return (
     <div className="app-frame font-body flex flex-col overflow-hidden bg-bg text-center">
-      <div className="picker-hero flex-1 min-h-0 bg-gradient-to-b from-primary-soft to-bg">
-        <div className="h-full flex flex-col items-center justify-center px-6 gap-2">
+      <div className="picker-hero relative overflow-hidden flex-1 min-h-0 bg-gradient-to-b from-primary-soft to-bg">
+        <WonderBackdrop />
+        <div className="relative z-10 h-full flex flex-col items-center justify-center px-6 gap-2">
           <p className="font-display text-title font-extrabold text-primary-ink">{PRODUCT_NAME}</p>
-          <Mascot emotion="waving" size={HERO_TINKU} />
+          <Mascot emotion="waving" size={HERO_TINKU} vector breathe={false} />
           <div className="tinku-ground h-4 w-40 -mt-3" aria-hidden="true" />
-          <p className="text-base text-muted">Maths practice, one friendly step at a time.</p>
+          <p className="text-base font-semibold text-ink">Maths practice, one friendly step at a time.</p>
         </div>
       </div>
       <div className="shrink-0 bg-bg-card rounded-t-card shadow-card px-6 pt-5 pb-6 flex flex-col items-center gap-3">

@@ -485,8 +485,8 @@
   .path-pulse { animation: none; opacity: 0; }
 }
 
-/* Home (ROADMAP F6): after Tinku walks down from the top, a small hop as Tinku lands on the stop.
-   Transform-only; the walk itself never runs under reduced motion, and neither does this. */
+/* Home (ROADMAP F6): when Tinku lands on a stop, a cheerful small hop.
+   Transform-only; disabled under reduced motion. */
 @keyframes tinku-land {
   0%   { transform: translateY(0); }
   40%  { transform: translateY(-8px); }
@@ -494,8 +494,27 @@
 }
 .animate-tinku-land { animation: tinku-land 260ms ease-out both; }
 
+/* WonderBackdrop subtle cloud drift — GPU transform-only. */
+@keyframes wonder-drift {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(6px); }
+}
+.wonder-cloud-slow { animation: wonder-drift 7s ease-in-out infinite; }
+.wonder-cloud-alt  { animation: wonder-drift 8.5s ease-in-out reverse infinite; }
+
+/* Tap-to-count bounce on countable objects (`count-objects` in QuestionView.jsx). */
+@keyframes count-pop {
+  0%   { transform: scale(1); }
+  45%  { transform: scale(1.24) rotate(-5deg); }
+  100% { transform: scale(1); }
+}
+.animate-count-pop { animation: count-pop 220ms cubic-bezier(0.34, 1.56, 0.64, 1); }
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-tinku-land { animation: none; }
+  .animate-tinku-land,
+  .wonder-cloud-slow,
+  .wonder-cloud-alt,
+  .animate-count-pop { animation: none; }
 }
 
 /* Screen transition — a gentle rise-and-fade when the active view changes (AppRouter

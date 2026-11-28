@@ -150,6 +150,30 @@ describe('sound service', () => {
     expect(mockCtx.createOscillator).toHaveBeenCalledTimes(1);
   });
 
+  it('playCountTick plays a 2-oscillator marimba pluck with ascending pentatonic pitch and respects mute', async () => {
+    const { playCountTick } = await import('../sound.js');
+    const freqs = [];
+    mockCtx.createOscillator = vi.fn(() => ({
+      type: '',
+      frequency: { setValueAtTime: vi.fn((f) => freqs.push(f)) },
+      connect: vi.fn(),
+      start: vi.fn(),
+      stop: vi.fn(),
+    }));
+
+    playCountTick(0);
+    playCountTick(1);
+    playCountTick(2);
+    expect(mockCtx.createOscillator).toHaveBeenCalledTimes(6);
+    // Fundamental frequencies (every 2nd call starting at 0) ascend along C5 → D5 → E5.
+    expect(freqs[0]).toBeLessThan(freqs[2]);
+    expect(freqs[2]).toBeLessThan(freqs[4]);
+
+    setSoundMuted(true);
+    playCountTick(3);
+    expect(mockCtx.createOscillator).toHaveBeenCalledTimes(6);
+  });
+
   // ── Resilience ────────────────────────────────────────────────────────────────────────
 
   it('playSound does not throw if AudioContext constructor throws', () => {
