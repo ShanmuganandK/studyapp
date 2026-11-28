@@ -17,7 +17,7 @@ Facts as of `2026-11-26`.
 
 | Check | What it proves | How and when it runs | What it cannot see |
 |---|---|---|---|
-| Vitest unit / component suite (`69` files, `915` passed) | Logic and single screens behave, in a simulated browser (jsdom) | CI (`.github/workflows/ci.yml`) on every push and pull request | A real browser, the built app, the deployed site, the Android app |
+| Vitest unit / component suite (`69` files, `921` passed) | Logic and single screens behave, in a simulated browser (jsdom) | CI (`.github/workflows/ci.yml`) on every push and pull request | A real browser, the built app, the deployed site, the Android app |
 | Guards: `lint`, `lint:hex`, `privacy:check`, `noFirebaseAuth` / `distLean` | Code style, colour tokens, privacy page in sync, no network SDK in the build | CI, every push and pull request | Behaviour |
 | `npm run layout:check` | The production build in a real browser at 6 phone sizes: quiz fit, hint stability, tap sizes, first-run picker, Home, both parent tabs | On demand, by hand (`npm run build` first). Not in CI: CI has no browser installed | Journeys beyond layout; the deployed site |
 | `npm run visual:capture` / `visual:diff` | Screenshots of 5 screens, compared byte for byte | On demand | Judges nothing by itself; a person reads the diff |

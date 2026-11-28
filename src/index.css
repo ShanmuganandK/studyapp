@@ -332,15 +332,100 @@
 .animate-shake { animation: shake 0.4s ease-in-out; }
 
 /* Mascot animations — GPU-friendly (transform/opacity only), low-end-Android safe.
-   Emotion changes cross-fade via opacity in Mascot.jsx; only the breathe float lives here. */
+   Emotion changes cross-fade via opacity in Mascot.jsx; each pose gets its own expressive
+   character choreography while detached prop layers float/twinkle/burst independently. */
 @keyframes mascot-breathe {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-4px); }
 }
 .mascot-breathe { animation: mascot-breathe 3.2s ease-in-out infinite; }
 
+@keyframes mascot-celebrate {
+  0%, 100% { transform: translateY(0) scale(1, 1) rotate(0deg); }
+  18%      { transform: translateY(2px) scale(1.04, 0.96) rotate(-1.5deg); }
+  45%      { transform: translateY(-10px) scale(0.97, 1.04) rotate(2.2deg); }
+  72%      { transform: translateY(-2px) scale(1.02, 0.98) rotate(-1deg); }
+}
+.mascot-celebrate {
+  transform-origin: 50% 88%;
+  animation: mascot-celebrate 1.45s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+
+@keyframes mascot-thinking {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  35%      { transform: translateY(-3px) rotate(-2deg); }
+  70%      { transform: translateY(-2px) rotate(1.6deg); }
+}
+.mascot-thinking {
+  transform-origin: 50% 85%;
+  animation: mascot-thinking 3.4s ease-in-out infinite;
+}
+
+@keyframes mascot-encourage {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  22%      { transform: translateY(-5px) rotate(2deg); }
+  44%      { transform: translateY(0) rotate(0deg); }
+  64%      { transform: translateY(-3px) rotate(1.4deg); }
+}
+.mascot-encourage {
+  transform-origin: 50% 88%;
+  animation: mascot-encourage 2.2s ease-in-out infinite;
+}
+
+@keyframes mascot-sleeping {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(1.032); }
+}
+.mascot-sleeping {
+  transform-origin: 50% 90%;
+  animation: mascot-sleeping 4.2s ease-in-out infinite;
+}
+
+/* Detached Mascot prop layers (extracted from branding/mascot-originals/ 2000x2000 art). */
+@keyframes mascot-prop-star {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  50%      { transform: translateY(-5px) scale(1.09) rotate(6deg); }
+}
+.mascot-prop-star { animation: mascot-prop-star 2.4s ease-in-out infinite; }
+
+@keyframes mascot-prop-star-win {
+  0%, 100% { transform: translateY(0) scale(1) rotate(0deg); }
+  40%      { transform: translateY(-7px) scale(1.16) rotate(-10deg); }
+  75%      { transform: translateY(-3px) scale(1.06) rotate(8deg); }
+}
+.mascot-prop-star-win { animation: mascot-prop-star-win 1.45s ease-in-out infinite; }
+
+@keyframes mascot-prop-qmark {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50%      { transform: translateY(-6px) rotate(8deg); }
+}
+.mascot-prop-qmark { animation: mascot-prop-qmark 2.1s ease-in-out infinite; }
+
+@keyframes mascot-prop-confetti {
+  0%   { opacity: 0.72; transform: scale(0.92) translateY(4px); }
+  50%  { opacity: 1;    transform: scale(1.05) translateY(-4px); }
+  100% { opacity: 0.85; transform: scale(1) translateY(0); }
+}
+.mascot-prop-confetti { animation: mascot-prop-confetti 1.8s ease-in-out infinite alternate; }
+
+@keyframes mascot-prop-zzz {
+  0%   { opacity: 0.35; transform: translate(0, 4px) scale(0.94); }
+  55%  { opacity: 1;    transform: translate(-3px, -7px) scale(1.04); }
+  100% { opacity: 0.25; transform: translate(-5px, -13px) scale(1.08); }
+}
+.mascot-prop-zzz { animation: mascot-prop-zzz 3.2s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .mascot-breathe { animation: none; }
+  .mascot-breathe,
+  .mascot-celebrate,
+  .mascot-thinking,
+  .mascot-encourage,
+  .mascot-sleeping,
+  .mascot-prop-star,
+  .mascot-prop-star-win,
+  .mascot-prop-qmark,
+  .mascot-prop-confetti,
+  .mascot-prop-zzz { animation: none; }
 }
 
 /* Hint bubble entrance — Tinku "pops" the hint in to grab a young child's attention.
@@ -494,7 +579,7 @@
 }
 .animate-tinku-land { animation: tinku-land 260ms ease-out both; }
 
-/* WonderBackdrop subtle cloud drift & side math prop bob — GPU transform-only. */
+/* WonderBackdrop subtle cloud drift & side math vignette micro-animations — GPU transform-only. */
 @keyframes wonder-drift {
   0%, 100% { transform: translateX(0); }
   50%      { transform: translateX(6px); }
@@ -503,10 +588,34 @@
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-5px); }
 }
+@keyframes wonder-block-pop {
+  0%, 70%, 100% { transform: translateY(0) scale(1); }
+  20%           { transform: translateY(-3px) scale(1.14); }
+  40%           { transform: translateY(0) scale(1); }
+}
+@keyframes wonder-eq-pop {
+  0%, 45%, 100% { opacity: 1; transform: scale(1); }
+  60%           { opacity: 1; transform: scale(1.18); }
+  75%           { opacity: 1; transform: scale(1); }
+}
+@keyframes wonder-clock-sweep {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes wonder-ruler-tilt {
+  0%, 100% { transform: rotate(0deg); }
+  50%      { transform: rotate(-6deg); }
+}
 .wonder-cloud-slow { animation: wonder-drift 7s ease-in-out infinite; }
 .wonder-cloud-alt  { animation: wonder-drift 8.5s ease-in-out reverse infinite; }
 .wonder-float-a    { animation: wonder-bob 3.6s ease-in-out infinite; }
 .wonder-float-b    { animation: wonder-bob 4.2s ease-in-out 0.8s infinite; }
+.wonder-block-1    { animation: wonder-block-pop 2.6s ease-in-out 0s infinite; }
+.wonder-block-2    { animation: wonder-block-pop 2.6s ease-in-out 0.28s infinite; }
+.wonder-block-3    { animation: wonder-block-pop 2.6s ease-in-out 0.56s infinite; }
+.wonder-eq-ans     { animation: wonder-eq-pop 3s ease-in-out infinite; }
+.wonder-clock-min  { transform-origin: 0 0; animation: wonder-clock-sweep 12s linear infinite; }
+.wonder-ruler-tilt { transform-origin: 0 0; animation: wonder-ruler-tilt 3.8s ease-in-out infinite; }
 
 /* Tap-to-count bounce on countable objects (`count-objects` in QuestionView.jsx). */
 @keyframes count-pop {
@@ -522,6 +631,12 @@
   .wonder-cloud-alt,
   .wonder-float-a,
   .wonder-float-b,
+  .wonder-block-1,
+  .wonder-block-2,
+  .wonder-block-3,
+  .wonder-eq-ans,
+  .wonder-clock-min,
+  .wonder-ruler-tilt,
   .animate-count-pop { animation: none; }
 }
 

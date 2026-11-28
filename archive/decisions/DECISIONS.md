@@ -1130,3 +1130,13 @@ Owner review of the `2026-11-25..27` `F6` hero/walk prototype and visual appeal 
   2. **Original `Tinku_Wave.svg` retained with non-destructive animations (owner live-site review):** after testing a synthetic geometric redraw on Netlify, the owner rejected the redrawn silhouette and kept the original `6b653a9` vector trace (`Tinku_Wave.svg`), transferring GPU-safe greeting sway, eye blink, brow perk, and star-glow animations onto its existing elements (`prefers-reduced-motion` safe).
   3. **`WonderBackdrop.jsx` side-margin maths vignettes (`--color-illo-*` + structural tokens only):** removed centre rings behind Tinku and kept four meaningful Grade 1–2 maths illustrations in the side margins (`1·2·3` counting blocks, `2 + 3 = 5` card, `3:00` clock, and `cm` ruler + set-square) framing `GradePickerScreen` and cold-open Home.
   4. **Tactile counting & calm chrome (`QuestionView.jsx`, `sound.js`, `Mascot.jsx`):** `count-objects` items bounce on tap (`.animate-count-pop`), toggle a zero-layout-shift counted highlight (`bg-primary-soft`), and play ascending pentatonic marimba ticks (`playCountTick`); `.mascot-breathe` is disabled on small inline UI badges (`breathe={false}`).
+
+
+## 2026-11-28 (Part 2) — Mascot & Vignette Animation Plan (Step 1 + Step 2)
+
+Owner approved implementing Step 1 + Step 2 of the mascot animation plan while preserving 100% of the original `branding/mascot-originals/` (`2000×2000`) artwork:
+1. **Animated side math vignettes (`WonderBackdrop.jsx`):** `1·2·3` staggered counting bounce, `2 + 3 = 5` pulsing reveal, `3:00` ticking minute hand, and gently tilting `cm` ruler + set-square (GPU `transform`/`opacity` only, `prefers-reduced-motion` safe).
+2. **Emotion-specific Tinku choreography + detached prop layers (`Mascot.jsx`, `scripts/build-mascot-layers.py`):**
+   - Connected-component alpha extraction splits detached props from `Tinku_Think3` (star + `?`), `Tinku_Encourage_2` (star), `Tinku_Happy_2` (star + confetti ring), and `Tinku_Sleeping` (`Zzz`) into aligned transparent WebP overlays under `src/assets/mascot/webp/layers/`.
+   - Each emotion plays its own GPU-safe character motion (`celebrate` hop, `thinking` curious tilt, `encourage` supportive double-nod, `sleeping` deep breathe) while props float, twinkle, or burst independently.
+3. **Hero `Tinku_Wave.svg` limb & ear cutout rig:** uses `<defs><g id="tinku-art">...</g></defs>` + `<clipPath>` / `<mask>` (zero path duplication, 100% original `6b653a9` art) so Tinku's waving right arm genuinely waves (`rotate`), both ears wiggle gently behind/beside his head, eyes blink, brows perk, and his star glows.

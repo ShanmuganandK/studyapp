@@ -2,10 +2,12 @@
  * WonderBackdrop — airy side-margin math illustrations & subtle sky/hill framing behind Hero Tinku
  * on both `GradePickerScreen` and cold-open `SkillPathScreen` (ROADMAP F6, 2026-11-28).
  *
- * Uses `preserveAspectRatio="xMidYMid meet"` (anchored to left/right edges via corner viewBoxes)
- * so the four Grade 1–2 maths vignettes (`1·2·3` blocks, `2 + 3 = 5` card, `3:00` clock, and `cm`
- * ruler + set-square) never get sliced off on tall `915 px` full-screen viewports while keeping
- * the centre completely clear around Tinku.
+ * Uses `preserveAspectRatio="xMidYMin/Max meet"` so the four Grade 1–2 maths vignettes never get
+ * sliced off on tall `915 px` full-screen viewports while keeping the centre completely clear:
+ *   - Top-left:     `1 · 2 · 3` blocks with staggered counting pop
+ *   - Top-right:    `2 + 3 = 5` card with pulsing answer reveal
+ *   - Bottom-left:  `3:00` analogue clock with ticking/sweeping minute hand
+ *   - Bottom-right: `cm` ruler & right-triangle set square with gentle angle tilt
  *
  * Strict token & layout invariants:
  *   - Consumes ONLY structural (`--color-bg`, `--color-bg-card`, `--color-primary*`) and
@@ -65,36 +67,44 @@ export default function WonderBackdrop({ className = '' }) {
           />
         </g>
 
-        {/* 1. Top-Left Side Math Vignette: 1-2-3 Counting Blocks */}
+        {/* 1. Top-Left Side Math Vignette: 1-2-3 Counting Blocks with staggered wave pop */}
         <g className="wonder-float-a">
           <g transform="translate(38 142) rotate(-8)">
-            <rect x="-8" y="-22" width="16" height="16" rx="3.5" fill={C.sunSoft} stroke={C.primaryInk} strokeWidth="2" />
-            <text x="0" y="-10.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>1</text>
-            <rect x="-17" y="-5" width="16" height="16" rx="3.5" fill={C.skySoft} stroke={C.primaryInk} strokeWidth="2" />
-            <text x="-9" y="6.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>2</text>
-            <rect x="1" y="-5" width="16" height="16" rx="3.5" fill={C.primarySoft} stroke={C.primaryInk} strokeWidth="2" />
-            <text x="9" y="6.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>3</text>
+            <g className="wonder-block-1" style={{ transformOrigin: '0px -14px' }}>
+              <rect x="-8" y="-22" width="16" height="16" rx="3.5" fill={C.sunSoft} stroke={C.primaryInk} strokeWidth="2" />
+              <text x="0" y="-10.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>1</text>
+            </g>
+            <g className="wonder-block-2" style={{ transformOrigin: '-9px 3px' }}>
+              <rect x="-17" y="-5" width="16" height="16" rx="3.5" fill={C.skySoft} stroke={C.primaryInk} strokeWidth="2" />
+              <text x="-9" y="6.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>2</text>
+            </g>
+            <g className="wonder-block-3" style={{ transformOrigin: '9px 3px' }}>
+              <rect x="1" y="-5" width="16" height="16" rx="3.5" fill={C.primarySoft} stroke={C.primaryInk} strokeWidth="2" />
+              <text x="9" y="6.5" textAnchor="middle" fontSize="10" fontWeight="900" fill={C.primaryInk}>3</text>
+            </g>
           </g>
         </g>
 
-        {/* 2. Top-Right Side Math Vignette: "2 + 3 = 5" Addition Card */}
+        {/* 2. Top-Right Side Math Vignette: "2 + 3 = 5" Card with animated "= 5" pop */}
         <g className="wonder-float-b">
           <g transform="translate(358 148) rotate(8)">
             <rect x="-22" y="-18" width="44" height="36" rx="7" fill={C.card} stroke={C.primaryInk} strokeWidth="2" />
             <rect x="-19" y="-15" width="38" height="15" rx="4" fill={C.leafSoft} />
             <text x="0" y="-4" textAnchor="middle" fontSize="10.5" fontWeight="900" fill={C.primaryInk}>2 + 3</text>
-            <text x="0" y="12" textAnchor="middle" fontSize="11" fontWeight="900" fill={C.primary}>= 5</text>
+            <g className="wonder-eq-ans" style={{ transformOrigin: '0px 9px' }}>
+              <text x="0" y="12" textAnchor="middle" fontSize="11" fontWeight="900" fill={C.primary}>= 5</text>
+            </g>
           </g>
         </g>
       </svg>
 
-      {/* Lower band: Bottom-Left (3:00 Clock) & Bottom-Right (cm Ruler + Set-Square) */}
+      {/* Lower band: Bottom-Left (Ticking 3:00 Clock) & Bottom-Right (Tilting cm Ruler + Set-Square) */}
       <svg
         viewBox="0 0 400 150"
         preserveAspectRatio="xMidYMax meet"
         className="absolute inset-x-0 bottom-[11%] w-full"
       >
-        {/* 3. Lower-Left Side Math Vignette: Friendly 3:00 Analogue Clock */}
+        {/* 3. Lower-Left Side Math Vignette: Friendly Ticking Analogue Clock */}
         <g className="wonder-float-b">
           <g transform="translate(38 72) rotate(-6)">
             <circle cx="0" cy="0" r="19" fill={C.sunSoft} stroke={C.primaryInk} strokeWidth="2" />
@@ -103,7 +113,16 @@ export default function WonderBackdrop({ className = '' }) {
             <line x1="12" y1="0" x2="9.5" y2="0" stroke={C.primaryInk} strokeWidth="1.8" strokeLinecap="round" />
             <line x1="0" y1="12" x2="0" y2="9.5" stroke={C.primaryInk} strokeWidth="1.8" strokeLinecap="round" />
             <line x1="-12" y1="0" x2="-9.5" y2="0" stroke={C.primaryInk} strokeWidth="1.8" strokeLinecap="round" />
-            <line x1="0" y1="0" x2="0" y2="-8.5" stroke={C.primaryInk} strokeWidth="2.2" strokeLinecap="round" />
+            <line
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="-8.5"
+              stroke={C.primaryInk}
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              className="wonder-clock-min"
+            />
             <line x1="0" y1="0" x2="6.5" y2="0" stroke={C.berry} strokeWidth="2.4" strokeLinecap="round" />
             <circle cx="0" cy="0" r="2" fill={C.primaryInk} />
           </g>
@@ -112,18 +131,20 @@ export default function WonderBackdrop({ className = '' }) {
         {/* 4. Lower-Right Side Math Vignette: "cm" Ruler & Geometry Set-Square */}
         <g className="wonder-float-a">
           <g transform="translate(360 72) rotate(9)">
-            <polygon
-              points="-18,14 14,-14 14,14"
-              fill={C.skySoft}
-              stroke={C.primaryInk}
-              strokeWidth="2"
-              strokeLinejoin="round"
-            />
-            <rect x="-20" y="4" width="38" height="13" rx="3" fill={C.sunSoft} stroke={C.primaryInk} strokeWidth="2" />
-            <line x1="-12" y1="4" x2="-12" y2="9" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
-            <line x1="-4" y1="4" x2="-4" y2="11" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
-            <line x1="4" y1="4" x2="4" y2="9" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
-            <line x1="12" y1="4" x2="12" y2="11" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
+            <g className="wonder-ruler-tilt">
+              <polygon
+                points="-18,14 14,-14 14,14"
+                fill={C.skySoft}
+                stroke={C.primaryInk}
+                strokeWidth="2"
+                strokeLinejoin="round"
+              />
+              <rect x="-20" y="4" width="38" height="13" rx="3" fill={C.sunSoft} stroke={C.primaryInk} strokeWidth="2" />
+              <line x1="-12" y1="4" x2="-12" y2="9" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
+              <line x1="-4" y1="4" x2="-4" y2="11" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
+              <line x1="4" y1="4" x2="4" y2="9" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
+              <line x1="12" y1="4" x2="12" y2="11" stroke={C.primaryInk} strokeWidth="1.6" strokeLinecap="round" />
+            </g>
           </g>
         </g>
       </svg>

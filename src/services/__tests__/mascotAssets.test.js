@@ -37,12 +37,32 @@ function readWebp(buf) {
   };
 }
 
+const LAYERS_DIR = join(DIR, 'layers');
+const PROP_LAYERS = [
+  'Tinku_Think3_star',
+  'Tinku_Think3_qmark',
+  'Tinku_Encourage_2_star',
+  'Tinku_Happy_2_star',
+  'Tinku_Happy_2_confetti',
+  'Tinku_Sleeping_zzz',
+];
+
 describe('regenerated Tinku poses', () => {
   for (const name of REGENERATED) {
     it(`${name}.webp is 1024x1024 with a real alpha channel`, () => {
       const info = readWebp(readFileSync(join(DIR, `${name}.webp`)));
       expect(info.width).toBe(1024);
       expect(info.height).toBe(1024);
+      expect(info.hasAlphaFlag).toBe(true);
+      expect(info.chunks).toContain('ALPH');
+    });
+  }
+
+  for (const name of PROP_LAYERS) {
+    it(`layers/${name}.webp is 512x512 with a real alpha channel`, () => {
+      const info = readWebp(readFileSync(join(LAYERS_DIR, `${name}.webp`)));
+      expect(info.width).toBe(512);
+      expect(info.height).toBe(512);
       expect(info.hasAlphaFlag).toBe(true);
       expect(info.chunks).toContain('ALPH');
     });

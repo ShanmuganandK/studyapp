@@ -57,20 +57,35 @@ describe('Mascot — vector art (F6 hero)', () => {
     expect(src(container)).toMatch(/Tinku_Mascot\.webp/);
   });
 
-  it('breathes by default and omits mascot-breathe when breathe={false} (small pills / hero SVG)', () => {
-    const breathing = render(<Mascot emotion="waving" size={58} />);
-    expect(breathing.container.firstElementChild.className).toContain('mascot-breathe');
+  it('breathes by default with emotion-specific choreography and omits motion classes when breathe={false}', () => {
+    const waving = render(<Mascot emotion="waving" size={58} />);
+    expect(waving.container.querySelector('img').className).toContain('mascot-breathe');
+    cleanup();
+    const celebrate = render(<Mascot emotion="celebrate" size={120} />);
+    expect(celebrate.container.querySelector('img').className).toContain('mascot-celebrate');
+    expect(celebrate.container.querySelectorAll('[data-mascot-prop="true"]')).toHaveLength(2);
+    cleanup();
+    const thinking = render(<Mascot emotion="thinking" size={120} />);
+    expect(thinking.container.querySelector('img').className).toContain('mascot-thinking');
+    expect(thinking.container.querySelectorAll('[data-mascot-prop="true"]')).toHaveLength(2);
+    cleanup();
+    const encourage = render(<Mascot emotion="encourage" size={120} />);
+    expect(encourage.container.querySelector('img').className).toContain('mascot-encourage');
+    expect(encourage.container.querySelectorAll('[data-mascot-prop="true"]')).toHaveLength(1);
     cleanup();
     const still = render(<Mascot emotion="waving" size={36} breathe={false} />);
-    expect(still.container.firstElementChild.className).not.toContain('mascot-breathe');
+    expect(still.container.querySelector('img').className).not.toContain('mascot-breathe');
   });
 
-  it('Tinku_Wave.svg preserves the original vector trace with GPU-safe greeting, blink & glow animations', async () => {
+  it('Tinku_Wave.svg preserves the original vector trace with GPU-safe arm-wave, ear-wiggle, blink & glow rig', async () => {
     const { readFileSync, statSync } = await import('node:fs');
     const path = 'src/assets/mascot/svg/Tinku_Wave.svg';
     expect(statSync(path).size).toBeLessThan(150 * 1024);
     const svg = readFileSync(path, 'utf8');
     expect(svg).toContain('tinku-wave');
+    expect(svg).toContain('tinku-arm');
+    expect(svg).toContain('tinku-ear-r');
+    expect(svg).toContain('tinku-ear-l');
     expect(svg).toContain('tinku-blink');
     expect(svg).toContain('tinku-glow');
     expect(svg).toContain('prefers-reduced-motion: reduce');

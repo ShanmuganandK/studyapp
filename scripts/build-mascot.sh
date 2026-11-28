@@ -69,3 +69,6 @@ for entry in "${POSES[@]}"; do
     -define webp:method=6 -define webp:alpha-quality=100 -quality "$QUALITY" "$out"
   printf '%-12s -> %-28s %6d bytes\n' "$pose" "$out" "$(wc -c <"$out")"
 done
+
+# Extract detached floating props (?, stars, confetti, Zzz) into aligned transparent layers.
+python3 scripts/build-mascot-layers.py
