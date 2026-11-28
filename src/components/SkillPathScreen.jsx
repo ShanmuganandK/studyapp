@@ -321,14 +321,15 @@ export default function SkillPathScreen({
           aria-hidden="true"
           className="absolute z-40 overflow-hidden bg-primary-soft pointer-events-none flex items-center justify-center py-10"
         >
-          <WonderBackdrop variant="splash" />
-          <div className="relative z-10 flex flex-col items-center justify-center px-6 gap-2">
-            <span className="font-display text-title font-extrabold text-primary-ink text-center">
+          {/* Inner stage matches the exact visible `.app-frame` height (excluding the ±40 px view-enter slack). */}
+          <div className="relative w-full h-full flex flex-col items-center justify-between px-6 pt-[min(12%,4.5rem)] pb-[min(10%,3.5rem)]">
+            <WonderBackdrop variant="splash" />
+            <span className="relative z-10 font-display text-title font-extrabold text-primary-ink text-center">
               {PRODUCT_NAME}
             </span>
-            <div className="relative flex items-center justify-center">
+            <div className="relative z-10 flex flex-col items-center justify-center">
               <div
-                className="tinku-hero-halo absolute w-72 h-72 rounded-full opacity-75 pointer-events-none"
+                className="tinku-hero-halo absolute w-72 h-72 rounded-full opacity-80 pointer-events-none"
                 aria-hidden="true"
               />
               <div
@@ -339,10 +340,10 @@ export default function SkillPathScreen({
               >
                 <Mascot emotion="waving" size={heroPx} vector breathe={false} />
               </div>
+              <div className="tinku-ground h-4 w-44 -mt-3" aria-hidden="true" />
             </div>
-            <div className="tinku-ground h-4 w-44 -mt-3" aria-hidden="true" />
-            <p className="text-sm sm:text-base font-semibold text-ink mt-1 max-w-xs">
-              Maths practice, one friendly step at a time.
+            <p className="relative z-10 font-display text-2xl font-extrabold text-primary-ink text-center">
+              Tinku loves maths!
             </p>
           </div>
         </div>
